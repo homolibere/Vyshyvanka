@@ -1,0 +1,52 @@
+.connection {
+    cursor: pointer;
+}
+
+.connection-hitarea {
+    fill: none;
+    stroke: transparent;
+    stroke-width: 20;
+}
+
+.connection-line {
+    fill: none;
+    stroke: #4fc3f7;
+    stroke-width: 2;
+    transition: stroke 0.15s ease;
+}
+
+.connection:hover .connection-line {
+    stroke: #81d4fa;
+}
+
+.connection.selected .connection-line {
+    stroke: #fff;
+    stroke-width: 3;
+}
+
+.connection-arrow {
+    fill: #4fc3f7;
+    transition: fill 0.15s ease;
+}
+
+.connection:hover .connection-arrow {
+    fill: #81d4fa;
+}
+
+.connection.selected .connection-arrow {
+    fill: #fff;
+}
+
+.delete-btn {
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+.connection.selected .delete-btn {
+    opacity: 1;
+}
+
+.delete-btn:hover circle {
+    fill: #c62828;
+}

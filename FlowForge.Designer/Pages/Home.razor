@@ -1,0 +1,115 @@
+﻿@page "/"
+
+<PageTitle>FlowForge - Workflow Automation</PageTitle>
+
+<div class="home-container">
+    <h1>Welcome to FlowForge</h1>
+    <p class="lead">Build powerful workflow automations with a visual drag-and-drop interface.</p>
+
+    <div class="home-actions">
+        <a href="/designer" class="btn-primary">
+            <span class="btn-icon">🎨</span>
+            <span>Open Designer</span>
+        </a>
+    </div>
+
+    <div class="features">
+        <div class="feature">
+            <span class="feature-icon">⚡</span>
+            <h3>Trigger-Based</h3>
+            <p>Start workflows with webhooks, schedules, or manual triggers.</p>
+        </div>
+        <div class="feature">
+            <span class="feature-icon">🔗</span>
+            <h3>Connect Services</h3>
+            <p>Integrate with APIs, databases, and external services.</p>
+        </div>
+        <div class="feature">
+            <span class="feature-icon">⑂</span>
+            <h3>Logic Control</h3>
+            <p>Use conditionals, loops, and merges to control flow.</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .home-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 48px 24px;
+        text-align: center;
+    }
+    
+    h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #e0e0e0;
+        margin-bottom: 16px;
+    }
+    
+    .lead {
+        font-size: 1.25rem;
+        color: #9e9e9e;
+        margin-bottom: 32px;
+    }
+    
+    .home-actions {
+        margin-bottom: 48px;
+    }
+    
+    .btn-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        background: #1976d2;
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 500;
+        transition: background 0.15s ease;
+    }
+    
+    .btn-primary:hover {
+        background: #1565c0;
+    }
+    
+    .btn-icon {
+        font-size: 1.25rem;
+    }
+    
+    .features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 24px;
+        text-align: left;
+    }
+    
+    .feature {
+        padding: 24px;
+        background: #1a1a2e;
+        border-radius: 8px;
+        border: 1px solid #2d2d44;
+    }
+    
+    .feature-icon {
+        font-size: 2rem;
+        display: block;
+        margin-bottom: 12px;
+    }
+    
+    .feature h3 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #e0e0e0;
+        margin-bottom: 8px;
+    }
+    
+    .feature p {
+        font-size: 0.875rem;
+        color: #9e9e9e;
+        margin: 0;
+        line-height: 1.5;
+    }
+</style>

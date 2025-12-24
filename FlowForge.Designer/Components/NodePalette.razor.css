@@ -1,0 +1,131 @@
+.palette-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.palette-header {
+    padding: 16px;
+    border-bottom: 1px solid #2d2d44;
+}
+
+.palette-header h3 {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #e0e0e0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.palette-search {
+    padding: 12px 16px;
+    border-bottom: 1px solid #2d2d44;
+}
+
+.palette-search input {
+    width: 100%;
+    padding: 8px 12px;
+    background: #0d0d1a;
+    border: 1px solid #2d2d44;
+    border-radius: 4px;
+    color: #e0e0e0;
+    font-size: 0.875rem;
+}
+
+.palette-search input:focus {
+    outline: none;
+    border-color: #4fc3f7;
+}
+
+.palette-search input::placeholder {
+    color: #666;
+}
+
+.palette-category {
+    border-bottom: 1px solid #2d2d44;
+}
+
+.category-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.category-header:hover {
+    background: #2d2d44;
+}
+
+.category-icon {
+    font-size: 1rem;
+}
+
+.category-name {
+    flex: 1;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #e0e0e0;
+}
+
+.category-toggle {
+    font-size: 0.625rem;
+    color: #666;
+}
+
+.category-nodes {
+    padding: 4px 0;
+}
+
+.palette-node {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px 10px 24px;
+    cursor: grab;
+    transition: background 0.15s ease;
+}
+
+.palette-node:hover {
+    background: #2d2d44;
+}
+
+.palette-node:active {
+    cursor: grabbing;
+}
+
+.node-icon {
+    font-size: 1.25rem;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0d0d1a;
+    border-radius: 6px;
+}
+
+.node-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow: hidden;
+}
+
+.node-name {
+    font-size: 0.875rem;
+    color: #e0e0e0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.node-description {
+    font-size: 0.75rem;
+    color: #666;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

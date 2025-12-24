@@ -1,0 +1,38 @@
+.canvas-container {
+    flex: 1;
+    overflow: hidden;
+    cursor: default;
+    background: #0d0d1a;
+}
+
+.canvas-container:active {
+    cursor: grabbing;
+}
+
+.canvas-svg {
+    display: block;
+}
+
+.pending-connection {
+    fill: none;
+    stroke: #4fc3f7;
+    stroke-width: 2;
+    stroke-dasharray: 5, 5;
+    pointer-events: none;
+}
+
+.connections-layer {
+    pointer-events: none;
+}
+
+.connections-layer > * {
+    pointer-events: auto;
+}
+
+.nodes-layer {
+    pointer-events: none;
+}
+
+.nodes-layer > * {
+    pointer-events: auto;
+}

@@ -1,0 +1,279 @@
+@inject WorkflowStateService StateService
+@implements IDisposable
+
+<div class="config-container">
+    @if (StateService.SelectedNodeId is not null)
+    {
+        var node = StateService.GetSelectedNode();
+        var definition = node is not null ? StateService.GetNodeDefinition(node.Type) : null;
+        var execState = node is not null ? StateService.GetNodeExecutionState(node.Id) : null;
+
+        @if (node is not null)
+        {
+            <div class="config-header">
+                <span class="config-icon">@(definition?.Icon ?? "📦")</span>
+                <h3>@node.Name</h3>
+            </div>
+
+            @* Execution status section *@
+            @if (execState is not null)
+            {
+                <div class="execution-section">
+                    <div class="execution-status @GetExecutionStatusClass(execState.Status)">
+                        <span class="status-icon">@GetStatusIcon(execState.Status)</span>
+                        <span class="status-text">@execState.Status</span>
+                        @if (execState.DurationMs is not null)
+                        {
+                            <span class="status-duration">@FormatDuration(execState.DurationMs.Value)</span>
+                        }
+                    </div>
+
+                    @if (execState.ErrorMessage is not null)
+                    {
+                        <div class="execution-error">
+                            <label class="config-label">Error</label>
+                            <div class="error-message">@execState.ErrorMessage</div>
+                        </div>
+                    }
+
+                    @if (execState.InputData.HasValue)
+                    {
+                        <div class="execution-data">
+                            <label class="config-label">Input Data</label>
+                            <pre class="data-preview">@FormatJson(execState.InputData.Value)</pre>
+                        </div>
+                    }
+
+                    @if (execState.OutputData.HasValue)
+                    {
+                        <div class="execution-data">
+                            <label class="config-label">Output Data</label>
+                            <pre class="data-preview">@FormatJson(execState.OutputData.Value)</pre>
+                        </div>
+                    }
+                </div>
+            }
+
+            <div class="config-section">
+                <label class="config-label">Name</label>
+                <input type="text"
+                       class="config-input"
+                       value="@nodeName"
+                       @oninput="@(e => nodeName = e.Value?.ToString() ?? "")"
+                       @onblur="@(() => UpdateNodeName(node.Id))"/>
+            </div>
+
+            <div class="config-section">
+                <label class="config-label">Type</label>
+                <div class="config-value">@node.Type</div>
+            </div>
+
+            @if (definition is not null)
+            {
+                <div class="config-section">
+                    <label class="config-label">Description</label>
+                    <div class="config-description">@definition.Description</div>
+                </div>
+
+                @if (definition.Inputs.Count > 0)
+                {
+                    <div class="config-section">
+                        <label class="config-label">Inputs</label>
+                        <div class="port-list">
+                            @foreach (var port in definition.Inputs)
+                            {
+                                <div class="port-item">
+                                    <span class="port-dot @GetPortTypeClass(port.Type)"></span>
+                                    <span class="port-name">@port.DisplayName</span>
+                                    <span class="port-type">@port.Type</span>
+                                    @if (port.IsRequired)
+                                    {
+                                        <span class="port-required">*</span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                @if (definition.Outputs.Count > 0)
+                {
+                    <div class="config-section">
+                        <label class="config-label">Outputs</label>
+                        <div class="port-list">
+                            @foreach (var port in definition.Outputs)
+                            {
+                                <div class="port-item">
+                                    <span class="port-dot @GetPortTypeClass(port.Type)"></span>
+                                    <span class="port-name">@port.DisplayName</span>
+                                    <span class="port-type">@port.Type</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+
+            <div class="config-section">
+                <label class="config-label">Configuration</label>
+                <div class="config-hint">
+                    Use <code>@("{{ nodes.nodeName.output.field }}")</code> for expressions
+                </div>
+                <textarea class="config-textarea" 
+                          placeholder="Enter JSON configuration..."
+                          @bind="configJson"
+                          @bind:event="oninput"></textarea>
+                @if (!string.IsNullOrEmpty(configError))
+                {
+                    <div class="config-error">@configError</div>
+                }
+                <button class="config-btn" @onclick="ApplyConfiguration">Apply</button>
+            </div>
+
+            <div class="config-section">
+                <label class="config-label">Position</label>
+                <div class="position-inputs">
+                    <div class="position-field">
+                        <label>X</label>
+                        <input type="number" value="@node.Position.X.ToString("0")" readonly/>
+                    </div>
+                    <div class="position-field">
+                        <label>Y</label>
+                        <input type="number" value="@node.Position.Y.ToString("0")" readonly/>
+                    </div>
+                </div>
+            </div>
+
+            <div class="config-actions">
+                <button class="config-btn danger" @onclick="DeleteNode">Delete Node</button>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="config-empty">
+            <div class="empty-icon">📋</div>
+            <p>Select a node to view its configuration</p>
+        </div>
+    }
+</div>
+
+@code {
+    private string configJson = "{}";
+    private string nodeName = "";
+    private string? configError;
+
+    protected override void OnInitialized()
+    {
+        StateService.OnStateChanged += OnStateChanged;
+    }
+
+    private void OnStateChanged()
+    {
+        var node = StateService.GetSelectedNode();
+        if (node is not null)
+        {
+            nodeName = node.Name;
+            try
+            {
+                configJson = node.Configuration.GetRawText();
+            }
+            catch
+            {
+                configJson = "{}";
+            }
+        }
+
+        configError = null;
+        StateHasChanged();
+    }
+
+    private void UpdateNodeName(string nodeId)
+    {
+        if (string.IsNullOrWhiteSpace(nodeName)) return;
+        StateService.UpdateNodeName(nodeId, nodeName);
+    }
+
+    private void ApplyConfiguration()
+    {
+        var node = StateService.GetSelectedNode();
+        if (node is null) return;
+
+        try
+        {
+            var config = System.Text.Json.JsonDocument.Parse(configJson).RootElement;
+            StateService.UpdateNodeConfiguration(node.Id, config);
+            configError = null;
+        }
+        catch (System.Text.Json.JsonException ex)
+        {
+            configError = $"Invalid JSON: {ex.Message}";
+        }
+    }
+
+    private void DeleteNode()
+    {
+        if (StateService.SelectedNodeId is not null)
+        {
+            StateService.RemoveNode(StateService.SelectedNodeId);
+        }
+    }
+
+    private static string GetPortTypeClass(PortType type) => type switch
+    {
+        PortType.String => "port-string",
+        PortType.Number => "port-number",
+        PortType.Boolean => "port-boolean",
+        PortType.Array => "port-array",
+        PortType.Object => "port-object",
+        _ => "port-any"
+    };
+
+    private static string GetExecutionStatusClass(ExecutionStatus status) => status switch
+    {
+        ExecutionStatus.Running => "status-running",
+        ExecutionStatus.Completed => "status-completed",
+        ExecutionStatus.Failed => "status-failed",
+        ExecutionStatus.Pending => "status-pending",
+        _ => ""
+    };
+
+    private static string GetStatusIcon(ExecutionStatus status) => status switch
+    {
+        ExecutionStatus.Running => "⟳",
+        ExecutionStatus.Completed => "✓",
+        ExecutionStatus.Failed => "✗",
+        ExecutionStatus.Pending => "⏳",
+        _ => "○"
+    };
+
+    private static string FormatDuration(double ms)
+    {
+        if (ms < 1000)
+            return $"{ms:F0}ms";
+        if (ms < 60000)
+            return $"{ms / 1000:F1}s";
+        return $"{ms / 60000:F1}m";
+    }
+
+    private static string FormatJson(System.Text.Json.JsonElement element)
+    {
+        try
+        {
+            return System.Text.Json.JsonSerializer.Serialize(element, new System.Text.Json.JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
+        }
+        catch
+        {
+            return element.GetRawText();
+        }
+    }
+
+    public void Dispose()
+    {
+        StateService.OnStateChanged -= OnStateChanged;
+    }
+
+}

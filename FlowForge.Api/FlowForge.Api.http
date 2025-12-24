@@ -1,0 +1,6 @@
+@FlowForge.Api_HostAddress = http://localhost:5288
+
+GET {{FlowForge.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

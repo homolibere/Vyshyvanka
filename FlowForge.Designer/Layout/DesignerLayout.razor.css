@@ -1,0 +1,60 @@
+.designer-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.designer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 48px;
+    padding: 0 16px;
+    background: #1a1a2e;
+    color: white;
+    border-bottom: 1px solid #2d2d44;
+    flex-shrink: 0;
+}
+
+.header-left, .header-right {
+    flex: 1;
+}
+
+.header-center {
+    flex: 2;
+    display: flex;
+    justify-content: center;
+}
+
+.header-right {
+    text-align: right;
+}
+
+.brand {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #4fc3f7;
+    text-decoration: none;
+}
+
+.brand:hover {
+    color: #81d4fa;
+}
+
+.btn-back {
+    color: #9e9e9e;
+    text-decoration: none;
+    font-size: 0.875rem;
+}
+
+.btn-back:hover {
+    color: white;
+}
+
+.designer-main {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    background: #0d0d1a;
+}

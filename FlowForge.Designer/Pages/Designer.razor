@@ -1,0 +1,317 @@
+@page "/designer"
+@page "/designer/{WorkflowId:guid}"
+@layout DesignerLayout
+@inject WorkflowStateService StateService
+@inject FlowForgeApiClient ApiClient
+@inject NavigationManager Navigation
+
+<PageTitle>@(StateService.Workflow.Name) - FlowForge Designer</PageTitle>
+
+<div class="designer-container">
+    <aside class="node-palette">
+        <NodePalette/>
+    </aside>
+
+    <div class="canvas-area">
+        <div class="canvas-toolbar">
+            <button class="toolbar-btn" @onclick="StateService.Undo" disabled="@(!StateService.CanUndo)" title="Undo">
+                ↶
+            </button>
+            <button class="toolbar-btn" @onclick="StateService.Redo" disabled="@(!StateService.CanRedo)" title="Redo">
+                ↷
+            </button>
+            <span class="toolbar-separator"></span>
+            <button class="toolbar-btn" @onclick="ZoomIn" title="Zoom In">+</button>
+            <span class="zoom-level">@((StateService.CanvasState.Zoom * 100).ToString("0"))%</span>
+            <button class="toolbar-btn" @onclick="ZoomOut" title="Zoom Out">−</button>
+            <button class="toolbar-btn" @onclick="StateService.ResetView" title="Reset View">⟲</button>
+            <span class="toolbar-separator"></span>
+            @if (StateService.IsDirty)
+            {
+                <span class="dirty-indicator" title="Unsaved changes">●</span>
+            }
+            <button class="toolbar-btn primary" @onclick="SaveWorkflow" disabled="@(!StateService.ValidationResult.IsValid)" title="@GetSaveButtonTitle()">
+                💾 Save
+            </button>
+            <button class="toolbar-btn" @onclick="ExecuteWorkflow" disabled="@(!StateService.ValidationResult.IsValid || StateService.IsExecutionActive)" title="Execute">
+                ▶ Run
+            </button>
+            @if (StateService.IsExecutionActive)
+            {
+                <button class="toolbar-btn" @onclick="StopExecution" title="Stop Execution">
+                    ⏹ Stop
+                </button>
+            }
+        </div>
+
+        @if (!StateService.ValidationResult.IsValid)
+        {
+            <div class="validation-panel">
+                <div class="validation-header" @onclick="ToggleValidationPanel">
+                    <span class="validation-icon">⚠️</span>
+                    <span>@StateService.ValidationResult.Errors.Count validation error(s)</span>
+                    <span class="validation-toggle">@(_isValidationPanelExpanded ? "▼" : "▶")</span>
+                </div>
+                @if (_isValidationPanelExpanded)
+                {
+                    <div class="validation-errors">
+                        @foreach (var error in StateService.ValidationResult.Errors)
+                        {
+                            <div class="validation-error">
+                                <span class="error-path">@error.Path</span>
+                                <span class="error-message">@error.Message</span>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+
+        <WorkflowCanvas/>
+    </div>
+
+    <aside class="config-panel">
+        <NodeConfigPanel/>
+    </aside>
+</div>
+
+@code {
+    [Parameter] public Guid? WorkflowId { get; set; }
+
+    private bool _isValidationPanelExpanded = true;
+    private System.Timers.Timer? _executionPollTimer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        StateService.OnStateChanged += StateHasChanged;
+        StateService.OnExecutionChanged += OnExecutionChanged;
+
+        // Load node definitions
+        try
+        {
+            var definitions = await ApiClient.GetNodeDefinitionsAsync();
+            StateService.SetNodeDefinitions(definitions);
+        }
+        catch
+        {
+            // Use default definitions if API is not available
+            StateService.SetNodeDefinitions(GetDefaultNodeDefinitions());
+        }
+
+        // Load workflow if ID provided
+        if (WorkflowId.HasValue)
+        {
+            try
+            {
+                var workflow = await ApiClient.GetWorkflowAsync(WorkflowId.Value);
+                if (workflow is not null)
+                {
+                    StateService.LoadWorkflow(workflow);
+                }
+            }
+            catch
+            {
+                // Start with new workflow if load fails
+                StateService.NewWorkflow();
+            }
+        }
+    }
+
+    private void ZoomIn() => StateService.Zoom(StateService.CanvasState.Zoom + 0.1);
+    private void ZoomOut() => StateService.Zoom(StateService.CanvasState.Zoom - 0.1);
+
+    private void ToggleValidationPanel() => _isValidationPanelExpanded = !_isValidationPanelExpanded;
+
+    private string GetSaveButtonTitle() => StateService.ValidationResult.IsValid
+        ? "Save workflow"
+        : "Fix validation errors before saving";
+
+    private async Task SaveWorkflow()
+    {
+        if (!StateService.ValidationResult.IsValid)
+            return;
+
+        try
+        {
+            if (WorkflowId.HasValue)
+            {
+                await ApiClient.UpdateWorkflowAsync(StateService.Workflow);
+            }
+            else
+            {
+                var saved = await ApiClient.CreateWorkflowAsync(StateService.Workflow);
+                if (saved is not null)
+                {
+                    Navigation.NavigateTo($"/designer/{saved.Id}");
+                }
+            }
+
+            StateService.MarkAsSaved();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to save workflow: {ex.Message}");
+        }
+    }
+
+    private async Task ExecuteWorkflow()
+    {
+        if (!StateService.ValidationResult.IsValid)
+            return;
+
+        try
+        {
+            var execution = await ApiClient.ExecuteWorkflowAsync(StateService.Workflow.Id);
+            if (execution is not null)
+            {
+                StateService.SetCurrentExecution(execution);
+                StartExecutionPolling(execution.Id);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to execute workflow: {ex.Message}");
+        }
+    }
+
+    private void StopExecution()
+    {
+        StopExecutionPolling();
+        StateService.ClearExecutionState();
+    }
+
+    private void OnExecutionChanged(Execution? execution)
+    {
+        if (execution is null || execution.Status is ExecutionStatus.Completed or ExecutionStatus.Failed or ExecutionStatus.Cancelled)
+        {
+            StopExecutionPolling();
+        }
+
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void StartExecutionPolling(Guid executionId)
+    {
+        StopExecutionPolling();
+        _executionPollTimer = new System.Timers.Timer(1000);
+        _executionPollTimer.Elapsed += async (_, _) => await PollExecutionStatus(executionId);
+        _executionPollTimer.Start();
+    }
+
+    private void StopExecutionPolling()
+    {
+        _executionPollTimer?.Stop();
+        _executionPollTimer?.Dispose();
+        _executionPollTimer = null;
+    }
+
+    private async Task PollExecutionStatus(Guid executionId)
+    {
+        try
+        {
+            var execution = await ApiClient.GetExecutionAsync(executionId);
+            if (execution is not null)
+            {
+                StateService.UpdateExecution(execution);
+            }
+        }
+        catch
+        {
+            // Ignore polling errors
+        }
+    }
+
+    private static IEnumerable<NodeDefinition> GetDefaultNodeDefinitions()
+    {
+        return
+        [
+            new NodeDefinition
+            {
+                Type = "manual-trigger",
+                Name = "Manual Trigger",
+                Description = "Manually trigger workflow execution",
+                Category = NodeCategory.Trigger,
+                Icon = "▶",
+                Outputs = [new PortDefinition { Name = "output", DisplayName = "Output", Type = PortType.Any }]
+            },
+            new NodeDefinition
+            {
+                Type = "webhook-trigger",
+                Name = "Webhook Trigger",
+                Description = "Trigger workflow via HTTP webhook",
+                Category = NodeCategory.Trigger,
+                Icon = "🌐",
+                Outputs = [new PortDefinition { Name = "output", DisplayName = "Output", Type = PortType.Object }]
+            },
+            new NodeDefinition
+            {
+                Type = "schedule-trigger",
+                Name = "Schedule Trigger",
+                Description = "Trigger workflow on a schedule",
+                Category = NodeCategory.Trigger,
+                Icon = "⏰",
+                Outputs = [new PortDefinition { Name = "output", DisplayName = "Output", Type = PortType.Object }]
+            },
+            new NodeDefinition
+            {
+                Type = "if",
+                Name = "If",
+                Description = "Conditional branching",
+                Category = NodeCategory.Logic,
+                Icon = "⑂",
+                Inputs = [new PortDefinition { Name = "input", DisplayName = "Input", Type = PortType.Any, IsRequired = true }],
+                Outputs =
+                [
+                    new PortDefinition { Name = "true", DisplayName = "True", Type = PortType.Any },
+                    new PortDefinition { Name = "false", DisplayName = "False", Type = PortType.Any }
+                ]
+            },
+            new NodeDefinition
+            {
+                Type = "switch",
+                Name = "Switch",
+                Description = "Multi-way branching",
+                Category = NodeCategory.Logic,
+                Icon = "⇉",
+                Inputs = [new PortDefinition { Name = "input", DisplayName = "Input", Type = PortType.Any, IsRequired = true }],
+                Outputs = [new PortDefinition { Name = "output", DisplayName = "Output", Type = PortType.Any }]
+            },
+            new NodeDefinition
+            {
+                Type = "merge",
+                Name = "Merge",
+                Description = "Merge multiple branches",
+                Category = NodeCategory.Logic,
+                Icon = "⇶",
+                Inputs =
+                [
+                    new PortDefinition { Name = "input1", DisplayName = "Input 1", Type = PortType.Any },
+                    new PortDefinition { Name = "input2", DisplayName = "Input 2", Type = PortType.Any }
+                ],
+                Outputs = [new PortDefinition { Name = "output", DisplayName = "Output", Type = PortType.Any }]
+            },
+            new NodeDefinition
+            {
+                Type = "loop",
+                Name = "Loop",
+                Description = "Iterate over items",
+                Category = NodeCategory.Logic,
+                Icon = "🔄",
+                Inputs = [new PortDefinition { Name = "input", DisplayName = "Input", Type = PortType.Array, IsRequired = true }],
+                Outputs =
+                [
+                    new PortDefinition { Name = "item", DisplayName = "Item", Type = PortType.Any },
+                    new PortDefinition { Name = "done", DisplayName = "Done", Type = PortType.Array }
+                ]
+            }
+        ];
+    }
+
+    public void Dispose()
+    {
+        StateService.OnStateChanged -= StateHasChanged;
+        StateService.OnExecutionChanged -= OnExecutionChanged;
+        StopExecutionPolling();
+    }
+
+}

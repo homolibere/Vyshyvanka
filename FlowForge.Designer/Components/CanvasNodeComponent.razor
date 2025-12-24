@@ -1,0 +1,227 @@
+@inject WorkflowStateService StateService
+
+<g class="canvas-node @(IsSelected ? "selected" : "") @GetExecutionStatusClass()"
+   transform="translate(@Node.Position.X, @Node.Position.Y)"
+   @onclick="OnSelect"
+   @onclick:stopPropagation
+   @onmousedown="OnMouseDown"
+   @onmousedown:stopPropagation>
+
+    <!-- Node background -->
+    <rect class="node-bg @GetCategoryClass()"
+          width="@NodeWidth"
+          height="@NodeHeight"
+          rx="8"/>
+
+    <!-- Execution status indicator -->
+    @{
+        var execState = StateService.GetNodeExecutionState(Node.Id);
+    }
+    @if (execState is not null)
+    {
+        <rect class="execution-indicator @GetExecutionIndicatorClass(execState.Status)"
+              x="-3"
+              y="-3"
+              width="@(NodeWidth + 6)"
+              height="@(NodeHeight + 6)"
+              rx="10"
+              fill="none"
+              stroke-width="3"/>
+    }
+
+    <!-- Node header -->
+    <rect class="node-header @GetCategoryClass()"
+          width="@NodeWidth"
+          height="28"
+          rx="8"/>
+    <rect class="node-header-bottom"
+          y="20"
+          width="@NodeWidth"
+          height="8"/>
+
+    <!-- Node icon and title -->
+    <text class="node-icon" x="12" y="20">@(Definition?.Icon ?? "📦")</text>
+    <text class="node-title" x="36" y="19">@Node.Name</text>
+
+    <!-- Execution status badge -->
+    @if (execState is not null)
+    {
+        <g class="execution-badge" transform="translate(@(NodeWidth - 24), -8)">
+            <circle r="10" fill="@GetStatusBadgeColor(execState.Status)"/>
+            <text x="0" y="4" text-anchor="middle" fill="white" font-size="10">@GetStatusBadgeIcon(execState.Status)</text>
+        </g>
+    }
+
+    <!-- Delete button (shown when selected and not executing) -->
+    @if (IsSelected && execState is null)
+    {
+        <g class="delete-btn" transform="translate(@(NodeWidth - 20), 4)" @onclick="OnDeleteClick" @onclick:stopPropagation>
+            <circle r="8" fill="#ef5350"/>
+            <text x="0" y="4" text-anchor="middle" fill="white" font-size="12">×</text>
+        </g>
+    }
+
+    <!-- Execution duration (shown when completed) -->
+    @if (execState?.DurationMs is not null)
+    {
+        <g class="execution-duration-group">
+            <text class="execution-duration" x="@(NodeWidth / 2)" y="@(NodeHeight + 14)" text-anchor="middle">@FormatDuration(execState.DurationMs.Value)</text>
+        </g>
+    }
+
+    <!-- Input ports -->
+    @if (Definition?.Inputs is not null)
+    {
+        var inputCount = Definition.Inputs.Count;
+        var startY = (NodeHeight - (inputCount - 1) * PortSpacing) / 2;
+
+        @for (var i = 0; i < inputCount; i++)
+        {
+            var port = Definition.Inputs[i];
+            var portY = startY + i * PortSpacing;
+            <g class="port input-port"
+               transform="translate(0, @portY)"
+               @onmouseup="() => OnPortMouseUp(port.Name)"
+               @onmouseup:stopPropagation>
+                <circle r="6" class="port-circle @GetPortTypeClass(port.Type)"/>
+                <text class="port-label" x="12" y="4">@port.DisplayName</text>
+            </g>
+        }
+    }
+
+    <!-- Output ports -->
+    @if (Definition?.Outputs is not null)
+    {
+        var outputCount = Definition.Outputs.Count;
+        var startY = (NodeHeight - (outputCount - 1) * PortSpacing) / 2;
+
+        @for (var i = 0; i < outputCount; i++)
+        {
+            var port = Definition.Outputs[i];
+            var portY = startY + i * PortSpacing;
+            <g class="port output-port"
+               transform="translate(@NodeWidth, @portY)"
+               @onmousedown="() => OnPortMouseDown(port.Name)"
+               @onmousedown:stopPropagation>
+                <circle r="6" class="port-circle @GetPortTypeClass(port.Type)"/>
+                <text class="port-label" x="-12" y="4" text-anchor="end">@port.DisplayName</text>
+            </g>
+        }
+    }
+</g>
+
+@code {
+    [Parameter, EditorRequired] public WorkflowNode Node { get; set; } = null!;
+
+    [Parameter] public NodeDefinition? Definition { get; set; }
+
+    [Parameter] public bool IsSelected { get; set; }
+
+    [Parameter] public EventCallback OnSelect { get; set; }
+
+    [Parameter] public EventCallback<MouseEventArgs> OnStartDrag { get; set; }
+
+    [Parameter] public EventCallback<string> OnStartConnection { get; set; }
+
+    [Parameter] public EventCallback<string> OnEndConnection { get; set; }
+
+    [Parameter] public EventCallback<Position> OnMove { get; set; }
+
+    [Parameter] public EventCallback OnDelete { get; set; }
+
+    private const double NodeWidth = 180;
+    private const double NodeHeight = 80;
+    private const double PortSpacing = 20;
+
+    private string GetCategoryClass() => Definition?.Category switch
+    {
+        NodeCategory.Trigger => "category-trigger",
+        NodeCategory.Action => "category-action",
+        NodeCategory.Logic => "category-logic",
+        NodeCategory.Transform => "category-transform",
+        _ => ""
+    };
+
+    private static string GetPortTypeClass(PortType type) => type switch
+    {
+        PortType.String => "port-string",
+        PortType.Number => "port-number",
+        PortType.Boolean => "port-boolean",
+        PortType.Array => "port-array",
+        PortType.Object => "port-object",
+        _ => "port-any"
+    };
+
+    private string GetExecutionStatusClass()
+    {
+        var execState = StateService.GetNodeExecutionState(Node.Id);
+        return execState?.Status switch
+        {
+            ExecutionStatus.Running => "executing",
+            ExecutionStatus.Completed => "executed-success",
+            ExecutionStatus.Failed => "executed-failed",
+            ExecutionStatus.Pending => "execution-pending",
+            _ => ""
+        };
+    }
+
+    private static string GetExecutionIndicatorClass(ExecutionStatus status) => status switch
+    {
+        ExecutionStatus.Running => "indicator-running",
+        ExecutionStatus.Completed => "indicator-completed",
+        ExecutionStatus.Failed => "indicator-failed",
+        ExecutionStatus.Pending => "indicator-pending",
+        _ => ""
+    };
+
+    private static string GetStatusBadgeColor(ExecutionStatus status) => status switch
+    {
+        ExecutionStatus.Running => "#1976d2",
+        ExecutionStatus.Completed => "#4caf50",
+        ExecutionStatus.Failed => "#ef5350",
+        ExecutionStatus.Pending => "#ff9800",
+        _ => "#9e9e9e"
+    };
+
+    private static string GetStatusBadgeIcon(ExecutionStatus status) => status switch
+    {
+        ExecutionStatus.Running => "⟳",
+        ExecutionStatus.Completed => "✓",
+        ExecutionStatus.Failed => "✗",
+        ExecutionStatus.Pending => "⏳",
+        _ => "○"
+    };
+
+    private static string FormatDuration(double ms)
+    {
+        if (ms < 1000)
+            return $"{ms:F0}ms";
+        if (ms < 60000)
+            return $"{ms / 1000:F1}s";
+        return $"{ms / 60000:F1}m";
+    }
+
+    private async Task OnMouseDown(MouseEventArgs e)
+    {
+        if (e.Button == 0)
+        {
+            await OnStartDrag.InvokeAsync(e);
+        }
+    }
+
+    private void OnPortMouseDown(string portName)
+    {
+        OnStartConnection.InvokeAsync(portName);
+    }
+
+    private void OnPortMouseUp(string portName)
+    {
+        OnEndConnection.InvokeAsync(portName);
+    }
+
+    private async Task OnDeleteClick()
+    {
+        await OnDelete.InvokeAsync();
+    }
+
+}

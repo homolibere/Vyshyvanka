@@ -1,0 +1,27 @@
+@inherits LayoutComponentBase
+
+<div class="designer-layout">
+    <header class="designer-header">
+        <div class="header-left">
+            <a href="/" class="brand">FlowForge</a>
+        </div>
+        <div class="header-center">
+            @if (ChildContent is not null)
+            {
+                @ChildContent
+            }
+        </div>
+        <div class="header-right">
+            <a href="/" class="btn-back">← Back to Home</a>
+        </div>
+    </header>
+    
+    <main class="designer-main">
+        @Body
+    </main>
+</div>
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

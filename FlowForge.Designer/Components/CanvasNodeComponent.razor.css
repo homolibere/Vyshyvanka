@@ -1,0 +1,172 @@
+.canvas-node {
+    cursor: move;
+}
+
+.canvas-node.selected .node-bg {
+    stroke: #4fc3f7;
+    stroke-width: 2;
+}
+
+.node-bg {
+    fill: #1a1a2e;
+    stroke: #2d2d44;
+    stroke-width: 1;
+}
+
+.node-header {
+    fill: #2d2d44;
+}
+
+.node-header.category-trigger {
+    fill: #4caf50;
+}
+
+.node-header.category-action {
+    fill: #2196f3;
+}
+
+.node-header.category-logic {
+    fill: #ff9800;
+}
+
+.node-header.category-transform {
+    fill: #9c27b0;
+}
+
+.node-header-bottom {
+    fill: #1a1a2e;
+}
+
+.node-icon {
+    font-size: 14px;
+    fill: white;
+}
+
+.node-title {
+    font-size: 12px;
+    font-weight: 500;
+    fill: white;
+}
+
+.delete-btn {
+    cursor: pointer;
+    opacity: 0.8;
+}
+
+.delete-btn:hover {
+    opacity: 1;
+}
+
+.port {
+    cursor: crosshair;
+}
+
+.port-circle {
+    fill: #1a1a2e;
+    stroke: #4fc3f7;
+    stroke-width: 2;
+    transition: all 0.15s ease;
+}
+
+.port:hover .port-circle {
+    fill: #4fc3f7;
+    transform: scale(1.2);
+}
+
+.port-label {
+    font-size: 10px;
+    fill: #9e9e9e;
+    pointer-events: none;
+}
+
+/* Port type colors */
+.port-string {
+    stroke: #4caf50;
+}
+
+.port-number {
+    stroke: #2196f3;
+}
+
+.port-boolean {
+    stroke: #ff9800;
+}
+
+.port-array {
+    stroke: #9c27b0;
+}
+
+.port-object {
+    stroke: #00bcd4;
+}
+
+.port-any {
+    stroke: #9e9e9e;
+}
+
+/* Execution status styles */
+.canvas-node.executing .node-bg {
+    animation: pulse-running 1.5s ease-in-out infinite;
+}
+
+.canvas-node.executed-success .node-bg {
+    stroke: #4caf50;
+    stroke-width: 2;
+}
+
+.canvas-node.executed-failed .node-bg {
+    stroke: #ef5350;
+    stroke-width: 2;
+}
+
+.canvas-node.execution-pending .node-bg {
+    stroke: #ff9800;
+    stroke-width: 2;
+}
+
+.indicator-running {
+    stroke: #1976d2;
+    animation: pulse-indicator 1s ease-in-out infinite;
+}
+
+.indicator-completed {
+    stroke: #4caf50;
+}
+
+.indicator-failed {
+    stroke: #ef5350;
+}
+
+.indicator-pending {
+    stroke: #ff9800;
+}
+
+.execution-badge {
+    pointer-events: none;
+}
+
+.execution-duration {
+    font-size: 10px;
+    fill: #9e9e9e;
+    pointer-events: none;
+}
+
+@keyframes pulse-running {
+    0%, 100% {
+        stroke: #1976d2;
+        stroke-width: 2;
+    }
+    50% {
+        stroke: #42a5f5;
+        stroke-width: 3;
+    }
+}
+
+@keyframes pulse-indicator {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
