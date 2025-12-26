@@ -277,6 +277,10 @@ public class DataFlowTests
         {
         }
 
+        public void Register(Type nodeType)
+        {
+        }
+
         public void RegisterFromAssembly(System.Reflection.Assembly assembly)
         {
         }

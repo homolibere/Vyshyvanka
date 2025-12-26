@@ -61,7 +61,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICredentialRepository, CredentialRepository>();
         services.AddSingleton<ICredentialEncryption>(_ =>
         {
-            var encryptionKey = configuration["FlowForge:EncryptionKey"] ?? "DefaultEncryptionKey123456789012";
+            // Default key for development - should be overridden in production via configuration
+            var encryptionKey = configuration["FlowForge:EncryptionKey"] ?? "Rk93Rm9yZ2VEZXZLZXkxMjM0NTY3ODkwMTIzNDU2Nzg=";
             return new AesCredentialEncryption(encryptionKey);
         });
         services.AddScoped<ICredentialService, CredentialService>();
@@ -110,6 +111,24 @@ public static class ServiceCollectionExtensions
                     ValidAudience = jwtSettings.Audience,
                     ValidateLifetime = true,
                     ClockSkew = TimeSpan.Zero
+                };
+
+                // Return JSON responses for 401/403 instead of HTML
+                options.Events = new JwtBearerEvents
+                {
+                    OnChallenge = async context =>
+                    {
+                        context.HandleResponse();
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        context.Response.ContentType = "application/json";
+                        await context.Response.WriteAsJsonAsync(new { code = "UNAUTHORIZED", message = "Authentication required" });
+                    },
+                    OnForbidden = async context =>
+                    {
+                        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                        context.Response.ContentType = "application/json";
+                        await context.Response.WriteAsJsonAsync(new { code = "FORBIDDEN", message = "Access denied" });
+                    }
                 };
             })
             .AddScheme<ApiKeyAuthenticationOptions, ApiKeyAuthenticationHandler>(
@@ -206,7 +225,6 @@ public static class ServiceCollectionExtensions
             var pluginLoader = sp.GetRequiredService<IPluginLoader>();
             var pluginValidator = sp.GetRequiredService<IPluginValidator>();
             var nodeRegistry = sp.GetRequiredService<INodeRegistry>();
-            var workflowRepository = sp.GetService<IWorkflowRepository>();
             var options = sp.GetRequiredService<PackageOptions>();
             var logger = sp.GetService<ILogger<NuGetPackageManager>>();
 
@@ -218,7 +236,7 @@ public static class ServiceCollectionExtensions
                 pluginLoader,
                 pluginValidator,
                 nodeRegistry,
-                workflowRepository,
+                null, // IWorkflowRepository is scoped, pass null for singleton registration
                 options,
                 logger);
         });

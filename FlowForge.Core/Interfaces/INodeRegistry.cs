@@ -12,6 +12,9 @@ public interface INodeRegistry
     /// <summary>Registers a node type.</summary>
     void Register<TNode>() where TNode : INode;
 
+    /// <summary>Registers a node type by Type instance.</summary>
+    void Register(Type nodeType);
+
     /// <summary>Registers all node types from an assembly.</summary>
     void RegisterFromAssembly(Assembly assembly);
 

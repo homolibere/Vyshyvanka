@@ -11,6 +11,17 @@ builder.Services.AddFlowForgeServices(builder.Configuration);
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
+// Add CORS for Blazor WebAssembly client
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 var app = builder.Build();
 
 // Initialize NuGet package manager on startup
@@ -25,6 +36,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

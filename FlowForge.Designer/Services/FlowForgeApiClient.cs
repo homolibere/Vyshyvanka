@@ -65,8 +65,13 @@ public partial class FlowForgeApiClient
     public async Task<Execution?> ExecuteWorkflowAsync(Guid workflowId, object? triggerData = null,
         CancellationToken cancellationToken = default)
     {
-        var response =
-            await _httpClient.PostAsJsonAsync($"api/executions/workflows/{workflowId}", triggerData, cancellationToken);
+        var request = new
+        {
+            WorkflowId = workflowId,
+            InputData = triggerData,
+            Mode = "Api"
+        };
+        var response = await _httpClient.PostAsJsonAsync("api/executions", request, cancellationToken);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<Execution>(cancellationToken);
     }

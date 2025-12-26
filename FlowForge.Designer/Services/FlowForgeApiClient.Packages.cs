@@ -16,11 +16,23 @@ public partial class FlowForgeApiClient
     public async Task<List<InstalledPackageModel>> GetInstalledPackagesAsync(
         CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.GetFromJsonAsync<List<InstalledPackageApiResponse>>(
-            "api/packages",
-            cancellationToken);
+        var response = await _httpClient.GetAsync("api/packages", cancellationToken);
 
-        return response?.Select(r => r.ToModel()).ToList() ?? [];
+        if (!response.IsSuccessStatusCode || !IsJsonResponse(response))
+        {
+            return [];
+        }
+
+        var result = await response.Content.ReadFromJsonAsync<List<InstalledPackageApiResponse>>(cancellationToken);
+        return result?.Select(r => r.ToModel()).ToList() ?? [];
+    }
+
+    private static bool IsJsonResponse(HttpResponseMessage response)
+    {
+        var contentType = response.Content.Headers.ContentType?.MediaType;
+        return contentType is not null &&
+               (contentType.Contains("application/json", StringComparison.OrdinalIgnoreCase) ||
+                contentType.Contains("text/json", StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>
@@ -207,11 +219,15 @@ public partial class FlowForgeApiClient
     /// <returns>List of package sources.</returns>
     public async Task<List<PackageSourceModel>> GetPackageSourcesAsync(CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.GetFromJsonAsync<List<PackageSourceApiResponse>>(
-            "api/packages/sources",
-            cancellationToken);
+        var response = await _httpClient.GetAsync("api/packages/sources", cancellationToken);
 
-        return response?.Select(r => r.ToModel()).ToList() ?? [];
+        if (!response.IsSuccessStatusCode || !IsJsonResponse(response))
+        {
+            return [];
+        }
+
+        var result = await response.Content.ReadFromJsonAsync<List<PackageSourceApiResponse>>(cancellationToken);
+        return result?.Select(r => r.ToModel()).ToList() ?? [];
     }
 
     /// <summary>

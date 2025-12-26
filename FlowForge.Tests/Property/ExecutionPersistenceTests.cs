@@ -241,6 +241,10 @@ public class ExecutionPersistenceTests : IDisposable
         {
         }
 
+        public void Register(Type nodeType)
+        {
+        }
+
         public void RegisterFromAssembly(System.Reflection.Assembly assembly)
         {
         }

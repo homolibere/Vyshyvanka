@@ -15,5 +15,6 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseA
 builder.Services.AddScoped<FlowForgeApiClient>();
 builder.Services.AddScoped<WorkflowStateService>();
 builder.Services.AddScoped<PluginStateService>();
+builder.Services.AddScoped<ToastService>();
 
 await builder.Build().RunAsync();

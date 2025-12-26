@@ -21,6 +21,15 @@ public class NodeRegistry : INodeRegistry
     }
 
     /// <inheritdoc />
+    public void Register(Type nodeType)
+    {
+        ArgumentNullException.ThrowIfNull(nodeType);
+        if (!typeof(INode).IsAssignableFrom(nodeType))
+            throw new ArgumentException($"Type {nodeType.Name} does not implement INode", nameof(nodeType));
+        RegisterType(nodeType);
+    }
+
+    /// <inheritdoc />
     public void RegisterFromAssembly(Assembly assembly)
     {
         ArgumentNullException.ThrowIfNull(assembly);

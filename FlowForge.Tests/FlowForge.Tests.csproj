@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="bunit" Version="1.37.13" />
+    <PackageReference Include="bunit" Version="1.38.5" />
     <PackageReference Include="coverlet.collector" Version="6.0.4" />
     <PackageReference Include="CsCheck" Version="4.5.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.0" />
