@@ -67,7 +67,7 @@ public record NodeDefinition
     public List<PortDefinition> Outputs { get; init; } = [];
 
     /// <summary>JSON schema for node configuration.</summary>
-    public JsonElement ConfigurationSchema { get; init; }
+    public JsonElement? ConfigurationSchema { get; init; }
 
     /// <summary>Required credential type, if any.</summary>
     public CredentialType? RequiredCredentialType { get; init; }

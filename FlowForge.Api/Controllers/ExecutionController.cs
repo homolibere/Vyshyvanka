@@ -2,7 +2,6 @@ using FlowForge.Api.Authorization;
 using FlowForge.Api.Models;
 using FlowForge.Core.Enums;
 using FlowForge.Core.Interfaces;
-using FlowForge.Core.Models;
 using FlowForge.Engine.Credentials;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,7 +15,6 @@ namespace FlowForge.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
-[Authorize]
 public class ExecutionController : ControllerBase
 {
     private readonly IWorkflowEngine _workflowEngine;

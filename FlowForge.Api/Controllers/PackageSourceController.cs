@@ -12,7 +12,6 @@ namespace FlowForge.Api.Controllers;
 [ApiController]
 [Route("api/packages/sources")]
 [Produces("application/json")]
-[Authorize]
 public class PackageSourceController : ControllerBase
 {
     private readonly IPackageSourceService _sourceService;

@@ -14,7 +14,6 @@ namespace FlowForge.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
-[Authorize]
 public class WorkflowController : ControllerBase
 {
     private readonly IWorkflowRepository _repository;

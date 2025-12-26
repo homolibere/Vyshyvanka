@@ -226,9 +226,9 @@ public class PackageCardTests
     {
         return count switch
         {
-            >= 1_000_000_000 => $"{count / 1_000_000_000.0:F1}B",
-            >= 1_000_000 => $"{count / 1_000_000.0:F1}M",
-            >= 1_000 => $"{count / 1_000.0:F1}K",
+            >= 1_000_000_000 => (count / 1_000_000_000.0).ToString("F1", System.Globalization.CultureInfo.InvariantCulture) + "B",
+            >= 1_000_000 => (count / 1_000_000.0).ToString("F1", System.Globalization.CultureInfo.InvariantCulture) + "M",
+            >= 1_000 => (count / 1_000.0).ToString("F1", System.Globalization.CultureInfo.InvariantCulture) + "K",
             _ => count.ToString()
         };
     }

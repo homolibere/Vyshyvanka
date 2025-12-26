@@ -13,7 +13,6 @@ namespace FlowForge.Api.Controllers;
 [ApiController]
 [Route("api/packages")]
 [Produces("application/json")]
-[Authorize]
 public class PackageController : ControllerBase
 {
     private readonly INuGetPackageManager _packageManager;

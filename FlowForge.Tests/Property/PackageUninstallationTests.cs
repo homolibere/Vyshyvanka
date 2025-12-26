@@ -193,6 +193,9 @@ public class PackageUninstallationTests
 
                 manifestManager.AddPackageAsync(installedPackage).GetAwaiter().GetResult();
 
+                // Initialize package manager to load the manifest
+                packageManager.InitializeAsync().GetAwaiter().GetResult();
+
                 // Act - Try to uninstall without force
                 var uninstallResult = packageManager.UninstallPackageAsync(
                     scenario.PackageId,
@@ -281,6 +284,9 @@ public class PackageUninstallationTests
 
                 Directory.CreateDirectory(installedPackage.InstallPath);
                 manifestManager.AddPackageAsync(installedPackage).GetAwaiter().GetResult();
+
+                // Initialize package manager to load the manifest
+                packageManager.InitializeAsync().GetAwaiter().GetResult();
 
                 // Act - Force uninstall
                 var uninstallResult = packageManager.UninstallPackageAsync(

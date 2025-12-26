@@ -32,9 +32,10 @@ public class NodeRegistryPropertyTests
             // Arrange
             var registry = new NodeRegistry();
             
-            // Act - Register the node type
+            // Act - Register the node type using the generic Register<TNode>() method
             var registerMethod = typeof(NodeRegistry)
-                .GetMethod(nameof(NodeRegistry.Register))!
+                .GetMethods()
+                .First(m => m.Name == nameof(NodeRegistry.Register) && m.IsGenericMethod)
                 .MakeGenericMethod(nodeType);
             registerMethod.Invoke(registry, null);
             
@@ -172,7 +173,8 @@ public class NodeRegistryPropertyTests
             // Arrange
             var registry = new NodeRegistry();
             var registerMethod = typeof(NodeRegistry)
-                .GetMethod(nameof(NodeRegistry.Register))!
+                .GetMethods()
+                .First(m => m.Name == nameof(NodeRegistry.Register) && m.IsGenericMethod)
                 .MakeGenericMethod(nodeType);
             registerMethod.Invoke(registry, null);
             

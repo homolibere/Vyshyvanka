@@ -171,12 +171,12 @@ public class NodeRegistry : INodeRegistry
         };
     }
 
-    private static JsonElement BuildConfigurationSchema(Type nodeType)
+    private static JsonElement? BuildConfigurationSchema(Type nodeType)
     {
         var configAttrs = nodeType.GetCustomAttributes<ConfigurationPropertyAttribute>().ToList();
 
         if (configAttrs.Count == 0)
-            return default;
+            return null;
 
         var properties = new Dictionary<string, object>();
         var required = new List<string>();

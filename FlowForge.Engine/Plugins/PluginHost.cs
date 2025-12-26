@@ -49,9 +49,12 @@ public class PluginHost : IPluginHost
         {
             // Execute the node with timeout
             var executeTask = ExecuteWithExceptionHandlingAsync(node, input, context);
-            var completedTask = await Task.WhenAny(executeTask, Task.Delay(timeout, linkedCts.Token));
             
-            if (completedTask != executeTask)
+            // Use a delay task without cancellation token for timeout detection
+            var timeoutTask = Task.Delay(timeout);
+            var completedTask = await Task.WhenAny(executeTask, timeoutTask);
+            
+            if (completedTask == timeoutTask && !executeTask.IsCompleted)
             {
                 // Timeout occurred
                 _logger?.LogWarning(
