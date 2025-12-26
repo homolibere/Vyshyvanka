@@ -83,6 +83,35 @@ public class WorkflowValidator
             ValidateNodeFields(node, nodePath, errors);
             ValidateDuplicateNodeId(node, nodeIds, nodePath, errors);
         }
+        
+        ValidateTriggerNodes(workflow, errors);
+    }
+
+    private static void ValidateTriggerNodes(Workflow workflow, List<ValidationError> errors)
+    {
+        var triggerNodes = workflow.Nodes
+            .Where(n => !string.IsNullOrWhiteSpace(n.Type) && 
+                        n.Type.EndsWith("-trigger", StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        
+        if (triggerNodes.Count == 0)
+        {
+            errors.Add(new ValidationError
+            {
+                Path = "nodes",
+                Message = "Workflow must have exactly one trigger node",
+                ErrorCode = "WORKFLOW_TRIGGER_REQUIRED"
+            });
+        }
+        else if (triggerNodes.Count > 1)
+        {
+            errors.Add(new ValidationError
+            {
+                Path = "nodes",
+                Message = $"Workflow must have exactly one trigger node, but found {triggerNodes.Count}",
+                ErrorCode = "WORKFLOW_MULTIPLE_TRIGGERS"
+            });
+        }
     }
 
     private static void ValidateNodeFields(WorkflowNode node, string nodePath, List<ValidationError> errors)

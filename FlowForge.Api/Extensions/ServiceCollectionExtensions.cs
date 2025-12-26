@@ -113,6 +113,16 @@ public static class ServiceCollectionExtensions
                     ClockSkew = TimeSpan.Zero
                 };
 
+                // Forward to API key authentication if X-API-Key header is present
+                options.ForwardDefaultSelector = context =>
+                {
+                    if (context.Request.Headers.ContainsKey("X-API-Key"))
+                    {
+                        return ApiKeyAuthenticationDefaults.AuthenticationScheme;
+                    }
+                    return null; // Use JWT Bearer
+                };
+
                 // Return JSON responses for 401/403 instead of HTML
                 options.Events = new JwtBearerEvents
                 {
