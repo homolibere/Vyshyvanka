@@ -6,7 +6,9 @@ using FlowForge.Engine.Auth;
 using FlowForge.Engine.Credentials;
 using FlowForge.Engine.Execution;
 using FlowForge.Engine.Expressions;
+using FlowForge.Engine.Packages;
 using FlowForge.Engine.Persistence;
+using FlowForge.Engine.Plugins;
 using FlowForge.Engine.Registry;
 using FlowForge.Engine.Validation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -27,7 +29,7 @@ public static class ServiceCollectionExtensions
         IConfiguration configuration)
     {
         // Register core services
-        services.AddSingleton<INodeRegistry>(sp =>
+        services.AddSingleton<INodeRegistry>(_ =>
         {
             var registry = new NodeRegistry();
             registry.RegisterFromAssembly(typeof(NodeRegistry).Assembly);
@@ -57,7 +59,7 @@ public static class ServiceCollectionExtensions
 
         // Register credential services
         services.AddScoped<ICredentialRepository, CredentialRepository>();
-        services.AddSingleton<ICredentialEncryption>(sp =>
+        services.AddSingleton<ICredentialEncryption>(_ =>
         {
             var encryptionKey = configuration["FlowForge:EncryptionKey"] ?? "DefaultEncryptionKey123456789012";
             return new AesCredentialEncryption(encryptionKey);
@@ -87,6 +89,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IApiKeyRepository, ApiKeyRepository>();
         services.AddScoped<IApiKeyService, ApiKeyService>();
 
+        // Register NuGet package manager services
+        services.AddFlowForgePackageServices(configuration);
+
         // Configure authentication with both JWT and API key
         services.AddAuthentication(options =>
             {
@@ -112,6 +117,111 @@ public static class ServiceCollectionExtensions
                 _ => { });
 
         services.AddAuthorization(options => { options.AddFlowForgePolicies(); });
+
+        return services;
+    }
+
+    /// <summary>
+    /// Adds FlowForge NuGet package manager services to the service collection.
+    /// </summary>
+    public static IServiceCollection AddFlowForgePackageServices(this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        // Bind package options from configuration
+        var packageOptions = new PackageOptions();
+        configuration.GetSection("FlowForge:Packages").Bind(packageOptions);
+
+        // Apply environment variable overrides
+        var cacheDir = Environment.GetEnvironmentVariable("FLOWFORGE_PACKAGES_CACHEDIR");
+        if (!string.IsNullOrWhiteSpace(cacheDir))
+        {
+            packageOptions.CacheDirectory = cacheDir;
+        }
+
+        var manifestPath = Environment.GetEnvironmentVariable("FLOWFORGE_PACKAGES_MANIFESTPATH");
+        if (!string.IsNullOrWhiteSpace(manifestPath))
+        {
+            packageOptions.ManifestPath = manifestPath;
+        }
+
+        var requireSigned = Environment.GetEnvironmentVariable("FLOWFORGE_PACKAGES_REQUIRESIGNED");
+        if (bool.TryParse(requireSigned, out var requireSignedValue))
+        {
+            packageOptions.RequireSignedPackages = requireSignedValue;
+        }
+
+        services.AddSingleton(packageOptions);
+
+        // Register ManifestManager
+        services.AddSingleton<IManifestManager>(sp =>
+        {
+            var options = sp.GetRequiredService<PackageOptions>();
+            var logger = sp.GetService<ILogger<ManifestManager>>();
+            return new ManifestManager(options.ManifestPath, options.CacheDirectory, logger);
+        });
+
+        // Register PackageCache
+        services.AddSingleton<IPackageCache>(sp =>
+        {
+            var options = sp.GetRequiredService<PackageOptions>();
+            var logger = sp.GetService<ILogger<PackageCache>>();
+            return new PackageCache(options.CacheDirectory, logger);
+        });
+
+        // Register PackageSourceService
+        services.AddSingleton<IPackageSourceService>(sp =>
+        {
+            var manifestManager = sp.GetRequiredService<IManifestManager>();
+            var credentialEncryption = sp.GetService<ICredentialEncryption>();
+            var logger = sp.GetService<ILogger<PackageSourceService>>();
+            return new PackageSourceService(manifestManager, credentialEncryption, logger);
+        });
+
+        // Register DependencyResolver
+        services.AddSingleton<IDependencyResolver>(sp =>
+        {
+            var sourceService = sp.GetRequiredService<IPackageSourceService>();
+            var logger = sp.GetService<ILogger<DependencyResolver>>();
+            return new DependencyResolver(sourceService, logger);
+        });
+
+        // Register PluginValidator
+        services.AddSingleton<IPluginValidator, PluginValidator>();
+
+        // Register PluginLoader
+        services.AddSingleton<IPluginLoader>(sp =>
+        {
+            var validator = sp.GetRequiredService<IPluginValidator>();
+            var logger = sp.GetService<ILogger<PluginLoader>>();
+            return new PluginLoader(validator, logger);
+        });
+
+        // Register NuGetPackageManager
+        services.AddSingleton<INuGetPackageManager>(sp =>
+        {
+            var sourceService = sp.GetRequiredService<IPackageSourceService>();
+            var manifestManager = sp.GetRequiredService<IManifestManager>();
+            var dependencyResolver = sp.GetRequiredService<IDependencyResolver>();
+            var packageCache = sp.GetRequiredService<IPackageCache>();
+            var pluginLoader = sp.GetRequiredService<IPluginLoader>();
+            var pluginValidator = sp.GetRequiredService<IPluginValidator>();
+            var nodeRegistry = sp.GetRequiredService<INodeRegistry>();
+            var workflowRepository = sp.GetService<IWorkflowRepository>();
+            var options = sp.GetRequiredService<PackageOptions>();
+            var logger = sp.GetService<ILogger<NuGetPackageManager>>();
+
+            return new NuGetPackageManager(
+                sourceService,
+                manifestManager,
+                dependencyResolver,
+                packageCache,
+                pluginLoader,
+                pluginValidator,
+                nodeRegistry,
+                workflowRepository,
+                options,
+                logger);
+        });
 
         return services;
     }

@@ -33,31 +33,31 @@ public class WorkflowExecutionOrderTests
             var registry = new TrackingNodeRegistry(executionTracker);
             var expressionEvaluator = new ExpressionEvaluator();
             var engine = new WorkflowEngine(registry, expressionEvaluator);
-            
+
             var context = new WorkflowExecutionContext(
                 Guid.NewGuid(),
                 workflow.Id,
                 new NullCredentialProvider());
-            
+
             // Act
             var result = engine.ExecuteAsync(workflow, context).GetAwaiter().GetResult();
-            
+
             // Assert - Verify topological order
             // For each connection, the source node must have completed before the target node started
             foreach (var connection in workflow.Connections)
             {
                 var sourceOrder = executionTracker.GetExecutionOrder(connection.SourceNodeId);
                 var targetOrder = executionTracker.GetExecutionOrder(connection.TargetNodeId);
-                
-                Assert.True(sourceOrder.HasValue, 
+
+                Assert.True(sourceOrder.HasValue,
                     $"Source node '{connection.SourceNodeId}' was not executed");
-                Assert.True(targetOrder.HasValue, 
+                Assert.True(targetOrder.HasValue,
                     $"Target node '{connection.TargetNodeId}' was not executed");
                 Assert.True(sourceOrder.Value < targetOrder.Value,
                     $"Topological order violated: '{connection.SourceNodeId}' (order={sourceOrder}) " +
                     $"should execute before '{connection.TargetNodeId}' (order={targetOrder})");
             }
-            
+
             // Verify all nodes were executed
             foreach (var node in workflow.Nodes)
             {
@@ -82,24 +82,24 @@ public class WorkflowExecutionOrderTests
             var registry = new TrackingNodeRegistry(executionTracker);
             var expressionEvaluator = new ExpressionEvaluator();
             var engine = new WorkflowEngine(registry, expressionEvaluator);
-            
+
             var context = new WorkflowExecutionContext(
                 Guid.NewGuid(),
                 workflow.Id,
                 new NullCredentialProvider());
-            
+
             // Act
             var result = engine.ExecuteAsync(workflow, context).GetAwaiter().GetResult();
-            
+
             // Assert - Verify strict sequential order for linear chain
             for (int i = 0; i < workflow.Nodes.Count - 1; i++)
             {
                 var currentNode = workflow.Nodes[i];
                 var nextNode = workflow.Nodes[i + 1];
-                
+
                 var currentOrder = executionTracker.GetExecutionOrder(currentNode.Id);
                 var nextOrder = executionTracker.GetExecutionOrder(nextNode.Id);
-                
+
                 Assert.True(currentOrder.HasValue && nextOrder.HasValue,
                     $"Nodes '{currentNode.Id}' and '{nextNode.Id}' should both be executed");
                 Assert.True(currentOrder.Value < nextOrder.Value,
@@ -124,28 +124,28 @@ public class WorkflowExecutionOrderTests
             var registry = new TrackingNodeRegistry(executionTracker);
             var expressionEvaluator = new ExpressionEvaluator();
             var engine = new WorkflowEngine(registry, expressionEvaluator);
-            
+
             var context = new WorkflowExecutionContext(
                 Guid.NewGuid(),
                 workflow.Id,
                 new NullCredentialProvider());
-            
+
             // Act
             var result = engine.ExecuteAsync(workflow, context).GetAwaiter().GetResult();
-            
+
             // Assert - All nodes executed
             foreach (var node in workflow.Nodes)
             {
                 Assert.True(executionTracker.GetExecutionOrder(node.Id).HasValue,
                     $"Node '{node.Id}' was not executed");
             }
-            
+
             // Assert - Topological order respected for all connections
             foreach (var connection in workflow.Connections)
             {
                 var sourceOrder = executionTracker.GetExecutionOrder(connection.SourceNodeId);
                 var targetOrder = executionTracker.GetExecutionOrder(connection.TargetNodeId);
-                
+
                 Assert.True(sourceOrder!.Value < targetOrder!.Value,
                     $"Topological order violated: '{connection.SourceNodeId}' should execute before '{connection.TargetNodeId}'");
             }
@@ -187,10 +187,20 @@ public class WorkflowExecutionOrderTests
             _tracker = tracker;
         }
 
-        public void Register<TNode>() where TNode : INode { }
-        
-        public void RegisterFromAssembly(System.Reflection.Assembly assembly) { }
-        
+        public void Register<TNode>() where TNode : INode
+        {
+        }
+
+        public void RegisterFromAssembly(System.Reflection.Assembly assembly)
+        {
+        }
+
+        public bool Unregister(string nodeType) => false;
+
+        public void UnregisterFromAssembly(System.Reflection.Assembly assembly)
+        {
+        }
+
         public INode CreateNode(string nodeType, JsonElement configuration)
         {
             // Extract the workflow node ID from configuration
@@ -201,13 +211,14 @@ public class WorkflowExecutionOrderTests
             {
                 workflowNodeId = idElement.GetString();
             }
+
             return new TrackingNode(_tracker, workflowNodeId ?? Guid.NewGuid().ToString());
         }
-        
+
         public NodeDefinition? GetDefinition(string nodeType) => null;
-        
+
         public IEnumerable<NodeDefinition> GetAllDefinitions() => [];
-        
+
         public bool IsRegistered(string nodeType) => true;
     }
 
@@ -233,10 +244,10 @@ public class WorkflowExecutionOrderTests
         {
             // Small delay to ensure parallel execution can interleave
             Thread.Sleep(1);
-            
+
             // Record execution order using the workflow node ID
             _tracker.RecordExecution(_workflowNodeId);
-            
+
             return Task.FromResult(new NodeOutput
             {
                 Data = JsonSerializer.SerializeToElement(new { executed = true, nodeId = _workflowNodeId }),
@@ -251,7 +262,7 @@ public class WorkflowExecutionOrderTests
     private sealed class NullCredentialProvider : ICredentialProvider
     {
         public Task<IDictionary<string, string>?> GetCredentialAsync(
-            Guid credentialId, 
+            Guid credentialId,
             CancellationToken cancellationToken = default)
         {
             return Task.FromResult<IDictionary<string, string>?>(null);
@@ -434,11 +445,11 @@ public class WorkflowExecutionOrderTests
         for (int branch = 0; branch < branchCount; branch++)
         {
             var previousNodeId = "root";
-            
+
             for (int nodeInBranch = 0; nodeInBranch < nodesPerBranch; nodeInBranch++)
             {
                 var nodeId = $"branch_{branch}_node_{nodeInBranch}";
-                
+
                 nodes.Add(new WorkflowNode
                 {
                     Id = nodeId,

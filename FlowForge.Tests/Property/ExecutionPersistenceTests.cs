@@ -25,7 +25,7 @@ public class ExecutionPersistenceTests : IDisposable
         var options = new DbContextOptionsBuilder<FlowForgeDbContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
-        
+
         _dbContext = new FlowForgeDbContext(options);
         _dbContext.Database.EnsureCreated();
         _repository = new ExecutionRepository(_dbContext);
@@ -52,31 +52,30 @@ public class ExecutionPersistenceTests : IDisposable
             // Arrange - Create fresh database for each iteration
             using var dbContext = CreateFreshDbContext();
             var repository = new ExecutionRepository(dbContext);
-            
+
             var nodeRegistry = new TestNodeRegistry(shouldFail: false);
             var expressionEvaluator = new ExpressionEvaluator();
             var innerEngine = new WorkflowEngine(nodeRegistry, expressionEvaluator);
             var persistentEngine = new PersistentWorkflowEngine(innerEngine, repository);
-            
+
             var executionId = Guid.NewGuid();
             var context = new WorkflowExecutionContext(
                 executionId,
                 workflow.Id,
                 new NullCredentialProvider());
-            
+
             // Act
             var result = persistentEngine.ExecuteAsync(workflow, context).GetAwaiter().GetResult();
-            
+
             // Assert - Execution succeeded
             Assert.True(result.Success, $"Workflow execution failed: {result.ErrorMessage}");
-            
+
             // Assert - Execution record was persisted
             var persistedExecution = repository.GetByIdAsync(executionId).GetAwaiter().GetResult();
             Assert.NotNull(persistedExecution);
-            
+
             // Assert - Required fields are present
             AssertExecutionRecordComplete(persistedExecution, workflow, isSuccess: true);
-            
         }, iter: 100);
     }
 
@@ -94,33 +93,32 @@ public class ExecutionPersistenceTests : IDisposable
             // Arrange - Create fresh database for each iteration
             using var dbContext = CreateFreshDbContext();
             var repository = new ExecutionRepository(dbContext);
-            
+
             var nodeRegistry = new TestNodeRegistry(shouldFail: true);
             var expressionEvaluator = new ExpressionEvaluator();
             var innerEngine = new WorkflowEngine(nodeRegistry, expressionEvaluator);
             var persistentEngine = new PersistentWorkflowEngine(innerEngine, repository);
-            
+
             var executionId = Guid.NewGuid();
             var context = new WorkflowExecutionContext(
                 executionId,
                 workflow.Id,
                 new NullCredentialProvider());
-            
+
             // Act
             var result = persistentEngine.ExecuteAsync(workflow, context).GetAwaiter().GetResult();
-            
+
             // Assert - Execution failed
             Assert.False(result.Success);
-            
+
             // Assert - Execution record was persisted
             var persistedExecution = repository.GetByIdAsync(executionId).GetAwaiter().GetResult();
             Assert.NotNull(persistedExecution);
-            
+
             // Assert - Error details are captured
             AssertExecutionRecordComplete(persistedExecution, workflow, isSuccess: false);
             Assert.NotNull(persistedExecution.ErrorMessage);
             Assert.False(string.IsNullOrWhiteSpace(persistedExecution.ErrorMessage));
-            
         }, iter: 100);
     }
 
@@ -139,28 +137,28 @@ public class ExecutionPersistenceTests : IDisposable
             // Arrange - Create fresh database for each iteration
             using var dbContext = CreateFreshDbContext();
             var repository = new ExecutionRepository(dbContext);
-            
+
             var nodeRegistry = new TestNodeRegistry(shouldFail: false);
             var expressionEvaluator = new ExpressionEvaluator();
             var innerEngine = new WorkflowEngine(nodeRegistry, expressionEvaluator);
             var persistentEngine = new PersistentWorkflowEngine(innerEngine, repository);
-            
+
             var executionId = Guid.NewGuid();
             var context = new WorkflowExecutionContext(
                 executionId,
                 workflow.Id,
                 new NullCredentialProvider());
-            
+
             // Act
             var result = persistentEngine.ExecuteAsync(workflow, context).GetAwaiter().GetResult();
-            
+
             // Assert - Execution record was persisted
             var persistedExecution = repository.GetByIdAsync(executionId).GetAwaiter().GetResult();
             Assert.NotNull(persistedExecution);
-            
+
             // Assert - Node executions are persisted
             Assert.Equal(workflow.Nodes.Count, persistedExecution.NodeExecutions.Count);
-            
+
             // Assert - Each node execution has required fields
             foreach (var nodeExecution in persistedExecution.NodeExecutions)
             {
@@ -168,14 +166,13 @@ public class ExecutionPersistenceTests : IDisposable
                 Assert.True(nodeExecution.StartedAt > DateTime.MinValue);
                 Assert.NotNull(nodeExecution.CompletedAt);
                 Assert.True(nodeExecution.CompletedAt >= nodeExecution.StartedAt);
-                
+
                 // Successful nodes should have output data
                 if (nodeExecution.Status == ExecutionStatus.Completed)
                 {
                     Assert.NotNull(nodeExecution.OutputData);
                 }
             }
-            
         }, iter: 100);
     }
 
@@ -186,30 +183,30 @@ public class ExecutionPersistenceTests : IDisposable
         var options = new DbContextOptionsBuilder<FlowForgeDbContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
-        
+
         var dbContext = new FlowForgeDbContext(options);
         dbContext.Database.EnsureCreated();
         return dbContext;
     }
 
     private static void AssertExecutionRecordComplete(
-        Execution execution, 
-        Workflow workflow, 
+        Execution execution,
+        Workflow workflow,
         bool isSuccess)
     {
         // Verify execution ID is set
         Assert.NotEqual(Guid.Empty, execution.Id);
-        
+
         // Verify workflow reference
         Assert.Equal(workflow.Id, execution.WorkflowId);
         Assert.Equal(workflow.Version, execution.WorkflowVersion);
-        
+
         // Verify timing information
         Assert.True(execution.StartedAt > DateTime.MinValue, "StartedAt should be set");
         Assert.NotNull(execution.CompletedAt);
-        Assert.True(execution.CompletedAt >= execution.StartedAt, 
+        Assert.True(execution.CompletedAt >= execution.StartedAt,
             "CompletedAt should be >= StartedAt");
-        
+
         // Verify status
         if (isSuccess)
         {
@@ -219,7 +216,7 @@ public class ExecutionPersistenceTests : IDisposable
         {
             Assert.Equal(ExecutionStatus.Failed, execution.Status);
         }
-        
+
         // Verify mode is set
         Assert.True(Enum.IsDefined(typeof(ExecutionMode), execution.Mode));
     }
@@ -240,10 +237,20 @@ public class ExecutionPersistenceTests : IDisposable
             _shouldFail = shouldFail;
         }
 
-        public void Register<TNode>() where TNode : INode { }
-        
-        public void RegisterFromAssembly(System.Reflection.Assembly assembly) { }
-        
+        public void Register<TNode>() where TNode : INode
+        {
+        }
+
+        public void RegisterFromAssembly(System.Reflection.Assembly assembly)
+        {
+        }
+
+        public bool Unregister(string nodeType) => false;
+
+        public void UnregisterFromAssembly(System.Reflection.Assembly assembly)
+        {
+        }
+
         public INode CreateNode(string nodeType, JsonElement configuration)
         {
             string? workflowNodeId = null;
@@ -253,13 +260,14 @@ public class ExecutionPersistenceTests : IDisposable
             {
                 workflowNodeId = idElement.GetString();
             }
+
             return new TestNode(workflowNodeId ?? Guid.NewGuid().ToString(), _shouldFail);
         }
-        
+
         public NodeDefinition? GetDefinition(string nodeType) => null;
-        
+
         public IEnumerable<NodeDefinition> GetAllDefinitions() => [];
-        
+
         public bool IsRegistered(string nodeType) => true;
     }
 
@@ -299,7 +307,7 @@ public class ExecutionPersistenceTests : IDisposable
                 timestamp = DateTime.UtcNow.Ticks,
                 result = "success"
             };
-            
+
             return Task.FromResult(new NodeOutput
             {
                 Data = JsonSerializer.SerializeToElement(outputData),
@@ -314,7 +322,7 @@ public class ExecutionPersistenceTests : IDisposable
     private sealed class NullCredentialProvider : ICredentialProvider
     {
         public Task<IDictionary<string, string>?> GetCredentialAsync(
-            Guid credentialId, 
+            Guid credentialId,
             CancellationToken cancellationToken = default)
         {
             return Task.FromResult<IDictionary<string, string>?>(null);
@@ -339,22 +347,22 @@ public class ExecutionPersistenceTests : IDisposable
             // Arrange - Create fresh database for each iteration
             using var dbContext = CreateFreshDbContext();
             var repository = new ExecutionRepository(dbContext);
-            
+
             // Insert all executions
             foreach (var execution in scenario.Executions)
             {
                 repository.CreateAsync(execution).GetAwaiter().GetResult();
             }
-            
+
             // Act - Query with the filter criteria
             var results = repository.QueryAsync(scenario.Query).GetAwaiter().GetResult();
-            
+
             // Assert - All returned executions match ALL specified criteria
             foreach (var result in results)
             {
                 AssertExecutionMatchesQuery(result, scenario.Query);
             }
-            
+
             // Assert - No matching executions are missing (within pagination limits)
             var expectedMatches = scenario.Executions
                 .Where(e => ExecutionMatchesQuery(e, scenario.Query))
@@ -362,15 +370,14 @@ public class ExecutionPersistenceTests : IDisposable
                 .Skip(scenario.Query.Skip)
                 .Take(scenario.Query.Take)
                 .ToList();
-            
+
             Assert.Equal(expectedMatches.Count, results.Count);
-            
+
             // Verify the same execution IDs are returned
             var resultIds = results.Select(r => r.Id).ToHashSet();
             var expectedIds = expectedMatches.Select(e => e.Id).ToHashSet();
-            Assert.True(resultIds.SetEquals(expectedIds), 
+            Assert.True(resultIds.SetEquals(expectedIds),
                 $"Expected IDs: [{string.Join(", ", expectedIds)}], Got: [{string.Join(", ", resultIds)}]");
-            
         }, iter: 100);
     }
 
@@ -387,19 +394,18 @@ public class ExecutionPersistenceTests : IDisposable
             // Arrange - Create fresh database for each iteration
             using var dbContext = CreateFreshDbContext();
             var repository = new ExecutionRepository(dbContext);
-            
+
             // Insert all executions
             foreach (var execution in scenario.Executions)
             {
                 repository.CreateAsync(execution).GetAwaiter().GetResult();
             }
-            
+
             // Act - Query with criteria that won't match any execution
             var results = repository.QueryAsync(scenario.Query).GetAwaiter().GetResult();
-            
+
             // Assert - No results returned
             Assert.Empty(results);
-            
         }, iter: 100);
     }
 
@@ -416,13 +422,13 @@ public class ExecutionPersistenceTests : IDisposable
             // Arrange - Create fresh database for each iteration
             using var dbContext = CreateFreshDbContext();
             var repository = new ExecutionRepository(dbContext);
-            
+
             // Insert all executions
             foreach (var execution in scenario.Executions)
             {
                 repository.CreateAsync(execution).GetAwaiter().GetResult();
             }
-            
+
             // Act - Query by specific workflow ID
             var query = new ExecutionQuery
             {
@@ -430,14 +436,13 @@ public class ExecutionPersistenceTests : IDisposable
                 Take = 100
             };
             var results = repository.QueryAsync(query).GetAwaiter().GetResult();
-            
+
             // Assert - All results are for the target workflow
             Assert.All(results, r => Assert.Equal(scenario.TargetWorkflowId, r.WorkflowId));
-            
+
             // Assert - Count matches expected
             var expectedCount = scenario.Executions.Count(e => e.WorkflowId == scenario.TargetWorkflowId);
             Assert.Equal(expectedCount, results.Count);
-            
         }, iter: 100);
     }
 
@@ -454,13 +459,13 @@ public class ExecutionPersistenceTests : IDisposable
             // Arrange - Create fresh database for each iteration
             using var dbContext = CreateFreshDbContext();
             var repository = new ExecutionRepository(dbContext);
-            
+
             // Insert all executions
             foreach (var execution in scenario.Executions)
             {
                 repository.CreateAsync(execution).GetAwaiter().GetResult();
             }
-            
+
             // Act - Query by date range
             var query = new ExecutionQuery
             {
@@ -469,21 +474,20 @@ public class ExecutionPersistenceTests : IDisposable
                 Take = 100
             };
             var results = repository.QueryAsync(query).GetAwaiter().GetResult();
-            
+
             // Assert - All results are within the date range
             Assert.All(results, r =>
             {
-                Assert.True(r.StartedAt >= scenario.RangeStart, 
+                Assert.True(r.StartedAt >= scenario.RangeStart,
                     $"Execution started at {r.StartedAt} is before range start {scenario.RangeStart}");
-                Assert.True(r.StartedAt <= scenario.RangeEnd, 
+                Assert.True(r.StartedAt <= scenario.RangeEnd,
                     $"Execution started at {r.StartedAt} is after range end {scenario.RangeEnd}");
             });
-            
+
             // Assert - Count matches expected
-            var expectedCount = scenario.Executions.Count(e => 
+            var expectedCount = scenario.Executions.Count(e =>
                 e.StartedAt >= scenario.RangeStart && e.StartedAt <= scenario.RangeEnd);
             Assert.Equal(expectedCount, results.Count);
-            
         }, iter: 100);
     }
 
@@ -493,23 +497,23 @@ public class ExecutionPersistenceTests : IDisposable
         {
             Assert.Equal(query.WorkflowId.Value, execution.WorkflowId);
         }
-        
+
         if (query.Status.HasValue)
         {
             Assert.Equal(query.Status.Value, execution.Status);
         }
-        
+
         if (query.Mode.HasValue)
         {
             Assert.Equal(query.Mode.Value, execution.Mode);
         }
-        
+
         if (query.StartDateFrom.HasValue)
         {
             Assert.True(execution.StartedAt >= query.StartDateFrom.Value,
                 $"Execution started at {execution.StartedAt} is before filter start {query.StartDateFrom.Value}");
         }
-        
+
         if (query.StartDateTo.HasValue)
         {
             Assert.True(execution.StartedAt <= query.StartDateTo.Value,
@@ -521,19 +525,19 @@ public class ExecutionPersistenceTests : IDisposable
     {
         if (query.WorkflowId.HasValue && execution.WorkflowId != query.WorkflowId.Value)
             return false;
-        
+
         if (query.Status.HasValue && execution.Status != query.Status.Value)
             return false;
-        
+
         if (query.Mode.HasValue && execution.Mode != query.Mode.Value)
             return false;
-        
+
         if (query.StartDateFrom.HasValue && execution.StartedAt < query.StartDateFrom.Value)
             return false;
-        
+
         if (query.StartDateTo.HasValue && execution.StartedAt > query.StartDateTo.Value)
             return false;
-        
+
         return true;
     }
 
@@ -650,10 +654,10 @@ public class ExecutionPersistenceTests : IDisposable
         select CreateWorkflowWithNodes(id, name, version, nodeCount, createdBy);
 
     private static Workflow CreateWorkflowWithNodes(
-        Guid id, 
-        string name, 
-        int version, 
-        int nodeCount, 
+        Guid id,
+        string name,
+        int version,
+        int nodeCount,
         Guid createdBy)
     {
         var nodes = new List<WorkflowNode>();
@@ -739,8 +743,8 @@ public class ExecutionPersistenceTests : IDisposable
         from startedAt in GenBaseDate
         from durationMinutes in Gen.Int[1, 60]
         let workflowId = workflowIds[workflowIdIndex]
-        let completedAt = status == ExecutionStatus.Running || status == ExecutionStatus.Pending 
-            ? (DateTime?)null 
+        let completedAt = status == ExecutionStatus.Running || status == ExecutionStatus.Pending
+            ? (DateTime?)null
             : startedAt.AddMinutes(durationMinutes)
         select new Execution
         {
@@ -772,7 +776,8 @@ public class ExecutionPersistenceTests : IDisposable
         from rangeDurationDays in Gen.Int[7, 60]
         let workflowId = workflowIdIndex.HasValue ? (Guid?)workflowIds[workflowIdIndex.Value] : null
         let startDateFrom = hasDateRange ? (DateTime?)DateTime.UtcNow.AddDays(-rangeStartDaysAgo) : null
-        let startDateTo = hasDateRange ? (DateTime?)DateTime.UtcNow.AddDays(-rangeStartDaysAgo + rangeDurationDays) : null
+        let startDateTo =
+            hasDateRange ? (DateTime?)DateTime.UtcNow.AddDays(-rangeStartDaysAgo + rangeDurationDays) : null
         select new ExecutionQuery
         {
             WorkflowId = workflowId,

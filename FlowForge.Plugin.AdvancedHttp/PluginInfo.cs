@@ -1,0 +1,8 @@
+using FlowForge.Core.Interfaces;
+
+[assembly: Plugin(
+    "flowforge.plugin.httpclient",
+    Name = "Advanced HTTP Client",
+    Version = "1.0.0",
+    Description = "Advanced HTTP client nodes with retry, polling, and batch request capabilities.",
+    Author = "FlowForge")]

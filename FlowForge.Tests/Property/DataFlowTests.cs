@@ -32,31 +32,31 @@ public class DataFlowTests
             var registry = new DataFlowTrackingNodeRegistry(dataFlowTracker);
             var expressionEvaluator = new ExpressionEvaluator();
             var engine = new WorkflowEngine(registry, expressionEvaluator);
-            
+
             var context = new WorkflowExecutionContext(
                 Guid.NewGuid(),
                 workflow.Id,
                 new NullCredentialProvider());
-            
+
             // Act
             var result = engine.ExecuteAsync(workflow, context).GetAwaiter().GetResult();
-            
+
             // Assert - Execution succeeded
             Assert.True(result.Success, $"Workflow execution failed: {result.ErrorMessage}");
-            
+
             // Assert - For each connection, verify data flow
             foreach (var connection in workflow.Connections)
             {
                 var sourceOutput = dataFlowTracker.GetOutput(connection.SourceNodeId);
                 var targetInput = dataFlowTracker.GetInput(connection.TargetNodeId);
-                
+
                 Assert.NotNull(sourceOutput);
                 Assert.NotNull(targetInput);
-                
+
                 // For single upstream connection, target should receive source output directly
                 var incomingConnectionsToTarget = workflow.Connections
                     .Count(c => c.TargetNodeId == connection.TargetNodeId);
-                
+
                 if (incomingConnectionsToTarget == 1)
                 {
                     // Direct pass-through - data should be identical
@@ -92,42 +92,42 @@ public class DataFlowTests
             var registry = new DataFlowTrackingNodeRegistry(dataFlowTracker);
             var expressionEvaluator = new ExpressionEvaluator();
             var engine = new WorkflowEngine(registry, expressionEvaluator);
-            
+
             var context = new WorkflowExecutionContext(
                 Guid.NewGuid(),
                 workflow.Id,
                 new NullCredentialProvider());
-            
+
             // Act
             var result = engine.ExecuteAsync(workflow, context).GetAwaiter().GetResult();
-            
+
             // Assert - Execution succeeded
             Assert.True(result.Success, $"Workflow execution failed: {result.ErrorMessage}");
-            
+
             // Assert - All nodes produced output
             foreach (var node in workflow.Nodes)
             {
                 Assert.True(dataFlowTracker.GetOutput(node.Id).HasValue,
                     $"Node '{node.Id}' did not produce output");
             }
-            
+
             // Assert - For each connection, verify data was transmitted
             foreach (var connection in workflow.Connections)
             {
                 var sourceOutput = dataFlowTracker.GetOutput(connection.SourceNodeId);
                 var targetInput = dataFlowTracker.GetInput(connection.TargetNodeId);
-                
+
                 Assert.NotNull(sourceOutput);
-                
+
                 // Root nodes have no input, skip them
                 var incomingConnections = workflow.Connections
                     .Where(c => c.TargetNodeId == connection.TargetNodeId)
                     .ToList();
-                
+
                 if (incomingConnections.Count > 0)
                 {
                     Assert.NotNull(targetInput);
-                    
+
                     // Verify source data is present in target input
                     VerifyDataPresent(sourceOutput.Value, targetInput.Value, connection, incomingConnections.Count);
                 }
@@ -150,44 +150,44 @@ public class DataFlowTests
             var registry = new DataFlowTrackingNodeRegistry(dataFlowTracker);
             var expressionEvaluator = new ExpressionEvaluator();
             var engine = new WorkflowEngine(registry, expressionEvaluator);
-            
+
             var context = new WorkflowExecutionContext(
                 Guid.NewGuid(),
                 workflow.Id,
                 new NullCredentialProvider());
-            
+
             // Act
             var result = engine.ExecuteAsync(workflow, context).GetAwaiter().GetResult();
-            
+
             // Assert - Execution succeeded
             Assert.True(result.Success, $"Workflow execution failed: {result.ErrorMessage}");
-            
+
             // Find merge node (node with multiple incoming connections)
             var mergeNodeId = workflow.Connections
                 .GroupBy(c => c.TargetNodeId)
                 .Where(g => g.Count() > 1)
                 .Select(g => g.Key)
                 .FirstOrDefault();
-            
+
             if (mergeNodeId is not null)
             {
                 var mergeInput = dataFlowTracker.GetInput(mergeNodeId);
                 Assert.NotNull(mergeInput);
-                
+
                 // Verify all upstream outputs are present in merge input
                 var upstreamConnections = workflow.Connections
                     .Where(c => c.TargetNodeId == mergeNodeId)
                     .ToList();
-                
+
                 foreach (var conn in upstreamConnections)
                 {
                     var sourceOutput = dataFlowTracker.GetOutput(conn.SourceNodeId);
                     Assert.NotNull(sourceOutput);
-                    
+
                     var key = $"{conn.SourceNodeId}_{conn.SourcePort}";
                     Assert.True(mergeInput.Value.TryGetProperty(key, out var mergedValue),
                         $"Merge node missing input from '{conn.SourceNodeId}'");
-                    
+
                     AssertJsonEqual(sourceOutput.Value, mergedValue,
                         $"Data from '{conn.SourceNodeId}' was modified during merge");
                 }
@@ -206,8 +206,8 @@ public class DataFlowTests
     }
 
     private static void VerifyDataPresent(
-        JsonElement sourceOutput, 
-        JsonElement targetInput, 
+        JsonElement sourceOutput,
+        JsonElement targetInput,
         Connection connection,
         int incomingConnectionCount)
     {
@@ -273,10 +273,20 @@ public class DataFlowTests
             _tracker = tracker;
         }
 
-        public void Register<TNode>() where TNode : INode { }
-        
-        public void RegisterFromAssembly(System.Reflection.Assembly assembly) { }
-        
+        public void Register<TNode>() where TNode : INode
+        {
+        }
+
+        public void RegisterFromAssembly(System.Reflection.Assembly assembly)
+        {
+        }
+
+        public bool Unregister(string nodeType) => false;
+
+        public void UnregisterFromAssembly(System.Reflection.Assembly assembly)
+        {
+        }
+
         public INode CreateNode(string nodeType, JsonElement configuration)
         {
             string? workflowNodeId = null;
@@ -286,13 +296,14 @@ public class DataFlowTests
             {
                 workflowNodeId = idElement.GetString();
             }
+
             return new DataFlowTrackingNode(_tracker, workflowNodeId ?? Guid.NewGuid().ToString());
         }
-        
+
         public NodeDefinition? GetDefinition(string nodeType) => null;
-        
+
         public IEnumerable<NodeDefinition> GetAllDefinitions() => [];
-        
+
         public bool IsRegistered(string nodeType) => true;
     }
 
@@ -318,7 +329,7 @@ public class DataFlowTests
         {
             // Record the input this node received
             _tracker.RecordInput(_workflowNodeId, input.Data);
-            
+
             // Produce unique output that can be traced
             var outputData = new
             {
@@ -326,12 +337,12 @@ public class DataFlowTests
                 timestamp = DateTime.UtcNow.Ticks,
                 uniqueValue = Guid.NewGuid().ToString()
             };
-            
+
             var output = JsonSerializer.SerializeToElement(outputData);
-            
+
             // Record the output this node produced
             _tracker.RecordOutput(_workflowNodeId, output);
-            
+
             return Task.FromResult(new NodeOutput
             {
                 Data = output,
@@ -346,7 +357,7 @@ public class DataFlowTests
     private sealed class NullCredentialProvider : ICredentialProvider
     {
         public Task<IDictionary<string, string>?> GetCredentialAsync(
-            Guid credentialId, 
+            Guid credentialId,
             CancellationToken cancellationToken = default)
         {
             return Task.FromResult<IDictionary<string, string>?>(null);

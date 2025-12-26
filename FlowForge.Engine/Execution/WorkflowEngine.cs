@@ -37,25 +37,27 @@ public class WorkflowEngine : IWorkflowEngine
 
         var startTime = DateTime.UtcNow;
         var nodeResults = new ConcurrentBag<NodeExecutionResult>();
-        
+
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         _activeExecutions[context.ExecutionId] = cts;
-        
+
         try
         {
             // Build execution levels for parallel execution
             var executionLevels = BuildExecutionLevels(workflow);
-            
+
             foreach (var level in executionLevels)
             {
                 cts.Token.ThrowIfCancellationRequested();
-                
+
                 // Execute all nodes in this level in parallel
+                // Use ToList() to ensure all tasks are started immediately before awaiting
                 var levelTasks = level.Select(nodeId =>
-                    ExecuteNodeInWorkflowAsync(workflow, nodeId, context, nodeResults, cts.Token));
-                
+                        ExecuteNodeInWorkflowAsync(workflow, nodeId, context, nodeResults, cts.Token))
+                    .ToList();
+
                 var levelResults = await Task.WhenAll(levelTasks);
-                
+
                 // Check for failures if error handling mode is StopOnFirstError
                 if (workflow.Settings.ErrorHandling == ErrorHandlingMode.StopOnFirstError)
                 {
@@ -73,7 +75,7 @@ public class WorkflowEngine : IWorkflowEngine
                     }
                 }
             }
-            
+
             return new ExecutionResult
             {
                 ExecutionId = context.ExecutionId,
@@ -109,16 +111,16 @@ public class WorkflowEngine : IWorkflowEngine
         ArgumentNullException.ThrowIfNull(context);
 
         var startTime = DateTime.UtcNow;
-        
+
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            
+
             // Evaluate expressions in node configuration
             var evaluatedConfig = EvaluateConfiguration(node.Configuration, context, node.Id);
-            
+
             var nodeInstance = _nodeRegistry.CreateNode(node.Type, evaluatedConfig);
-            
+
             // For standalone node execution, use empty input data
             var input = new NodeInput
             {
@@ -126,14 +128,14 @@ public class WorkflowEngine : IWorkflowEngine
                 Configuration = evaluatedConfig,
                 CredentialId = node.CredentialId
             };
-            
+
             var output = await nodeInstance.ExecuteAsync(input, context);
-            
+
             if (output.Success)
             {
                 context.NodeOutputs.Set(node.Id, output.Data);
             }
-            
+
             return new ExecutionResult
             {
                 ExecutionId = context.ExecutionId,
@@ -182,6 +184,7 @@ public class WorkflowEngine : IWorkflowEngine
         {
             cts.Cancel();
         }
+
         return Task.CompletedTask;
     }
 
@@ -197,34 +200,34 @@ public class WorkflowEngine : IWorkflowEngine
     {
         var node = workflow.Nodes.First(n => n.Id == nodeId);
         var startTime = DateTime.UtcNow;
-        
+
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            
+
             // Evaluate expressions in node configuration
             var evaluatedConfig = EvaluateConfiguration(node.Configuration, context, nodeId);
-            
+
             var nodeInstance = _nodeRegistry.CreateNode(node.Type, evaluatedConfig);
-            
+
             // Gather input data from upstream nodes
             var inputData = GatherInputData(workflow, nodeId, context);
-            
+
             var input = new NodeInput
             {
                 Data = inputData,
                 Configuration = evaluatedConfig,
                 CredentialId = node.CredentialId
             };
-            
+
             var output = await nodeInstance.ExecuteAsync(input, context);
-            
+
             if (output.Success)
             {
                 // Store output with port information if available
                 StoreNodeOutput(context, node.Id, output);
             }
-            
+
             var result = new NodeExecutionResult
             {
                 NodeId = nodeId,
@@ -233,7 +236,7 @@ public class WorkflowEngine : IWorkflowEngine
                 ErrorMessage = output.ErrorMessage,
                 Duration = DateTime.UtcNow - startTime
             };
-            
+
             nodeResults.Add(result);
             return result;
         }
@@ -284,13 +287,13 @@ public class WorkflowEngine : IWorkflowEngine
         var incomingConnections = workflow.Connections
             .Where(c => c.TargetNodeId == nodeId)
             .ToList();
-        
+
         if (incomingConnections.Count == 0)
         {
             // No upstream connections - return empty object
             return JsonSerializer.SerializeToElement(new { });
         }
-        
+
         if (incomingConnections.Count == 1)
         {
             // Single upstream connection - return that node's output directly
@@ -298,10 +301,10 @@ public class WorkflowEngine : IWorkflowEngine
             var output = context.NodeOutputs.Get(connection.SourceNodeId, connection.SourcePort);
             return output ?? JsonSerializer.SerializeToElement(new { });
         }
-        
+
         // Multiple upstream connections - merge outputs into a dictionary keyed by source node ID
         var mergedData = new Dictionary<string, object?>();
-        
+
         foreach (var connection in incomingConnections)
         {
             var output = context.NodeOutputs.Get(connection.SourceNodeId, connection.SourcePort);
@@ -311,7 +314,7 @@ public class WorkflowEngine : IWorkflowEngine
                 mergedData[key] = JsonSerializer.Deserialize<object>(output.Value.GetRawText());
             }
         }
-        
+
         return JsonSerializer.SerializeToElement(mergedData);
     }
 
@@ -328,7 +331,7 @@ public class WorkflowEngine : IWorkflowEngine
             var portName = portElement.GetString() ?? "output";
             context.NodeOutputs.Set(nodeId, portName, output.Data);
         }
-        
+
         // Always store on default output port as well
         context.NodeOutputs.Set(nodeId, output.Data);
     }
@@ -342,7 +345,7 @@ public class WorkflowEngine : IWorkflowEngine
         // Build adjacency list and in-degree map
         var inDegree = workflow.Nodes.ToDictionary(n => n.Id, _ => 0);
         var adjacency = workflow.Nodes.ToDictionary(n => n.Id, _ => new List<string>());
-        
+
         foreach (var connection in workflow.Connections)
         {
             if (adjacency.ContainsKey(connection.SourceNodeId) && inDegree.ContainsKey(connection.TargetNodeId))
@@ -351,18 +354,18 @@ public class WorkflowEngine : IWorkflowEngine
                 inDegree[connection.TargetNodeId]++;
             }
         }
-        
+
         var levels = new List<List<string>>();
         var currentLevel = inDegree.Where(kv => kv.Value == 0).Select(kv => kv.Key).ToList();
         var processedCount = 0;
-        
+
         while (currentLevel.Count > 0)
         {
             levels.Add(currentLevel);
             processedCount += currentLevel.Count;
-            
+
             var nextLevel = new List<string>();
-            
+
             foreach (var nodeId in currentLevel)
             {
                 foreach (var neighbor in adjacency[nodeId])
@@ -374,15 +377,15 @@ public class WorkflowEngine : IWorkflowEngine
                     }
                 }
             }
-            
+
             currentLevel = nextLevel;
         }
-        
+
         if (processedCount != workflow.Nodes.Count)
         {
             throw new InvalidOperationException("Workflow contains a cycle");
         }
-        
+
         return levels;
     }
 
@@ -408,8 +411,8 @@ public class WorkflowEngine : IWorkflowEngine
         catch (Exception ex)
         {
             throw new ExpressionEvaluationException(
-                $"Failed to evaluate configuration: {ex.Message}", 
-                $"node:{nodeId}", 
+                $"Failed to evaluate configuration: {ex.Message}",
+                $"node:{nodeId}",
                 ex);
         }
     }
@@ -459,14 +462,14 @@ public class WorkflowEngine : IWorkflowEngine
     private JsonElement EvaluateObjectValue(JsonElement element, IExecutionContext context, string nodeId, string path)
     {
         var result = new Dictionary<string, object?>();
-        
+
         foreach (var property in element.EnumerateObject())
         {
             var propertyPath = $"{path}.{property.Name}";
             var evaluatedValue = EvaluateJsonElement(property.Value, context, nodeId, propertyPath);
             result[property.Name] = JsonSerializer.Deserialize<object>(evaluatedValue.GetRawText());
         }
-        
+
         return JsonSerializer.SerializeToElement(result);
     }
 
@@ -477,7 +480,7 @@ public class WorkflowEngine : IWorkflowEngine
     {
         var result = new List<object?>();
         var index = 0;
-        
+
         foreach (var item in element.EnumerateArray())
         {
             var itemPath = $"{path}[{index}]";
@@ -485,7 +488,7 @@ public class WorkflowEngine : IWorkflowEngine
             result.Add(JsonSerializer.Deserialize<object>(evaluatedItem.GetRawText()));
             index++;
         }
-        
+
         return JsonSerializer.SerializeToElement(result);
     }
 }
