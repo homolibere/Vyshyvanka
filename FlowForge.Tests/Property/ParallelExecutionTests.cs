@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Text.Json;
 using CsCheck;
 using FlowForge.Core.Enums;
@@ -17,22 +16,16 @@ namespace FlowForge.Tests.Property;
 /// </summary>
 public class ParallelExecutionTests
 {
-    private const int NodeDelayMs = 100; // Increased delay to make parallelism more obvious
-    private const int SystemOverheadMs = 150; // Allow for task scheduling and system overhead
+    private const int NodeDelayMs = 50;
 
     /// <summary>
     /// Feature: flowforge, Property 8: Parallel Branch Execution
     /// For any workflow containing independent branches (nodes with no shared dependencies), 
-    /// the Workflow_Engine SHALL execute those branches concurrently, and the execution time 
-    /// SHALL be less than the sum of individual branch execution times.
+    /// the Workflow_Engine SHALL execute those branches concurrently.
     /// Validates: Requirements 3.5
     /// </summary>
-    /// <remarks>
-    /// This test is skipped because timing-based parallelism verification is unreliable
-    /// in property-based tests due to thread pool scheduling variability.
-    /// </remarks>
-    [Fact(Skip = "Timing-based parallelism tests are unreliable in property-based testing")]
-    public void ParallelBranches_ExecuteConcurrently_TotalTimeLessThanSum()
+    [Fact]
+    public void ParallelBranches_ExecuteConcurrently()
     {
         GenIndependentBranchWorkflow.Sample(workflow =>
         {
@@ -47,21 +40,8 @@ public class ParallelExecutionTests
                 workflow.Id,
                 new NullCredentialProvider());
 
-            // Calculate expected sequential time (sum of all node delays)
-            var totalNodes = workflow.Nodes.Count;
-            var expectedSequentialTimeMs = totalNodes * NodeDelayMs;
-
-            // For parallel execution, we expect time ≈ depth of graph × delay + overhead
-            // Independent branches from root: depth = 2 (root + branches)
-            var expectedParallelTimeMs = 2 * NodeDelayMs;
-            var maxAllowedTime = expectedParallelTimeMs + SystemOverheadMs;
-
             // Act
-            var stopwatch = Stopwatch.StartNew();
             var result = engine.ExecuteAsync(workflow, context).GetAwaiter().GetResult();
-            stopwatch.Stop();
-
-            var actualTimeMs = stopwatch.ElapsedMilliseconds;
 
             // Assert - Execution succeeded
             Assert.True(result.Success, $"Workflow execution failed: {result.ErrorMessage}");
@@ -73,9 +53,14 @@ public class ParallelExecutionTests
                     $"Node '{node.Id}' was not executed");
             }
 
-            // Assert - Parallel execution: total time should be significantly less than sequential time
-            Assert.True(actualTimeMs < expectedSequentialTimeMs,
-                $"No parallelism detected. Actual time: {actualTimeMs}ms should be less than sequential: {expectedSequentialTimeMs}ms");
+            // Assert - Parallel execution detected: at least 2 nodes were executing simultaneously
+            // The workflow has 1 root + N branches, branches should execute in parallel
+            var branchCount = workflow.Nodes.Count - 1; // Exclude root
+            if (branchCount >= 2)
+            {
+                Assert.True(executionTracker.MaxConcurrentExecutions >= 2,
+                    $"No parallelism detected. Max concurrent executions: {executionTracker.MaxConcurrentExecutions}, expected at least 2 for {branchCount} branches");
+            }
         }, iter: 100);
     }
 
@@ -85,12 +70,7 @@ public class ParallelExecutionTests
     /// all roots SHALL execute in parallel.
     /// Validates: Requirements 3.5
     /// </summary>
-    /// <remarks>
-    /// This test is skipped because timing-based parallelism verification is unreliable
-    /// in property-based tests due to thread pool scheduling variability.
-    /// The parallelism implementation is verified by the ParallelBranches_ExecuteConcurrently_TotalTimeLessThanSum test.
-    /// </remarks>
-    [Fact(Skip = "Timing-based parallelism tests are unreliable in property-based testing")]
+    [Fact]
     public void MultipleRootNodes_ExecuteInParallel()
     {
         GenMultipleRootWorkflow.Sample(workflow =>
@@ -106,15 +86,8 @@ public class ParallelExecutionTests
                 workflow.Id,
                 new NullCredentialProvider());
 
-            var rootNodeCount = workflow.Nodes.Count;
-            var expectedSequentialTimeMs = rootNodeCount * NodeDelayMs;
-
             // Act
-            var stopwatch = Stopwatch.StartNew();
             var result = engine.ExecuteAsync(workflow, context).GetAwaiter().GetResult();
-            stopwatch.Stop();
-
-            var actualTimeMs = stopwatch.ElapsedMilliseconds;
 
             // Assert - Execution succeeded
             Assert.True(result.Success, $"Workflow execution failed: {result.ErrorMessage}");
@@ -126,16 +99,12 @@ public class ParallelExecutionTests
                     $"Node '{node.Id}' was not executed");
             }
 
-            // Assert - Parallel execution of root nodes
-            // With N independent roots each taking D ms, parallel time should be ~D + overhead, not N*D
-            // We verify parallelism by checking actual time is significantly less than sequential time
-            // Allow very generous threshold for CI environments and property-based testing variability
-            var parallelThreshold = expectedSequentialTimeMs + SystemOverheadMs;
-            Assert.True(actualTimeMs < parallelThreshold,
-                $"Root nodes not executing in parallel. Actual: {actualTimeMs}ms should be less than threshold: {parallelThreshold}ms (sequential: {expectedSequentialTimeMs}ms + overhead: {SystemOverheadMs}ms)");
+            // Assert - Parallel execution: multiple roots executing simultaneously
+            var rootCount = workflow.Nodes.Count;
+            Assert.True(executionTracker.MaxConcurrentExecutions >= 2,
+                $"Root nodes not executing in parallel. Max concurrent: {executionTracker.MaxConcurrentExecutions}, expected at least 2 for {rootCount} independent roots");
         }, iter: 100);
     }
-
 
     /// <summary>
     /// Feature: flowforge, Property 8: Parallel Branch Execution
@@ -143,12 +112,7 @@ public class ParallelExecutionTests
     /// in parallel before the merge node executes.
     /// Validates: Requirements 3.5
     /// </summary>
-    /// <remarks>
-    /// This test is skipped because timing-based parallelism verification is unreliable
-    /// in property-based tests due to thread pool scheduling variability.
-    /// The parallelism implementation is verified by the ParallelBranches_ExecuteConcurrently_TotalTimeLessThanSum test.
-    /// </remarks>
-    [Fact(Skip = "Timing-based parallelism tests are unreliable in property-based testing")]
+    [Fact]
     public void ConvergingBranches_ExecuteInParallel_BeforeMerge()
     {
         GenConvergingBranchWorkflow.Sample(workflow =>
@@ -164,20 +128,18 @@ public class ParallelExecutionTests
                 workflow.Id,
                 new NullCredentialProvider());
 
-            // For converging workflow: branches (level 1) + merge (level 2) = 2 levels
-            // Sequential time = total nodes × delay
-            var totalNodes = workflow.Nodes.Count;
-            var expectedSequentialTimeMs = totalNodes * NodeDelayMs;
-
             // Act
-            var stopwatch = Stopwatch.StartNew();
             var result = engine.ExecuteAsync(workflow, context).GetAwaiter().GetResult();
-            stopwatch.Stop();
-
-            var actualTimeMs = stopwatch.ElapsedMilliseconds;
 
             // Assert - Execution succeeded
             Assert.True(result.Success, $"Workflow execution failed: {result.ErrorMessage}");
+
+            // Assert - All nodes were executed
+            foreach (var node in workflow.Nodes)
+            {
+                Assert.True(executionTracker.WasExecuted(node.Id),
+                    $"Node '{node.Id}' was not executed");
+            }
 
             // Assert - Merge node executed after all branch nodes
             var mergeNode = workflow.Nodes.First(n => n.Id == "merge");
@@ -192,34 +154,54 @@ public class ParallelExecutionTests
                     $"Branch node '{node.Id}' should complete before merge node starts");
             }
 
-            // Assert - Parallel execution: actual time should be less than sequential time
-            // This proves parallelism is happening
-            // For converging workflows, parallel time should be close to 2 * delay (branches + merge)
-            // Use expected sequential time + overhead as a generous threshold
-            var parallelThreshold = expectedSequentialTimeMs + SystemOverheadMs;
-            Assert.True(actualTimeMs < parallelThreshold,
-                $"No parallelism detected. Actual: {actualTimeMs}ms should be less than threshold: {parallelThreshold}ms (sequential: {expectedSequentialTimeMs}ms + overhead: {SystemOverheadMs}ms, {totalNodes} nodes)");
+            // Assert - Parallel execution among branches
+            var branchCount = workflow.Nodes.Count - 1; // Exclude merge
+            if (branchCount >= 2)
+            {
+                Assert.True(executionTracker.MaxConcurrentExecutions >= 2,
+                    $"Branches not executing in parallel. Max concurrent: {executionTracker.MaxConcurrentExecutions}, expected at least 2 for {branchCount} branches");
+            }
         }, iter: 100);
     }
 
     #region Test Infrastructure
 
     /// <summary>
-    /// Tracks execution timing for parallel execution verification.
+    /// Tracks execution for parallel execution verification.
+    /// Uses concurrent execution count instead of timing to detect parallelism.
     /// </summary>
     private sealed class ParallelExecutionTracker
     {
         private readonly ConcurrentDictionary<string, DateTime> _startTimes = new();
         private readonly ConcurrentDictionary<string, DateTime> _endTimes = new();
+        private int _currentConcurrentExecutions;
+        private int _maxConcurrentExecutions;
+
+        /// <summary>
+        /// Gets the maximum number of nodes that were executing simultaneously.
+        /// </summary>
+        public int MaxConcurrentExecutions => _maxConcurrentExecutions;
 
         public void RecordStart(string nodeId)
         {
             _startTimes[nodeId] = DateTime.UtcNow;
+            
+            // Increment concurrent count and update max
+            var current = Interlocked.Increment(ref _currentConcurrentExecutions);
+            
+            // Update max using compare-and-swap pattern
+            int initialMax;
+            do
+            {
+                initialMax = _maxConcurrentExecutions;
+                if (current <= initialMax) break;
+            } while (Interlocked.CompareExchange(ref _maxConcurrentExecutions, current, initialMax) != initialMax);
         }
 
         public void RecordEnd(string nodeId)
         {
             _endTimes[nodeId] = DateTime.UtcNow;
+            Interlocked.Decrement(ref _currentConcurrentExecutions);
         }
 
         public bool WasExecuted(string nodeId) => _endTimes.ContainsKey(nodeId);
@@ -245,23 +227,11 @@ public class ParallelExecutionTests
             _delayMs = delayMs;
         }
 
-        public void Register<TNode>() where TNode : INode
-        {
-        }
-
-        public void Register(Type nodeType)
-        {
-        }
-
-        public void RegisterFromAssembly(System.Reflection.Assembly assembly)
-        {
-        }
-
+        public void Register<TNode>() where TNode : INode { }
+        public void Register(Type nodeType) { }
+        public void RegisterFromAssembly(System.Reflection.Assembly assembly) { }
         public bool Unregister(string nodeType) => false;
-
-        public void UnregisterFromAssembly(System.Reflection.Assembly assembly)
-        {
-        }
+        public void UnregisterFromAssembly(System.Reflection.Assembly assembly) { }
 
         public INode CreateNode(string nodeType, JsonElement configuration)
         {
@@ -277,14 +247,12 @@ public class ParallelExecutionTests
         }
 
         public NodeDefinition? GetDefinition(string nodeType) => null;
-
         public IEnumerable<NodeDefinition> GetAllDefinitions() => [];
-
         public bool IsRegistered(string nodeType) => true;
     }
 
     /// <summary>
-    /// A test node that introduces a configurable delay to measure parallel execution.
+    /// A test node that introduces a configurable delay to detect parallel execution.
     /// </summary>
     private sealed class DelayedNode : INode
     {
@@ -307,7 +275,7 @@ public class ParallelExecutionTests
         {
             _tracker.RecordStart(_workflowNodeId);
 
-            // Introduce delay to measure parallel execution
+            // Delay to allow concurrent execution detection
             await Task.Delay(_delayMs);
 
             _tracker.RecordEnd(_workflowNodeId);
@@ -335,12 +303,11 @@ public class ParallelExecutionTests
 
     #endregion
 
-
     #region Generators
 
     /// <summary>
     /// Generator for a workflow with multiple independent branches from a single root.
-    /// Structure: root -> [branch1_node1, branch2_node1, ...] (independent branches)
+    /// Structure: root -> [branch1, branch2, ...] (independent branches)
     /// </summary>
     private static readonly Gen<Workflow> GenIndependentBranchWorkflow =
         from branchCount in Gen.Int[2, 4]
@@ -348,11 +315,9 @@ public class ParallelExecutionTests
 
     /// <summary>
     /// Generator for a workflow with multiple independent root nodes (no connections).
-    /// Uses 6-8 nodes to ensure parallelism benefit outweighs system overhead.
-    /// With 6+ nodes at 100ms each, sequential time is 600ms+ while parallel is ~100ms + overhead.
     /// </summary>
     private static readonly Gen<Workflow> GenMultipleRootWorkflow =
-        from rootCount in Gen.Int[6, 8]
+        from rootCount in Gen.Int[3, 5]
         select CreateMultipleRootWorkflow(rootCount);
 
     /// <summary>
@@ -379,7 +344,7 @@ public class ParallelExecutionTests
         });
 
         // Create independent branch nodes (each connected only to root)
-        for (int i = 0; i < branchCount; i++)
+        for (var i = 0; i < branchCount; i++)
         {
             var nodeId = $"branch_{i}";
             nodes.Add(new WorkflowNode
@@ -408,10 +373,7 @@ public class ParallelExecutionTests
             IsActive = true,
             Nodes = nodes,
             Connections = connections,
-            Settings = new WorkflowSettings
-            {
-                ErrorHandling = ErrorHandlingMode.StopOnFirstError
-            },
+            Settings = new WorkflowSettings { ErrorHandling = ErrorHandlingMode.StopOnFirstError },
             Tags = [],
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
@@ -424,7 +386,7 @@ public class ParallelExecutionTests
         var nodes = new List<WorkflowNode>();
 
         // Create multiple independent root nodes (no connections between them)
-        for (int i = 0; i < rootCount; i++)
+        for (var i = 0; i < rootCount; i++)
         {
             var nodeId = $"root_{i}";
             nodes.Add(new WorkflowNode
@@ -444,11 +406,8 @@ public class ParallelExecutionTests
             Version = 1,
             IsActive = true,
             Nodes = nodes,
-            Connections = [], // No connections - all nodes are independent
-            Settings = new WorkflowSettings
-            {
-                ErrorHandling = ErrorHandlingMode.StopOnFirstError
-            },
+            Connections = [],
+            Settings = new WorkflowSettings { ErrorHandling = ErrorHandlingMode.StopOnFirstError },
             Tags = [],
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
@@ -462,7 +421,7 @@ public class ParallelExecutionTests
         var connections = new List<Connection>();
 
         // Create branch nodes (independent roots)
-        for (int i = 0; i < branchCount; i++)
+        for (var i = 0; i < branchCount; i++)
         {
             var nodeId = $"branch_{i}";
             nodes.Add(new WorkflowNode
@@ -474,7 +433,6 @@ public class ParallelExecutionTests
                 Configuration = JsonSerializer.SerializeToElement(new { workflowNodeId = nodeId })
             });
 
-            // Connect each branch to the merge node
             connections.Add(new Connection
             {
                 SourceNodeId = nodeId,
@@ -502,10 +460,7 @@ public class ParallelExecutionTests
             IsActive = true,
             Nodes = nodes,
             Connections = connections,
-            Settings = new WorkflowSettings
-            {
-                ErrorHandling = ErrorHandlingMode.StopOnFirstError
-            },
+            Settings = new WorkflowSettings { ErrorHandling = ErrorHandlingMode.StopOnFirstError },
             Tags = [],
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
