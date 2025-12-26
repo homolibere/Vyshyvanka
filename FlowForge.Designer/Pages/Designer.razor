@@ -42,6 +42,10 @@
                     ⏹ Stop
                 </button>
             }
+            <span class="toolbar-separator"></span>
+            <button class="toolbar-btn" @onclick="OpenPluginManager" title="Plugin Manager">
+                📦 Plugins
+            </button>
         </div>
 
         @if (!StateService.ValidationResult.IsValid)
@@ -75,10 +79,14 @@
     </aside>
 </div>
 
+@* Plugin Manager Modal *@
+<PluginManager IsOpen="@_isPluginManagerOpen" OnClose="ClosePluginManager"/>
+
 @code {
     [Parameter] public Guid? WorkflowId { get; set; }
 
     private bool _isValidationPanelExpanded = true;
+    private bool _isPluginManagerOpen;
     private System.Timers.Timer? _executionPollTimer;
 
     protected override async Task OnInitializedAsync()
@@ -119,6 +127,9 @@
 
     private void ZoomIn() => StateService.Zoom(StateService.CanvasState.Zoom + 0.1);
     private void ZoomOut() => StateService.Zoom(StateService.CanvasState.Zoom - 0.1);
+
+    private void OpenPluginManager() => _isPluginManagerOpen = true;
+    private void ClosePluginManager() => _isPluginManagerOpen = false;
 
     private void ToggleValidationPanel() => _isValidationPanelExpanded = !_isValidationPanelExpanded;
 

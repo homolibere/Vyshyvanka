@@ -129,3 +129,25 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+
+/* Plugin node styling */
+.palette-node.plugin-node {
+    border-left: 2px solid #9c27b0;
+}
+
+.palette-node.plugin-node:hover {
+    background: #2d2d44;
+    border-left-color: #ba68c8;
+}
+
+.plugin-badge {
+    font-size: 0.75rem;
+    margin-left: 4px;
+    opacity: 0.8;
+}
+
+.node-name {
+    display: flex;
+    align-items: center;
+}

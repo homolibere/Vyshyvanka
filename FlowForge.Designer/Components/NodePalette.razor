@@ -24,13 +24,20 @@
                 <div class="category-nodes">
                     @foreach (var node in category)
                     {
-                        <div class="palette-node"
+                        <div class="palette-node @(node.IsPluginNode ? "plugin-node" : "")"
                              draggable="true"
                              @ondragstart="() => OnDragStart(node)"
-                             @ondragend="OnDragEnd">
+                             @ondragend="OnDragEnd"
+                             title="@GetNodeTooltip(node)">
                             <span class="node-icon">@node.Icon</span>
                             <div class="node-info">
-                                <span class="node-name">@node.Name</span>
+                                <span class="node-name">
+                                    @node.Name
+                                    @if (node.IsPluginNode)
+                                    {
+                                        <span class="plugin-badge" title="Plugin: @node.SourcePackage">🔌</span>
+                                    }
+                                </span>
                                 <span class="node-description">@node.Description</span>
                             </div>
                         </div>
@@ -63,7 +70,8 @@
         {
             nodes = nodes.Where(n =>
                 n.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
-                n.Description.Contains(searchText, StringComparison.OrdinalIgnoreCase));
+                n.Description.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
+                (!string.IsNullOrEmpty(n.SourcePackage) && n.SourcePackage.Contains(searchText, StringComparison.OrdinalIgnoreCase)));
         }
 
         return nodes.GroupBy(n => n.Category).OrderBy(g => g.Key);
@@ -85,6 +93,17 @@
         NodeCategory.Transform => "🔄",
         _ => "📦"
     };
+
+    private static string GetNodeTooltip(NodeDefinition node)
+    {
+        var tooltip = node.Description;
+        if (node.IsPluginNode)
+        {
+            tooltip = $"[Plugin: {node.SourcePackage}] {tooltip}";
+        }
+
+        return tooltip;
+    }
 
     private void OnDragStart(NodeDefinition node)
     {

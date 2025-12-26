@@ -1,0 +1,124 @@
+.toast {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    background: #1a1a2e;
+    border: 1px solid #2d2d44;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    min-width: 280px;
+    max-width: 400px;
+    opacity: 1;
+    transform: translateX(0);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.toast.hiding {
+    opacity: 0;
+    transform: translateX(20px);
+}
+
+.toast-icon {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.toast-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.toast-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #e0e0e0;
+    margin-bottom: 4px;
+}
+
+.toast-message {
+    font-size: 0.8125rem;
+    color: #b0b0b0;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.toast-close {
+    flex-shrink: 0;
+    background: transparent;
+    border: none;
+    color: #666;
+    font-size: 1.25rem;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    transition: color 0.15s ease;
+    margin-left: auto;
+}
+
+.toast-close:hover {
+    color: #e0e0e0;
+}
+
+/* Success variant */
+.toast-success {
+    border-left: 3px solid #4caf50;
+}
+
+.toast-success .toast-icon {
+    background: rgba(76, 175, 80, 0.15);
+    color: #4caf50;
+}
+
+.toast-success .toast-title {
+    color: #4caf50;
+}
+
+/* Error variant */
+.toast-error {
+    border-left: 3px solid #ef5350;
+}
+
+.toast-error .toast-icon {
+    background: rgba(239, 83, 80, 0.15);
+    color: #ef5350;
+}
+
+.toast-error .toast-title {
+    color: #ef5350;
+}
+
+/* Warning variant */
+.toast-warning {
+    border-left: 3px solid #ffb74d;
+}
+
+.toast-warning .toast-icon {
+    background: rgba(255, 183, 77, 0.15);
+    color: #ffb74d;
+}
+
+.toast-warning .toast-title {
+    color: #ffb74d;
+}
+
+/* Info variant */
+.toast-info {
+    border-left: 3px solid #4fc3f7;
+}
+
+.toast-info .toast-icon {
+    background: rgba(79, 195, 247, 0.15);
+    color: #4fc3f7;
+}
+
+.toast-info .toast-title {
+    color: #4fc3f7;
+}

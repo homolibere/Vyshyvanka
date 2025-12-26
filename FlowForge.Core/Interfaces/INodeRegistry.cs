@@ -68,6 +68,17 @@ public record NodeDefinition
 
     /// <summary>Required credential type, if any.</summary>
     public CredentialType? RequiredCredentialType { get; init; }
+
+    /// <summary>
+    /// Source package identifier for plugin nodes.
+    /// Null or empty for built-in nodes.
+    /// </summary>
+    public string? SourcePackage { get; init; }
+
+    /// <summary>
+    /// Indicates whether this node is from a plugin package.
+    /// </summary>
+    public bool IsPluginNode => !string.IsNullOrEmpty(SourcePackage);
 }
 
 /// <summary>

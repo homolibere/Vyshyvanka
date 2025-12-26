@@ -1,0 +1,157 @@
+@* Reusable confirmation dialog component *@
+@using FlowForge.Designer.Models
+
+<div class="modal-overlay @(IsOpen ? "open" : "")" @onclick="HandleOverlayClick">
+    <div class="modal-content confirm-dialog" @onclick:stopPropagation="true">
+        <div class="modal-header @GetHeaderClass()">
+            @if (!string.IsNullOrEmpty(Icon))
+            {
+                <span class="dialog-icon">@Icon</span>
+            }
+            <h3>@Title</h3>
+            <button class="btn-close" @onclick="HandleCancel" disabled="@IsProcessing">×</button>
+        </div>
+
+        <div class="modal-body">
+            @if (!string.IsNullOrEmpty(Message))
+            {
+                <p class="dialog-message">@Message</p>
+            }
+
+            @if (AffectedItems.Count > 0)
+            {
+                <div class="affected-items-section">
+                    @if (!string.IsNullOrEmpty(AffectedItemsLabel))
+                    {
+                        <span class="affected-items-label">@AffectedItemsLabel</span>
+                    }
+                    <ul class="affected-items-list">
+                        @foreach (var item in AffectedItems)
+                        {
+                            <li>@item</li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            @if (ChildContent is not null)
+            {
+                @ChildContent
+            }
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn btn-secondary" @onclick="HandleCancel" disabled="@IsProcessing">
+                @CancelText
+            </button>
+            <button class="btn @GetConfirmButtonClass()" @onclick="HandleConfirm" disabled="@IsProcessing">
+                @if (IsProcessing)
+                {
+                    <span class="processing-indicator">@ProcessingText</span>
+                }
+                else
+                {
+                    <span>@ConfirmText</span>
+                }
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+
+    /// <summary>Whether the dialog is open.</summary>
+    [Parameter]
+    public bool IsOpen { get; set; }
+
+    /// <summary>The dialog title.</summary>
+    [Parameter]
+    public string Title { get; set; } = "Confirm";
+
+    /// <summary>The dialog message.</summary>
+    [Parameter]
+    public string? Message { get; set; }
+
+    /// <summary>Optional icon to display in the header.</summary>
+    [Parameter]
+    public string? Icon { get; set; }
+
+    /// <summary>Text for the confirm button.</summary>
+    [Parameter]
+    public string ConfirmText { get; set; } = "Confirm";
+
+    /// <summary>Text for the cancel button.</summary>
+    [Parameter]
+    public string CancelText { get; set; } = "Cancel";
+
+    /// <summary>Text to show while processing.</summary>
+    [Parameter]
+    public string ProcessingText { get; set; } = "Processing...";
+
+    /// <summary>Whether an operation is in progress.</summary>
+    [Parameter]
+    public bool IsProcessing { get; set; }
+
+    /// <summary>The dialog variant (default, warning, danger).</summary>
+    [Parameter]
+    public ConfirmDialogVariant Variant { get; set; } = ConfirmDialogVariant.Default;
+
+    /// <summary>List of affected items to display (e.g., workflows that will be affected).</summary>
+    [Parameter]
+    public IReadOnlyList<string> AffectedItems { get; set; } = [];
+
+    /// <summary>Label for the affected items section.</summary>
+    [Parameter]
+    public string? AffectedItemsLabel { get; set; }
+
+    /// <summary>Optional child content for custom dialog body.</summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>Callback when the user confirms.</summary>
+    [Parameter]
+    public EventCallback OnConfirm { get; set; }
+
+    /// <summary>Callback when the user cancels.</summary>
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+
+    private string GetHeaderClass() => Variant switch
+    {
+        ConfirmDialogVariant.Warning => "header-warning",
+        ConfirmDialogVariant.Danger => "header-danger",
+        _ => ""
+    };
+
+    private string GetConfirmButtonClass() => Variant switch
+    {
+        ConfirmDialogVariant.Warning => "btn-warning",
+        ConfirmDialogVariant.Danger => "btn-danger",
+        _ => "btn-primary"
+    };
+
+    private async Task HandleConfirm()
+    {
+        if (!IsProcessing)
+        {
+            await OnConfirm.InvokeAsync();
+        }
+    }
+
+    private async Task HandleCancel()
+    {
+        if (!IsProcessing)
+        {
+            await OnCancel.InvokeAsync();
+        }
+    }
+
+    private async Task HandleOverlayClick()
+    {
+        if (!IsProcessing)
+        {
+            await OnCancel.InvokeAsync();
+        }
+    }
+
+}

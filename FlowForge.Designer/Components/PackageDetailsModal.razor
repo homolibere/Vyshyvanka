@@ -1,0 +1,537 @@
+@* Modal for displaying detailed package information *@
+@inject PluginStateService PluginState
+@inject ToastService ToastService
+
+<div class="modal-overlay @(IsOpen ? "open" : "")" @onclick="HandleOverlayClick">
+    <div class="modal-content package-details-modal" @onclick:stopPropagation="true">
+        <div class="modal-header">
+            <h3>@(_package?.Title ?? _package?.PackageId ?? "Package Details")</h3>
+            <button class="btn-close" @onclick="Close" disabled="@_isOperationInProgress">×</button>
+        </div>
+
+        @if (_isLoading)
+        {
+            <div class="modal-body loading-state">
+                <div class="loading-spinner"></div>
+                <span>Loading package details...</span>
+            </div>
+        }
+        else if (_error is not null)
+        {
+            <div class="modal-body error-state">
+                <span class="error-icon">⚠️</span>
+                <span>@_error</span>
+                <button class="btn btn-secondary" @onclick="LoadPackageDetailsAsync">Retry</button>
+            </div>
+        }
+        else if (_package is not null)
+        {
+            <div class="modal-body">
+                <div class="details-header">
+                    <div class="package-icon-large">
+                        @if (!string.IsNullOrEmpty(_package.IconUrl))
+                        {
+                            <img src="@_package.IconUrl" alt="@_package.Title"/>
+                        }
+                        else
+                        {
+                            <span class="default-icon">📦</span>
+                        }
+                    </div>
+                    <div class="details-meta">
+                        <div class="meta-row">
+                            <span class="meta-label">Version:</span>
+                            <span class="meta-value">@_package.Version</span>
+                        </div>
+                        @if (!string.IsNullOrEmpty(_package.Authors))
+                        {
+                            <div class="meta-row">
+                                <span class="meta-label">Author:</span>
+                                <span class="meta-value">@_package.Authors</span>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(_package.License))
+                        {
+                            <div class="meta-row">
+                                <span class="meta-label">License:</span>
+                                <span class="meta-value">@_package.License</span>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(_package.ProjectUrl))
+                        {
+                            <div class="meta-row">
+                                <span class="meta-label">Project:</span>
+                                <a href="@_package.ProjectUrl" target="_blank" rel="noopener noreferrer" class="project-link">
+                                    View Project Page ↗
+                                </a>
+                            </div>
+                        }
+                        @if (_package.IsInstalled)
+                        {
+                            <div class="meta-row installed-indicator">
+                                <span class="installed-badge">✓ Installed</span>
+                                <span class="installed-version">v@(_package.InstalledVersion)</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(_package.Description))
+                {
+                    <div class="details-section">
+                        <h4>Description</h4>
+                        <p class="description-text">@_package.Description</p>
+                    </div>
+                }
+
+                @if (_package.Tags.Count > 0)
+                {
+                    <div class="details-section">
+                        <h4>Tags</h4>
+                        <div class="tag-list">
+                            @foreach (var tag in _package.Tags)
+                            {
+                                <span class="tag">@tag</span>
+                            }
+                        </div>
+                    </div>
+                }
+
+                @if (_package.AllVersions.Count > 0)
+                {
+                    <div class="details-section">
+                        <h4>Version</h4>
+                        <select class="version-selector" @bind="_selectedVersion" disabled="@_isOperationInProgress">
+                            @foreach (var version in _package.AllVersions)
+                            {
+                                <option value="@version">
+                                    @version @(version == _package.InstalledVersion ? "(installed)" : "")
+                                </option>
+                            }
+                        </select>
+                    </div>
+                }
+
+                @if (_package.Dependencies.Count > 0)
+                {
+                    <div class="details-section">
+                        <h4>Dependencies</h4>
+                        <ul class="dependency-list">
+                            @foreach (var dep in _package.Dependencies)
+                            {
+                                <li>@dep</li>
+                            }
+                        </ul>
+                    </div>
+                }
+
+                @if (_package.IsInstalled && _package.NodeTypes.Count > 0)
+                {
+                    <div class="details-section">
+                        <h4>Included Nodes</h4>
+                        <ul class="node-list">
+                            @foreach (var node in _package.NodeTypes)
+                            {
+                                <li>
+                                    <span class="node-icon">🔲</span>
+                                    <span>@node</span>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+            </div>
+
+            <div class="modal-footer">
+                @if (_package.IsInstalled)
+                {
+                    @if (_selectedVersion != _package.InstalledVersion)
+                    {
+                        <button class="btn btn-primary" @onclick="HandleUpdate" disabled="@_isOperationInProgress">
+                            @if (_isOperationInProgress)
+                            {
+                                <span class="operation-indicator">Updating...</span>
+                            }
+                            else
+                            {
+                                <span>Update to v@(_selectedVersion)</span>
+                            }
+                        </button>
+                    }
+
+                    <button class="btn btn-danger" @onclick="HandleUninstall" disabled="@_isOperationInProgress">
+                        @if (_isOperationInProgress)
+                        {
+                            <span class="operation-indicator">Uninstalling...</span>
+                        }
+                        else
+                        {
+                            <span>Uninstall</span>
+                        }
+                    </button>
+                }
+                else
+                {
+                    <button class="btn btn-primary" @onclick="HandleInstall" disabled="@_isOperationInProgress">
+                        @if (_isOperationInProgress)
+                        {
+                            <span class="operation-indicator">Installing...</span>
+                        }
+                        else
+                        {
+                            <span>Install v@(_selectedVersion)</span>
+                        }
+                    </button>
+                }
+                <button class="btn btn-secondary" @onclick="Close" disabled="@_isOperationInProgress">
+                    Close
+                </button>
+            </div>
+        }
+    </div>
+</div>
+
+@* Confirmation dialog for untrusted source installation *@
+<ConfirmDialog IsOpen="@_showUntrustedConfirm"
+               Title="Install from Untrusted Source"
+               Message="This package may be installed from an untrusted source. Packages from untrusted sources could potentially contain malicious code."
+               Icon="⚠️"
+               ConfirmText="Install Anyway"
+               CancelText="Cancel"
+               Variant="ConfirmDialogVariant.Warning"
+               AffectedItems="@PluginState.UntrustedSourceNames"
+               AffectedItemsLabel="Untrusted sources:"
+               IsProcessing="@_isOperationInProgress"
+               ProcessingText="Installing..."
+               OnConfirm="ConfirmUntrustedInstallAsync"
+               OnCancel="CancelUntrustedInstall"/>
+
+@* Confirmation dialog for uninstallation *@
+<ConfirmDialog IsOpen="@_showUninstallConfirm"
+               Title="Uninstall Package"
+               Message="@_uninstallMessage"
+               Icon="🗑️"
+               ConfirmText="Uninstall"
+               CancelText="Cancel"
+               Variant="@_uninstallVariant"
+               AffectedItems="@_affectedWorkflows"
+               AffectedItemsLabel="@(_affectedWorkflows.Count > 0 ? "Affected workflows:" : null)"
+               IsProcessing="@_isOperationInProgress"
+               ProcessingText="Uninstalling..."
+               OnConfirm="ConfirmUninstallAsync"
+               OnCancel="CancelUninstall"/>
+
+
+@code {
+    private PackageDetailsModel? _package;
+    private string _selectedVersion = string.Empty;
+    private bool _isLoading;
+    private bool _isOperationInProgress;
+    private string? _error;
+    private bool _showUntrustedConfirm;
+    private bool _showUninstallConfirm;
+    private string _uninstallMessage = string.Empty;
+    private List<string> _affectedWorkflows = [];
+    private ConfirmDialogVariant _uninstallVariant = ConfirmDialogVariant.Danger;
+
+    /// <summary>Whether the modal is open.</summary>
+    [Parameter]
+    public bool IsOpen { get; set; }
+
+    /// <summary>The package ID to display details for.</summary>
+    [Parameter]
+    public string? PackageId { get; set; }
+
+    /// <summary>Callback when the modal is closed.</summary>
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    /// <summary>Callback when a package is installed.</summary>
+    [Parameter]
+    public EventCallback<string> OnInstalled { get; set; }
+
+    /// <summary>Callback when a package is updated.</summary>
+    [Parameter]
+    public EventCallback<string> OnUpdated { get; set; }
+
+    /// <summary>Callback when a package is uninstalled.</summary>
+    [Parameter]
+    public EventCallback OnUninstalled { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (IsOpen && !string.IsNullOrEmpty(PackageId))
+        {
+            // Only reload if package changed or not loaded
+            if (_package?.PackageId != PackageId)
+            {
+                await LoadPackageDetailsAsync();
+            }
+        }
+        else if (!IsOpen)
+        {
+            // Reset state when modal closes
+            _package = null;
+            _selectedVersion = string.Empty;
+            _error = null;
+            _showUntrustedConfirm = false;
+            _showUninstallConfirm = false;
+            _affectedWorkflows = [];
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Ensure sources are loaded for trust checking
+        if (!PluginState.Sources.Any())
+        {
+            await PluginState.LoadSourcesAsync();
+        }
+    }
+
+    private async Task LoadPackageDetailsAsync()
+    {
+        if (string.IsNullOrEmpty(PackageId))
+        {
+            return;
+        }
+
+        _isLoading = true;
+        _error = null;
+        StateHasChanged();
+
+        try
+        {
+            _package = await PluginState.GetPackageDetailsAsync(PackageId);
+
+            if (_package is null)
+            {
+                _error = "Package not found";
+            }
+            else
+            {
+                // Set selected version to installed version or latest
+                _selectedVersion = _package.InstalledVersion ?? _package.Version;
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = $"Failed to load package details: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleInstall()
+    {
+        if (_package is null || _isOperationInProgress)
+        {
+            return;
+        }
+
+        // Check if there are untrusted sources (Requirement 4.6)
+        if (PluginState.HasUntrustedSources)
+        {
+            _showUntrustedConfirm = true;
+            return;
+        }
+
+        await ExecuteInstallAsync();
+    }
+
+    private async Task ConfirmUntrustedInstallAsync()
+    {
+        _showUntrustedConfirm = false;
+        await ExecuteInstallAsync();
+    }
+
+    private void CancelUntrustedInstall()
+    {
+        _showUntrustedConfirm = false;
+    }
+
+    private async Task ExecuteInstallAsync()
+    {
+        if (_package is null)
+        {
+            return;
+        }
+
+        _isOperationInProgress = true;
+        StateHasChanged();
+
+        try
+        {
+            var success = await PluginState.InstallPackageAsync(_package.PackageId, _selectedVersion);
+
+            if (success)
+            {
+                ToastService.ShowSuccess($"Successfully installed {_package.PackageId}", "Package Installed");
+                await OnInstalled.InvokeAsync(_package.PackageId);
+                // Reload to get updated state
+                await LoadPackageDetailsAsync();
+            }
+            else
+            {
+                ToastService.ShowError(
+                    PluginState.ErrorMessage ?? $"Failed to install {_package.PackageId}",
+                    "Installation Failed");
+            }
+        }
+        finally
+        {
+            _isOperationInProgress = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleUpdate()
+    {
+        if (_package is null || _isOperationInProgress)
+        {
+            return;
+        }
+
+        _isOperationInProgress = true;
+        StateHasChanged();
+
+        try
+        {
+            var success = await PluginState.UpdatePackageAsync(_package.PackageId, _selectedVersion);
+
+            if (success)
+            {
+                ToastService.ShowSuccess(
+                    $"Successfully updated {_package.PackageId} to v{_selectedVersion}",
+                    "Package Updated");
+                await OnUpdated.InvokeAsync(_package.PackageId);
+                // Reload to get updated state
+                await LoadPackageDetailsAsync();
+            }
+            else
+            {
+                ToastService.ShowError(
+                    PluginState.ErrorMessage ?? $"Failed to update {_package.PackageId}",
+                    "Update Failed");
+            }
+        }
+        finally
+        {
+            _isOperationInProgress = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleUninstall()
+    {
+        if (_package is null || _isOperationInProgress)
+        {
+            return;
+        }
+
+        // First, try to uninstall without force to check for affected workflows
+        _isOperationInProgress = true;
+        StateHasChanged();
+
+        try
+        {
+            var result = await PluginState.UninstallPackageAsync(_package.PackageId, force: false);
+
+            if (result.Success)
+            {
+                // Uninstall succeeded without issues
+                ToastService.ShowSuccess($"Successfully uninstalled {_package.PackageId}", "Package Uninstalled");
+                await OnUninstalled.InvokeAsync();
+                await Close();
+                return;
+            }
+
+            if (result.AffectedWorkflows.Count > 0)
+            {
+                // Show confirmation dialog with affected workflows warning
+                _affectedWorkflows = result.AffectedWorkflows.ToList();
+                _uninstallMessage = $"The package \"{_package.PackageId}\" is used by workflows. Uninstalling it may break these workflows.";
+                _uninstallVariant = ConfirmDialogVariant.Warning;
+                _showUninstallConfirm = true;
+            }
+            else if (result.Errors.Count > 0)
+            {
+                // Show error
+                _error = result.Errors.FirstOrDefault() ?? "Uninstall failed";
+                ToastService.ShowError(_error, "Uninstall Failed");
+            }
+            else
+            {
+                // Show simple confirmation dialog
+                _affectedWorkflows = [];
+                _uninstallMessage = $"Are you sure you want to uninstall \"{_package.PackageId}\"? This action cannot be undone.";
+                _uninstallVariant = ConfirmDialogVariant.Danger;
+                _showUninstallConfirm = true;
+            }
+        }
+        finally
+        {
+            _isOperationInProgress = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ConfirmUninstallAsync()
+    {
+        if (_package is null)
+        {
+            return;
+        }
+
+        _showUninstallConfirm = false;
+        _isOperationInProgress = true;
+        StateHasChanged();
+
+        try
+        {
+            // Force uninstall since user confirmed
+            var result = await PluginState.UninstallPackageAsync(_package.PackageId, force: true);
+
+            if (result.Success)
+            {
+                ToastService.ShowSuccess($"Successfully uninstalled {_package.PackageId}", "Package Uninstalled");
+                await OnUninstalled.InvokeAsync();
+                await Close();
+            }
+            else
+            {
+                _error = result.Errors.FirstOrDefault() ?? "Uninstall failed";
+                ToastService.ShowError(_error, "Uninstall Failed");
+            }
+        }
+        finally
+        {
+            _isOperationInProgress = false;
+            _affectedWorkflows = [];
+            StateHasChanged();
+        }
+    }
+
+    private void CancelUninstall()
+    {
+        _showUninstallConfirm = false;
+        _affectedWorkflows = [];
+    }
+
+    private async Task Close()
+    {
+        if (!_isOperationInProgress)
+        {
+            await OnClose.InvokeAsync();
+        }
+    }
+
+    private async Task HandleOverlayClick()
+    {
+        await Close();
+    }
+
+}

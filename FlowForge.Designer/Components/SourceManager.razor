@@ -1,0 +1,211 @@
+@* Source manager tab content component *@
+@inject PluginStateService PluginState
+@inject ToastService ToastService
+@implements IDisposable
+
+<div class="source-manager">
+    <div class="tab-toolbar">
+        <button class="btn btn-primary" @onclick="AddSourceAsync" disabled="@PluginState.IsLoading">
+            ➕ Add Source
+        </button>
+    </div>
+
+    @if (PluginState.IsLoading && !PluginState.Sources.Any())
+    {
+        <div class="loading-state">
+            <div class="loading-spinner"></div>
+            <p>@(PluginState.StatusMessage ?? "Loading sources...")</p>
+        </div>
+    }
+    else if (!PluginState.Sources.Any())
+    {
+        <div class="empty-state">
+            <div class="empty-icon">🔗</div>
+            <h4>No package sources configured</h4>
+            <p>Add a package source to browse and install packages.</p>
+            <button class="btn btn-primary" @onclick="AddSourceAsync">
+                Add Source
+            </button>
+        </div>
+    }
+    else
+    {
+        <div class="source-list">
+            @foreach (var source in PluginState.Sources)
+            {
+                <div class="source-item @(!source.IsEnabled ? "disabled" : "")">
+                    <div class="source-info">
+                        <div class="source-header">
+                            <span class="source-name">@source.Name</span>
+                            @if (source.IsTrusted)
+                            {
+                                <span class="trusted-badge" title="Trusted source">✓ Trusted</span>
+                            }
+                            @if (!source.IsEnabled)
+                            {
+                                <span class="disabled-badge" title="Source is disabled">Disabled</span>
+                            }
+                            @if (source.HasCredentials)
+                            {
+                                <span class="credentials-badge" title="Has credentials configured">🔑</span>
+                            }
+                        </div>
+                        <span class="source-url">@source.Url</span>
+                        @if (_testResults.TryGetValue(source.Name, out var testResult))
+                        {
+                            <div class="test-result @(testResult.Success ? "success" : "failure")">
+                                @if (testResult.Success)
+                                {
+                                    <span class="test-status">✓ Connected (@(testResult.ResponseTimeMs)ms)</span>
+                                }
+                                else
+                                {
+                                    <span class="test-status">✗ @testResult.ErrorMessage</span>
+                                }
+                            </div>
+                        }
+                    </div>
+                    <div class="source-actions">
+                        <button class="btn btn-sm btn-secondary"
+                                @onclick="() => TestSourceAsync(source.Name)"
+                                @onclick:stopPropagation="true"
+                                disabled="@(PluginState.IsLoading || PluginState.IsSourceBeingTested(source.Name))">
+                            @if (PluginState.IsSourceBeingTested(source.Name))
+                            {
+                                <span>Testing...</span>
+                            }
+                            else
+                            {
+                                <span>Test</span>
+                            }
+                        </button>
+                        <button class="btn btn-sm btn-secondary"
+                                @onclick="() => EditSourceAsync(source)"
+                                @onclick:stopPropagation="true"
+                                disabled="@PluginState.IsLoading">
+                            Edit
+                        </button>
+                        <button class="btn btn-sm btn-danger"
+                                @onclick="() => RemoveSourceAsync(source.Name)"
+                                @onclick:stopPropagation="true"
+                                disabled="@PluginState.IsLoading">
+                            Remove
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(PluginState.ErrorMessage))
+    {
+        <div class="error-message">
+            <span>@PluginState.ErrorMessage</span>
+            <button class="btn-retry" @onclick="RetryLoadSourcesAsync">Retry</button>
+            <button class="btn-dismiss" @onclick="DismissError">×</button>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(PluginState.StatusMessage) && !PluginState.IsLoading)
+    {
+        <div class="status-message">
+            <span>@PluginState.StatusMessage</span>
+            <button class="btn-dismiss" @onclick="DismissStatus">×</button>
+        </div>
+    }
+</div>
+
+@code {
+    private Dictionary<string, SourceTestResultModel> _testResults = new();
+
+    /// <summary>Callback when Add Source is clicked.</summary>
+    [Parameter]
+    public EventCallback OnAddSource { get; set; }
+
+    /// <summary>Callback when Edit Source is clicked.</summary>
+    [Parameter]
+    public EventCallback<PackageSourceModel> OnEditSource { get; set; }
+
+    protected override void OnInitialized()
+    {
+        PluginState.OnStateChanged += StateHasChanged;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!PluginState.Sources.Any())
+        {
+            await PluginState.LoadSourcesAsync();
+        }
+    }
+
+    public void Dispose()
+    {
+        PluginState.OnStateChanged -= StateHasChanged;
+    }
+
+    private async Task AddSourceAsync()
+    {
+        await OnAddSource.InvokeAsync();
+    }
+
+    private async Task EditSourceAsync(PackageSourceModel source)
+    {
+        await OnEditSource.InvokeAsync(source);
+    }
+
+    private async Task RemoveSourceAsync(string name)
+    {
+        // Note: In a full implementation, this would show a confirmation dialog first
+        // For now, we directly call remove - the confirmation dialog will be added in task 12.1
+        var success = await PluginState.RemoveSourceAsync(name);
+        if (success)
+        {
+            // Clear test result for removed source
+            _testResults.Remove(name);
+            ToastService.ShowSuccess($"Successfully removed source \"{name}\"", "Source Removed");
+        }
+        else
+        {
+            ToastService.ShowError(
+                PluginState.ErrorMessage ?? $"Failed to remove source \"{name}\"",
+                "Remove Failed");
+        }
+    }
+
+    private async Task TestSourceAsync(string name)
+    {
+        var result = await PluginState.TestSourceAsync(name);
+        _testResults[name] = result;
+
+        if (result.Success)
+        {
+            ToastService.ShowSuccess(
+                $"Source \"{name}\" is reachable ({result.ResponseTimeMs}ms)",
+                "Connection Successful");
+        }
+        else
+        {
+            ToastService.ShowError(
+                result.ErrorMessage ?? $"Failed to connect to source \"{name}\"",
+                "Connection Failed");
+        }
+    }
+
+    private async Task RetryLoadSourcesAsync()
+    {
+        PluginState.DismissError();
+        await PluginState.LoadSourcesAsync();
+    }
+
+    private void DismissError()
+    {
+        PluginState.DismissError();
+    }
+
+    private void DismissStatus()
+    {
+        PluginState.DismissStatus();
+    }
+
+}

@@ -1,0 +1,199 @@
+@* Main Plugin Manager component with tab navigation *@
+@inject PluginStateService PluginState
+@implements IDisposable
+
+<div class="modal-overlay @(IsOpen ? "open" : "")" @onclick="HandleOverlayClick">
+    <div class="plugin-manager-modal" @onclick:stopPropagation="true">
+        <div class="modal-header">
+            <h2>Plugin Manager</h2>
+            <button class="btn-close" @onclick="Close" disabled="@PluginState.IsLoading">×</button>
+        </div>
+
+        <div class="plugin-manager-tabs">
+            <button class="tab @(IsInstalledTabActive ? "active" : "")"
+                    @onclick="SelectInstalledTab">
+                Installed
+                @if (PluginState.InstalledPackages.Count > 0)
+                {
+                    <span class="tab-count">@PluginState.InstalledPackages.Count</span>
+                }
+            </button>
+            <button class="tab @(IsBrowseTabActive ? "active" : "")"
+                    @onclick="SelectBrowseTab">
+                Browse
+            </button>
+            <button class="tab @(IsSourcesTabActive ? "active" : "")"
+                    @onclick="SelectSourcesTab">
+                Sources
+                @if (PluginState.Sources.Count > 0)
+                {
+                    <span class="tab-count">@PluginState.Sources.Count</span>
+                }
+            </button>
+        </div>
+
+        <div class="plugin-manager-content">
+            @if (IsInstalledTabActive)
+            {
+                <InstalledPackages OnNavigateToBrowse="NavigateToBrowse"
+                                   OnShowDetails="ShowPackageDetails"/>
+            }
+            else if (IsBrowseTabActive)
+            {
+                <BrowsePackages OnShowDetails="ShowPackageDetails"/>
+            }
+            else if (IsSourcesTabActive)
+            {
+                <SourceManager OnAddSource="ShowAddSourceModal"
+                               OnEditSource="ShowEditSourceModal"/>
+            }
+        </div>
+    </div>
+</div>
+
+@* Package Details Modal *@
+<PackageDetailsModal IsOpen="@_isPackageDetailsOpen"
+                     PackageId="@_selectedPackageId"
+                     OnClose="ClosePackageDetails"
+                     OnInstalled="OnPackageInstalled"
+                     OnUpdated="OnPackageUpdated"
+                     OnUninstalled="OnPackageUninstalled"/>
+
+@* Source Edit Modal *@
+<SourceEditModal IsOpen="@_isSourceEditOpen"
+                 Source="@_editingSource"
+                 OnClose="CloseSourceEdit"
+                 OnSaved="OnSourceSaved"/>
+
+@code {
+    private const string InstalledTab = "installed";
+    private const string BrowseTab = "browse";
+    private const string SourcesTab = "sources";
+
+    private string _activeTab = InstalledTab;
+    private bool _isPackageDetailsOpen;
+    private string? _selectedPackageId;
+    private bool _isSourceEditOpen;
+    private PackageSourceModel? _editingSource;
+
+    /// <summary>Whether the Plugin Manager is open.</summary>
+    [Parameter]
+    public bool IsOpen { get; set; }
+
+    /// <summary>Callback when the Plugin Manager is closed.</summary>
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    private bool IsInstalledTabActive => _activeTab == InstalledTab;
+    private bool IsBrowseTabActive => _activeTab == BrowseTab;
+    private bool IsSourcesTabActive => _activeTab == SourcesTab;
+
+    protected override void OnInitialized()
+    {
+        PluginState.OnStateChanged += StateHasChanged;
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (IsOpen)
+        {
+            // Load initial data when opened (Requirement 1.4)
+            await LoadInitialDataAsync();
+        }
+    }
+
+    public void Dispose()
+    {
+        PluginState.OnStateChanged -= StateHasChanged;
+    }
+
+    private async Task LoadInitialDataAsync()
+    {
+        // Load installed packages if not already loaded
+        if (!PluginState.InstalledPackages.Any())
+        {
+            await PluginState.LoadInstalledPackagesAsync();
+        }
+    }
+
+    private void SelectInstalledTab() => _activeTab = InstalledTab;
+    private void SelectBrowseTab() => _activeTab = BrowseTab;
+    private void SelectSourcesTab() => _activeTab = SourcesTab;
+
+    private void NavigateToBrowse()
+    {
+        _activeTab = BrowseTab;
+    }
+
+    private void ShowPackageDetails(string packageId)
+    {
+        _selectedPackageId = packageId;
+        _isPackageDetailsOpen = true;
+    }
+
+    private void ClosePackageDetails()
+    {
+        _isPackageDetailsOpen = false;
+        _selectedPackageId = null;
+    }
+
+    private void OnPackageInstalled(string packageId)
+    {
+        // Package was installed - UI will update via state change
+        _ = packageId; // Suppress unused parameter warning
+    }
+
+    private void OnPackageUpdated(string packageId)
+    {
+        // Package was updated - UI will update via state change
+        _ = packageId; // Suppress unused parameter warning
+    }
+
+    private void OnPackageUninstalled()
+    {
+        // Package was uninstalled, close details
+        ClosePackageDetails();
+    }
+
+    private void ShowAddSourceModal()
+    {
+        _editingSource = null;
+        _isSourceEditOpen = true;
+    }
+
+    private void ShowEditSourceModal(PackageSourceModel source)
+    {
+        _editingSource = source;
+        _isSourceEditOpen = true;
+    }
+
+    private void CloseSourceEdit()
+    {
+        _isSourceEditOpen = false;
+        _editingSource = null;
+    }
+
+    private void OnSourceSaved(PackageSourceModel source)
+    {
+        // Source was saved - UI will update via state change
+        _ = source; // Suppress unused parameter warning
+    }
+
+    private async Task Close()
+    {
+        if (!PluginState.IsLoading)
+        {
+            await OnClose.InvokeAsync();
+        }
+    }
+
+    private async Task HandleOverlayClick()
+    {
+        // Only close if no nested modals are open
+        if (!_isPackageDetailsOpen && !_isSourceEditOpen)
+        {
+            await Close();
+        }
+    }
+
+}

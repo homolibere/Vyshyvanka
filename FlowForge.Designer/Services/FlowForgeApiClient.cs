@@ -1,13 +1,14 @@
 using System.Net.Http.Json;
 using FlowForge.Core.Interfaces;
 using FlowForge.Core.Models;
+using FlowForge.Designer.Models;
 
 namespace FlowForge.Designer.Services;
 
 /// <summary>
 /// HTTP client for communicating with the FlowForge API.
 /// </summary>
-public class FlowForgeApiClient
+public partial class FlowForgeApiClient
 {
     private readonly HttpClient _httpClient;
 

@@ -1,0 +1,251 @@
+@* Browse packages tab content component *@
+@inject PluginStateService PluginState
+@inject ToastService ToastService
+@implements IDisposable
+
+<div class="browse-packages">
+    <div class="search-bar">
+        <input type="text"
+               class="search-input"
+               placeholder="Search packages..."
+               @bind="SearchQuery"
+               @bind:event="oninput"
+               @onkeyup="OnSearchKeyUpAsync"
+               disabled="@PluginState.IsSearching"/>
+        <button class="btn btn-primary" @onclick="SearchAsync" disabled="@(PluginState.IsLoading || PluginState.IsSearching)">
+            @if (PluginState.IsSearching)
+            {
+                <span>🔍 Searching...</span>
+            }
+            else
+            {
+                <span>🔍 Search</span>
+            }
+        </button>
+    </div>
+
+    @if (PluginState.IsLoading && PluginState.SearchResults is null)
+    {
+        <div class="loading-state">
+            <div class="loading-spinner"></div>
+            <p>@(PluginState.StatusMessage ?? "Searching...")</p>
+        </div>
+    }
+    else if (PluginState.SearchResults is null && string.IsNullOrWhiteSpace(SearchQuery))
+    {
+        <div class="search-prompt">
+            <div class="prompt-icon">🔍</div>
+            <h4>Search for packages</h4>
+            <p>Enter a search term to find packages from configured sources.</p>
+        </div>
+    }
+    else if (PluginState.SearchResults is not null && !PluginState.SearchResults.Packages.Any() && PluginState.SearchResults.Errors.Count == 0)
+    {
+        <div class="no-results">
+            <div class="no-results-icon">📭</div>
+            <h4>No packages found</h4>
+            <p>No packages found for "@SearchQuery". Try a different search term.</p>
+        </div>
+    }
+    else if (PluginState.SearchResults is not null)
+    {
+        @if (PluginState.SearchResults.Errors.Any())
+        {
+            <div class="search-errors">
+                @foreach (var error in PluginState.SearchResults.Errors)
+                {
+                    <div class="error-item">
+                        <span>@error</span>
+                        <button class="btn btn-secondary btn-sm" @onclick="RetrySearchAsync">
+                            Retry
+                        </button>
+                    </div>
+                }
+            </div>
+        }
+
+        @if (PluginState.SearchResults.Packages.Any())
+        {
+            <div class="search-results">
+                <p class="result-count">@PluginState.SearchResults.TotalCount package(s) found</p>
+                <div class="package-list">
+                    @foreach (var package in PluginState.SearchResults.Packages)
+                    {
+                        <PackageCard PackageId="@package.PackageId"
+                                     Title="@package.Title"
+                                     Version="@package.LatestVersion"
+                                     Description="@package.Description"
+                                     Authors="@package.Authors"
+                                     IconUrl="@package.IconUrl"
+                                     DownloadCount="@package.DownloadCount"
+                                     IsInstalled="@package.IsInstalled"
+                                     InstalledVersion="@package.InstalledVersion"
+                                     IsLoading="@PluginState.IsLoading"
+                                     IsInstalling="@PluginState.IsPackageBeingInstalled(package.PackageId)"
+                                     OnClick="() => ShowDetailsAsync(package.PackageId)"
+                                     OnInstall="() => InstallPackageAsync(package.PackageId)"/>
+                    }
+                </div>
+            </div>
+        }
+    }
+
+    @if (!string.IsNullOrEmpty(PluginState.ErrorMessage))
+    {
+        <div class="error-message">
+            <span>@PluginState.ErrorMessage</span>
+            <button class="btn-retry" @onclick="RetrySearchAsync">Retry</button>
+            <button class="btn-dismiss" @onclick="DismissError">×</button>
+        </div>
+    }
+</div>
+
+@* Confirmation dialog for untrusted source installation *@
+<ConfirmDialog IsOpen="@_showUntrustedConfirm"
+               Title="Install from Untrusted Source"
+               Message="This package may be installed from an untrusted source. Packages from untrusted sources could potentially contain malicious code."
+               Icon="⚠️"
+               ConfirmText="Install Anyway"
+               CancelText="Cancel"
+               Variant="ConfirmDialogVariant.Warning"
+               AffectedItems="@PluginState.UntrustedSourceNames"
+               AffectedItemsLabel="Untrusted sources:"
+               IsProcessing="@_isInstalling"
+               ProcessingText="Installing..."
+               OnConfirm="ConfirmUntrustedInstallAsync"
+               OnCancel="CancelUntrustedInstall"/>
+
+@code {
+    private string _searchQuery = string.Empty;
+    private bool _showUntrustedConfirm;
+    private string? _pendingInstallPackageId;
+    private bool _isInstalling;
+
+    /// <summary>The current search query.</summary>
+    private string SearchQuery
+    {
+        get => _searchQuery;
+        set
+        {
+            if (_searchQuery != value)
+            {
+                _searchQuery = value;
+                PluginState.SearchPackagesDebounced(value);
+            }
+        }
+    }
+
+    /// <summary>Callback when a package is selected to show details.</summary>
+    [Parameter]
+    public EventCallback<string> OnShowDetails { get; set; }
+
+    protected override void OnInitialized()
+    {
+        PluginState.OnStateChanged += StateHasChanged;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Ensure sources are loaded for trust checking
+        if (!PluginState.Sources.Any())
+        {
+            await PluginState.LoadSourcesAsync();
+        }
+    }
+
+    public void Dispose()
+    {
+        PluginState.OnStateChanged -= StateHasChanged;
+    }
+
+    private async Task OnSearchKeyUpAsync(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SearchAsync();
+        }
+    }
+
+    private async Task SearchAsync()
+    {
+        if (!string.IsNullOrWhiteSpace(SearchQuery))
+        {
+            await PluginState.SearchPackagesAsync(SearchQuery);
+        }
+    }
+
+    private async Task RetrySearchAsync()
+    {
+        PluginState.DismissError();
+        await SearchAsync();
+    }
+
+    private async Task ShowDetailsAsync(string packageId)
+    {
+        await OnShowDetails.InvokeAsync(packageId);
+    }
+
+    private async Task InstallPackageAsync(string packageId)
+    {
+        // Check if there are untrusted sources (Requirement 4.6)
+        if (PluginState.HasUntrustedSources)
+        {
+            _pendingInstallPackageId = packageId;
+            _showUntrustedConfirm = true;
+            return;
+        }
+
+        await ExecuteInstallAsync(packageId);
+    }
+
+    private async Task ConfirmUntrustedInstallAsync()
+    {
+        if (string.IsNullOrEmpty(_pendingInstallPackageId))
+        {
+            return;
+        }
+
+        _isInstalling = true;
+        StateHasChanged();
+
+        try
+        {
+            await ExecuteInstallAsync(_pendingInstallPackageId);
+        }
+        finally
+        {
+            _isInstalling = false;
+            _showUntrustedConfirm = false;
+            _pendingInstallPackageId = null;
+            StateHasChanged();
+        }
+    }
+
+    private void CancelUntrustedInstall()
+    {
+        _showUntrustedConfirm = false;
+        _pendingInstallPackageId = null;
+    }
+
+    private async Task ExecuteInstallAsync(string packageId)
+    {
+        var success = await PluginState.InstallPackageAsync(packageId);
+
+        if (success)
+        {
+            ToastService.ShowSuccess($"Successfully installed {packageId}", "Package Installed");
+        }
+        else
+        {
+            ToastService.ShowError(
+                PluginState.ErrorMessage ?? $"Failed to install {packageId}",
+                "Installation Failed");
+        }
+    }
+
+    private void DismissError()
+    {
+        PluginState.DismissError();
+    }
+
+}

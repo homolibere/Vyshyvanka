@@ -110,13 +110,22 @@ public class ParallelExecutionTests
             // Assert - Execution succeeded
             Assert.True(result.Success, $"Workflow execution failed: {result.ErrorMessage}");
 
+            // Assert - All nodes were executed
+            foreach (var node in workflow.Nodes)
+            {
+                Assert.True(executionTracker.WasExecuted(node.Id),
+                    $"Node '{node.Id}' was not executed");
+            }
+
             // Assert - Parallel execution of root nodes
             // With N independent roots each taking D ms, parallel time should be ~D + overhead, not N*D
             // We verify parallelism by checking actual time is significantly less than sequential time
-            // Allow for system overhead (thread pool scheduling, GC, etc.) by checking actual < sequential
+            // Allow generous overhead for thread pool scheduling, GC, CI environments, etc.
             // For 6+ nodes at 100ms each, sequential is 600ms+, parallel should be ~100ms + overhead
-            Assert.True(actualTimeMs < expectedSequentialTimeMs,
-                $"Root nodes not executing in parallel. Actual: {actualTimeMs}ms should be less than sequential: {expectedSequentialTimeMs}ms");
+            // Use 80% of sequential time as threshold to account for system variability
+            var parallelThreshold = (long)(expectedSequentialTimeMs * 0.8);
+            Assert.True(actualTimeMs < parallelThreshold,
+                $"Root nodes not executing in parallel. Actual: {actualTimeMs}ms should be less than threshold: {parallelThreshold}ms (80% of sequential: {expectedSequentialTimeMs}ms)");
         }, iter: 100);
     }
 
@@ -173,8 +182,10 @@ public class ParallelExecutionTests
 
             // Assert - Parallel execution: actual time should be less than sequential time
             // This proves parallelism is happening
-            Assert.True(actualTimeMs < expectedSequentialTimeMs,
-                $"No parallelism detected. Actual: {actualTimeMs}ms should be less than sequential: {expectedSequentialTimeMs}ms ({totalNodes} nodes)");
+            // Use 80% of sequential time as threshold to account for system variability
+            var parallelThreshold = (long)(expectedSequentialTimeMs * 0.8);
+            Assert.True(actualTimeMs < parallelThreshold,
+                $"No parallelism detected. Actual: {actualTimeMs}ms should be less than threshold: {parallelThreshold}ms (80% of sequential: {expectedSequentialTimeMs}ms, {totalNodes} nodes)");
         }, iter: 100);
     }
 
