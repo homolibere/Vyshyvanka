@@ -474,16 +474,16 @@ public class WorkflowStateService
         if (!CanRedo) return;
 
         var action = _redoStack.Pop();
-        if (action.NewState is not null)
+        if (action.PreviousState is not null)
         {
             _undoStack.Push(new CanvasAction
             {
                 Type = action.Type,
                 Description = action.Description,
                 PreviousState = _workflow,
-                NewState = action.NewState
+                NewState = action.PreviousState
             });
-            _workflow = action.NewState;
+            _workflow = action.PreviousState;
             NotifyStateChanged();
         }
     }

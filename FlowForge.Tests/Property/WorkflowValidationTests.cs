@@ -208,9 +208,28 @@ public class WorkflowValidationTests
             ErrorHandling = errorHandling
         };
 
-    /// <summary>Generator for a valid WorkflowNode with unique ID.</summary>
-    private static Gen<WorkflowNode> GenValidNode(string id) =>
-        from type in GenNonEmptyString(1, 30)
+    /// <summary>Generator for trigger node types (must end with "-trigger").</summary>
+    private static readonly Gen<string> GenTriggerType =
+        Gen.OneOf(
+            Gen.Const("manual-trigger"),
+            Gen.Const("webhook-trigger"),
+            Gen.Const("schedule-trigger")
+        );
+
+    /// <summary>Generator for action node types (non-trigger).</summary>
+    private static readonly Gen<string> GenActionType =
+        Gen.OneOf(
+            Gen.Const("http-request"),
+            Gen.Const("database-query"),
+            Gen.Const("email-send"),
+            Gen.Const("if-condition"),
+            Gen.Const("switch"),
+            Gen.Const("loop")
+        );
+
+    /// <summary>Generator for a valid trigger WorkflowNode.</summary>
+    private static Gen<WorkflowNode> GenTriggerNode(string id) =>
+        from type in GenTriggerType
         from name in GenNonEmptyString(1, 50)
         from position in GenPosition
         select new WorkflowNode
@@ -223,23 +242,54 @@ public class WorkflowValidationTests
             CredentialId = null
         };
 
-    /// <summary>Generator for a list of valid nodes with unique IDs.</summary>
-    private static readonly Gen<List<WorkflowNode>> GenValidNodes =
-        Gen.Int[0, 5].SelectMany(count =>
+    /// <summary>Generator for a valid action WorkflowNode (non-trigger).</summary>
+    private static Gen<WorkflowNode> GenActionNode(string id) =>
+        from type in GenActionType
+        from name in GenNonEmptyString(1, 50)
+        from position in GenPosition
+        select new WorkflowNode
         {
-            if (count == 0) return Gen.Const(new List<WorkflowNode>());
+            Id = id,
+            Type = type,
+            Name = name,
+            Position = position,
+            Configuration = JsonDocument.Parse("{}").RootElement,
+            CredentialId = null
+        };
+
+    /// <summary>Generator for a list of valid nodes with unique IDs. Always includes exactly one trigger node first.</summary>
+    private static readonly Gen<List<WorkflowNode>> GenValidNodes =
+        Gen.Int[0, 4].SelectMany(actionCount =>
+        {
+            // Always generate exactly one trigger node first
+            var triggerGen = GenTriggerNode("trigger-node");
             
-            var nodeIds = Enumerable.Range(1, count).Select(i => $"node{i}").ToList();
-            return nodeIds
-                .Select(id => GenValidNode(id))
+            if (actionCount == 0)
+            {
+                return triggerGen.Select(trigger => new List<WorkflowNode> { trigger });
+            }
+            
+            // Generate action nodes
+            var actionNodeIds = Enumerable.Range(1, actionCount).Select(i => $"action-node-{i}").ToList();
+            var actionNodesGen = actionNodeIds
+                .Select(id => GenActionNode(id))
                 .Aggregate(
                     Gen.Const(new List<WorkflowNode>()),
-                    (acc, nodeGen) => acc.SelectMany(list => nodeGen.Select(node => 
+                    (acc, nodeGen) => acc.SelectMany(list => nodeGen.Select(node =>
                     {
                         list.Add(node);
                         return list;
                     }))
                 );
+            
+            // Combine trigger + action nodes
+            return triggerGen.SelectMany(trigger =>
+                actionNodesGen.Select(actions =>
+                {
+                    var nodes = new List<WorkflowNode> { trigger };
+                    nodes.AddRange(actions);
+                    return nodes;
+                }));
         });
 
 
