@@ -16,7 +16,7 @@ public sealed class AesCredentialEncryption : ICredentialEncryption
     /// Creates a new AES encryption service with the specified key.
     /// </summary>
     /// <param name="encryptionKey">Base64-encoded 256-bit (32-byte) encryption key.</param>
-    /// <exception cref="ArgumentException">Thrown when key is invalid.</exception>
+    /// <exception cref="ArgumentException">Thrown when the key is invalid.</exception>
     public AesCredentialEncryption(string encryptionKey)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(encryptionKey);
@@ -80,7 +80,7 @@ public sealed class AesCredentialEncryption : ICredentialEncryption
         aes.Mode = CipherMode.CBC;
         aes.Padding = PaddingMode.PKCS7;
         
-        // Extract IV from beginning of ciphertext
+        // Extract IV from the beginning of ciphertext
         var iv = new byte[ivLength];
         Buffer.BlockCopy(cipherText, 0, iv, 0, ivLength);
         aes.IV = iv;

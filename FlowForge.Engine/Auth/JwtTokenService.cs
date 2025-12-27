@@ -27,10 +27,10 @@ public class JwtTokenService : IJwtTokenService
     {
         var claims = new List<Claim>
         {
-            new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new(JwtRegisteredClaimNames.Email, user.Email),
-            new(ClaimTypes.Role, user.Role.ToString()),
-            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new Claim(JwtRegisteredClaimNames.Email, user.Email),
+            new Claim(ClaimTypes.Role, user.Role.ToString()),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
         if (!string.IsNullOrEmpty(user.DisplayName))
@@ -145,9 +145,9 @@ public class JwtTokenService : IJwtTokenService
 /// </summary>
 public class JwtSettings
 {
-    public string SecretKey { get; set; } = string.Empty;
-    public string Issuer { get; set; } = "FlowForge";
-    public string Audience { get; set; } = "FlowForge";
-    public int AccessTokenExpirationMinutes { get; set; } = 60;
-    public int RefreshTokenExpirationDays { get; set; } = 7;
+    public string SecretKey { get; init; } = string.Empty;
+    public string Issuer { get; init; } = "FlowForge";
+    public string Audience { get; init; } = "FlowForge";
+    public int AccessTokenExpirationMinutes { get; init; } = 60;
+    public int RefreshTokenExpirationDays { get; init; } = 7;
 }

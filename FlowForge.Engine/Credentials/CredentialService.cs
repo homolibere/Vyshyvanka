@@ -235,7 +235,7 @@ public class CredentialService : ICredentialService
             });
         }
         
-        foreach (var (key, value) in data)
+        foreach (var (key, _) in data)
         {
             if (string.IsNullOrWhiteSpace(key))
             {

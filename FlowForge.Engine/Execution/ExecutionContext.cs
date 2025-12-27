@@ -50,8 +50,8 @@ public class ExecutionContext : IExecutionContext
 public class NodeOutputStore : INodeOutputStore
 {
     private const string DefaultPort = "output";
-    private readonly Dictionary<string, Dictionary<string, JsonElement>> _outputs = new(StringComparer.OrdinalIgnoreCase);
-    private readonly object _lock = new();
+    private readonly Dictionary<string, Dictionary<string, JsonElement>> _outputs = new Dictionary<string, Dictionary<string, JsonElement>>(StringComparer.OrdinalIgnoreCase);
+    private readonly Lock _lock = new Lock();
 
     /// <inheritdoc />
     public void Set(string nodeId, JsonElement output)

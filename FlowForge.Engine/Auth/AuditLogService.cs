@@ -117,7 +117,7 @@ public class AuditLogService : IAuditLogService
             Action = action,
             Success = success,
             ErrorMessage = errorMessage,
-            DetailsJson = details.HasValue ? details.Value.GetRawText() : null
+            DetailsJson = details?.GetRawText()
         };
 
         _context.AuditLogs.Add(entity);
@@ -174,7 +174,7 @@ public class AuditLogService : IAuditLogService
         return entities.Select(ToModel);
     }
 
-    private static AuditLog ToModel(AuditLogEntity entity) => new()
+    private static AuditLog ToModel(AuditLogEntity entity) => new AuditLog
     {
         Id = entity.Id,
         Timestamp = entity.Timestamp,

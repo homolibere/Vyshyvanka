@@ -31,7 +31,7 @@ public class PersistentWorkflowEngine : IWorkflowEngine
         ArgumentNullException.ThrowIfNull(workflow);
         ArgumentNullException.ThrowIfNull(context);
 
-        // Create initial execution record
+        // Create an initial execution record
         var execution = new ExecutionModel
         {
             Id = context.ExecutionId,
@@ -108,7 +108,7 @@ public class PersistentWorkflowEngine : IWorkflowEngine
 
         var startTime = DateTime.UtcNow;
 
-        // Create node execution record
+        // Create a node execution record
         var nodeExecution = new NodeExecutionModel
         {
             NodeId = node.Id,
@@ -122,7 +122,7 @@ public class PersistentWorkflowEngine : IWorkflowEngine
         {
             var result = await _innerEngine.ExecuteNodeAsync(node, context, cancellationToken);
 
-            // Update node execution with result
+            // Update node execution with a result
             var completedNodeExecution = nodeExecution with
             {
                 Status = result.Success ? ExecutionStatus.Completed : ExecutionStatus.Failed,

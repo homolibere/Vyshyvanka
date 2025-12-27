@@ -38,7 +38,7 @@ public class NullCredentialProvider : ICredentialProvider
     /// <summary>
     /// Singleton instance.
     /// </summary>
-    public static readonly NullCredentialProvider Instance = new();
+    public static readonly NullCredentialProvider Instance = new NullCredentialProvider();
 
     private NullCredentialProvider() { }
 

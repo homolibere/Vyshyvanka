@@ -15,7 +15,7 @@ public class WorkflowEngine : IWorkflowEngine
 {
     private readonly INodeRegistry _nodeRegistry;
     private readonly IExpressionEvaluator _expressionEvaluator;
-    private readonly ConcurrentDictionary<Guid, CancellationTokenSource> _activeExecutions = new();
+    private readonly ConcurrentDictionary<Guid, CancellationTokenSource> _activeExecutions = new ConcurrentDictionary<Guid, CancellationTokenSource>();
 
     /// <summary>
     /// Creates a new workflow engine instance.
@@ -290,7 +290,7 @@ public class WorkflowEngine : IWorkflowEngine
 
         if (incomingConnections.Count == 0)
         {
-            // No upstream connections - return empty object
+            // No upstream connections - return an empty object
             return JsonSerializer.SerializeToElement(new { });
         }
 
@@ -323,7 +323,7 @@ public class WorkflowEngine : IWorkflowEngine
     /// </summary>
     private static void StoreNodeOutput(IExecutionContext context, string nodeId, NodeOutput output)
     {
-        // Check if output contains port routing information (e.g., from If node)
+        // Check if the output contains port routing information (e.g., from If node)
         if (output.Data.ValueKind == JsonValueKind.Object &&
             output.Data.TryGetProperty("outputPort", out var portElement) &&
             portElement.ValueKind == JsonValueKind.String)
@@ -332,7 +332,7 @@ public class WorkflowEngine : IWorkflowEngine
             context.NodeOutputs.Set(nodeId, portName, output.Data);
         }
 
-        // Always store on default output port as well
+        // Always store on the default output port as well
         context.NodeOutputs.Set(nodeId, output.Data);
     }
 
