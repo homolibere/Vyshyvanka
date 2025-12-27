@@ -191,7 +191,7 @@
         StateService.ClearExecutionState();
     }
 
-    private void OnExecutionChanged(Execution? execution)
+    private void OnExecutionChanged(ExecutionResponse? execution)
     {
         if (execution is null || execution.Status is ExecutionStatus.Completed or ExecutionStatus.Failed or ExecutionStatus.Cancelled)
         {

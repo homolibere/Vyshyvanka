@@ -29,7 +29,7 @@ public class WorkflowStateService
     private readonly Stack<CanvasAction> _redoStack = new();
     private readonly List<NodeDefinition> _nodeDefinitions = [];
     private ValidationResult _validationResult = ValidationResult.Success();
-    private Execution? _currentExecution;
+    private ExecutionResponse? _currentExecution;
     private readonly Dictionary<string, NodeExecutionState> _nodeExecutionStates = new();
     private bool _isDirty;
 
@@ -40,7 +40,7 @@ public class WorkflowStateService
     public event Action<ValidationResult>? OnValidationChanged;
 
     /// <summary>Event raised when execution state changes.</summary>
-    public event Action<Execution?>? OnExecutionChanged;
+    public event Action<ExecutionResponse?>? OnExecutionChanged;
 
     /// <summary>Gets the current workflow.</summary>
     public Workflow Workflow => _workflow;
@@ -76,7 +76,7 @@ public class WorkflowStateService
     public bool HasValidationErrors => !_validationResult.IsValid;
 
     /// <summary>Gets the current execution being visualized.</summary>
-    public Execution? CurrentExecution => _currentExecution;
+    public ExecutionResponse? CurrentExecution => _currentExecution;
 
     /// <summary>Gets whether an execution is currently being visualized.</summary>
     public bool IsExecutionActive => _currentExecution is not null &&
@@ -751,7 +751,7 @@ public class WorkflowStateService
     #region Execution Visualization
 
     /// <summary>Sets the current execution for visualization.</summary>
-    public void SetCurrentExecution(Execution? execution)
+    public void SetCurrentExecution(ExecutionResponse? execution)
     {
         _currentExecution = execution;
         UpdateNodeExecutionStates();
@@ -760,7 +760,7 @@ public class WorkflowStateService
     }
 
     /// <summary>Updates the current execution state (for polling).</summary>
-    public void UpdateExecution(Execution execution)
+    public void UpdateExecution(ExecutionResponse execution)
     {
         if (_currentExecution?.Id != execution.Id)
             return;

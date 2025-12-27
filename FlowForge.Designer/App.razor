@@ -1,6 +1,24 @@
-﻿<Router AppAssembly="@typeof(App).Assembly" NotFoundPage="typeof(Pages.NotFound)">
+﻿@using FlowForge.Designer.Services
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<Router AppAssembly="@typeof(App).Assembly" NotFoundPage="typeof(Pages.NotFound)" OnNavigateAsync="OnNavigateAsync">
     <Found Context="routeData">
         <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)"/>
         <FocusOnNavigate RouteData="@routeData" Selector="h1" />
     </Found>
 </Router>
+
+@code {
+    private static readonly HashSet<string> PublicRoutes = ["/login"];
+
+    private void OnNavigateAsync(NavigationContext context)
+    {
+        var path = "/" + context.Path.TrimStart('/').ToLowerInvariant();
+        
+        if (!AuthService.IsAuthenticated && !PublicRoutes.Contains(path))
+        {
+            Navigation.NavigateTo("/login");
+        }
+    }
+}
