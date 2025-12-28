@@ -96,6 +96,7 @@ public class WorkflowStateService
         Id = Guid.NewGuid(),
         Name = "New Workflow",
         Version = 1,
+        IsActive = true,
         CreatedAt = DateTime.UtcNow,
         UpdatedAt = DateTime.UtcNow
     };
@@ -530,6 +531,34 @@ public class WorkflowStateService
         };
         _isDirty = true;
         ValidateWorkflow();
+        NotifyStateChanged();
+    }
+
+    /// <summary>Toggles the workflow active state.</summary>
+    public void ToggleWorkflowActive()
+    {
+        SaveUndoState("Toggle Workflow Active");
+        _workflow = _workflow with
+        {
+            IsActive = !_workflow.IsActive,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _isDirty = true;
+        NotifyStateChanged();
+    }
+
+    /// <summary>Sets the workflow active state.</summary>
+    public void SetWorkflowActive(bool isActive)
+    {
+        if (_workflow.IsActive == isActive) return;
+        
+        SaveUndoState(isActive ? "Activate Workflow" : "Deactivate Workflow");
+        _workflow = _workflow with
+        {
+            IsActive = isActive,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _isDirty = true;
         NotifyStateChanged();
     }
 

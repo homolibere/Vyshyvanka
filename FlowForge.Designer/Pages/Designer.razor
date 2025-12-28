@@ -4,6 +4,7 @@
 @inject WorkflowStateService StateService
 @inject FlowForgeApiClient ApiClient
 @inject NavigationManager Navigation
+@inject ToastService Toast
 
 <PageTitle>@(StateService.Workflow.Name) - FlowForge Designer</PageTitle>
 
@@ -33,7 +34,10 @@
             <button class="toolbar-btn primary" @onclick="SaveWorkflow" disabled="@(!StateService.ValidationResult.IsValid)" title="@GetSaveButtonTitle()">
                 💾 Save
             </button>
-            <button class="toolbar-btn" @onclick="ExecuteWorkflow" disabled="@(!StateService.ValidationResult.IsValid || StateService.IsExecutionActive)" title="Execute">
+            <button class="toolbar-btn @(StateService.Workflow.IsActive ? "active" : "")" @onclick="ToggleWorkflowActive" title="@(StateService.Workflow.IsActive ? "Workflow is active (click to deactivate)" : "Workflow is inactive (click to activate)")">
+                @(StateService.Workflow.IsActive ? "🟢 Active" : "⚪ Inactive")
+            </button>
+            <button class="toolbar-btn" @onclick="ExecuteWorkflow" disabled="@(!StateService.ValidationResult.IsValid || StateService.IsExecutionActive || !StateService.Workflow.IsActive)" title="@GetRunButtonTitle()">
                 ▶ Run
             </button>
             @if (StateService.IsExecutionActive)
@@ -88,6 +92,7 @@
     private bool _isValidationPanelExpanded = true;
     private bool _isPluginManagerOpen;
     private System.Timers.Timer? _executionPollTimer;
+    private Guid? _loadedWorkflowId;
 
     protected override async Task OnInitializedAsync()
     {
@@ -105,21 +110,33 @@
             // Use default definitions if API is not available
             StateService.SetNodeDefinitions(GetDefaultNodeDefinitions());
         }
+    }
 
-        // Load workflow if ID provided
-        if (WorkflowId.HasValue)
+    protected override async Task OnParametersSetAsync()
+    {
+        // Load workflow if ID changed
+        if (WorkflowId != _loadedWorkflowId)
         {
-            try
+            _loadedWorkflowId = WorkflowId;
+            
+            if (WorkflowId.HasValue)
             {
-                var workflow = await ApiClient.GetWorkflowAsync(WorkflowId.Value);
-                if (workflow is not null)
+                try
                 {
-                    StateService.LoadWorkflow(workflow);
+                    var workflow = await ApiClient.GetWorkflowAsync(WorkflowId.Value);
+                    if (workflow is not null)
+                    {
+                        StateService.LoadWorkflow(workflow);
+                    }
+                }
+                catch
+                {
+                    // Start with new workflow if load fails
+                    StateService.NewWorkflow();
                 }
             }
-            catch
+            else
             {
-                // Start with new workflow if load fails
                 StateService.NewWorkflow();
             }
         }
@@ -137,6 +154,20 @@
         ? "Save workflow"
         : "Fix validation errors before saving";
 
+    private string GetRunButtonTitle()
+    {
+        if (!StateService.ValidationResult.IsValid)
+            return "Fix validation errors before running";
+        if (!StateService.Workflow.IsActive)
+            return "Activate workflow before running";
+        return "Execute workflow";
+    }
+
+    private void ToggleWorkflowActive()
+    {
+        StateService.ToggleWorkflowActive();
+    }
+
     private async Task SaveWorkflow()
     {
         if (!StateService.ValidationResult.IsValid)
@@ -144,24 +175,43 @@
 
         try
         {
+            Workflow? saved;
+            var isNew = !WorkflowId.HasValue;
+            
             if (WorkflowId.HasValue)
             {
-                await ApiClient.UpdateWorkflowAsync(StateService.Workflow);
+                saved = await ApiClient.UpdateWorkflowAsync(StateService.Workflow);
             }
             else
             {
-                var saved = await ApiClient.CreateWorkflowAsync(StateService.Workflow);
-                if (saved is not null)
-                {
-                    Navigation.NavigateTo($"/designer/{saved.Id}");
-                }
+                saved = await ApiClient.CreateWorkflowAsync(StateService.Workflow);
             }
 
-            StateService.MarkAsSaved();
+            if (saved is not null)
+            {
+                // Update state with the saved workflow (has correct ID and version)
+                StateService.LoadWorkflow(saved);
+                StateService.MarkAsSaved();
+                
+                Toast.ShowSuccess(
+                    isNew ? $"Workflow '{saved.Name}' created successfully" : $"Workflow '{saved.Name}' updated (v{saved.Version})",
+                    isNew ? "Created" : "Saved");
+                
+                // Navigate to the workflow URL if this was a new workflow
+                if (isNew)
+                {
+                    _loadedWorkflowId = saved.Id;
+                    Navigation.NavigateTo($"/designer/{saved.Id}", forceLoad: false);
+                }
+            }
+        }
+        catch (ApiException ex)
+        {
+            Toast.ShowError(ex.Error.GetFullMessage(), $"Save Failed ({ex.Error.Code})");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Failed to save workflow: {ex.Message}");
+            Toast.ShowError(ex.Message, "Save Failed");
         }
     }
 
@@ -177,11 +227,16 @@
             {
                 StateService.SetCurrentExecution(execution);
                 StartExecutionPolling(execution.Id);
+                Toast.ShowInfo($"Execution started (ID: {execution.Id.ToString()[..8]}...)", "Running");
             }
+        }
+        catch (ApiException ex)
+        {
+            Toast.ShowError(ex.Error.GetFullMessage(), $"Execution Failed ({ex.Error.Code})");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Failed to execute workflow: {ex.Message}");
+            Toast.ShowError(ex.Message, "Execution Failed");
         }
     }
 
@@ -189,13 +244,28 @@
     {
         StopExecutionPolling();
         StateService.ClearExecutionState();
+        Toast.ShowInfo("Execution stopped", "Stopped");
     }
 
     private void OnExecutionChanged(ExecutionResponse? execution)
     {
-        if (execution is null || execution.Status is ExecutionStatus.Completed or ExecutionStatus.Failed or ExecutionStatus.Cancelled)
+        if (execution is not null)
         {
-            StopExecutionPolling();
+            if (execution.Status == ExecutionStatus.Completed)
+            {
+                StopExecutionPolling();
+                Toast.ShowSuccess($"Workflow executed successfully in {execution.Duration?.TotalMilliseconds:0}ms", "Completed");
+            }
+            else if (execution.Status == ExecutionStatus.Failed)
+            {
+                StopExecutionPolling();
+                Toast.ShowError(execution.ErrorMessage ?? "Execution failed", "Failed");
+            }
+            else if (execution.Status == ExecutionStatus.Cancelled)
+            {
+                StopExecutionPolling();
+                Toast.ShowWarning("Execution was cancelled", "Cancelled");
+            }
         }
 
         InvokeAsync(StateHasChanged);

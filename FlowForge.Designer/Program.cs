@@ -10,6 +10,9 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 // Configure API base address
 var apiBaseAddress = builder.Configuration["ApiBaseAddress"] ?? builder.HostEnvironment.BaseAddress;
 
+// Register browser storage service for localStorage access
+builder.Services.AddScoped<BrowserStorageService>();
+
 // Register AuthStateService as singleton to persist auth state across navigation
 builder.Services.AddSingleton<AuthStateService>();
 
@@ -36,4 +39,15 @@ builder.Services.AddScoped<WorkflowStateService>();
 builder.Services.AddScoped<PluginStateService>();
 builder.Services.AddScoped<ToastService>();
 
-await builder.Build().RunAsync();
+var host = builder.Build();
+
+// Initialize auth state from browser storage
+var authState = host.Services.GetRequiredService<AuthStateService>();
+using (var scope = host.Services.CreateScope())
+{
+    var storage = scope.ServiceProvider.GetRequiredService<BrowserStorageService>();
+    authState.SetStorageService(storage);
+    await authState.InitializeAsync();
+}
+
+await host.RunAsync();

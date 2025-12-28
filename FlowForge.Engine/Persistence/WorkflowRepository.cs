@@ -161,6 +161,9 @@ public class WorkflowRepository : IWorkflowRepository
 
     private static WorkflowEntity ToEntity(Workflow workflow)
     {
+        // Sanitize nodes to handle invalid JsonElement values
+        var sanitizedNodes = workflow.Nodes.Select(SanitizeNode).ToList();
+        
         return new WorkflowEntity
         {
             Id = workflow.Id,
@@ -168,7 +171,7 @@ public class WorkflowRepository : IWorkflowRepository
             Description = workflow.Description,
             Version = workflow.Version,
             IsActive = workflow.IsActive,
-            NodesJson = JsonSerializer.Serialize(workflow.Nodes, JsonOptions),
+            NodesJson = JsonSerializer.Serialize(sanitizedNodes, JsonOptions),
             ConnectionsJson = JsonSerializer.Serialize(workflow.Connections, JsonOptions),
             SettingsJson = JsonSerializer.Serialize(workflow.Settings, JsonOptions),
             Tags = workflow.Tags.Count > 0 ? string.Join(",", workflow.Tags) : null,
@@ -176,6 +179,16 @@ public class WorkflowRepository : IWorkflowRepository
             UpdatedAt = workflow.UpdatedAt,
             CreatedBy = workflow.CreatedBy
         };
+    }
+
+    private static WorkflowNode SanitizeNode(WorkflowNode node)
+    {
+        // If Configuration has ValueKind.Undefined, replace with empty object
+        if (node.Configuration.ValueKind == JsonValueKind.Undefined)
+        {
+            return node with { Configuration = JsonDocument.Parse("{}").RootElement };
+        }
+        return node;
     }
 
     private static Workflow ToModel(WorkflowEntity entity)
@@ -199,11 +212,14 @@ public class WorkflowRepository : IWorkflowRepository
 
     private static void UpdateEntity(WorkflowEntity entity, Workflow workflow)
     {
+        // Sanitize nodes to handle invalid JsonElement values
+        var sanitizedNodes = workflow.Nodes.Select(SanitizeNode).ToList();
+        
         entity.Name = workflow.Name;
         entity.Description = workflow.Description;
         entity.Version = workflow.Version;
         entity.IsActive = workflow.IsActive;
-        entity.NodesJson = JsonSerializer.Serialize(workflow.Nodes, JsonOptions);
+        entity.NodesJson = JsonSerializer.Serialize(sanitizedNodes, JsonOptions);
         entity.ConnectionsJson = JsonSerializer.Serialize(workflow.Connections, JsonOptions);
         entity.SettingsJson = JsonSerializer.Serialize(workflow.Settings, JsonOptions);
         entity.Tags = workflow.Tags.Count > 0 ? string.Join(",", workflow.Tags) : null;

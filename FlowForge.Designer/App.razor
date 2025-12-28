@@ -1,5 +1,4 @@
-﻿@using FlowForge.Designer.Services
-@inject AuthService AuthService
+﻿@inject AuthService AuthService
 @inject NavigationManager Navigation
 
 <Router AppAssembly="@typeof(App).Assembly" NotFoundPage="typeof(Pages.NotFound)" OnNavigateAsync="OnNavigateAsync">
@@ -8,6 +7,8 @@
         <FocusOnNavigate RouteData="@routeData" Selector="h1" />
     </Found>
 </Router>
+
+<ToastContainer />
 
 @code {
     private static readonly HashSet<string> PublicRoutes = ["/login"];

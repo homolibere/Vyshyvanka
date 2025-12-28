@@ -19,6 +19,34 @@ public partial class FlowForgeApiClient
         _httpClient = httpClient;
     }
 
+    /// <summary>
+    /// Ensures the response is successful, throwing ApiException with parsed error details if not.
+    /// </summary>
+    private static async Task EnsureSuccessAsync(HttpResponseMessage response, CancellationToken cancellationToken = default)
+    {
+        if (response.IsSuccessStatusCode)
+            return;
+
+        ApiError? error = null;
+        try
+        {
+            error = await response.Content.ReadFromJsonAsync<ApiError>(cancellationToken);
+        }
+        catch
+        {
+            // Failed to parse error response, will use status code message
+        }
+
+        if (error is not null && !string.IsNullOrEmpty(error.Message))
+        {
+            throw new ApiException(error, (int)response.StatusCode);
+        }
+
+        throw new ApiException(
+            $"Request failed with status {(int)response.StatusCode}: {response.ReasonPhrase}",
+            (int)response.StatusCode);
+    }
+
     /// <summary>Gets all workflows.</summary>
     public async Task<List<Workflow>> GetWorkflowsAsync(CancellationToken cancellationToken = default)
     {
@@ -38,7 +66,7 @@ public partial class FlowForgeApiClient
     {
         var request = MapToCreateRequest(workflow);
         var response = await _httpClient.PostAsJsonAsync("api/workflow", request, cancellationToken);
-        response.EnsureSuccessStatusCode();
+        await EnsureSuccessAsync(response, cancellationToken);
         var result = await response.Content.ReadFromJsonAsync<WorkflowResponse>(cancellationToken);
         return result is null ? null : MapToWorkflow(result);
     }
@@ -48,7 +76,7 @@ public partial class FlowForgeApiClient
     {
         var request = MapToUpdateRequest(workflow);
         var response = await _httpClient.PutAsJsonAsync($"api/workflow/{workflow.Id}", request, cancellationToken);
-        response.EnsureSuccessStatusCode();
+        await EnsureSuccessAsync(response, cancellationToken);
         var result = await response.Content.ReadFromJsonAsync<WorkflowResponse>(cancellationToken);
         return result is null ? null : MapToWorkflow(result);
     }
@@ -57,7 +85,7 @@ public partial class FlowForgeApiClient
     public async Task DeleteWorkflowAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var response = await _httpClient.DeleteAsync($"api/workflow/{id}", cancellationToken);
-        response.EnsureSuccessStatusCode();
+        await EnsureSuccessAsync(response, cancellationToken);
     }
 
     private static CreateWorkflowRequest MapToCreateRequest(Workflow workflow) => new()
@@ -88,10 +116,16 @@ public partial class FlowForgeApiClient
         Id = node.Id,
         Type = node.Type,
         Name = node.Name,
-        Configuration = node.Configuration,
+        Configuration = IsValidJsonElement(node.Configuration) ? node.Configuration : null,
         Position = new PositionDto(node.Position.X, node.Position.Y),
         CredentialId = node.CredentialId
     };
+
+    private static bool IsValidJsonElement(JsonElement element)
+    {
+        // A default JsonElement has ValueKind of Undefined and cannot be serialized
+        return element.ValueKind != JsonValueKind.Undefined;
+    }
 
     private static ConnectionDto MapToConnectionDto(Connection conn) => new()
     {
@@ -168,7 +202,7 @@ public partial class FlowForgeApiClient
             Mode = ExecutionMode.Api
         };
         var response = await _httpClient.PostAsJsonAsync("api/execution", request, cancellationToken);
-        response.EnsureSuccessStatusCode();
+        await EnsureSuccessAsync(response, cancellationToken);
         return await response.Content.ReadFromJsonAsync<ExecutionResponse>(cancellationToken);
     }
 

@@ -60,11 +60,39 @@
     padding: 0;
     line-height: 1;
     transition: color 0.15s ease;
-    margin-left: auto;
 }
 
 .toast-close:hover {
     color: #e0e0e0;
+}
+
+.toast-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+.toast-copy {
+    background: transparent;
+    border: none;
+    color: #666;
+    font-size: 0.875rem;
+    cursor: pointer;
+    padding: 4px;
+    line-height: 1;
+    transition: color 0.15s ease, transform 0.15s ease;
+    border-radius: 4px;
+}
+
+.toast-copy:hover {
+    color: #e0e0e0;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.toast-copy.copied {
+    color: #4caf50;
 }
 
 /* Success variant */

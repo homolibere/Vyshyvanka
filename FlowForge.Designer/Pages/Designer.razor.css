@@ -58,6 +58,16 @@
     background: #1565c0;
 }
 
+.toolbar-btn.active {
+    background: rgba(76, 175, 80, 0.2);
+    border-color: #4caf50;
+    color: #4caf50;
+}
+
+.toolbar-btn.active:hover:not(:disabled) {
+    background: rgba(76, 175, 80, 0.3);
+}
+
 .toolbar-separator {
     width: 1px;
     height: 24px;

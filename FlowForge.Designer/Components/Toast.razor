@@ -1,5 +1,6 @@
 @* Toast notification component *@
 @using FlowForge.Designer.Models
+@inject IJSRuntime JS
 @implements IDisposable
 
 <div class="toast @GetTypeClass() @(_isVisible ? "visible" : "hiding")" role="alert">
@@ -11,11 +12,17 @@
         }
         <div class="toast-message">@Message</div>
     </div>
-    <button class="toast-close" @onclick="Dismiss" aria-label="Close">×</button>
+    <div class="toast-actions">
+        <button class="toast-copy @(_copied ? "copied" : "")" @onclick="CopyToClipboardAsync" aria-label="Copy message" title="Copy to clipboard">
+            @(_copied ? "✓" : "📋")
+        </button>
+        <button class="toast-close" @onclick="Dismiss" aria-label="Close">×</button>
+    </div>
 </div>
 
 @code {
     private bool _isVisible = true;
+    private bool _copied;
     private Timer? _dismissTimer;
 
     /// <summary>The toast type (success, error, warning, info).</summary>
@@ -77,6 +84,25 @@
     public void Dispose()
     {
         _dismissTimer?.Dispose();
+    }
+
+    private async Task CopyToClipboardAsync()
+    {
+        var textToCopy = string.IsNullOrEmpty(Title) ? Message : $"{Title}: {Message}";
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", textToCopy);
+            _copied = true;
+            StateHasChanged();
+            
+            await Task.Delay(1500);
+            _copied = false;
+            StateHasChanged();
+        }
+        catch
+        {
+            // Clipboard API may not be available in all contexts
+        }
     }
 
 }
