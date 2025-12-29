@@ -1,7 +1,9 @@
 using System.Net;
 using System.Text.Json;
 using CsCheck;
+using FlowForge.Core.Enums;
 using FlowForge.Core.Models;
+using FlowForge.Designer.Models;
 using FlowForge.Designer.Services;
 using FlowForge.Tests.Integration.Designer.Generators;
 
@@ -17,6 +19,63 @@ public class FlowForgeApiClientTests
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
+
+    /// <summary>
+    /// Converts a Workflow to WorkflowResponse format for mocking API responses.
+    /// </summary>
+    private static WorkflowResponse ToWorkflowResponse(Workflow workflow) => new()
+    {
+        Id = workflow.Id,
+        Name = workflow.Name,
+        Description = workflow.Description,
+        Version = workflow.Version,
+        IsActive = workflow.IsActive,
+        Nodes = workflow.Nodes.Select(n => new WorkflowNodeDto
+        {
+            Id = n.Id,
+            Type = n.Type,
+            Name = n.Name,
+            Configuration = n.Configuration.ValueKind != JsonValueKind.Undefined ? n.Configuration : null,
+            Position = new PositionDto(n.Position.X, n.Position.Y),
+            CredentialId = n.CredentialId
+        }).ToList(),
+        Connections = workflow.Connections.Select(c => new ConnectionDto
+        {
+            SourceNodeId = c.SourceNodeId,
+            SourcePort = c.SourcePort,
+            TargetNodeId = c.TargetNodeId,
+            TargetPort = c.TargetPort
+        }).ToList(),
+        Settings = workflow.Settings is not null
+            ? new WorkflowSettingsDto
+            {
+                TimeoutSeconds = workflow.Settings.Timeout.HasValue
+                    ? (int)workflow.Settings.Timeout.Value.TotalSeconds
+                    : null,
+                MaxRetries = workflow.Settings.MaxRetries,
+                ErrorHandling = workflow.Settings.ErrorHandling
+            }
+            : null,
+        Tags = workflow.Tags,
+        CreatedAt = workflow.CreatedAt,
+        UpdatedAt = workflow.UpdatedAt,
+        CreatedBy = workflow.CreatedBy
+    };
+
+    /// <summary>
+    /// Wraps workflow responses in a PagedWorkflowResponse for list endpoints.
+    /// </summary>
+    private static PagedWorkflowResponse ToPagedResponse(IEnumerable<Workflow> workflows)
+    {
+        var items = workflows.Select(ToWorkflowResponse).ToList();
+        return new PagedWorkflowResponse
+        {
+            Items = items,
+            Skip = 0,
+            Take = items.Count,
+            TotalCount = items.Count
+        };
+    }
 
     private static FlowForgeApiClient CreateClient(MockHttpMessageHandler handler)
     {
@@ -42,10 +101,11 @@ public class FlowForgeApiClientTests
             TestFixtures.CreateSimpleWorkflow(),
             TestFixtures.CreateBranchingWorkflow()
         };
-        var json = JsonSerializer.Serialize(workflows, CamelCaseOptions);
+        var pagedResponse = ToPagedResponse(workflows);
+        var json = JsonSerializer.Serialize(pagedResponse, CamelCaseOptions);
 
         var handler = new MockHttpMessageHandler()
-            .SetupGet("/api/workflows", HttpStatusCode.OK, json);
+            .SetupGet("/api/workflow", HttpStatusCode.OK, json);
 
         var client = CreateClient(handler);
 
@@ -70,10 +130,11 @@ public class FlowForgeApiClientTests
     {
         // Arrange
         var workflow = TestFixtures.CreateSimpleWorkflow();
-        var json = JsonSerializer.Serialize(workflow, CamelCaseOptions);
+        var response = ToWorkflowResponse(workflow);
+        var json = JsonSerializer.Serialize(response, CamelCaseOptions);
 
         var handler = new MockHttpMessageHandler()
-            .SetupGet($"/api/workflows/{workflow.Id}", HttpStatusCode.OK, json);
+            .SetupGet($"/api/workflow/{workflow.Id}", HttpStatusCode.OK, json);
 
         var client = CreateClient(handler);
 
@@ -99,8 +160,10 @@ public class FlowForgeApiClientTests
     public async Task WhenFetchingWorkflowsAndApiReturnsEmptyArrayThenReturnsEmptyList()
     {
         // Arrange
+        var emptyResponse = new PagedWorkflowResponse { Items = [], Skip = 0, Take = 0, TotalCount = 0 };
+        var json = JsonSerializer.Serialize(emptyResponse, CamelCaseOptions);
         var handler = new MockHttpMessageHandler()
-            .SetupGet("/api/workflows", HttpStatusCode.OK, "[]");
+            .SetupGet("/api/workflow", HttpStatusCode.OK, json);
 
         var client = CreateClient(handler);
 
@@ -121,10 +184,11 @@ public class FlowForgeApiClientTests
     {
         // Arrange
         var workflow = TestFixtures.CreateSimpleWorkflow();
-        var json = JsonSerializer.Serialize(workflow, CamelCaseOptions);
+        var response = ToWorkflowResponse(workflow);
+        var json = JsonSerializer.Serialize(response, CamelCaseOptions);
 
         var handler = new MockHttpMessageHandler()
-            .SetupGet($"/api/workflows/{workflow.Id}", HttpStatusCode.OK, json);
+            .SetupGet($"/api/workflow/{workflow.Id}", HttpStatusCode.OK, json);
 
         var client = CreateClient(handler);
 
@@ -156,10 +220,11 @@ public class FlowForgeApiClientTests
     {
         // Arrange
         var workflow = TestFixtures.CreateSimpleWorkflow();
-        var json = JsonSerializer.Serialize(workflow, CamelCaseOptions);
+        var response = ToWorkflowResponse(workflow);
+        var json = JsonSerializer.Serialize(response, CamelCaseOptions);
 
         var handler = new MockHttpMessageHandler()
-            .SetupGet($"/api/workflows/{workflow.Id}", HttpStatusCode.OK, json);
+            .SetupGet($"/api/workflow/{workflow.Id}", HttpStatusCode.OK, json);
 
         var client = CreateClient(handler);
 
@@ -195,10 +260,11 @@ public class FlowForgeApiClientTests
     {
         // Arrange
         var workflow = TestFixtures.CreateSimpleWorkflow();
-        var responseJson = JsonSerializer.Serialize(workflow, CamelCaseOptions);
+        var response = ToWorkflowResponse(workflow);
+        var responseJson = JsonSerializer.Serialize(response, CamelCaseOptions);
 
         var handler = new MockHttpMessageHandler()
-            .SetupPost("/api/workflows", HttpStatusCode.Created, responseJson);
+            .SetupPost("/api/workflow", HttpStatusCode.Created, responseJson);
 
         var client = CreateClient(handler);
 
@@ -221,10 +287,11 @@ public class FlowForgeApiClientTests
     {
         // Arrange
         var workflow = TestFixtures.CreateSimpleWorkflow();
-        var responseJson = JsonSerializer.Serialize(workflow, CamelCaseOptions);
+        var response = ToWorkflowResponse(workflow);
+        var responseJson = JsonSerializer.Serialize(response, CamelCaseOptions);
 
         var handler = new MockHttpMessageHandler()
-            .SetupPut($"/api/workflows/{workflow.Id}", HttpStatusCode.OK, responseJson);
+            .SetupPut($"/api/workflow/{workflow.Id}", HttpStatusCode.OK, responseJson);
 
         var client = CreateClient(handler);
 
@@ -348,7 +415,7 @@ public class FlowForgeApiClientTests
         // Arrange
         var workflowId = Guid.NewGuid();
         var handler = new MockHttpMessageHandler()
-            .SetupError(HttpMethod.Get, $"/api/workflows/{workflowId}", HttpStatusCode.NotFound, "Workflow not found");
+            .SetupError(HttpMethod.Get, $"/api/workflow/{workflowId}", HttpStatusCode.NotFound, "Workflow not found");
 
         var client = CreateClient(handler);
 
@@ -361,17 +428,17 @@ public class FlowForgeApiClientTests
     /// Validates: Requirements 8.3
     /// </summary>
     [Fact]
-    public async Task WhenApiReturnsBadRequestForCreateThenThrowsHttpRequestException()
+    public async Task WhenApiReturnsBadRequestForCreateThenThrowsApiException()
     {
         // Arrange
         var workflow = TestFixtures.CreateSimpleWorkflow();
         var handler = new MockHttpMessageHandler()
-            .SetupError(HttpMethod.Post, "/api/workflows", HttpStatusCode.BadRequest, "Invalid workflow");
+            .SetupError(HttpMethod.Post, "/api/workflow", HttpStatusCode.BadRequest, "Invalid workflow");
 
         var client = CreateClient(handler);
 
         // Act & Assert
-        await Assert.ThrowsAsync<HttpRequestException>(() => client.CreateWorkflowAsync(workflow));
+        await Assert.ThrowsAsync<ApiException>(() => client.CreateWorkflowAsync(workflow));
     }
 
     /// <summary>
@@ -379,17 +446,17 @@ public class FlowForgeApiClientTests
     /// Validates: Requirements 8.3
     /// </summary>
     [Fact]
-    public async Task WhenApiReturnsUnauthorizedForUpdateThenThrowsHttpRequestException()
+    public async Task WhenApiReturnsUnauthorizedForUpdateThenThrowsApiException()
     {
         // Arrange
         var workflow = TestFixtures.CreateSimpleWorkflow();
         var handler = new MockHttpMessageHandler()
-            .SetupError(HttpMethod.Put, $"/api/workflows/{workflow.Id}", HttpStatusCode.Unauthorized, "Unauthorized");
+            .SetupError(HttpMethod.Put, $"/api/workflow/{workflow.Id}", HttpStatusCode.Unauthorized, "Unauthorized");
 
         var client = CreateClient(handler);
 
         // Act & Assert
-        await Assert.ThrowsAsync<HttpRequestException>(() => client.UpdateWorkflowAsync(workflow));
+        await Assert.ThrowsAsync<ApiException>(() => client.UpdateWorkflowAsync(workflow));
     }
 
     /// <summary>
@@ -397,17 +464,17 @@ public class FlowForgeApiClientTests
     /// Validates: Requirements 8.3
     /// </summary>
     [Fact]
-    public async Task WhenApiReturnsForbiddenForDeleteThenThrowsHttpRequestException()
+    public async Task WhenApiReturnsForbiddenForDeleteThenThrowsApiException()
     {
         // Arrange
         var workflowId = Guid.NewGuid();
         var handler = new MockHttpMessageHandler()
-            .SetupError(HttpMethod.Delete, $"/api/workflows/{workflowId}", HttpStatusCode.Forbidden, "Forbidden");
+            .SetupError(HttpMethod.Delete, $"/api/workflow/{workflowId}", HttpStatusCode.Forbidden, "Forbidden");
 
         var client = CreateClient(handler);
 
         // Act & Assert
-        await Assert.ThrowsAsync<HttpRequestException>(() => client.DeleteWorkflowAsync(workflowId));
+        await Assert.ThrowsAsync<ApiException>(() => client.DeleteWorkflowAsync(workflowId));
     }
 
     /// <summary>
@@ -418,8 +485,9 @@ public class FlowForgeApiClientTests
     public async Task WhenApiReturnsInternalServerErrorThenThrowsHttpRequestException()
     {
         // Arrange
+        var emptyResponse = new PagedWorkflowResponse { Items = [], Skip = 0, Take = 0, TotalCount = 0 };
         var handler = new MockHttpMessageHandler()
-            .SetupError(HttpMethod.Get, "/api/workflows", HttpStatusCode.InternalServerError, "Internal server error");
+            .SetupError(HttpMethod.Get, "/api/workflow", HttpStatusCode.InternalServerError, "Internal server error");
 
         var client = CreateClient(handler);
 
@@ -437,7 +505,7 @@ public class FlowForgeApiClientTests
         // Arrange
         var workflowId = Guid.NewGuid();
         var handler = new MockHttpMessageHandler()
-            .SetupDelete($"/api/workflows/{workflowId}", HttpStatusCode.OK);
+            .SetupDelete($"/api/workflow/{workflowId}", HttpStatusCode.OK);
 
         var client = CreateClient(handler);
 
@@ -456,7 +524,7 @@ public class FlowForgeApiClientTests
         // Arrange
         var workflowId = Guid.NewGuid();
         var handler = new MockHttpMessageHandler()
-            .SetupDelete($"/api/workflows/{workflowId}", HttpStatusCode.NoContent);
+            .SetupDelete($"/api/workflow/{workflowId}", HttpStatusCode.NoContent);
 
         var client = CreateClient(handler);
 
@@ -480,11 +548,12 @@ public class FlowForgeApiClientTests
     {
         DesignerGenerators.WorkflowGen.Sample(workflow =>
         {
-            // Arrange - Serialize workflow to JSON (simulating API response)
-            var json = JsonSerializer.Serialize(workflow, CamelCaseOptions);
+            // Arrange - Convert workflow to WorkflowResponse format (simulating API response)
+            var response = ToWorkflowResponse(workflow);
+            var json = JsonSerializer.Serialize(response, CamelCaseOptions);
 
             var handler = new MockHttpMessageHandler()
-                .SetupGet($"/api/workflows/{workflow.Id}", HttpStatusCode.OK, json);
+                .SetupGet($"/api/workflow/{workflow.Id}", HttpStatusCode.OK, json);
 
             var client = CreateClient(handler);
 
