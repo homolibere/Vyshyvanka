@@ -13,7 +13,7 @@ namespace FlowForge.Engine.Nodes.Actions;
 [NodeDefinition(
     Name = "Send Email",
     Description = "Send emails via SMTP with HTML or plain text content",
-    Icon = "mail")]
+    Icon = "fa-solid fa-envelope")]
 [NodeInput("input", DisplayName = "Input", IsRequired = false)]
 [NodeOutput("output", DisplayName = "Result")]
 [ConfigurationProperty("to", "string", Description = "Recipient email address(es), comma-separated", IsRequired = true)]

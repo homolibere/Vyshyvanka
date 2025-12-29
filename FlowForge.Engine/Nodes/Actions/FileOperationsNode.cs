@@ -12,7 +12,7 @@ namespace FlowForge.Engine.Nodes.Actions;
 [NodeDefinition(
     Name = "File Operations",
     Description = "Read, write, and manage files on the file system",
-    Icon = "file")]
+    Icon = "fa-solid fa-file")]
 [NodeInput("input", DisplayName = "Input", IsRequired = false)]
 [NodeOutput("output", DisplayName = "Result")]
 [ConfigurationProperty("operation", "string",

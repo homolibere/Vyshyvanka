@@ -11,7 +11,7 @@ namespace FlowForge.Engine.Nodes.Logic;
 [NodeDefinition(
     Name = "Merge",
     Description = "Merge data from multiple input branches into a single output",
-    Icon = "git-merge")]
+    Icon = "fa-solid fa-code-merge")]
 [NodeInput("input1", DisplayName = "Input 1")]
 [NodeInput("input2", DisplayName = "Input 2")]
 [NodeOutput("output", DisplayName = "Merged Output")]
@@ -54,12 +54,12 @@ public class MergeNode : BaseLogicNode
         lock (_lock)
         {
             _pendingInputs.Add(input.Data);
-            
+
             // For waitAll, we need to wait for all inputs
             // This is a simplified implementation - in production, 
             // the workflow engine would handle multi-input coordination
             var expectedInputs = GetConfigValue<int?>(input, "expectedInputs") ?? 2;
-            
+
             if (_pendingInputs.Count >= expectedInputs)
             {
                 var merged = CombineInputs(_pendingInputs, combineMode);
@@ -100,7 +100,7 @@ public class MergeNode : BaseLogicNode
     private static Dictionary<string, object?> CombineAsObject(List<JsonElement> inputs)
     {
         var result = new Dictionary<string, object?>();
-        
+
         for (int i = 0; i < inputs.Count; i++)
         {
             var input = inputs[i];
@@ -116,14 +116,14 @@ public class MergeNode : BaseLogicNode
                 result[$"input{i + 1}"] = JsonSerializer.Deserialize<object>(input.GetRawText());
             }
         }
-        
+
         return result;
     }
 
     private static List<object?> CombineAsAppend(List<JsonElement> inputs)
     {
         var result = new List<object?>();
-        
+
         foreach (var input in inputs)
         {
             if (input.ValueKind == JsonValueKind.Array)
@@ -138,7 +138,7 @@ public class MergeNode : BaseLogicNode
                 result.Add(JsonSerializer.Deserialize<object>(input.GetRawText()));
             }
         }
-        
+
         return result;
     }
 }

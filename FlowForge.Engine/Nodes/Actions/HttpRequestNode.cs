@@ -14,7 +14,7 @@ namespace FlowForge.Engine.Nodes.Actions;
 [NodeDefinition(
     Name = "HTTP Request",
     Description = "Make HTTP requests to external APIs and services",
-    Icon = "globe")]
+    Icon = "fa-solid fa-globe")]
 [NodeInput("input", DisplayName = "Input", IsRequired = false)]
 [NodeOutput("output", DisplayName = "Response")]
 [ConfigurationProperty("url", "string", Description = "The URL to send the request to", IsRequired = true)]

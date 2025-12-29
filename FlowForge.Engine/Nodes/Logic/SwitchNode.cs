@@ -11,7 +11,7 @@ namespace FlowForge.Engine.Nodes.Logic;
 [NodeDefinition(
     Name = "Switch",
     Description = "Route data to different outputs based on matching values",
-    Icon = "shuffle")]
+    Icon = "fa-solid fa-shuffle")]
 [NodeInput("input", DisplayName = "Input", IsRequired = true)]
 [NodeOutput("default", DisplayName = "Default")]
 [ConfigurationProperty("field", "string", Description = "Field path to evaluate", IsRequired = true)]
@@ -33,7 +33,7 @@ public class SwitchNode : BaseLogicNode
         var cases = GetConfigValue<List<SwitchCase>>(input, "cases") ?? [];
 
         var fieldValue = GetNestedProperty(input.Data, field);
-        
+
         // Find matching case
         string matchedOutput = "default";
         foreach (var switchCase in cases)
@@ -62,10 +62,14 @@ public class SwitchNode : BaseLogicNode
 
         return fieldValue.ValueKind switch
         {
-            JsonValueKind.String => fieldValue.GetString()?.Equals(caseValue.ToString(), StringComparison.OrdinalIgnoreCase) ?? false,
-            JsonValueKind.Number => decimal.TryParse(caseValue.ToString(), out var num) && fieldValue.GetDecimal() == num,
-            JsonValueKind.True => caseValue is true || caseValue.ToString()?.Equals("true", StringComparison.OrdinalIgnoreCase) == true,
-            JsonValueKind.False => caseValue is false || caseValue.ToString()?.Equals("false", StringComparison.OrdinalIgnoreCase) == true,
+            JsonValueKind.String => fieldValue.GetString()
+                ?.Equals(caseValue.ToString(), StringComparison.OrdinalIgnoreCase) ?? false,
+            JsonValueKind.Number => decimal.TryParse(caseValue.ToString(), out var num) &&
+                                    fieldValue.GetDecimal() == num,
+            JsonValueKind.True => caseValue is true ||
+                                  caseValue.ToString()?.Equals("true", StringComparison.OrdinalIgnoreCase) == true,
+            JsonValueKind.False => caseValue is false ||
+                                   caseValue.ToString()?.Equals("false", StringComparison.OrdinalIgnoreCase) == true,
             _ => false
         };
     }
@@ -78,7 +82,7 @@ public record SwitchCase
 {
     /// <summary>Value to match against.</summary>
     public object? Value { get; init; }
-    
+
     /// <summary>Output port name when matched.</summary>
     public string? Output { get; init; }
 }

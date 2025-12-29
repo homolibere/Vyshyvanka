@@ -11,7 +11,7 @@ namespace FlowForge.Engine.Nodes.Triggers;
 [NodeDefinition(
     Name = "Webhook Trigger",
     Description = "Trigger workflow when an HTTP request is received",
-    Icon = "webhook")]
+    Icon = "fa-solid fa-tower-broadcast")]
 [NodeOutput("output", DisplayName = "Request Data")]
 [ConfigurationProperty("path", "string", Description = "Webhook URL path", IsRequired = true)]
 [ConfigurationProperty("method", "string", Description = "HTTP method to accept (GET, POST, PUT, DELETE, or ANY)")]

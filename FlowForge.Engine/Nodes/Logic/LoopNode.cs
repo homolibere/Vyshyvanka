@@ -11,7 +11,7 @@ namespace FlowForge.Engine.Nodes.Logic;
 [NodeDefinition(
     Name = "Loop",
     Description = "Iterate over an array and process each item",
-    Icon = "repeat")]
+    Icon = "fa-solid fa-rotate")]
 [NodeInput("input", DisplayName = "Input Array", IsRequired = true)]
 [NodeOutput("item", DisplayName = "Current Item")]
 [NodeOutput("done", DisplayName = "Loop Complete")]
@@ -50,7 +50,7 @@ public class LoopNode : BaseLogicNode
         }
 
         var items = arrayElement.EnumerateArray().ToList();
-        
+
         if (items.Count == 0)
         {
             // Empty array - go directly to done output
@@ -99,19 +99,19 @@ public record LoopOutput
 {
     /// <summary>Items to iterate over.</summary>
     public List<LoopItem> Items { get; init; } = [];
-    
+
     /// <summary>Total number of items.</summary>
     public int TotalCount { get; init; }
-    
+
     /// <summary>Number of items processed.</summary>
     public int ProcessedCount { get; init; }
-    
+
     /// <summary>Batch size for parallel processing.</summary>
     public int BatchSize { get; init; } = 1;
-    
+
     /// <summary>Whether the loop is complete.</summary>
     public bool IsComplete { get; init; }
-    
+
     /// <summary>Output port to use.</summary>
     public string OutputPort { get; init; } = "item";
 }
@@ -123,13 +123,13 @@ public record LoopItem
 {
     /// <summary>Zero-based index of the item.</summary>
     public int Index { get; init; }
-    
+
     /// <summary>The item data.</summary>
     public object? Item { get; init; }
-    
+
     /// <summary>Whether this is the first item.</summary>
     public bool IsFirst { get; init; }
-    
+
     /// <summary>Whether this is the last item.</summary>
     public bool IsLast { get; init; }
 }

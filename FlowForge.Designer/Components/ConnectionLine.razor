@@ -1,17 +1,23 @@
-<g class="connection @(IsSelected ? "selected" : "")"
-   @onclick="OnSelectClick"
-   @onclick:stopPropagation>
+<g class="connection @(IsSelected ? "selected" : "")">
 
     <!-- Invisible wider path for easier clicking -->
-    <path class="connection-hitarea" d="@GetBezierPath()"/>
+    <path class="connection-hitarea"
+          d="@GetBezierPath()"
+          @onclick="OnSelectClick"
+          @onclick:stopPropagation/>
 
     <!-- Visible connection line -->
-    <path class="connection-line" d="@GetBezierPath()"/>
+    <path class="connection-line"
+          d="@GetBezierPath()"
+          @onclick="OnSelectClick"
+          @onclick:stopPropagation/>
 
     <!-- Arrow at the end -->
     <polygon class="connection-arrow"
              points="@GetArrowPoints()"
-             transform="@GetArrowTransform()"/>
+             transform="@GetArrowTransform()"
+             @onclick="OnSelectClick"
+             @onclick:stopPropagation/>
 
     <!-- Delete button (shown when selected) -->
     @if (IsSelected)
@@ -20,10 +26,13 @@
         var midY = (StartY + EndY) / 2;
         <g class="delete-btn"
            transform="translate(@midX, @midY)"
+           style="pointer-events: all;"
+           @onmousedown:stopPropagation
            @onclick="OnDeleteClick"
+           @onclick:preventDefault
            @onclick:stopPropagation>
             <circle r="10" fill="#ef5350"/>
-            <text x="0" y="4" text-anchor="middle" fill="white" font-size="14">×</text>
+            <text x="0" y="4" text-anchor="middle" fill="white" font-size="14" style="pointer-events: none;">×</text>
         </g>
     }
 </g>

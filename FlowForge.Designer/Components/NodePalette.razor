@@ -29,7 +29,9 @@
                              @ondragstart="() => OnDragStart(node)"
                              @ondragend="OnDragEnd"
                              title="@GetNodeTooltip(node)">
-                            <span class="node-icon">@node.Icon</span>
+                            <span class="node-icon">
+                                <NodeIcon Icon="@node.Icon"/>
+                            </span>
                             <div class="node-info">
                                 <span class="node-name">
                                     @node.Name

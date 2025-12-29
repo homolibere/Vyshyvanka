@@ -11,7 +11,7 @@ namespace FlowForge.Engine.Nodes.Triggers;
 [NodeDefinition(
     Name = "Schedule Trigger",
     Description = "Trigger workflow on a schedule using cron expressions or intervals",
-    Icon = "clock")]
+    Icon = "fa-solid fa-clock")]
 [NodeOutput("output", DisplayName = "Schedule Data")]
 [ConfigurationProperty("cronExpression", "string", Description = "Cron expression for scheduling")]
 [ConfigurationProperty("interval", "number", Description = "Interval in seconds (alternative to cron)")]

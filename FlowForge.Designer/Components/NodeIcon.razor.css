@@ -1,0 +1,10 @@
+.node-icon-img {
+    object-fit: contain;
+    vertical-align: middle;
+}
+
+.node-icon-emoji {
+    display: inline-block;
+    vertical-align: middle;
+    line-height: 1;
+}

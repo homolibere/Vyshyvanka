@@ -12,7 +12,7 @@ namespace FlowForge.Engine.Nodes.Logic;
 [NodeDefinition(
     Name = "If",
     Description = "Evaluate a condition and route data to true or false output",
-    Icon = "git-branch")]
+    Icon = "fa-solid fa-code-branch")]
 [NodeInput("input", DisplayName = "Input", IsRequired = true)]
 [NodeOutput("true", DisplayName = "True")]
 [NodeOutput("false", DisplayName = "False")]
@@ -35,9 +35,9 @@ public class IfNode : BaseLogicNode
         var field = GetRequiredConfigValue<string>(input, "field");
         var @operator = GetRequiredConfigValue<string>(input, "operator");
         var compareValueJson = GetConfigValue<JsonElement?>(input, "value");
-        
+
         var compareValue = compareValueJson ?? default;
-        
+
         bool conditionResult;
         try
         {

@@ -13,7 +13,7 @@ namespace FlowForge.Engine.Nodes.Actions;
 [NodeDefinition(
     Name = "Database Query",
     Description = "Execute SQL queries against a database and return results as JSON",
-    Icon = "database")]
+    Icon = "fa-solid fa-database")]
 [NodeInput("input", DisplayName = "Input", IsRequired = false)]
 [NodeOutput("output", DisplayName = "Results")]
 [ConfigurationProperty("connectionString", "string", Description = "Database connection string", IsRequired = true)]

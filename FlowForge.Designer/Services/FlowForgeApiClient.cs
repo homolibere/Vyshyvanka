@@ -14,6 +14,12 @@ public partial class FlowForgeApiClient
 {
     private readonly HttpClient _httpClient;
 
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
     public FlowForgeApiClient(HttpClient httpClient)
     {
         _httpClient = httpClient;
@@ -22,7 +28,8 @@ public partial class FlowForgeApiClient
     /// <summary>
     /// Ensures the response is successful, throwing ApiException with parsed error details if not.
     /// </summary>
-    private static async Task EnsureSuccessAsync(HttpResponseMessage response, CancellationToken cancellationToken = default)
+    private static async Task EnsureSuccessAsync(HttpResponseMessage response,
+        CancellationToken cancellationToken = default)
     {
         if (response.IsSuccessStatusCode)
             return;
@@ -169,14 +176,16 @@ public partial class FlowForgeApiClient
             TargetNodeId = c.TargetNodeId,
             TargetPort = c.TargetPort
         }).ToList(),
-        Settings = response.Settings is not null ? new WorkflowSettings
-        {
-            Timeout = response.Settings.TimeoutSeconds.HasValue
-                ? TimeSpan.FromSeconds(response.Settings.TimeoutSeconds.Value)
-                : null,
-            MaxRetries = response.Settings.MaxRetries,
-            ErrorHandling = response.Settings.ErrorHandling
-        } : new WorkflowSettings(),
+        Settings = response.Settings is not null
+            ? new WorkflowSettings
+            {
+                Timeout = response.Settings.TimeoutSeconds.HasValue
+                    ? TimeSpan.FromSeconds(response.Settings.TimeoutSeconds.Value)
+                    : null,
+                MaxRetries = response.Settings.MaxRetries,
+                ErrorHandling = response.Settings.ErrorHandling
+            }
+            : new WorkflowSettings(),
         Tags = response.Tags,
         CreatedAt = response.CreatedAt,
         UpdatedAt = response.UpdatedAt,
@@ -187,7 +196,8 @@ public partial class FlowForgeApiClient
     /// <summary>Gets all node definitions from the registry.</summary>
     public async Task<List<NodeDefinition>> GetNodeDefinitionsAsync(CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.GetFromJsonAsync<List<NodeDefinition>>("api/nodes", cancellationToken);
+        var response =
+            await _httpClient.GetFromJsonAsync<List<NodeDefinition>>("api/nodes", JsonOptions, cancellationToken);
         return response ?? [];
     }
 
@@ -207,7 +217,8 @@ public partial class FlowForgeApiClient
     }
 
     /// <summary>Gets execution status.</summary>
-    public async Task<ExecutionResponse?> GetExecutionAsync(Guid executionId, CancellationToken cancellationToken = default)
+    public async Task<ExecutionResponse?> GetExecutionAsync(Guid executionId,
+        CancellationToken cancellationToken = default)
     {
         return await _httpClient.GetFromJsonAsync<ExecutionResponse>($"api/execution/{executionId}", cancellationToken);
     }

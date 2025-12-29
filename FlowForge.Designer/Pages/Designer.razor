@@ -118,7 +118,7 @@
         if (WorkflowId != _loadedWorkflowId)
         {
             _loadedWorkflowId = WorkflowId;
-            
+
             if (WorkflowId.HasValue)
             {
                 try
@@ -177,7 +177,7 @@
         {
             Workflow? saved;
             var isNew = !WorkflowId.HasValue;
-            
+
             if (WorkflowId.HasValue)
             {
                 saved = await ApiClient.UpdateWorkflowAsync(StateService.Workflow);
@@ -192,11 +192,11 @@
                 // Update state with the saved workflow (has correct ID and version)
                 StateService.LoadWorkflow(saved);
                 StateService.MarkAsSaved();
-                
+
                 Toast.ShowSuccess(
                     isNew ? $"Workflow '{saved.Name}' created successfully" : $"Workflow '{saved.Name}' updated (v{saved.Version})",
                     isNew ? "Created" : "Saved");
-                
+
                 // Navigate to the workflow URL if this was a new workflow
                 if (isNew)
                 {
@@ -312,7 +312,7 @@
                 Name = "Manual Trigger",
                 Description = "Manually trigger workflow execution",
                 Category = NodeCategory.Trigger,
-                Icon = "▶",
+                Icon = "fa-solid fa-play",
                 Outputs = [new PortDefinition { Name = "output", DisplayName = "Output", Type = PortType.Any }]
             },
             new NodeDefinition
@@ -321,7 +321,7 @@
                 Name = "Webhook Trigger",
                 Description = "Trigger workflow via HTTP webhook",
                 Category = NodeCategory.Trigger,
-                Icon = "🌐",
+                Icon = "fa-solid fa-tower-broadcast",
                 Outputs = [new PortDefinition { Name = "output", DisplayName = "Output", Type = PortType.Object }]
             },
             new NodeDefinition
@@ -330,7 +330,7 @@
                 Name = "Schedule Trigger",
                 Description = "Trigger workflow on a schedule",
                 Category = NodeCategory.Trigger,
-                Icon = "⏰",
+                Icon = "fa-solid fa-clock",
                 Outputs = [new PortDefinition { Name = "output", DisplayName = "Output", Type = PortType.Object }]
             },
             new NodeDefinition
@@ -339,7 +339,7 @@
                 Name = "If",
                 Description = "Conditional branching",
                 Category = NodeCategory.Logic,
-                Icon = "⑂",
+                Icon = "fa-solid fa-code-branch",
                 Inputs = [new PortDefinition { Name = "input", DisplayName = "Input", Type = PortType.Any, IsRequired = true }],
                 Outputs =
                 [
@@ -353,7 +353,7 @@
                 Name = "Switch",
                 Description = "Multi-way branching",
                 Category = NodeCategory.Logic,
-                Icon = "⇉",
+                Icon = "fa-solid fa-shuffle",
                 Inputs = [new PortDefinition { Name = "input", DisplayName = "Input", Type = PortType.Any, IsRequired = true }],
                 Outputs = [new PortDefinition { Name = "output", DisplayName = "Output", Type = PortType.Any }]
             },
@@ -363,7 +363,7 @@
                 Name = "Merge",
                 Description = "Merge multiple branches",
                 Category = NodeCategory.Logic,
-                Icon = "⇶",
+                Icon = "fa-solid fa-code-merge",
                 Inputs =
                 [
                     new PortDefinition { Name = "input1", DisplayName = "Input 1", Type = PortType.Any },
@@ -377,7 +377,7 @@
                 Name = "Loop",
                 Description = "Iterate over items",
                 Category = NodeCategory.Logic,
-                Icon = "🔄",
+                Icon = "fa-solid fa-rotate",
                 Inputs = [new PortDefinition { Name = "input", DisplayName = "Input", Type = PortType.Array, IsRequired = true }],
                 Outputs =
                 [

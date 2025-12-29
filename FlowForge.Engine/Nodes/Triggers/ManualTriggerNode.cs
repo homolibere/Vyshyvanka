@@ -11,7 +11,7 @@ namespace FlowForge.Engine.Nodes.Triggers;
 [NodeDefinition(
     Name = "Manual Trigger",
     Description = "Manually trigger a workflow execution",
-    Icon = "play")]
+    Icon = "fa-solid fa-play")]
 [NodeOutput("output", DisplayName = "Output")]
 public class ManualTriggerNode : BaseTriggerNode
 {
@@ -35,10 +35,10 @@ public class ManualTriggerNode : BaseTriggerNode
     public override Task<NodeOutput> ExecuteAsync(NodeInput input, IExecutionContext context)
     {
         // Pass through any input data provided during manual execution
-        var outputData = input.Data.ValueKind != JsonValueKind.Undefined 
-            ? input.Data 
+        var outputData = input.Data.ValueKind != JsonValueKind.Undefined
+            ? input.Data
             : JsonSerializer.SerializeToElement(new { triggered = true, timestamp = DateTime.UtcNow });
-        
+
         return Task.FromResult(SuccessOutput(outputData));
     }
 }

@@ -11,7 +11,9 @@
         @if (node is not null)
         {
             <div class="config-header">
-                <span class="config-icon">@(definition?.Icon ?? "📦")</span>
+                <span class="config-icon">
+                    <NodeIcon Icon="@definition?.Icon"/>
+                </span>
                 <h3>@node.Name</h3>
             </div>
 
