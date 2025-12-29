@@ -76,9 +76,13 @@
 
 @code {
     private bool isPanning;
+    private bool isCanvasDragStarted;
     private string? draggingNodeId;
     private double lastMouseX;
     private double lastMouseY;
+    private double dragStartX;
+    private double dragStartY;
+    private const double DragThreshold = 5;
 
     protected override void OnInitialized()
     {
@@ -98,7 +102,11 @@
 
     private void OnCanvasMouseDown(MouseEventArgs e)
     {
-        if (e.Button == 1 || (e.Button == 0 && e.ShiftKey)) // Middle click or Shift+Left click
+        // Don't start canvas drag if we're drawing a connection
+        if (StateService.PendingConnection is not null)
+            return;
+
+        if (e.Button == 1 || (e.Button == 0 && e.ShiftKey)) // Middle click or Shift+Left click - immediate pan
         {
             isPanning = true;
             lastMouseX = e.ClientX;
@@ -106,20 +114,43 @@
         }
         else if (e.Button == 0)
         {
-            // Left click on empty canvas - clear selection
-            StateService.ClearSelection();
+            // Left click on empty canvas - prepare for potential pan
+            isCanvasDragStarted = true;
+            dragStartX = e.ClientX;
+            dragStartY = e.ClientY;
+            lastMouseX = e.ClientX;
+            lastMouseY = e.ClientY;
         }
     }
 
     private void OnCanvasMouseMove(MouseEventArgs e)
     {
-        if (isPanning)
+        // Pending connection takes priority - update the line following cursor
+        if (StateService.PendingConnection is not null)
+        {
+            var state = StateService.CanvasState;
+            var x = (e.OffsetX - state.PanX) / state.Zoom;
+            var y = (e.OffsetY - state.PanY) / state.Zoom;
+            StateService.UpdatePendingConnection(x, y);
+        }
+        else if (isPanning)
         {
             var deltaX = e.ClientX - lastMouseX;
             var deltaY = e.ClientY - lastMouseY;
             StateService.Pan(deltaX, deltaY);
             lastMouseX = e.ClientX;
             lastMouseY = e.ClientY;
+        }
+        else if (isCanvasDragStarted)
+        {
+            // Check if we've moved enough to start panning
+            var distX = Math.Abs(e.ClientX - dragStartX);
+            var distY = Math.Abs(e.ClientY - dragStartY);
+            if (distX > DragThreshold || distY > DragThreshold)
+            {
+                isPanning = true;
+                isCanvasDragStarted = false;
+            }
         }
         else if (draggingNodeId is not null)
         {
@@ -137,19 +168,18 @@
             lastMouseX = e.ClientX;
             lastMouseY = e.ClientY;
         }
-        else if (StateService.PendingConnection is not null)
-        {
-            // Update pending connection position
-            var state = StateService.CanvasState;
-            var x = (e.OffsetX - state.PanX) / state.Zoom;
-            var y = (e.OffsetY - state.PanY) / state.Zoom;
-            StateService.UpdatePendingConnection(x, y);
-        }
     }
 
     private void OnCanvasMouseUp(MouseEventArgs e)
     {
+        // If we started a canvas drag but didn't pan, it was a click - clear selection
+        if (isCanvasDragStarted && !isPanning)
+        {
+            StateService.ClearSelection();
+        }
+
         isPanning = false;
+        isCanvasDragStarted = false;
         draggingNodeId = null;
         if (StateService.PendingConnection is not null)
         {

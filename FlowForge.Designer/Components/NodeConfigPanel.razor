@@ -153,9 +153,58 @@
     }
     else
     {
-        <div class="config-empty">
-            <div class="empty-icon">📋</div>
-            <p>Select a node to view its configuration</p>
+        <div class="workflow-properties">
+            <div class="config-header">
+                <span class="config-icon">⚙️</span>
+                <h3>Workflow Properties</h3>
+            </div>
+
+            <div class="config-section">
+                <label class="config-label">Name</label>
+                <input type="text"
+                       class="config-input"
+                       value="@_workflowName"
+                       @oninput="@(e => _workflowName = e.Value?.ToString() ?? "")"
+                       @onblur="UpdateWorkflowName"
+                       placeholder="Enter workflow name..."/>
+            </div>
+
+            <div class="config-section">
+                <label class="config-label">Description</label>
+                <textarea class="config-textarea description-textarea"
+                          placeholder="Enter workflow description..."
+                          @bind="_workflowDescription"
+                          @bind:event="oninput"
+                          @onblur="UpdateWorkflowDescription"></textarea>
+            </div>
+
+            <div class="config-section">
+                <label class="config-label">Status</label>
+                <div class="config-value">
+                    <span class="status-indicator @(StateService.Workflow.IsActive ? "active" : "inactive")">
+                        @(StateService.Workflow.IsActive ? "🟢 Active" : "⚪ Inactive")
+                    </span>
+                </div>
+            </div>
+
+            <div class="config-section">
+                <label class="config-label">Version</label>
+                <div class="config-value">v@(StateService.Workflow.Version)</div>
+            </div>
+
+            <div class="config-section">
+                <label class="config-label">Statistics</label>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-value">@StateService.Workflow.Nodes.Count</span>
+                        <span class="stat-label">Nodes</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">@StateService.Workflow.Connections.Count</span>
+                        <span class="stat-label">Connections</span>
+                    </div>
+                </div>
+            </div>
         </div>
     }
 </div>
@@ -164,10 +213,14 @@
     private string configJson = "{}";
     private string nodeName = "";
     private string? configError;
+    private string _workflowName = "";
+    private string _workflowDescription = "";
 
     protected override void OnInitialized()
     {
         StateService.OnStateChanged += OnStateChanged;
+        _workflowName = StateService.Workflow.Name;
+        _workflowDescription = StateService.Workflow.Description ?? "";
     }
 
     private void OnStateChanged()
@@ -185,9 +238,33 @@
                 configJson = "{}";
             }
         }
+        else
+        {
+            // Update workflow properties when no node selected
+            _workflowName = StateService.Workflow.Name;
+            _workflowDescription = StateService.Workflow.Description ?? "";
+        }
 
         configError = null;
         StateHasChanged();
+    }
+
+    private void UpdateWorkflowName()
+    {
+        if (string.IsNullOrWhiteSpace(_workflowName)) return;
+        if (_workflowName != StateService.Workflow.Name)
+        {
+            StateService.UpdateWorkflowMetadata(_workflowName, StateService.Workflow.Description);
+        }
+    }
+
+    private void UpdateWorkflowDescription()
+    {
+        var desc = string.IsNullOrWhiteSpace(_workflowDescription) ? null : _workflowDescription;
+        if (desc != StateService.Workflow.Description)
+        {
+            StateService.UpdateWorkflowMetadata(StateService.Workflow.Name, desc);
+        }
     }
 
     private void UpdateNodeName(string nodeId)

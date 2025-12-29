@@ -15,6 +15,10 @@
 
     <div class="canvas-area">
         <div class="canvas-toolbar">
+            <button class="toolbar-btn" @onclick="OpenWorkflowBrowser" title="Open Workflow">
+                📂 Open
+            </button>
+            <span class="toolbar-separator"></span>
             <button class="toolbar-btn" @onclick="StateService.Undo" disabled="@(!StateService.CanUndo)" title="Undo">
                 ↶
             </button>
@@ -86,11 +90,17 @@
 @* Plugin Manager Modal *@
 <PluginManager IsOpen="@_isPluginManagerOpen" OnClose="ClosePluginManager"/>
 
+@* Workflow Browser Modal *@
+<WorkflowBrowser IsOpen="@_isWorkflowBrowserOpen"
+                 CurrentWorkflowId="@WorkflowId"
+                 OnClose="CloseWorkflowBrowser"/>
+
 @code {
     [Parameter] public Guid? WorkflowId { get; set; }
 
     private bool _isValidationPanelExpanded = true;
     private bool _isPluginManagerOpen;
+    private bool _isWorkflowBrowserOpen;
     private System.Timers.Timer? _executionPollTimer;
     private Guid? _loadedWorkflowId;
 
@@ -147,6 +157,9 @@
 
     private void OpenPluginManager() => _isPluginManagerOpen = true;
     private void ClosePluginManager() => _isPluginManagerOpen = false;
+
+    private void OpenWorkflowBrowser() => _isWorkflowBrowserOpen = true;
+    private void CloseWorkflowBrowser() => _isWorkflowBrowserOpen = false;
 
     private void ToggleValidationPanel() => _isValidationPanelExpanded = !_isValidationPanelExpanded;
 
