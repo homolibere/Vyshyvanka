@@ -26,7 +26,7 @@ public partial class Toast : IDisposable
     public string Message { get; set; } = string.Empty;
 
     /// <summary>Auto-dismiss timeout in milliseconds. Set to 0 to disable auto-dismiss.</summary>
-    /// [Parameter]
+    [Parameter]
     public int DismissTimeout { get; set; } = 5000;
 
     /// <summary>Callback when the toastismissed.</summary>

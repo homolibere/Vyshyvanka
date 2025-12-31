@@ -2,14 +2,21 @@ using FlowForge.Core.Models;
 using FlowForge.Designer.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.JSInterop;
 
 namespace FlowForge.Designer.Components;
 
-public partial class WorkflowCanvas : IDisposable
+public partial class WorkflowCanvas : IAsyncDisposable
 {
     [Inject]
     private WorkflowStateService StateService { get; set; } = null!;
 
+    [Inject]
+    private IJSRuntime JS { get; set; } = null!;
+
+    private ElementReference _canvasContainer;
+    private IJSObjectReference? _resizeObserver;
+    private DotNetObjectReference<WorkflowCanvas>? _dotNetRef;
     private bool isPanning;
     private bool isCanvasDragStarted;
     private string? draggingNodeId;
@@ -22,6 +29,28 @@ public partial class WorkflowCanvas : IDisposable
     protected override void OnInitialized()
     {
         StateService.OnStateChanged += StateHasChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _dotNetRef = DotNetObjectReference.Create(this);
+
+            // Get initial dimensions
+            var dimensions = await JS.InvokeAsync<CanvasDimensions>("canvasInterop.getElementDimensions", _canvasContainer);
+            StateService.SetCanvasSize(dimensions.Width, dimensions.Height);
+
+            // Set up resize observer
+            _resizeObserver = await JS.InvokeAsync<IJSObjectReference>("canvasInterop.observeResize", _canvasContainer, _dotNetRef);
+        }
+    }
+
+    /// <summary>Called from JavaScript when the canvas container is resized.</summary>
+    [JSInvokable]
+    public void OnCanvasResized(double width, double height)
+    {
+        StateService.SetCanvasSize(width, height);
     }
 
     private string GetViewBox()
@@ -207,8 +236,18 @@ public partial class WorkflowCanvas : IDisposable
         return $"M {x1} {y1} C {cp1X} {y1}, {cp2X} {y2}, {x2} {y2}";
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         StateService.OnStateChanged -= StateHasChanged;
+
+        if (_resizeObserver is not null)
+        {
+            await JS.InvokeVoidAsync("canvasInterop.disconnectObserver", _resizeObserver);
+            await _resizeObserver.DisposeAsync();
+        }
+
+        _dotNetRef?.Dispose();
     }
+
+    private record CanvasDimensions(double Width, double Height);
 }
