@@ -1,8 +1,4 @@
 @* Container for displaying toast notifications *@
-@using FlowForge.Designer.Models
-@using FlowForge.Designer.Services
-@inject ToastService ToastService
-@implements IDisposable
 
 <div class="toast-container">
     @foreach (var toast in ToastService.Toasts)
@@ -17,21 +13,3 @@
     }
 </div>
 
-@code {
-
-    protected override void OnInitialized()
-    {
-        ToastService.OnChange += StateHasChanged;
-    }
-
-    private void HandleDismiss(string id)
-    {
-        ToastService.Remove(id);
-    }
-
-    public void Dispose()
-    {
-        ToastService.OnChange -= StateHasChanged;
-    }
-
-}
