@@ -149,7 +149,8 @@ public partial class FlowForgeApiClient
         {
             TimeoutSeconds = settings.Timeout.HasValue ? (int)settings.Timeout.Value.TotalSeconds : null,
             MaxRetries = settings.MaxRetries,
-            ErrorHandling = settings.ErrorHandling
+            ErrorHandling = settings.ErrorHandling,
+            MaxDegreeOfParallelism = settings.MaxDegreeOfParallelism
         };
     }
 

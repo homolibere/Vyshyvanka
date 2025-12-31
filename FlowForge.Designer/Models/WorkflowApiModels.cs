@@ -69,6 +69,7 @@ public record WorkflowSettingsDto
     public int? TimeoutSeconds { get; init; }
     public int MaxRetries { get; init; }
     public ErrorHandlingMode ErrorHandling { get; init; }
+    public int MaxDegreeOfParallelism { get; init; }
 }
 
 /// <summary>

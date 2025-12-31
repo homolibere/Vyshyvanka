@@ -140,6 +140,10 @@ public record WorkflowSettingsDto
     
     /// <summary>Error handling mode.</summary>
     public ErrorHandlingMode ErrorHandling { get; init; }
+    
+    /// <summary>Maximum parallel node executions per level. 0 or negative means use default.</summary>
+    [Range(-1, 1000, ErrorMessage = "MaxDegreeOfParallelism must be between -1 and 1000")]
+    public int MaxDegreeOfParallelism { get; init; }
 }
 
 /// <summary>
@@ -192,7 +196,8 @@ public record WorkflowResponse
                     ? (int)workflow.Settings.Timeout.Value.TotalSeconds 
                     : null,
                 MaxRetries = workflow.Settings.MaxRetries,
-                ErrorHandling = workflow.Settings.ErrorHandling
+                ErrorHandling = workflow.Settings.ErrorHandling,
+                MaxDegreeOfParallelism = workflow.Settings.MaxDegreeOfParallelism
             } : null,
             Tags = workflow.Tags,
             CreatedAt = workflow.CreatedAt,

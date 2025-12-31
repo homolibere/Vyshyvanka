@@ -82,4 +82,12 @@ public record WorkflowSettings
     /// <summary>How to handle node execution errors.</summary>
     [JsonPropertyName("errorHandling")]
     public ErrorHandlingMode ErrorHandling { get; init; }
+    
+    /// <summary>
+    /// Maximum number of nodes to execute in parallel per level.
+    /// 0 or negative means unlimited (default behavior).
+    /// </summary>
+    [JsonPropertyName("maxDegreeOfParallelism")]
+    [Range(-1, 1000, ErrorMessage = "MaxDegreeOfParallelism must be between -1 and 1000")]
+    public int MaxDegreeOfParallelism { get; init; }
 }

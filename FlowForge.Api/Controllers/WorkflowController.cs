@@ -18,15 +18,18 @@ public class WorkflowController : ControllerBase
 {
     private readonly IWorkflowRepository _repository;
     private readonly WorkflowValidator _validator;
+    private readonly ICurrentUserService _currentUserService;
     private readonly ILogger<WorkflowController> _logger;
 
     public WorkflowController(
         IWorkflowRepository repository,
         WorkflowValidator validator,
+        ICurrentUserService currentUserService,
         ILogger<WorkflowController> logger)
     {
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         _validator = validator ?? throw new ArgumentNullException(nameof(validator));
+        _currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -99,7 +102,7 @@ public class WorkflowController : ControllerBase
     {
         _logger.LogDebug("Creating workflow: {WorkflowName}", request.Name);
         
-        var workflow = MapToWorkflow(request);
+        var workflow = MapToWorkflow(request, _currentUserService.UserId ?? Guid.Empty);
         
         // Validate the workflow
         var validationResult = _validator.Validate(workflow);
@@ -236,7 +239,7 @@ public class WorkflowController : ControllerBase
         return Ok(response);
     }
 
-    private static Workflow MapToWorkflow(CreateWorkflowRequest request)
+    private static Workflow MapToWorkflow(CreateWorkflowRequest request, Guid createdBy)
     {
         var now = DateTime.UtcNow;
         return new Workflow
@@ -252,7 +255,7 @@ public class WorkflowController : ControllerBase
             Tags = request.Tags,
             CreatedAt = now,
             UpdatedAt = now,
-            CreatedBy = Guid.Empty // TODO: Get from authenticated user
+            CreatedBy = createdBy
         };
     }
 
@@ -309,7 +312,8 @@ public class WorkflowController : ControllerBase
                 ? TimeSpan.FromSeconds(dto.TimeoutSeconds.Value) 
                 : null,
             MaxRetries = dto.MaxRetries,
-            ErrorHandling = dto.ErrorHandling
+            ErrorHandling = dto.ErrorHandling,
+            MaxDegreeOfParallelism = dto.MaxDegreeOfParallelism
         };
     }
 }

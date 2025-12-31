@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using FlowForge.Core.Enums;
 using FlowForge.Core.Interfaces;
 using FlowForge.Core.Models;
@@ -15,7 +16,17 @@ public class WorkflowEngine : IWorkflowEngine
 {
     private readonly INodeRegistry _nodeRegistry;
     private readonly IExpressionEvaluator _expressionEvaluator;
-    private readonly ConcurrentDictionary<Guid, CancellationTokenSource> _activeExecutions = new ConcurrentDictionary<Guid, CancellationTokenSource>();
+    private readonly ConcurrentDictionary<Guid, CancellationTokenSource> _activeExecutions = new();
+
+    /// <summary>
+    /// Cached empty JSON object element to avoid repeated allocations.
+    /// </summary>
+    private static readonly JsonElement EmptyObjectElement = JsonDocument.Parse("{}").RootElement.Clone();
+
+    /// <summary>
+    /// Default max degree of parallelism when not specified (uses processor count * 2).
+    /// </summary>
+    private static readonly int DefaultMaxParallelism = Environment.ProcessorCount * 2;
 
     /// <summary>
     /// Creates a new workflow engine instance.
@@ -43,22 +54,16 @@ public class WorkflowEngine : IWorkflowEngine
 
         try
         {
-            // Build execution levels for parallel execution
             var executionLevels = BuildExecutionLevels(workflow);
+            var maxParallelism = GetEffectiveMaxParallelism(workflow.Settings.MaxDegreeOfParallelism);
 
             foreach (var level in executionLevels)
             {
                 cts.Token.ThrowIfCancellationRequested();
 
-                // Execute all nodes in this level in parallel
-                // Use ToList() to ensure all tasks are started immediately before awaiting
-                var levelTasks = level.Select(nodeId =>
-                        ExecuteNodeInWorkflowAsync(workflow, nodeId, context, nodeResults, cts.Token))
-                    .ToList();
+                var levelResults = await ExecuteLevelWithThrottlingAsync(
+                    workflow, level, context, nodeResults, maxParallelism, cts.Token);
 
-                var levelResults = await Task.WhenAll(levelTasks);
-
-                // Check for failures if error handling mode is StopOnFirstError
                 if (workflow.Settings.ErrorHandling == ErrorHandlingMode.StopOnFirstError)
                 {
                     var failedResult = levelResults.FirstOrDefault(r => !r.Success);
@@ -116,12 +121,9 @@ public class WorkflowEngine : IWorkflowEngine
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            // Evaluate expressions in node configuration
             var evaluatedConfig = EvaluateConfiguration(node.Configuration, context, node.Id);
-
             var nodeInstance = _nodeRegistry.CreateNode(node.Type, evaluatedConfig);
 
-            // For standalone node execution, use empty input data
             var input = new NodeInput
             {
                 Data = default,
@@ -184,13 +186,40 @@ public class WorkflowEngine : IWorkflowEngine
         {
             cts.Cancel();
         }
-
         return Task.CompletedTask;
     }
 
-    /// <summary>
-    /// Executes a node within a workflow context, gathering input from upstream nodes.
-    /// </summary>
+    private static int GetEffectiveMaxParallelism(int configured)
+    {
+        return configured > 0 ? configured : DefaultMaxParallelism;
+    }
+
+    private async Task<NodeExecutionResult[]> ExecuteLevelWithThrottlingAsync(
+        Workflow workflow,
+        List<string> level,
+        IExecutionContext context,
+        ConcurrentBag<NodeExecutionResult> nodeResults,
+        int maxParallelism,
+        CancellationToken cancellationToken)
+    {
+        using var semaphore = new SemaphoreSlim(maxParallelism, maxParallelism);
+
+        var tasks = level.Select(async nodeId =>
+        {
+            await semaphore.WaitAsync(cancellationToken);
+            try
+            {
+                return await ExecuteNodeInWorkflowAsync(workflow, nodeId, context, nodeResults, cancellationToken);
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        }).ToList();
+
+        return await Task.WhenAll(tasks);
+    }
+
     private async Task<NodeExecutionResult> ExecuteNodeInWorkflowAsync(
         Workflow workflow,
         string nodeId,
@@ -205,12 +234,8 @@ public class WorkflowEngine : IWorkflowEngine
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            // Evaluate expressions in node configuration
             var evaluatedConfig = EvaluateConfiguration(node.Configuration, context, nodeId);
-
             var nodeInstance = _nodeRegistry.CreateNode(node.Type, evaluatedConfig);
-
-            // Gather input data from upstream nodes
             var inputData = GatherInputData(workflow, nodeId, context);
 
             var input = new NodeInput
@@ -224,7 +249,6 @@ public class WorkflowEngine : IWorkflowEngine
 
             if (output.Success)
             {
-                // Store output with port information if available
                 StoreNodeOutput(context, node.Id, output);
             }
 
@@ -278,32 +302,25 @@ public class WorkflowEngine : IWorkflowEngine
         }
     }
 
-    /// <summary>
-    /// Gathers input data from all upstream nodes connected to the specified node.
-    /// </summary>
     private static JsonElement GatherInputData(Workflow workflow, string nodeId, IExecutionContext context)
     {
-        // Find all connections where this node is the target
         var incomingConnections = workflow.Connections
             .Where(c => c.TargetNodeId == nodeId)
             .ToList();
 
         if (incomingConnections.Count == 0)
         {
-            // No upstream connections - return an empty object
-            return JsonSerializer.SerializeToElement(new { });
+            return EmptyObjectElement;
         }
 
         if (incomingConnections.Count == 1)
         {
-            // Single upstream connection - return that node's output directly
             var connection = incomingConnections[0];
             var output = context.NodeOutputs.Get(connection.SourceNodeId, connection.SourcePort);
-            return output ?? JsonSerializer.SerializeToElement(new { });
+            return output ?? EmptyObjectElement;
         }
 
-        // Multiple upstream connections - merge outputs into a dictionary keyed by source node ID
-        var mergedData = new Dictionary<string, object?>();
+        var mergedNode = new JsonObject();
 
         foreach (var connection in incomingConnections)
         {
@@ -311,19 +328,16 @@ public class WorkflowEngine : IWorkflowEngine
             if (output.HasValue)
             {
                 var key = $"{connection.SourceNodeId}_{connection.SourcePort}";
-                mergedData[key] = JsonSerializer.Deserialize<object>(output.Value.GetRawText());
+                var valueNode = JsonNode.Parse(output.Value.GetRawText());
+                mergedNode[key] = valueNode;
             }
         }
 
-        return JsonSerializer.SerializeToElement(mergedData);
+        return JsonElementFromNode(mergedNode);
     }
 
-    /// <summary>
-    /// Stores node output, handling port-specific outputs if the output contains routing information.
-    /// </summary>
     private static void StoreNodeOutput(IExecutionContext context, string nodeId, NodeOutput output)
     {
-        // Check if the output contains port routing information (e.g., from If node)
         if (output.Data.ValueKind == JsonValueKind.Object &&
             output.Data.TryGetProperty("outputPort", out var portElement) &&
             portElement.ValueKind == JsonValueKind.String)
@@ -332,25 +346,20 @@ public class WorkflowEngine : IWorkflowEngine
             context.NodeOutputs.Set(nodeId, portName, output.Data);
         }
 
-        // Always store on the default output port as well
         context.NodeOutputs.Set(nodeId, output.Data);
     }
 
-    /// <summary>
-    /// Builds execution levels for parallel execution using modified Kahn's algorithm.
-    /// Each level contains nodes that can be executed in parallel (no dependencies on each other).
-    /// </summary>
     private static List<List<string>> BuildExecutionLevels(Workflow workflow)
     {
-        // Build adjacency list and in-degree map
         var inDegree = workflow.Nodes.ToDictionary(n => n.Id, _ => 0);
         var adjacency = workflow.Nodes.ToDictionary(n => n.Id, _ => new List<string>());
 
         foreach (var connection in workflow.Connections)
         {
-            if (adjacency.ContainsKey(connection.SourceNodeId) && inDegree.ContainsKey(connection.TargetNodeId))
+            if (adjacency.TryGetValue(connection.SourceNodeId, out var neighbors) &&
+                inDegree.ContainsKey(connection.TargetNodeId))
             {
-                adjacency[connection.SourceNodeId].Add(connection.TargetNodeId);
+                neighbors.Add(connection.TargetNodeId);
                 inDegree[connection.TargetNodeId]++;
             }
         }
@@ -389,9 +398,6 @@ public class WorkflowEngine : IWorkflowEngine
         return levels;
     }
 
-    /// <summary>
-    /// Evaluates expressions in a node configuration, replacing {{ expression }} patterns with their values.
-    /// </summary>
     private JsonElement EvaluateConfiguration(JsonElement configuration, IExecutionContext context, string nodeId)
     {
         if (configuration.ValueKind == JsonValueKind.Undefined)
@@ -401,8 +407,7 @@ public class WorkflowEngine : IWorkflowEngine
 
         try
         {
-            var evaluated = EvaluateJsonElement(configuration, context, nodeId, "$");
-            return evaluated;
+            return EvaluateJsonElement(configuration, context, nodeId, "$");
         }
         catch (ExpressionEvaluationException)
         {
@@ -417,9 +422,6 @@ public class WorkflowEngine : IWorkflowEngine
         }
     }
 
-    /// <summary>
-    /// Recursively evaluates expressions in a JsonElement.
-    /// </summary>
     private JsonElement EvaluateJsonElement(JsonElement element, IExecutionContext context, string nodeId, string path)
     {
         return element.ValueKind switch
@@ -427,17 +429,14 @@ public class WorkflowEngine : IWorkflowEngine
             JsonValueKind.String => EvaluateStringValue(element, context, nodeId, path),
             JsonValueKind.Object => EvaluateObjectValue(element, context, nodeId, path),
             JsonValueKind.Array => EvaluateArrayValue(element, context, nodeId, path),
-            _ => element // Numbers, booleans, null - return as-is
+            _ => element
         };
     }
 
-    /// <summary>
-    /// Evaluates expressions in a string value.
-    /// </summary>
     private JsonElement EvaluateStringValue(JsonElement element, IExecutionContext context, string nodeId, string path)
     {
         var stringValue = element.GetString();
-        if (string.IsNullOrEmpty(stringValue) || !stringValue.Contains("{{"))
+        if (string.IsNullOrEmpty(stringValue) || stringValue.IndexOf("{{", StringComparison.Ordinal) < 0)
         {
             return element;
         }
@@ -456,39 +455,41 @@ public class WorkflowEngine : IWorkflowEngine
         }
     }
 
-    /// <summary>
-    /// Evaluates expressions in an object value.
-    /// </summary>
     private JsonElement EvaluateObjectValue(JsonElement element, IExecutionContext context, string nodeId, string path)
     {
-        var result = new Dictionary<string, object?>();
+        var resultNode = new JsonObject();
 
         foreach (var property in element.EnumerateObject())
         {
             var propertyPath = $"{path}.{property.Name}";
             var evaluatedValue = EvaluateJsonElement(property.Value, context, nodeId, propertyPath);
-            result[property.Name] = JsonSerializer.Deserialize<object>(evaluatedValue.GetRawText());
+            var valueNode = JsonNode.Parse(evaluatedValue.GetRawText());
+            resultNode[property.Name] = valueNode;
         }
 
-        return JsonSerializer.SerializeToElement(result);
+        return JsonElementFromNode(resultNode);
     }
 
-    /// <summary>
-    /// Evaluates expressions in an array value.
-    /// </summary>
     private JsonElement EvaluateArrayValue(JsonElement element, IExecutionContext context, string nodeId, string path)
     {
-        var result = new List<object?>();
+        var resultArray = new JsonArray();
         var index = 0;
 
         foreach (var item in element.EnumerateArray())
         {
             var itemPath = $"{path}[{index}]";
             var evaluatedItem = EvaluateJsonElement(item, context, nodeId, itemPath);
-            result.Add(JsonSerializer.Deserialize<object>(evaluatedItem.GetRawText()));
+            var itemNode = JsonNode.Parse(evaluatedItem.GetRawText());
+            resultArray.Add(itemNode);
             index++;
         }
 
-        return JsonSerializer.SerializeToElement(result);
+        return JsonElementFromNode(resultArray);
+    }
+
+    private static JsonElement JsonElementFromNode(JsonNode node)
+    {
+        using var doc = JsonDocument.Parse(node.ToJsonString());
+        return doc.RootElement.Clone();
     }
 }

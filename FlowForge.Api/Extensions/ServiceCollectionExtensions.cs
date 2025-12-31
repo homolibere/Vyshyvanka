@@ -1,6 +1,7 @@
 using System.Text;
 using FlowForge.Api.Authorization;
 using FlowForge.Api.Middleware;
+using FlowForge.Api.Services;
 using FlowForge.Core.Interfaces;
 using FlowForge.Engine.Auth;
 using FlowForge.Engine.Credentials;
@@ -28,6 +29,10 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddFlowForgeServices(this IServiceCollection services,
         IConfiguration configuration)
     {
+        // Register HTTP context accessor and current user service
+        services.AddHttpContextAccessor();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
+
         // Register core services
         services.AddSingleton<INodeRegistry>(_ =>
         {

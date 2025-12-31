@@ -42,9 +42,9 @@ public partial class ExpressionEvaluator : IExpressionEvaluator
             return true;
         }
 
-        // Check if expression contains template syntax
-        var match = ExpressionPattern.Match(expression);
-        if (!match.Success)
+        // Fast-path: skip regex if no expression markers present
+        var openIndex = expression.IndexOf("{{", StringComparison.Ordinal);
+        if (openIndex < 0 || expression.IndexOf("}}", openIndex, StringComparison.Ordinal) < 0)
         {
             result = expression;
             return true;
@@ -52,24 +52,51 @@ public partial class ExpressionEvaluator : IExpressionEvaluator
 
         try
         {
-            // If the entire string is a single expression, return the actual value (not string)
-            if (ExpressionPattern.Replace(expression, "").Trim() == "" && 
-                ExpressionPattern.Matches(expression).Count == 1)
+            // Collect all matches once and reuse
+            var matches = ExpressionPattern.Matches(expression);
+            if (matches.Count == 0)
             {
-                var path = match.Groups[1].Value.Trim();
-                result = EvaluatePath(path, context);
+                result = expression;
                 return true;
             }
 
-            // Replace all expressions in the string (string interpolation mode)
-            var evaluated = ExpressionPattern.Replace(expression, m =>
+            // If the entire string is a single expression, return the actual value (not string)
+            if (matches.Count == 1)
             {
-                var path = m.Groups[1].Value.Trim();
-                var value = EvaluatePath(path, context);
-                return ConvertToString(value);
-            });
+                var match = matches[0];
+                // Check if expression spans the entire string (allowing only whitespace outside)
+                var beforeMatch = expression.AsSpan(0, match.Index);
+                var afterMatch = expression.AsSpan(match.Index + match.Length);
+                if (beforeMatch.IsWhiteSpace() && afterMatch.IsWhiteSpace())
+                {
+                    var path = match.Groups[1].Value.Trim();
+                    result = EvaluatePath(path, context);
+                    return true;
+                }
+            }
 
-            result = evaluated;
+            // Multiple expressions or mixed content: string interpolation mode
+            // Use StringBuilder for efficient concatenation
+            var sb = new System.Text.StringBuilder(expression.Length);
+            var lastIndex = 0;
+
+            foreach (Match match in matches)
+            {
+                // Append text before this match
+                sb.Append(expression, lastIndex, match.Index - lastIndex);
+                
+                // Evaluate and append the expression result
+                var path = match.Groups[1].Value.Trim();
+                var value = EvaluatePath(path, context);
+                sb.Append(ConvertToString(value));
+                
+                lastIndex = match.Index + match.Length;
+            }
+
+            // Append remaining text after last match
+            sb.Append(expression, lastIndex, expression.Length - lastIndex);
+
+            result = sb.ToString();
             return true;
         }
         catch (ExpressionEvaluationException ex)
