@@ -44,7 +44,13 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<WorkflowValidator>();
 
         // Register the base workflow engine
-        services.AddScoped<WorkflowEngine>();
+        services.AddScoped<WorkflowEngine>(sp =>
+        {
+            var nodeRegistry = sp.GetRequiredService<INodeRegistry>();
+            var expressionEvaluator = sp.GetRequiredService<IExpressionEvaluator>();
+            var pluginHost = sp.GetService<IPluginHost>();
+            return new WorkflowEngine(nodeRegistry, expressionEvaluator, pluginHost);
+        });
 
         // Register persistence
         var connectionString = configuration.GetConnectionString("FlowForge") ?? "Data Source=flowforge.db";
@@ -228,6 +234,14 @@ public static class ServiceCollectionExtensions
             var validator = sp.GetRequiredService<IPluginValidator>();
             var logger = sp.GetService<ILogger<PluginLoader>>();
             return new PluginLoader(validator, logger);
+        });
+
+        // Register PluginHost for isolated plugin execution
+        services.AddSingleton<IPluginHost>(sp =>
+        {
+            var pluginLoader = sp.GetRequiredService<IPluginLoader>();
+            var logger = sp.GetService<ILogger<PluginHost>>();
+            return new PluginHost(pluginLoader, logger);
         });
 
         // Register NuGetPackageManager

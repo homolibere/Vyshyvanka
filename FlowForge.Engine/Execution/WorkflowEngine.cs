@@ -16,6 +16,7 @@ public class WorkflowEngine : IWorkflowEngine
 {
     private readonly INodeRegistry _nodeRegistry;
     private readonly IExpressionEvaluator _expressionEvaluator;
+    private readonly IPluginHost? _pluginHost;
     private readonly ConcurrentDictionary<Guid, CancellationTokenSource> _activeExecutions = new();
 
     /// <summary>
@@ -29,12 +30,21 @@ public class WorkflowEngine : IWorkflowEngine
     private static readonly int DefaultMaxParallelism = Environment.ProcessorCount * 2;
 
     /// <summary>
+    /// Default timeout for plugin node execution.
+    /// </summary>
+    private static readonly TimeSpan DefaultPluginTimeout = TimeSpan.FromSeconds(30);
+
+    /// <summary>
     /// Creates a new workflow engine instance.
     /// </summary>
-    public WorkflowEngine(INodeRegistry nodeRegistry, IExpressionEvaluator expressionEvaluator)
+    public WorkflowEngine(
+        INodeRegistry nodeRegistry,
+        IExpressionEvaluator expressionEvaluator,
+        IPluginHost? pluginHost = null)
     {
         _nodeRegistry = nodeRegistry ?? throw new ArgumentNullException(nameof(nodeRegistry));
         _expressionEvaluator = expressionEvaluator ?? throw new ArgumentNullException(nameof(expressionEvaluator));
+        _pluginHost = pluginHost;
     }
 
     /// <inheritdoc />
@@ -131,7 +141,7 @@ public class WorkflowEngine : IWorkflowEngine
                 CredentialId = node.CredentialId
             };
 
-            var output = await nodeInstance.ExecuteAsync(input, context);
+            var output = await ExecuteNodeInstanceAsync(nodeInstance, input, context, DefaultPluginTimeout);
 
             if (output.Success)
             {
@@ -229,6 +239,7 @@ public class WorkflowEngine : IWorkflowEngine
     {
         var node = workflow.Nodes.First(n => n.Id == nodeId);
         var startTime = DateTime.UtcNow;
+        var timeout = workflow.Settings.Timeout ?? DefaultPluginTimeout;
 
         try
         {
@@ -245,7 +256,7 @@ public class WorkflowEngine : IWorkflowEngine
                 CredentialId = node.CredentialId
             };
 
-            var output = await nodeInstance.ExecuteAsync(input, context);
+            var output = await ExecuteNodeInstanceAsync(nodeInstance, input, context, timeout);
 
             if (output.Success)
             {
@@ -300,6 +311,23 @@ public class WorkflowEngine : IWorkflowEngine
             nodeResults.Add(result);
             return result;
         }
+    }
+
+    /// <summary>
+    /// Executes a node instance, routing plugin nodes through IPluginHost for isolation.
+    /// </summary>
+    private async Task<NodeOutput> ExecuteNodeInstanceAsync(
+        INode nodeInstance,
+        NodeInput input,
+        IExecutionContext context,
+        TimeSpan timeout)
+    {
+        if (_pluginHost is not null && _pluginHost.IsPluginNode(nodeInstance.Type))
+        {
+            return await _pluginHost.ExecuteNodeInIsolationAsync(nodeInstance, input, context, timeout);
+        }
+
+        return await nodeInstance.ExecuteAsync(input, context);
     }
 
     private static JsonElement GatherInputData(Workflow workflow, string nodeId, IExecutionContext context)

@@ -243,19 +243,15 @@ public class WorkflowControllerTests : IClassFixture<FlowForgeApiFixture>, IAsyn
             await _authenticatedClient.PostAsJsonAsync("/api/workflow", workflow);
         }
 
-        // Generate test cases using CsCheck - generate 100 (skip, take) pairs
-        var skipGen = Gen.Int[0, 10];
-        var takeGen = Gen.Int[1, 20];
+        // Generate test cases using CsCheck - generate (skip, take) pairs
+        // Collect test cases first, then run sequentially to avoid SQLite lock contention
+        var paginationGen = Gen.Select(Gen.Int[0, 10], Gen.Int[1, 20]);
         var testCases = new List<(int skip, int take)>();
-        
-        skipGen.Sample(skip =>
+        paginationGen.Sample(pair =>
         {
-            takeGen.Sample(take =>
-            {
-                testCases.Add((skip, take));
-            }, iter: 10);
-        }, iter: 10);
-
+            testCases.Add(pair);
+        }, iter: 20);
+        
         foreach (var (skip, take) in testCases)
         {
             // Act
