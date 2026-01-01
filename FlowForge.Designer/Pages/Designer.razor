@@ -75,7 +75,7 @@
             </div>
         }
 
-        <WorkflowCanvas/>
+        <WorkflowCanvas OnNodeDoubleClick="OpenNodeEditor"/>
     </div>
 
     <aside class="config-panel">
@@ -90,3 +90,9 @@
 <WorkflowBrowser IsOpen="@_isWorkflowBrowserOpen"
                  CurrentWorkflowId="@WorkflowId"
                  OnClose="CloseWorkflowBrowser"/>
+
+@* Node Editor Modal *@
+<NodeEditorModal IsOpen="@_isNodeEditorOpen"
+                 NodeId="@_editingNodeId"
+                 OnClose="CloseNodeEditor"
+                 OnSave="CloseNodeEditor"/>

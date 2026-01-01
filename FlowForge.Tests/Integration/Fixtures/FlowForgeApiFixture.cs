@@ -19,7 +19,7 @@ public class FlowForgeApiFixture : IAsyncLifetime
     /// <summary>
     /// Gets the WebApplicationFactory for creating clients.
     /// </summary>
-    public WebApplicationFactory<Program> Factory => _factory;
+    public WebApplicationFactory<FlowForge.Api.Program> Factory => _factory;
 
     /// <summary>
     /// Gets an HttpClient without authentication headers for testing public endpoints.

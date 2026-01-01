@@ -1,0 +1,77 @@
+.property-editor {
+    margin-bottom: 16px;
+}
+
+.property-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #9e9e9e;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.required-indicator {
+    color: #ef5350;
+    font-weight: bold;
+}
+
+.type-badge {
+    padding: 2px 6px;
+    background: #2d2d44;
+    border-radius: 3px;
+    font-size: 0.625rem;
+    font-family: 'Monaco', 'Menlo', monospace;
+    color: #4fc3f7;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.property-textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 8px 12px;
+    background: #0d0d1a;
+    border: 1px solid #2d2d44;
+    border-radius: 4px;
+    color: #e0e0e0;
+    font-size: 0.75rem;
+    font-family: 'Monaco', 'Menlo', monospace;
+    resize: vertical;
+    transition: border-color 0.15s ease;
+    line-height: 1.5;
+}
+
+.property-textarea:focus {
+    outline: none;
+    border-color: #4fc3f7;
+}
+
+.property-textarea.has-error {
+    border-color: #ef5350;
+}
+
+.property-textarea::placeholder {
+    color: #666;
+}
+
+.property-description {
+    font-size: 0.75rem;
+    color: #666;
+    margin-top: 6px;
+    line-height: 1.4;
+}
+
+.validation-error {
+    margin-top: 6px;
+    padding: 6px 8px;
+    background: rgba(239, 83, 80, 0.1);
+    border: 1px solid #ef5350;
+    border-radius: 4px;
+    color: #ef5350;
+    font-size: 0.75rem;
+    font-family: 'Monaco', 'Menlo', monospace;
+}

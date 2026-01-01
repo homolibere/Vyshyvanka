@@ -107,3 +107,11 @@ static async Task InitializePackageManagerAsync(IServiceProvider services)
         // Don't throw - allow the application to start even if package manager fails
     }
 }
+
+namespace FlowForge.Api
+{
+    /// <summary>
+    /// Partial class declaration to make Program accessible for integration tests.
+    /// </summary>
+    public partial class Program;
+}

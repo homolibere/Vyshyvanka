@@ -4,6 +4,8 @@ using FlowForge.Designer.Components;
 using FlowForge.Designer.Services;
 using FlowForge.Tests.Integration.Designer.Generators;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.JSInterop;
+using static FlowForge.Designer.Components.WorkflowCanvas;
 
 namespace FlowForge.Tests.Integration.Designer;
 
@@ -13,6 +15,17 @@ namespace FlowForge.Tests.Integration.Designer;
 /// </summary>
 public class WorkflowCanvasIntegrationTests : TestContext
 {
+    public WorkflowCanvasIntegrationTests()
+    {
+        // Setup JSInterop for canvasInterop calls
+        JSInterop.Setup<CanvasDimensions>("canvasInterop.getElementDimensions", _ => true)
+            .SetResult(new CanvasDimensions(800, 600));
+        // Use SetupVoid for observeResize since it returns IJSObjectReference
+        JSInterop.SetupVoid("canvasInterop.observeResize", _ => true);
+        JSInterop.SetupVoid("canvasInterop.disconnectObserver", _ => true);
+        JSInterop.Mode = JSRuntimeMode.Loose;
+    }
+
     #region Node Rendering Tests (Task 11.1)
 
     /// <summary>
@@ -278,6 +291,13 @@ public class WorkflowCanvasIntegrationTests : TestContext
         {
             // Create a fresh TestContext for each iteration
             using var ctx = new TestContext();
+            
+            // Setup JSInterop for canvasInterop calls
+            ctx.JSInterop.Setup<CanvasDimensions>("canvasInterop.getElementDimensions", _ => true)
+                .SetResult(new CanvasDimensions(800, 600));
+            ctx.JSInterop.SetupVoid("canvasInterop.observeResize", _ => true);
+            ctx.JSInterop.SetupVoid("canvasInterop.disconnectObserver", _ => true);
+            ctx.JSInterop.Mode = JSRuntimeMode.Loose;
             
             // Arrange
             var stateService = new WorkflowStateService();

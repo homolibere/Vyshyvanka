@@ -66,7 +66,8 @@
                     OnStartConnection="@((port) => StartConnection(node.Id, port))"
                     OnEndConnection="@((port) => EndConnection(node.Id, port))"
                     OnMove="@((pos) => StateService.MoveNode(node.Id, pos.X, pos.Y))"
-                    OnDelete="@(() => StateService.RemoveNode(node.Id))"/>
+                    OnDelete="@(() => StateService.RemoveNode(node.Id))"
+                    OnDoubleClick="@(() => HandleNodeDoubleClick(node.Id))"/>
             }
         </g>
     </svg>

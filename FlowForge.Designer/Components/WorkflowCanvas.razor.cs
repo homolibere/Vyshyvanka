@@ -14,6 +14,12 @@ public partial class WorkflowCanvas : IAsyncDisposable
     [Inject]
     private IJSRuntime JS { get; set; } = null!;
 
+    /// <summary>
+    /// Event callback invoked when a node is double-clicked to open the editor modal.
+    /// </summary>
+    [Parameter]
+    public EventCallback<string> OnNodeDoubleClick { get; set; }
+
     private ElementReference _canvasContainer;
     private IJSObjectReference? _resizeObserver;
     private DotNetObjectReference<WorkflowCanvas>? _dotNetRef;
@@ -181,6 +187,11 @@ public partial class WorkflowCanvas : IAsyncDisposable
         StateService.SelectNode(nodeId);
     }
 
+    private async Task HandleNodeDoubleClick(string nodeId)
+    {
+        await OnNodeDoubleClick.InvokeAsync(nodeId);
+    }
+
     private void StartConnection(string nodeId, string port)
     {
         var pos = GetPortPosition(nodeId, port, isOutput: true);
@@ -249,5 +260,5 @@ public partial class WorkflowCanvas : IAsyncDisposable
         _dotNetRef?.Dispose();
     }
 
-    private record CanvasDimensions(double Width, double Height);
+    internal record CanvasDimensions(double Width, double Height);
 }

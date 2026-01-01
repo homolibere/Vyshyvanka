@@ -12,7 +12,7 @@ namespace FlowForge.Tests.Integration.Fixtures;
 /// Custom WebApplicationFactory for integration tests.
 /// Configures in-memory SQLite database and test-specific settings.
 /// </summary>
-internal class CustomWebApplicationFactory : WebApplicationFactory<Program>
+internal class CustomWebApplicationFactory : WebApplicationFactory<FlowForge.Api.Program>
 {
     private readonly string _databaseName;
     private SqliteConnection? _connection;

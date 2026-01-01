@@ -1,0 +1,68 @@
+@namespace FlowForge.Designer.Components
+
+<div class="node-editor-panel config-panel">
+    <div class="panel-header">
+        <span class="panel-title">Configuration</span>
+        @if (HasSchema)
+        {
+            <div class="panel-actions">
+                <button class="mode-toggle @(IsJsonMode ? "" : "active")" 
+                        @onclick="() => SetMode(false)"
+                        title="Form View">
+                    📝
+                </button>
+                <button class="mode-toggle @(IsJsonMode ? "active" : "")" 
+                        @onclick="() => SetMode(true)"
+                        title="JSON View">
+                    { }
+                </button>
+            </div>
+        }
+    </div>
+    
+    <div class="panel-content">
+        @if (IsJsonMode)
+        {
+            <div class="json-editor-container">
+                <textarea class="json-editor @(HasJsonError ? "has-error" : "")"
+                          @bind="_rawJson"
+                          @bind:event="oninput"
+                          placeholder="Enter JSON configuration..."></textarea>
+                @if (HasJsonError)
+                {
+                    <div class="json-error">@_jsonError</div>
+                }
+            </div>
+        }
+        else
+        {
+            @if (HasValidationErrors)
+            {
+                <div class="validation-summary">
+                    <span class="validation-icon">⚠️</span>
+                    <span class="validation-message">Missing required fields: @string.Join(", ", GetMissingRequiredFields())</span>
+                </div>
+            }
+            
+            @if (Properties.Count == 0)
+            {
+                <div class="no-config-message">
+                    <span class="no-config-icon">✓</span>
+                    <span class="no-config-text">No configuration required for this node</span>
+                </div>
+            }
+            else
+            {
+                <div class="property-list">
+                    @foreach (var property in Properties)
+                    {
+                        <PropertyEditor Property="@property"
+                                        Value="@GetValue(property.Name)"
+                                        ValueChanged="@(value => OnPropertyChanged(property.Name, value))"
+                                        ShowValidationError="@ShouldShowValidationError(property)" />
+                    }
+                </div>
+            }
+        }
+    </div>
+</div>

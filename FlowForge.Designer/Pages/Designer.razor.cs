@@ -27,6 +27,8 @@ public partial class Designer : IDisposable
     private bool _isValidationPanelExpanded = true;
     private bool _isPluginManagerOpen;
     private bool _isWorkflowBrowserOpen;
+    private bool _isNodeEditorOpen;
+    private string? _editingNodeId;
     private System.Timers.Timer? _executionPollTimer;
     private Guid? _loadedWorkflowId;
 
@@ -86,6 +88,18 @@ public partial class Designer : IDisposable
 
     private void OpenWorkflowBrowser() => _isWorkflowBrowserOpen = true;
     private void CloseWorkflowBrowser() => _isWorkflowBrowserOpen = false;
+
+    private void OpenNodeEditor(string nodeId)
+    {
+        _editingNodeId = nodeId;
+        _isNodeEditorOpen = true;
+    }
+
+    private void CloseNodeEditor()
+    {
+        _isNodeEditorOpen = false;
+        _editingNodeId = null;
+    }
 
     private void ToggleValidationPanel() => _isValidationPanelExpanded = !_isValidationPanelExpanded;
 

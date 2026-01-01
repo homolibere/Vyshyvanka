@@ -2,6 +2,8 @@
    transform="translate(@Node.Position.X, @Node.Position.Y)"
    @onclick="OnSelect"
    @onclick:stopPropagation
+   @ondblclick="OnNodeDoubleClick"
+   @ondblclick:stopPropagation
    @onmousedown="OnMouseDown"
    @onmousedown:stopPropagation>
 

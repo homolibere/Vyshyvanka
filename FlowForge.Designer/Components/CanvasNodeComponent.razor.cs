@@ -40,6 +40,12 @@ public partial class CanvasNodeComponent
     [Parameter]
     public EventCallback OnDelete { get; set; }
 
+    /// <summary>
+    /// Event callback invoked when the node is double-clicked to open the editor modal.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnDoubleClick { get; set; }
+
     private const double NodeWidth = 180;
     private const double NodeHeight = 80;
     private const double PortSpacing = 20;
@@ -133,5 +139,10 @@ public partial class CanvasNodeComponent
     private async Task OnDeleteClick()
     {
         await OnDelete.InvokeAsync();
+    }
+
+    private async Task OnNodeDoubleClick()
+    {
+        await OnDoubleClick.InvokeAsync();
     }
 }
