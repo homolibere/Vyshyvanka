@@ -20,6 +20,7 @@
   <ItemGroup>
     <ProjectReference Include="..\FlowForge.Core\FlowForge.Core.csproj" />
     <ProjectReference Include="..\FlowForge.Engine\FlowForge.Engine.csproj" />
+    <ProjectReference Include="..\FlowForge.ServiceDefaults\FlowForge.ServiceDefaults.csproj" />
   </ItemGroup>
 
 </Project>

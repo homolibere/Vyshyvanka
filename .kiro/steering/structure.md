@@ -6,63 +6,134 @@ inclusion: always
 
 ```
 FlowForge/
-├── FlowForge.Core/           # Domain layer - models, interfaces, enums (no dependencies)
-├── FlowForge.Engine/         # Execution engine - nodes, plugins, expressions
-├── FlowForge.Api/            # REST API - controllers, middleware, DTOs
-├── FlowForge.Designer/       # Blazor WASM UI - components, services, pages
-├── FlowForge.Plugin.*/       # Plugin projects - custom node implementations
-└── FlowForge.Tests/          # All tests - unit, property, integration
+├── FlowForge.Core/           # Domain layer (no dependencies)
+├── FlowForge.Engine/         # Execution engine, persistence, plugins
+├── FlowForge.Api/            # REST API
+├── FlowForge.Designer/       # Blazor WASM UI
+├── FlowForge.Plugin.*/       # Plugin projects
+├── FlowForge.Tests/          # All tests
+└── FlowForge.ServiceDefaults/# Shared service configuration
 ```
 
-## Project Dependencies
+## Dependency Rules
 
-Dependency direction flows downward. Never create circular references.
+Dependencies flow downward only. Violations cause circular reference build errors.
 
-| Project | Can Reference |
-|---------|---------------|
-| Core | None (domain layer) |
-| Engine | Core |
-| Api | Core, Engine |
-| Designer | None (communicates via HTTP) |
-| Plugin.* | Core only |
-| Tests | All projects |
+| Project | Can Reference | NEVER Reference |
+|---------|---------------|-----------------|
+| Core | None | Any other project |
+| Engine | Core | Api, Designer |
+| Api | Core, Engine | Designer |
+| Designer | None (HTTP only) | Core, Engine, Api |
+| Plugin.* | Core | Engine, Api, Designer |
+| Tests | All | - |
 
 ## Code Placement
 
-| New Code Type | Location |
-|---------------|----------|
-| Domain models | `Core/Models/` |
-| Interfaces | `Core/Interfaces/` |
-| Enums | `Core/Enums/` |
-| Trigger nodes | `Engine/Nodes/Triggers/` |
-| Action nodes | `Engine/Nodes/Actions/` |
-| Logic nodes | `Engine/Nodes/Logic/` |
-| API endpoints | `Api/Controllers/` |
-| API DTOs | `Api/Models/` |
-| UI components | `Designer/Components/` |
-| UI pages | `Designer/Pages/` |
-| Unit tests | `Tests/Unit/` |
-| Property tests | `Tests/Property/` |
+### Core Project (`FlowForge.Core/`)
+| Type | Path |
+|------|------|
+| Domain models | `Models/` |
+| Interfaces | `Interfaces/` |
+| Enums | `Enums/` |
+| Custom exceptions | `Exceptions/` |
+
+### Engine Project (`FlowForge.Engine/`)
+| Type | Path |
+|------|------|
+| Trigger nodes | `Nodes/Triggers/` |
+| Action nodes | `Nodes/Actions/` |
+| Logic nodes | `Nodes/Logic/` |
+| Node base classes | `Nodes/Base/` |
+| Workflow execution | `Execution/` |
+| Expression evaluation | `Expressions/` |
+| EF Core DbContext | `Persistence/FlowForgeDbContext.cs` |
+| Repository implementations | `Persistence/` |
+| Entity classes | `Persistence/Entities/` |
+| Plugin system | `Plugins/` |
+| Package management | `Packages/` |
+| Node registry | `Registry/` |
+| Workflow validation | `Validation/` |
+| Auth services | `Auth/` |
+| Credential handling | `Credentials/` |
+
+### Api Project (`FlowForge.Api/`)
+| Type | Path |
+|------|------|
+| Controllers | `Controllers/` |
+| Request/Response DTOs | `Models/` |
+| Middleware | `Middleware/` |
+| Authorization policies | `Authorization/` |
+| Service extensions | `Extensions/` |
+| API services | `Services/` |
+
+### Designer Project (`FlowForge.Designer/`)
+| Type | Path |
+|------|------|
+| Blazor components | `Components/` |
+| Pages | `Pages/` |
+| Client services | `Services/` |
+| Client models | `Models/` |
+| Static assets | `wwwroot/` |
+| JavaScript interop | `wwwroot/js/` |
+
+### Tests Project (`FlowForge.Tests/`)
+| Type | Path |
+|------|------|
+| Unit tests | `Unit/` |
+| Property-based tests | `Property/` |
+| Integration tests | `Integration/` |
+| E2E tests | `E2E/` |
+| Test fixtures | `Integration/Fixtures/` |
 
 ## Naming Conventions
 
-- **Files**: Match primary class name (`WorkflowEngine.cs` contains `WorkflowEngine`)
-- **Namespaces**: Match folder path (`FlowForge.Engine.Nodes.Actions`)
-- **Interfaces**: Prefix with `I` (`IWorkflowEngine`, `INode`)
-- **Async methods**: Suffix with `Async` (`ExecuteAsync`, `SaveWorkflowAsync`)
-- **Test classes**: Mirror source class (`NodeRegistry` → `NodeRegistryTests`)
-- **Test methods**: Describe behavior (`WhenWorkflowHasNoTriggerThenValidationFails`)
+| Element | Convention | Example |
+|---------|------------|---------|
+| Files | Match class name | `WorkflowEngine.cs` |
+| Namespaces | Match folder path | `FlowForge.Engine.Nodes.Actions` |
+| Interfaces | Prefix `I` | `IWorkflowEngine` |
+| Async methods | Suffix `Async` | `ExecuteAsync` |
+| Test classes | Suffix `Tests` | `NodeRegistryTests` |
+| Test methods | `When...Then...` | `WhenWorkflowHasNoTriggerThenValidationFails` |
+
+## Blazor Component Pattern
+
+Each component consists of up to three files:
+```
+ComponentName.razor      # Markup
+ComponentName.razor.cs   # Code-behind (partial class)
+ComponentName.razor.css  # Scoped styles (optional)
+```
+
+## Service Registration
+
+- **Engine services**: Register in `Api/Extensions/ServiceCollectionExtensions.cs`
+- **API services**: Register in `Api/Program.cs`
+- **Designer services**: Register in `Designer/Program.cs`
+
+## When Modifying Code
+
+| If changing... | Also check... |
+|----------------|---------------|
+| Interface in Core | Implementations in Engine |
+| Repository interface | Repository in `Engine/Persistence/` |
+| Node base class | All nodes inheriting from it |
+| API DTO | Designer models in `Designer/Models/` |
+| Controller endpoint | Integration tests in `Tests/Integration/` |
+| DbContext/Entity | EF migrations may be needed |
+| Node implementation | Register in `NodeRegistry` |
 
 ## Architecture Layers
 
-1. **Presentation**: Designer (Blazor), Api (REST controllers, webhooks)
-2. **Application**: Services in Api project orchestrating domain operations
-3. **Domain**: Engine (WorkflowEngine, NodeRegistry, ExpressionEvaluator, Plugins)
-4. **Infrastructure**: Persistence in Engine (EF Core repositories, DbContext)
+1. **Presentation**: Designer (Blazor WASM), Api (REST controllers)
+2. **Application**: Services in Api orchestrating operations
+3. **Domain**: Engine (WorkflowEngine, NodeRegistry, ExpressionEvaluator)
+4. **Infrastructure**: Engine/Persistence (EF Core, repositories)
 
 ## Key Patterns
 
-- **Records** for immutable DTOs and domain objects
-- **Repository pattern** for data access (`IWorkflowRepository`, `IExecutionRepository`)
-- **Base classes** for node types (`BaseNode`, `BaseTriggerNode`, `BaseActionNode`)
-- **Dependency injection** throughout - register in `Program.cs` or extension methods
+- **Records** for DTOs and immutable domain objects
+- **Repository pattern** via interfaces in Core, implementations in Engine
+- **Base classes** for nodes: `BaseNode`, `BaseTriggerNode`, `BaseActionNode`, `BaseLogicNode`
+- **Dependency injection** throughout all projects

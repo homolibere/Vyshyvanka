@@ -7,8 +7,8 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-// Configure API base address
-var apiBaseAddress = builder.Configuration["ApiBaseAddress"] ?? builder.HostEnvironment.BaseAddress;
+// Configure API base address using service discovery with fallback to appsettings
+var apiBaseAddress = ApiUrlResolver.ResolveApiUrl(builder.Configuration, builder.HostEnvironment.BaseAddress);
 
 // Register browser storage service for localStorage access
 builder.Services.AddScoped<BrowserStorageService>();

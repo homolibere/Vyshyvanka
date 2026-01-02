@@ -1,8 +1,12 @@
 using FlowForge.Api.Extensions;
 using FlowForge.Api.Middleware;
 using FlowForge.Core.Interfaces;
+using FlowForge.ServiceDefaults;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add Aspire service defaults (OpenTelemetry, health checks, service discovery)
+builder.AddServiceDefaults();
 
 // Add FlowForge services
 builder.Services.AddFlowForgeServices(builder.Configuration);
@@ -80,6 +84,9 @@ app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+// Map Aspire health check endpoints (/health and /alive)
+app.MapDefaultEndpoints();
 
 app.Run();
 

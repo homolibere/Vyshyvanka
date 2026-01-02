@@ -28,6 +28,7 @@
     <ProjectReference Include="..\FlowForge.Engine\FlowForge.Engine.csproj" />
     <ProjectReference Include="..\FlowForge.Api\FlowForge.Api.csproj" />
     <ProjectReference Include="..\FlowForge.Designer\FlowForge.Designer.csproj" />
+    <ProjectReference Include="..\FlowForge.ServiceDefaults\FlowForge.ServiceDefaults.csproj" />
   </ItemGroup>
 
 </Project>

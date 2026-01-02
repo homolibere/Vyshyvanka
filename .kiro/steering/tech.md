@@ -4,72 +4,96 @@ inclusion: always
 
 # FlowForge Tech Stack
 
+## Quick Reference
+
+| DO | DON'T |
+|----|-------|
+| Use `System.Text.Json` for all serialization | Use `Newtonsoft.Json` |
+| Use `NSubstitute` for mocking | Use `Moq` |
+| Use `AwesomeAssertions` if needed | Use `FluentAssertions` |
+| Use `xUnit` with `CsCheck` for property tests | Use NUnit or MSTest |
+| Use records for DTOs | Use classes with mutable properties |
+| Use file-scoped namespaces | Use block-scoped namespaces |
+| Use `CancellationToken` in all async methods | Fire-and-forget async calls |
+| Return `Task`/`Task<T>` from async methods | Return `void` from async methods |
+
 ## Framework & Runtime
 
-- .NET 10 with C# 14
-- Blazor WebAssembly for visual designer (FlowForge.Designer)
-- ASP.NET Core for REST API (FlowForge.Api)
-- Prefer modern C# features: records, pattern matching, file-scoped namespaces, raw string literals
+- **.NET 10** with **C# 14**
+- **Blazor WebAssembly**: `FlowForge.Designer` (visual workflow editor)
+- **ASP.NET Core**: `FlowForge.Api` (REST API)
+- **Entity Framework Core**: Code-first with SQLite (dev) / PostgreSQL (prod)
 
-## Infrastructure
+### C# 14 Features to Use
 
-- SQLite for development/single-instance deployments
-- PostgreSQL for production/distributed deployments
-- Entity Framework Core for data access (code-first migrations)
-- Redis for caching (optional)
-- Message queue for distributed execution (optional)
+- Records for immutable types and DTOs
+- Pattern matching in switch expressions
+- File-scoped namespaces (single line)
+- Raw string literals (`"""`) for multi-line JSON/SQL
+- Collection expressions (`[1, 2, 3]`)
+- Primary constructors where appropriate
 
 ## Serialization
 
-- Use System.Text.Json exclusively (no Newtonsoft.Json)
-- Use camelCase naming policy for API responses
-- Prefer source-generated JsonSerializerContext for performance
-- Use `[JsonPropertyName]` only when property name differs from convention
+```csharp
+// CORRECT: Use System.Text.Json with camelCase
+var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+
+// CORRECT: Source-generated context for performance
+[JsonSerializable(typeof(WorkflowDto))]
+public partial class FlowForgeJsonContext : JsonSerializerContext { }
+
+// CORRECT: Only use attribute when name differs
+[JsonPropertyName("workflow_id")]  // Only if API requires snake_case
+public string WorkflowId { get; init; }
+```
 
 ## Authentication & Security
 
-- JWT Bearer tokens for user authentication
-- API key authentication for webhook/external integrations
-- AES-256 encryption for stored credentials (via System.Security.Cryptography)
-- Never log sensitive data or credentials
+| Mechanism | Use Case |
+|-----------|----------|
+| JWT Bearer | User authentication via `FlowForge.Designer` |
+| API Key | Webhooks and external integrations |
+| AES-256 | Credential encryption at rest |
+
+**Rules:**
+- Never log credentials or sensitive data
+- Always validate user owns resource before operations
+- Use `ICurrentUserService` to get authenticated user context
 
 ## Testing
 
-| Tool | Purpose |
-|------|---------|
-| xUnit | Primary test framework |
-| CsCheck | Property-based testing |
-| NSubstitute | Mocking external dependencies |
-| TestContainers | Database integration tests |
-| WireMock | HTTP service mocking |
+| Tool | Purpose | When to Use |
+|------|---------|-------------|
+| xUnit | Test framework | All tests |
+| CsCheck | Property-based testing | Validation, serialization, state transitions |
+| NSubstitute | Mocking | External dependencies only |
+| TestContainers | Integration tests | Database operations |
+| WireMock | HTTP mocking | External API calls |
 
-**Avoid**: Moq, FluentAssertions (use AwesomeAssertions if assertion library needed)
+**Test Naming**: `When{Condition}Then{ExpectedResult}`
+```csharp
+// CORRECT
+public void WhenWorkflowHasNoTriggerThenValidationFails() { }
 
-## Common Commands
+// INCORRECT
+public void TestValidation() { }
+```
+
+## Commands
 
 ```bash
-# Build solution
-dotnet build
-
-# Run tests
-dotnet test
-
-# Run tests with coverage
-dotnet tool install -g dotnet-coverage
-dotnet-coverage collect -f cobertura -o coverage.cobertura.xml dotnet test
-
-# Run API
-dotnet run --project FlowForge.Api
-
-# Run designer
-dotnet run --project FlowForge.Designer
+dotnet build                              # Build solution
+dotnet test                               # Run all tests
+dotnet run --project FlowForge.Api        # Start API server
+dotnet run --project FlowForge.Designer   # Start Blazor designer
 ```
 
 ## Key Dependencies
 
-| Package | Usage |
-|---------|-------|
-| System.Text.Json | All JSON serialization |
-| Microsoft.AspNetCore.Authentication.JwtBearer | API authentication |
-| Microsoft.EntityFrameworkCore.Sqlite | Development database |
-| System.Security.Cryptography | AES-256 credential encryption |
+| Package | Purpose |
+|---------|---------|
+| `System.Text.Json` | JSON serialization |
+| `Microsoft.AspNetCore.Authentication.JwtBearer` | JWT auth |
+| `Microsoft.EntityFrameworkCore.Sqlite` | Dev database |
+| `System.Security.Cryptography` | AES-256 encryption |
