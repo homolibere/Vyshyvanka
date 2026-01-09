@@ -137,3 +137,9 @@ ComponentName.razor.css  # Scoped styles (optional)
 - **Repository pattern** via interfaces in Core, implementations in Engine
 - **Base classes** for nodes: `BaseNode`, `BaseTriggerNode`, `BaseActionNode`, `BaseLogicNode`
 - **Dependency injection** throughout all projects
+
+**Rules**:
+- No `@code` blocks in `.razor` files
+- No `<style>` blocks in `.razor` files
+- Code-behind class must be `partial` and match component name
+- Use `[Inject]` attribute in code-behind, not `@inject` in markup
