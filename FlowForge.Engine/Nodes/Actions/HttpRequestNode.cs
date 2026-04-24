@@ -3,7 +3,7 @@ using System.Text;
 using System.Text.Json;
 using FlowForge.Core.Interfaces;
 using FlowForge.Engine.Nodes.Base;
-using FlowForge.Engine.Registry;
+using FlowForge.Core.Attributes;
 
 namespace FlowForge.Engine.Nodes.Actions;
 

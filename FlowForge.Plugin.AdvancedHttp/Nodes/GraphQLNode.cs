@@ -1,6 +1,7 @@
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using FlowForge.Core.Attributes;
 using FlowForge.Core.Enums;
 using FlowForge.Core.Interfaces;
 
@@ -9,6 +10,18 @@ namespace FlowForge.Plugin.AdvancedHttp.Nodes;
 /// <summary>
 /// GraphQL request node for executing queries and mutations.
 /// </summary>
+[NodeDefinition(
+    Name = "GraphQL Request",
+    Description = "Execute GraphQL queries and mutations against a GraphQL endpoint",
+    Icon = "fa-solid fa-diagram-project")]
+[NodeInput("input", DisplayName = "Input")]
+[NodeOutput("output", DisplayName = "Response", Type = PortType.Object)]
+[ConfigurationProperty("endpoint", "string", Description = "GraphQL endpoint URL", IsRequired = true)]
+[ConfigurationProperty("query", "string", Description = "GraphQL query or mutation string", IsRequired = true)]
+[ConfigurationProperty("variables", "object", Description = "Query variables as key-value pairs")]
+[ConfigurationProperty("operationName", "string", Description = "Operation name (for multi-operation documents)")]
+[ConfigurationProperty("headers", "object", Description = "Additional HTTP headers")]
+[ConfigurationProperty("timeout", "number", Description = "Request timeout in seconds (default: 30)")]
 public class GraphQLNode : BasePluginNode
 {
     private readonly HttpClient? _httpClient;

@@ -13,17 +13,96 @@ Example NuGet plugin for FlowForge providing advanced HTTP client nodes.
 
 ## Installation
 
-### From NuGet
+### Via FlowForge Designer
+
+Use the Plugin Manager in the Designer UI to search for and install `FlowForge.Plugin.AdvancedHttp` from any configured NuGet source.
+
+### Via NuGet CLI
+
 ```bash
 dotnet add package FlowForge.Plugin.AdvancedHttp
 ```
 
-### From Source
+## Building Locally
+
+### Build the plugin
+
 ```bash
-dotnet build -c Release
-# Copy the DLL to your FlowForge plugins directory
-cp bin/Release/net10.0/FlowForge.Plugin.AdvancedHttp.dll /path/to/flowforge/plugins/
+dotnet build FlowForge.Plugin.AdvancedHttp -c Release
 ```
+
+Output goes to `bin/Release/net10.0/`. The `EnableDynamicLoading` and `CopyLocalLockFileAssemblies` settings in the csproj ensure all dependencies are copied alongside the plugin DLL so it can be loaded in isolation.
+
+### Run the plugin locally
+
+Copy the built output to your FlowForge plugins directory:
+
+```bash
+cp -r FlowForge.Plugin.AdvancedHttp/bin/Release/net10.0/ /path/to/flowforge/plugins/FlowForge.Plugin.AdvancedHttp/
+```
+
+On next startup (or via the Plugin Manager), FlowForge will discover and load the plugin, registering its nodes in the Node Registry.
+
+## Packaging as a NuGet Package
+
+### Create the .nupkg
+
+```bash
+dotnet pack FlowForge.Plugin.AdvancedHttp -c Release
+```
+
+This produces `FlowForge.Plugin.AdvancedHttp.1.0.0.nupkg` in `bin/Release/`.
+
+Package metadata (ID, version, authors, description, tags, license) is defined in the `<PropertyGroup>` of the csproj — no separate `.nuspec` file needed.
+
+### Set the version
+
+Update the `<Version>` property in the csproj before packing:
+
+```xml
+<Version>1.2.0</Version>
+```
+
+Or override at pack time:
+
+```bash
+dotnet pack FlowForge.Plugin.AdvancedHttp -c Release -p:Version=1.2.0
+```
+
+### Publish to a NuGet feed
+
+Push to nuget.org:
+
+```bash
+dotnet nuget push bin/Release/FlowForge.Plugin.AdvancedHttp.1.0.0.nupkg \
+  --api-key YOUR_API_KEY \
+  --source https://api.nuget.org/v3/index.json
+```
+
+Push to a private feed:
+
+```bash
+dotnet nuget push bin/Release/FlowForge.Plugin.AdvancedHttp.1.0.0.nupkg \
+  --api-key YOUR_API_KEY \
+  --source https://your-feed.example.com/v3/index.json
+```
+
+### Test the package locally
+
+Host a local NuGet source directory and add it to FlowForge's package sources:
+
+```bash
+# Create a local feed directory
+mkdir -p ~/local-nuget-feed
+
+# Copy the package into it
+cp bin/Release/FlowForge.Plugin.AdvancedHttp.1.0.0.nupkg ~/local-nuget-feed/
+
+# Add the local source via the FlowForge API or Designer Plugin Manager
+# Source URL: ~/local-nuget-feed (absolute path)
+```
+
+Then install the package through the Designer's Plugin Manager or the packages API.
 
 ## Node Configuration
 
@@ -83,9 +162,24 @@ cp bin/Release/net10.0/FlowForge.Plugin.AdvancedHttp.dll /path/to/flowforge/plug
 ## Creating Your Own Plugin
 
 1. Create a new class library targeting `net10.0`
-2. Reference `FlowForge.Core`
-3. Add the `[assembly: Plugin(...)]` attribute
-4. Implement `INode` for each node type
-5. Build and deploy to the plugins directory
+2. Reference `FlowForge.Core` with `Private=false` and `ExcludeAssets=runtime`
+3. Enable dynamic loading in the csproj:
+   ```xml
+   <EnableDynamicLoading>true</EnableDynamicLoading>
+   <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+   ```
+4. Add the assembly-level `[Plugin]` attribute in a `PluginInfo.cs`:
+   ```csharp
+   using FlowForge.Core.Interfaces;
 
-See the source code in this project for examples.
+   [assembly: Plugin(
+       "your.plugin.id",
+       Name = "Your Plugin",
+       Version = "1.0.0",
+       Description = "What your plugin does.",
+       Author = "You")]
+   ```
+5. Implement node classes inheriting from `BaseTriggerNode`, `BaseActionNode`, or `BaseLogicNode`
+6. Build, pack, and publish
+
+See the source code in this project for a working reference.

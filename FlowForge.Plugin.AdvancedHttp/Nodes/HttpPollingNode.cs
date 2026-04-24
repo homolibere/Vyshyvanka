@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using FlowForge.Core.Attributes;
 using FlowForge.Core.Enums;
 using FlowForge.Core.Interfaces;
 
@@ -9,6 +10,23 @@ namespace FlowForge.Plugin.AdvancedHttp.Nodes;
 /// HTTP polling node that repeatedly calls an endpoint until a condition is met.
 /// Useful for waiting on async operations or checking status endpoints.
 /// </summary>
+[NodeDefinition(
+    Name = "HTTP Polling",
+    Description = "Poll an HTTP endpoint at intervals until a success or failure condition is met",
+    Icon = "fa-solid fa-rotate")]
+[NodeInput("input", DisplayName = "Input")]
+[NodeOutput("output", DisplayName = "Response", Type = PortType.Object)]
+[ConfigurationProperty("url", "string", Description = "URL to poll", IsRequired = true)]
+[ConfigurationProperty("method", "string", Description = "HTTP method (default: GET)")]
+[ConfigurationProperty("headers", "object", Description = "HTTP headers to include")]
+[ConfigurationProperty("body", "object", Description = "Request body (for POST/PUT/PATCH)")]
+[ConfigurationProperty("intervalMs", "number", Description = "Polling interval in milliseconds (default: 5000)")]
+[ConfigurationProperty("maxAttempts", "number", Description = "Maximum polling attempts (default: 60)")]
+[ConfigurationProperty("timeout", "number", Description = "Per-request timeout in seconds (default: 30)")]
+[ConfigurationProperty("successJsonPath", "string", Description = "JSON path to check for success value")]
+[ConfigurationProperty("successValue", "string", Description = "Value that indicates success")]
+[ConfigurationProperty("failureJsonPath", "string", Description = "JSON path to check for failure value")]
+[ConfigurationProperty("failureValue", "string", Description = "Value that indicates failure")]
 public class HttpPollingNode : BasePluginNode
 {
     private readonly HttpClient? _httpClient;

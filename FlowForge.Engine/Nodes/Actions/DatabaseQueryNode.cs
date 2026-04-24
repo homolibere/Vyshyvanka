@@ -1,7 +1,7 @@
 using System.Data.Common;
 using FlowForge.Core.Interfaces;
 using FlowForge.Engine.Nodes.Base;
-using FlowForge.Engine.Registry;
+using FlowForge.Core.Attributes;
 using Microsoft.Data.Sqlite;
 
 namespace FlowForge.Engine.Nodes.Actions;

@@ -12,6 +12,21 @@
                 <span>🔄 Check for Updates</span>
             }
         </button>
+        <label class="btn btn-secondary upload-btn" for="nupkg-upload">
+            @if (_isUploading)
+            {
+                <span>⏳ Uploading...</span>
+            }
+            else
+            {
+                <span>📁 Upload .nupkg</span>
+            }
+        </label>
+        <InputFile id="nupkg-upload"
+                   accept=".nupkg"
+                   OnChange="HandleFileUpload"
+                   disabled="@_isUploading"
+                   style="display:none" />
         @if (PluginState.AvailableUpdates.Count > 0)
         {
             <span class="update-count">@PluginState.AvailableUpdates.Count update(s) available</span>

@@ -1,7 +1,7 @@
 using System.Reflection;
 using FlowForge.Core.Enums;
 using FlowForge.Core.Interfaces;
-using FlowForge.Engine.Registry;
+using FlowForge.Core.Attributes;
 
 namespace FlowForge.Engine.Plugins;
 

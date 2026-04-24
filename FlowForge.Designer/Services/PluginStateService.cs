@@ -599,9 +599,10 @@ public class PluginStateService : IDisposable
     }
 
     /// <summary>
+    /// <summary>
     /// Refreshes node definitions from the API and updates the workflow state service.
     /// </summary>
-    private async Task RefreshNodeDefinitionsAsync(CancellationToken cancellationToken = default)
+    public async Task RefreshNodeDefinitionsAsync(CancellationToken cancellationToken = default)
     {
         try
         {

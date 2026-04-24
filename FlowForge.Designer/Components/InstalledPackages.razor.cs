@@ -1,6 +1,7 @@
 using FlowForge.Designer.Models;
 using FlowForge.Designer.Services;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 
 namespace FlowForge.Designer.Components;
 
@@ -8,6 +9,9 @@ public partial class InstalledPackages : IDisposable
 {
     [Inject]
     private PluginStateService PluginState { get; set; } = null!;
+
+    [Inject]
+    private FlowForgeApiClient ApiClient { get; set; } = null!;
 
     [Inject]
     private ToastService ToastService { get; set; } = null!;
@@ -18,6 +22,7 @@ public partial class InstalledPackages : IDisposable
     private List<string> _affectedWorkflows = [];
     private ConfirmDialogVariant _uninstallVariant = ConfirmDialogVariant.Danger;
     private bool _isUninstalling;
+    private bool _isUploading;
 
     /// <summary>Callback to switch to the Browse tab.</summary>
     [Parameter]
@@ -37,6 +42,52 @@ public partial class InstalledPackages : IDisposable
         if (!PluginState.InstalledPackages.Any())
         {
             await PluginState.LoadInstalledPackagesAsync();
+        }
+    }
+
+    private async Task HandleFileUpload(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file is null) return;
+
+        if (!file.Name.EndsWith(".nupkg", StringComparison.OrdinalIgnoreCase))
+        {
+            ToastService.ShowError("Only .nupkg files are accepted");
+            return;
+        }
+
+        _isUploading = true;
+        StateHasChanged();
+
+        try
+        {
+            // 100 MB max
+            await using var stream = file.OpenReadStream(maxAllowedSize: 100 * 1024 * 1024);
+            var result = await ApiClient.UploadPackageAsync(file.Name, stream);
+
+            if (result.Success)
+            {
+                ToastService.ShowSuccess(
+                    $"Installed {result.Package?.PackageId ?? file.Name} v{result.Package?.Version}",
+                    "Package Uploaded");
+                await PluginState.LoadInstalledPackagesAsync();
+                await PluginState.RefreshNodeDefinitionsAsync();
+            }
+            else
+            {
+                ToastService.ShowError(
+                    result.Errors.FirstOrDefault() ?? "Upload failed",
+                    "Upload Failed");
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Upload failed: {ex.Message}", "Upload Failed");
+        }
+        finally
+        {
+            _isUploading = false;
+            StateHasChanged();
         }
     }
 

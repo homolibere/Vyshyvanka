@@ -1,6 +1,7 @@
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using FlowForge.Core.Attributes;
 using FlowForge.Core.Enums;
 using FlowForge.Core.Interfaces;
 
@@ -9,6 +10,21 @@ namespace FlowForge.Plugin.AdvancedHttp.Nodes;
 /// <summary>
 /// HTTP request node with built-in retry and exponential backoff support.
 /// </summary>
+[NodeDefinition(
+    Name = "HTTP Retry",
+    Description = "Make HTTP requests with automatic retry and exponential backoff on failure",
+    Icon = "fa-solid fa-arrow-rotate-right")]
+[NodeInput("input", DisplayName = "Input")]
+[NodeOutput("output", DisplayName = "Response", Type = PortType.Object)]
+[ConfigurationProperty("url", "string", Description = "Request URL", IsRequired = true)]
+[ConfigurationProperty("method", "string", Description = "HTTP method (GET, POST, PUT, DELETE, PATCH)", IsRequired = true)]
+[ConfigurationProperty("headers", "object", Description = "HTTP headers to include")]
+[ConfigurationProperty("body", "object", Description = "Request body (for POST/PUT/PATCH)")]
+[ConfigurationProperty("timeout", "number", Description = "Per-request timeout in seconds (default: 30)")]
+[ConfigurationProperty("maxRetries", "number", Description = "Maximum retry attempts (default: 3)")]
+[ConfigurationProperty("initialDelayMs", "number", Description = "Initial retry delay in ms (default: 1000)")]
+[ConfigurationProperty("maxDelayMs", "number", Description = "Maximum retry delay in ms (default: 30000)")]
+[ConfigurationProperty("retryOnStatusCodes", "array", Description = "HTTP status codes to retry on (default: 408,429,500,502,503,504)")]
 public class HttpRetryNode : BasePluginNode
 {
     private readonly HttpClient? _httpClient;

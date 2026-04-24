@@ -88,6 +88,18 @@ public interface INuGetPackageManager
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
     Task InitializeAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Installs a plugin from a local .nupkg file stream.
+    /// </summary>
+    /// <param name="nupkgStream">Stream containing the .nupkg file.</param>
+    /// <param name="fileName">Original file name for metadata extraction.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Installation result with status and details.</returns>
+    Task<PackageInstallResult> InstallFromStreamAsync(
+        Stream nupkgStream,
+        string fileName,
+        CancellationToken cancellationToken = default);
 }
 
 /// <summary>

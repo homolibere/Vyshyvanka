@@ -326,7 +326,21 @@ public class NuGetPackageManager : INuGetPackageManager
                         }
 
                         _nodeRegistry.RegisterFromAssembly(plugin.Assembly);
-                        nodeTypes.AddRange(plugin.NodeTypes.Select(t => t.Name));
+
+                        // Track node type identifiers (INode.Type values, not class names)
+                        foreach (var nodeType in plugin.NodeTypes)
+                        {
+                            try
+                            {
+                                if (Activator.CreateInstance(nodeType) is INode nodeInstance)
+                                    nodeTypes.Add(nodeInstance.Type);
+                            }
+                            catch
+                            {
+                                // Skip types that can't be instantiated
+                            }
+                        }
+
                         warnings.AddRange(validation.Warnings.Select(w => w.Message));
                     }
                 }
@@ -465,9 +479,18 @@ public class NuGetPackageManager : INuGetPackageManager
             };
         }
 
-        // Unload old version
-        _pluginLoader.UnloadPlugin(packageId);
+        // Unload old version — try both NuGet package ID and plugin attribute ID
         var oldPlugin = _pluginLoader.GetPlugin(packageId);
+        _pluginLoader.UnloadPlugin(packageId);
+        foreach (var loadedPlugin in _pluginLoader.GetLoadedPlugins())
+        {
+            if (string.Equals(loadedPlugin.FilePath, existing.InstallPath, StringComparison.OrdinalIgnoreCase) ||
+                loadedPlugin.FilePath.StartsWith(existing.InstallPath, StringComparison.OrdinalIgnoreCase))
+            {
+                oldPlugin ??= loadedPlugin;
+                _pluginLoader.UnloadPlugin(loadedPlugin.Id);
+            }
+        }
         if (oldPlugin?.Assembly is not null)
         {
             _nodeRegistry.UnregisterFromAssembly(oldPlugin.Assembly);
@@ -556,8 +579,16 @@ public class NuGetPackageManager : INuGetPackageManager
                 _nodeRegistry.Unregister(nodeType);
             }
 
-            // Unload plugin
+            // Unload plugin — try both the NuGet package ID and scan loaded plugins by install path
             _pluginLoader.UnloadPlugin(packageId);
+            foreach (var loadedPlugin in _pluginLoader.GetLoadedPlugins())
+            {
+                if (string.Equals(loadedPlugin.FilePath, package.InstallPath, StringComparison.OrdinalIgnoreCase) ||
+                    loadedPlugin.FilePath.StartsWith(package.InstallPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    _pluginLoader.UnloadPlugin(loadedPlugin.Id);
+                }
+            }
 
             // Remove from cache
             await _packageCache.RemovePackageAsync(packageId, package.Version);
@@ -638,6 +669,157 @@ public class NuGetPackageManager : INuGetPackageManager
         }
 
         return updates;
+    }
+
+    public async Task<PackageInstallResult> InstallFromStreamAsync(
+        Stream nupkgStream,
+        string fileName,
+        CancellationToken cancellationToken = default)
+    {
+        _logger?.LogInformation("Installing package from uploaded file: {FileName}", fileName);
+
+        try
+        {
+            // Save the stream to a temp file
+            var tempPath = Path.Combine(_options.CacheDirectory, $"upload-{Guid.NewGuid():N}.nupkg");
+            Directory.CreateDirectory(_options.CacheDirectory);
+
+            await using (var fileStream = File.Create(tempPath))
+            {
+                await nupkgStream.CopyToAsync(fileStream, cancellationToken);
+            }
+
+            try
+            {
+                // Read package identity from the .nupkg
+                using var packageReader = new NuGet.Packaging.PackageArchiveReader(tempPath);
+                var identity = await packageReader.GetIdentityAsync(cancellationToken);
+                var packageId = identity.Id;
+                var version = identity.Version;
+
+                _logger?.LogInformation("Uploaded package: {PackageId} v{Version}", packageId, version);
+
+                // Check block/allow lists
+                if (_options.BlockedPackages.Any(b => string.Equals(b, packageId, StringComparison.OrdinalIgnoreCase)))
+                {
+                    return new PackageInstallResult
+                    {
+                        Success = false,
+                        Errors = [$"Package '{packageId}' is in the block list"]
+                    };
+                }
+
+                if (_options.AllowedPackages.Count > 0 &&
+                    !_options.AllowedPackages.Any(a => string.Equals(a, packageId, StringComparison.OrdinalIgnoreCase)))
+                {
+                    return new PackageInstallResult
+                    {
+                        Success = false,
+                        Errors = [$"Package '{packageId}' is not in the allow list"]
+                    };
+                }
+
+                // Move to the proper cache location
+                var nupkgPath = Path.Combine(
+                    _options.CacheDirectory,
+                    $"{packageId.ToLowerInvariant()}.{version.ToNormalizedString()}.nupkg");
+
+                if (File.Exists(nupkgPath))
+                    File.Delete(nupkgPath);
+
+                File.Move(tempPath, nupkgPath);
+                tempPath = nupkgPath; // update so cleanup targets the right file on error
+
+                // Extract
+                var installPath = await _packageCache.ExtractPackageAsync(
+                    nupkgPath, packageId, version, cancellationToken);
+
+                // Load and validate plugin
+                var nodeTypes = new List<string>();
+                var warnings = new List<string>();
+
+                try
+                {
+                    var plugins = _pluginLoader.LoadPlugins(installPath);
+                    foreach (var plugin in plugins)
+                    {
+                        if (plugin.Assembly is not null)
+                        {
+                            var validation = _pluginValidator.ValidatePlugin(plugin.Assembly);
+                            if (!validation.IsValid)
+                            {
+                                await _packageCache.RemovePackageAsync(packageId, version);
+                                return new PackageInstallResult
+                                {
+                                    Success = false,
+                                    Errors = validation.Errors.Select(e => $"Plugin validation failed: {e.Message}").ToList()
+                                };
+                            }
+
+                            _nodeRegistry.RegisterFromAssembly(plugin.Assembly);
+
+                            foreach (var nodeType in plugin.NodeTypes)
+                            {
+                                try
+                                {
+                                    if (Activator.CreateInstance(nodeType) is INode nodeInstance)
+                                        nodeTypes.Add(nodeInstance.Type);
+                                }
+                                catch
+                                {
+                                    // Skip types that can't be instantiated
+                                }
+                            }
+
+                            warnings.AddRange(validation.Warnings.Select(w => w.Message));
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogDebug(ex, "No plugin assembly found in {PackageId}, treating as library", packageId);
+                }
+
+                var installedPackage = new InstalledPackage
+                {
+                    PackageId = packageId,
+                    Version = version,
+                    SourceName = "local-upload",
+                    InstallPath = installPath,
+                    InstalledAt = DateTime.UtcNow,
+                    NodeTypes = nodeTypes,
+                    Dependencies = [],
+                    IsLoaded = true
+                };
+
+                _installedPackages[packageId] = installedPackage;
+                await _manifestManager.AddPackageAsync(installedPackage);
+
+                _logger?.LogInformation("Successfully installed uploaded package {PackageId} v{Version}", packageId, version);
+
+                return new PackageInstallResult
+                {
+                    Success = true,
+                    Package = installedPackage,
+                    Warnings = warnings
+                };
+            }
+            finally
+            {
+                // Clean up temp file if it still exists (error path)
+                if (tempPath.Contains("upload-") && File.Exists(tempPath))
+                    File.Delete(tempPath);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Failed to install uploaded package {FileName}", fileName);
+            return new PackageInstallResult
+            {
+                Success = false,
+                Errors = [$"Failed to install uploaded package: {ex.Message}"]
+            };
+        }
     }
 
     private async Task<NuGetVersion?> ResolveLatestVersionAsync(

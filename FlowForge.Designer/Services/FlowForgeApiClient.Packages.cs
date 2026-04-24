@@ -206,6 +206,40 @@ public partial class FlowForgeApiClient
 
         return response?.Select(r => r.ToModel()).ToList() ?? [];
     }
+
+    /// <summary>
+    /// Uploads and installs a .nupkg file from the local machine.
+    /// </summary>
+    /// <param name="fileName">File name.</param>
+    /// <param name="fileStream">Stream containing the .nupkg file.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Installation result.</returns>
+    public async Task<PackageInstallResultModel> UploadPackageAsync(
+        string fileName,
+        Stream fileStream,
+        CancellationToken cancellationToken = default)
+    {
+        using var content = new MultipartFormDataContent();
+        using var streamContent = new StreamContent(fileStream);
+        streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+        content.Add(streamContent, "file", fileName);
+
+        var response = await _httpClient.PostAsync("api/packages/upload", content, cancellationToken);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadFromJsonAsync<ApiErrorResponse>(cancellationToken);
+            return new PackageInstallResultModel
+            {
+                Success = false,
+                Errors = error?.GetErrors() ?? [$"Upload failed with status {response.StatusCode}"]
+            };
+        }
+
+        var apiResponse = await response.Content.ReadFromJsonAsync<PackageInstallApiResponse>(cancellationToken);
+        return apiResponse?.ToModel() ?? new PackageInstallResultModel
+            { Success = false, Errors = ["Invalid response"] };
+    }
 }
 
 // Package Source Management Methods

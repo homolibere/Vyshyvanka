@@ -301,4 +301,57 @@ public class PackageController : ControllerBase
         var response = updates.Select(PackageUpdateInfoResponse.FromInfo).ToList();
         return Ok(response);
     }
+
+    /// <summary>
+    /// Uploads and installs a .nupkg file from the local machine.
+    /// </summary>
+    /// <param name="file">The .nupkg file to upload.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    [HttpPost("upload")]
+    [Authorize(Policy = Policies.CanManagePackages)]
+    [ProducesResponseType(typeof(PackageInstallResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiError), StatusCodes.Status400BadRequest)]
+    [RequestSizeLimit(100 * 1024 * 1024)] // 100 MB
+    public async Task<ActionResult<PackageInstallResponse>> Upload(
+        IFormFile file,
+        CancellationToken cancellationToken = default)
+    {
+        if (file is null || file.Length == 0)
+        {
+            return BadRequest(new ApiError
+            {
+                Code = "NO_FILE",
+                Message = "No file was uploaded"
+            });
+        }
+
+        if (!file.FileName.EndsWith(".nupkg", StringComparison.OrdinalIgnoreCase))
+        {
+            return BadRequest(new ApiError
+            {
+                Code = "INVALID_FILE_TYPE",
+                Message = "Only .nupkg files are accepted"
+            });
+        }
+
+        _logger.LogInformation("Uploading package file: {FileName} ({Size} bytes)", file.FileName, file.Length);
+
+        await using var stream = file.OpenReadStream();
+        var result = await _packageManager.InstallFromStreamAsync(stream, file.FileName, cancellationToken);
+
+        if (!result.Success)
+        {
+            _logger.LogWarning("Package upload failed: {FileName}, errors={Errors}", file.FileName, result.Errors);
+            return BadRequest(new ApiError
+            {
+                Code = "UPLOAD_INSTALL_FAILED",
+                Message = "Package installation failed",
+                Details = new Dictionary<string, string[]> { ["errors"] = result.Errors.ToArray() }
+            });
+        }
+
+        _logger.LogInformation("Package uploaded and installed: {PackageId} v{Version}",
+            result.Package?.PackageId, result.Package?.Version);
+        return Ok(PackageInstallResponse.FromResult(result));
+    }
 }

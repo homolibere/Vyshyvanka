@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using FlowForge.Core.Attributes;
 using FlowForge.Core.Enums;
 using FlowForge.Core.Interfaces;
 
@@ -8,6 +9,17 @@ namespace FlowForge.Plugin.AdvancedHttp.Nodes;
 /// <summary>
 /// HTTP batch request node that executes multiple HTTP requests in parallel or sequentially.
 /// </summary>
+[NodeDefinition(
+    Name = "HTTP Batch",
+    Description = "Execute multiple HTTP requests in parallel or sequentially with concurrency control",
+    Icon = "fa-solid fa-layer-group")]
+[NodeInput("input", DisplayName = "Input")]
+[NodeOutput("output", DisplayName = "Results", Type = PortType.Object)]
+[ConfigurationProperty("requests", "array", Description = "Array of request objects with url, method, id, headers, body", IsRequired = true)]
+[ConfigurationProperty("mode", "string", Description = "Execution mode: parallel or sequential (default: parallel)")]
+[ConfigurationProperty("maxConcurrency", "number", Description = "Max parallel requests (default: 10)")]
+[ConfigurationProperty("stopOnError", "boolean", Description = "Stop on first error in sequential mode (default: false)")]
+[ConfigurationProperty("timeout", "number", Description = "Per-request timeout in seconds (default: 30)")]
 public class HttpBatchNode : BasePluginNode
 {
     private readonly HttpClient? _httpClient;

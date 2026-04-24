@@ -30,6 +30,13 @@
     cursor: not-allowed;
 }
 
+.upload-btn {
+    display: inline-flex;
+    align-items: center;
+    margin: 0;
+}
+}
+
 .btn-primary {
     background: #4fc3f7;
     color: #0d0d1a;

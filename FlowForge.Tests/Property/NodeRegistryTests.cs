@@ -4,6 +4,7 @@ using FlowForge.Core.Enums;
 using FlowForge.Core.Interfaces;
 using FlowForge.Engine.Nodes.Logic;
 using FlowForge.Engine.Nodes.Triggers;
+using FlowForge.Core.Attributes;
 using FlowForge.Engine.Registry;
 
 namespace FlowForge.Tests.Property;
