@@ -5,8 +5,18 @@
 <PageTitle>@(StateService.Workflow.Name) - FlowForge Designer</PageTitle>
 
 <div class="designer-container">
-    <aside class="node-palette">
-        <NodePalette/>
+    <aside class="node-palette @(_isPaletteCollapsed ? "collapsed" : "")">
+        <div class="panel-toggle" @onclick="TogglePalette" title="@(_isPaletteCollapsed ? "Show Nodes" : "Hide Nodes")">
+            <span class="toggle-icon">@(_isPaletteCollapsed ? "▶" : "◀")</span>
+            @if (_isPaletteCollapsed)
+            {
+                <span class="toggle-label-vertical">Nodes</span>
+            }
+        </div>
+        @if (!_isPaletteCollapsed)
+        {
+            <NodePalette/>
+        }
     </aside>
 
     <div class="canvas-area">
@@ -78,8 +88,18 @@
         <WorkflowCanvas OnNodeDoubleClick="OpenNodeEditor"/>
     </div>
 
-    <aside class="config-panel">
-        <NodeConfigPanel/>
+    <aside class="config-panel @(_isConfigCollapsed ? "collapsed" : "")">
+        <div class="panel-toggle" @onclick="ToggleConfig" title="@(_isConfigCollapsed ? "Show Properties" : "Hide Properties")">
+            @if (_isConfigCollapsed)
+            {
+                <span class="toggle-label-vertical">Properties</span>
+            }
+            <span class="toggle-icon">@(_isConfigCollapsed ? "◀" : "▶")</span>
+        </div>
+        @if (!_isConfigCollapsed)
+        {
+            <NodeConfigPanel/>
+        }
     </aside>
 </div>
 

@@ -10,6 +10,12 @@
     border-right: 1px solid #2d2d44;
     overflow-y: auto;
     flex-shrink: 0;
+    transition: width 0.2s ease;
+}
+
+.node-palette.collapsed {
+    width: 36px;
+    overflow: hidden;
 }
 
 .canvas-area {
@@ -88,6 +94,53 @@
     border-left: 1px solid #2d2d44;
     overflow-y: auto;
     flex-shrink: 0;
+    transition: width 0.2s ease;
+}
+
+.config-panel.collapsed {
+    width: 36px;
+    overflow: hidden;
+}
+
+/* Panel toggle buttons */
+.panel-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 0;
+    cursor: pointer;
+    color: #808080;
+    font-size: 0.75rem;
+    border-bottom: 1px solid #2d2d44;
+    transition: color 0.15s ease, background 0.15s ease;
+    user-select: none;
+}
+
+.panel-toggle:hover {
+    color: #e0e0e0;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.toggle-icon {
+    font-size: 0.625rem;
+    line-height: 1;
+}
+
+.toggle-label-vertical {
+    writing-mode: vertical-lr;
+    text-orientation: mixed;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 8px 0;
+}
+
+.collapsed .panel-toggle {
+    flex-direction: column;
+    height: 100%;
+    border-bottom: none;
 }
 
 .dirty-indicator {

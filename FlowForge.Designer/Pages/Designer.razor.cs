@@ -31,6 +31,8 @@ public partial class Designer : IDisposable
     private string? _editingNodeId;
     private System.Timers.Timer? _executionPollTimer;
     private Guid? _loadedWorkflowId;
+    private bool _isPaletteCollapsed;
+    private bool _isConfigCollapsed;
 
     protected override async Task OnInitializedAsync()
     {
@@ -102,6 +104,10 @@ public partial class Designer : IDisposable
     }
 
     private void ToggleValidationPanel() => _isValidationPanelExpanded = !_isValidationPanelExpanded;
+
+    private void TogglePalette() => _isPaletteCollapsed = !_isPaletteCollapsed;
+
+    private void ToggleConfig() => _isConfigCollapsed = !_isConfigCollapsed;
 
     private string GetSaveButtonTitle() => StateService.ValidationResult.IsValid
         ? "Save workflow"
