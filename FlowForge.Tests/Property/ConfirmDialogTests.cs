@@ -35,7 +35,7 @@ public class ConfirmDialogTests
     {
         AffectedWorkflowsGen.Sample(affectedWorkflows =>
         {
-            using var ctx = new TestContext();
+            using var ctx = new BunitContext();
 
             // Arrange & Act - Render ConfirmDialog with affected workflows
             var cut = ctx.Render<ConfirmDialog>(parameters => parameters
@@ -91,7 +91,7 @@ public class ConfirmDialogTests
 
         messageGen.Sample(message =>
         {
-            using var ctx = new TestContext();
+            using var ctx = new BunitContext();
 
             var cut = ctx.Render<ConfirmDialog>(parameters => parameters
                 .Add(p => p.IsOpen, true)
@@ -122,7 +122,7 @@ public class ConfirmDialogTests
 
         messageGen.Sample(message =>
         {
-            using var ctx = new TestContext();
+            using var ctx = new BunitContext();
 
             var cut = ctx.Render<ConfirmDialog>(parameters => parameters
                 .Add(p => p.IsOpen, true)
@@ -152,7 +152,7 @@ public class ConfirmDialogTests
 
         messageGen.Sample(message =>
         {
-            using var ctx = new TestContext();
+            using var ctx = new BunitContext();
 
             var cut = ctx.Render<ConfirmDialog>(parameters => parameters
                 .Add(p => p.IsOpen, true)

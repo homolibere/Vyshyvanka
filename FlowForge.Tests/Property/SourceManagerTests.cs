@@ -59,8 +59,8 @@ public class SourceManagerTests
 
         sourcesGen.Sample(sources =>
         {
-            // Create a fresh TestContext for each iteration
-            using var ctx = new TestContext();
+            // Create a fresh BunitContext for each iteration
+            using var ctx = new BunitContext();
 
             // Create mock HTTP handler
             var mockHandler = new MockHttpMessageHandler(sources);
@@ -145,8 +145,8 @@ public class SourceManagerTests
 
         sourcesGen.Sample(sources =>
         {
-            // Create a fresh TestContext for each iteration
-            using var ctx = new TestContext();
+            // Create a fresh BunitContext for each iteration
+            using var ctx = new BunitContext();
 
             // Create mock HTTP handler
             var mockHandler = new MockHttpMessageHandler(sources);

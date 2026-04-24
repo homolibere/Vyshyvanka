@@ -108,8 +108,8 @@ public class PackageDetailsModalTests
 
         packageDetailsGen.Sample(package =>
         {
-            // Create a fresh TestContext for each iteration
-            using var ctx = new TestContext();
+            // Create a fresh BunitContext for each iteration
+            using var ctx = new BunitContext();
 
             // Create mock HTTP handler that returns the package details
             var mockHandler = new MockHttpMessageHandler(package);
@@ -254,7 +254,7 @@ public class PackageDetailsModalTests
 
         packageGen.Sample(package =>
         {
-            using var ctx = new TestContext();
+            using var ctx = new BunitContext();
 
             var mockHandler = new MockHttpMessageHandler(package);
             var httpClient = new HttpClient(mockHandler)

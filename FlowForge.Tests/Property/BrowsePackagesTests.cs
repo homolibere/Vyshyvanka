@@ -70,8 +70,8 @@ public class BrowsePackagesTests
 
         searchResultsGen.Sample(searchResults =>
         {
-            // Create a fresh TestContext for each iteration
-            using var ctx = new TestContext();
+            // Create a fresh BunitContext for each iteration
+            using var ctx = new BunitContext();
 
             // Create mock HTTP handler that returns the search results
             var mockHandler = new MockHttpMessageHandler(searchResults);

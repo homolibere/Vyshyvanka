@@ -52,8 +52,8 @@ public class PackageCardTests
 
         installedPackageGen.Sample(package =>
         {
-            // Create a fresh TestContext for each iteration
-            using var ctx = new TestContext();
+            // Create a fresh BunitContext for each iteration
+            using var ctx = new BunitContext();
 
             // Arrange & Act
             var cut = ctx.Render<PackageCard>(parameters => parameters
@@ -127,8 +127,8 @@ public class PackageCardTests
 
         searchResultGen.Sample(package =>
         {
-            // Create a fresh TestContext for each iteration
-            using var ctx = new TestContext();
+            // Create a fresh BunitContext for each iteration
+            using var ctx = new BunitContext();
 
             // Arrange & Act
             var cut = ctx.Render<PackageCard>(parameters => parameters
@@ -201,8 +201,8 @@ public class PackageCardTests
 
         packageGen.Sample(data =>
         {
-            // Create a fresh TestContext for each iteration
-            using var ctx = new TestContext();
+            // Create a fresh BunitContext for each iteration
+            using var ctx = new BunitContext();
 
             // Arrange & Act - Render with IsLoading = true
             var cut = ctx.Render<PackageCard>(parameters => parameters

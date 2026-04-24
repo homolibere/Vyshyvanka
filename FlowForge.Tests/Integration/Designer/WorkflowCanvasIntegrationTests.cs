@@ -13,7 +13,7 @@ namespace FlowForge.Tests.Integration.Designer;
 /// Integration tests for WorkflowCanvas component.
 /// Tests node rendering from workflow state and zoom bounds enforcement.
 /// </summary>
-public class WorkflowCanvasIntegrationTests : TestContext
+public class WorkflowCanvasIntegrationTests : BunitContext
 {
     public WorkflowCanvasIntegrationTests()
     {
@@ -289,8 +289,8 @@ public class WorkflowCanvasIntegrationTests : TestContext
 
         workflowGen.Sample(workflow =>
         {
-            // Create a fresh TestContext for each iteration
-            using var ctx = new TestContext();
+            // Create a fresh BunitContext for each iteration
+            using var ctx = new BunitContext();
             
             // Setup JSInterop for canvasInterop calls
             ctx.JSInterop.Setup<CanvasDimensions>("canvasInterop.getElementDimensions", _ => true)

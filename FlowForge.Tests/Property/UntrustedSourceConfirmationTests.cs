@@ -86,7 +86,7 @@ public class UntrustedSourceConfirmationTests
     {
         UntrustedSourcesGen.Sample(untrustedSources =>
         {
-            using var ctx = new TestContext();
+            using var ctx = new BunitContext();
 
             var untrustedNames = untrustedSources.Select(s => s.Name).ToList();
 
@@ -220,7 +220,7 @@ public class UntrustedSourceConfirmationTests
     {
         PackageIdGen.Sample(packageId =>
         {
-            using var ctx = new TestContext();
+            using var ctx = new BunitContext();
 
             // Arrange & Act - Render ConfirmDialog in processing state
             var cut = ctx.Render<ConfirmDialog>(parameters => parameters

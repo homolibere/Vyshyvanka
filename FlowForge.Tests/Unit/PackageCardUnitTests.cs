@@ -7,7 +7,7 @@ namespace FlowForge.Tests.Unit;
 /// <summary>
 /// Unit tests for PackageCard component.
 /// </summary>
-public class PackageCardUnitTests : TestContext
+public class PackageCardUnitTests : BunitContext
 {
     private readonly ITestOutputHelper _output;
 

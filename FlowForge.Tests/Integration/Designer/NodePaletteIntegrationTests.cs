@@ -12,7 +12,7 @@ namespace FlowForge.Tests.Integration.Designer;
 /// Integration tests for NodePalette component.
 /// Tests node grouping by category, search filtering, and drag operations.
 /// </summary>
-public class NodePaletteIntegrationTests : TestContext
+public class NodePaletteIntegrationTests : BunitContext
 {
     /// <summary>
     /// Helper method to expand all categories in the NodePalette.
@@ -335,8 +335,8 @@ public class NodePaletteIntegrationTests : TestContext
 
         nodeDefinitionsGen.Sample(definitions =>
         {
-            // Create a fresh TestContext for each iteration
-            using var ctx = new TestContext();
+            // Create a fresh BunitContext for each iteration
+            using var ctx = new BunitContext();
             
             // Arrange
             var stateService = new WorkflowStateService();
@@ -401,8 +401,8 @@ public class NodePaletteIntegrationTests : TestContext
         {
             var (definitions, searchTerm) = data;
             
-            // Create a fresh TestContext for each iteration
-            using var ctx = new TestContext();
+            // Create a fresh BunitContext for each iteration
+            using var ctx = new BunitContext();
             
             // Arrange
             var stateService = new WorkflowStateService();
