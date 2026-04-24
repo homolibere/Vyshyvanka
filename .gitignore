@@ -33,7 +33,6 @@ bld/
 *.nupkg
 *.snupkg
 .nuget/
-packages/
 
 ## Test Results
 TestResults/

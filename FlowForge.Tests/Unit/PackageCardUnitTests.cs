@@ -20,7 +20,7 @@ public class PackageCardUnitTests : TestContext
     public void PackageCard_RendersAllRequiredInformation()
     {
         // Arrange & Act
-        var cut = RenderComponent<PackageCard>(parameters => parameters
+        var cut = Render<PackageCard>(parameters => parameters
             .Add(p => p.PackageId, "test-package")
             .Add(p => p.Title, "Test Package Title")
             .Add(p => p.Version, "1.2.3")

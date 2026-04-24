@@ -57,7 +57,7 @@ public class NodePaletteIntegrationTests : TestContext
         Services.AddSingleton(stateService);
 
         // Act
-        var cut = RenderComponent<NodePalette>();
+        var cut = Render<NodePalette>();
 
         // Assert - Check that category headers are present
         Assert.Contains("Trigger", cut.Markup);
@@ -85,7 +85,7 @@ public class NodePaletteIntegrationTests : TestContext
         Services.AddSingleton(stateService);
 
         // Act
-        var cut = RenderComponent<NodePalette>();
+        var cut = Render<NodePalette>();
         
         // Expand all categories
         ExpandAllCategories(cut);
@@ -111,7 +111,7 @@ public class NodePaletteIntegrationTests : TestContext
         Services.AddSingleton(stateService);
 
         // Act
-        var cut = RenderComponent<NodePalette>();
+        var cut = Render<NodePalette>();
 
         // Assert - Trigger should appear before Action in the markup
         var triggerIndex = cut.Markup.IndexOf("Trigger", StringComparison.Ordinal);
@@ -139,7 +139,7 @@ public class NodePaletteIntegrationTests : TestContext
         stateService.SetNodeDefinitions(definitions);
         
         Services.AddSingleton(stateService);
-        var cut = RenderComponent<NodePalette>();
+        var cut = Render<NodePalette>();
         
         // Expand all categories first
         ExpandAllCategories(cut);
@@ -171,7 +171,7 @@ public class NodePaletteIntegrationTests : TestContext
         stateService.SetNodeDefinitions(definitions);
         
         Services.AddSingleton(stateService);
-        var cut = RenderComponent<NodePalette>();
+        var cut = Render<NodePalette>();
 
         // Act - Enter lowercase search term
         var searchInput = cut.Find("input[type='text']");
@@ -197,7 +197,7 @@ public class NodePaletteIntegrationTests : TestContext
         stateService.SetNodeDefinitions(definitions);
         
         Services.AddSingleton(stateService);
-        var cut = RenderComponent<NodePalette>();
+        var cut = Render<NodePalette>();
 
         // Act - Search by description content
         var searchInput = cut.Find("input[type='text']");
@@ -223,7 +223,7 @@ public class NodePaletteIntegrationTests : TestContext
         stateService.SetNodeDefinitions(definitions);
         
         Services.AddSingleton(stateService);
-        var cut = RenderComponent<NodePalette>();
+        var cut = Render<NodePalette>();
         
         // Expand all categories
         ExpandAllCategories(cut);
@@ -259,7 +259,7 @@ public class NodePaletteIntegrationTests : TestContext
         stateService.SetNodeDefinitions(definitions);
         
         Services.AddSingleton(stateService);
-        var cut = RenderComponent<NodePalette>();
+        var cut = Render<NodePalette>();
 
         // Act - Trigger drag start on a node (Trigger category is expanded by default)
         var paletteNode = cut.Find(".palette-node");
@@ -282,7 +282,7 @@ public class NodePaletteIntegrationTests : TestContext
         stateService.SetNodeDefinitions(definitions);
         
         Services.AddSingleton(stateService);
-        var cut = RenderComponent<NodePalette>();
+        var cut = Render<NodePalette>();
 
         // Act - Trigger drag start then drag end
         var paletteNode = cut.Find(".palette-node");
@@ -308,7 +308,7 @@ public class NodePaletteIntegrationTests : TestContext
         stateService.SetNodeDefinitions([triggerDef]);
         
         Services.AddSingleton(stateService);
-        var cut = RenderComponent<NodePalette>();
+        var cut = Render<NodePalette>();
 
         // Act - Trigger drag start on the trigger node
         var paletteNode = cut.Find(".palette-node");
@@ -345,7 +345,7 @@ public class NodePaletteIntegrationTests : TestContext
             ctx.Services.AddSingleton(stateService);
 
             // Act
-            var cut = ctx.RenderComponent<NodePalette>();
+            var cut = ctx.Render<NodePalette>();
 
             // Assert - For each category present in definitions, verify it appears in markup
             var categoriesInDefinitions = definitions
@@ -409,7 +409,7 @@ public class NodePaletteIntegrationTests : TestContext
             stateService.SetNodeDefinitions(definitions);
             
             ctx.Services.AddSingleton(stateService);
-            var cut = ctx.RenderComponent<NodePalette>();
+            var cut = ctx.Render<NodePalette>();
 
             // Act - Enter search term
             var searchInput = cut.Find("input[type='text']");

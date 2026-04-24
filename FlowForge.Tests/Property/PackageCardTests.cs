@@ -56,7 +56,7 @@ public class PackageCardTests
             using var ctx = new TestContext();
 
             // Arrange & Act
-            var cut = ctx.RenderComponent<PackageCard>(parameters => parameters
+            var cut = ctx.Render<PackageCard>(parameters => parameters
                 .Add(p => p.PackageId, package.PackageId)
                 .Add(p => p.Title, package.PackageId)
                 .Add(p => p.Version, package.Version)
@@ -131,7 +131,7 @@ public class PackageCardTests
             using var ctx = new TestContext();
 
             // Arrange & Act
-            var cut = ctx.RenderComponent<PackageCard>(parameters => parameters
+            var cut = ctx.Render<PackageCard>(parameters => parameters
                 .Add(p => p.PackageId, package.PackageId)
                 .Add(p => p.Title, package.Title)
                 .Add(p => p.Version, package.LatestVersion)
@@ -205,7 +205,7 @@ public class PackageCardTests
             using var ctx = new TestContext();
 
             // Arrange & Act - Render with IsLoading = true
-            var cut = ctx.RenderComponent<PackageCard>(parameters => parameters
+            var cut = ctx.Render<PackageCard>(parameters => parameters
                 .Add(p => p.PackageId, data.packageId)
                 .Add(p => p.Version, data.version)
                 .Add(p => p.IsInstalled, data.isInstalled)

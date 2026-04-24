@@ -53,7 +53,7 @@ Clone the repo and restore dependencies:
 ```bash
 git clone <repository-url>
 cd FlowForge
-dotnet restore
+dotnet restore FlowForge.slnx
 ```
 
 ### Run with Aspire (recommended)

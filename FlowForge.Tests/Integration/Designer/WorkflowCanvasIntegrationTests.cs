@@ -46,7 +46,7 @@ public class WorkflowCanvasIntegrationTests : TestContext
         Services.AddSingleton(stateService);
 
         // Act
-        var cut = RenderComponent<WorkflowCanvas>();
+        var cut = Render<WorkflowCanvas>();
 
         // Assert - Each node should have a corresponding canvas-node element
         var nodeElements = cut.FindAll(".canvas-node");
@@ -71,7 +71,7 @@ public class WorkflowCanvasIntegrationTests : TestContext
         Services.AddSingleton(stateService);
 
         // Act
-        var cut = RenderComponent<WorkflowCanvas>();
+        var cut = Render<WorkflowCanvas>();
 
         // Assert - Each node should have a transform with its position
         foreach (var node in workflow.Nodes)
@@ -99,7 +99,7 @@ public class WorkflowCanvasIntegrationTests : TestContext
         Services.AddSingleton(stateService);
 
         // Act
-        var cut = RenderComponent<WorkflowCanvas>();
+        var cut = Render<WorkflowCanvas>();
 
         // Assert - No canvas-node elements should be present
         var nodeElements = cut.FindAll(".canvas-node");
@@ -121,7 +121,7 @@ public class WorkflowCanvasIntegrationTests : TestContext
         stateService.NewWorkflow();
         
         Services.AddSingleton(stateService);
-        var cut = RenderComponent<WorkflowCanvas>();
+        var cut = Render<WorkflowCanvas>();
 
         // Initial state - no nodes
         var initialNodeCount = cut.FindAll(".canvas-node").Count;
@@ -152,7 +152,7 @@ public class WorkflowCanvasIntegrationTests : TestContext
         stateService.LoadWorkflow(workflow);
         
         Services.AddSingleton(stateService);
-        var cut = RenderComponent<WorkflowCanvas>();
+        var cut = Render<WorkflowCanvas>();
 
         var initialNodeCount = cut.FindAll(".canvas-node").Count;
         Assert.Equal(2, initialNodeCount);
@@ -309,7 +309,7 @@ public class WorkflowCanvasIntegrationTests : TestContext
             ctx.Services.AddSingleton(stateService);
 
             // Act
-            var cut = ctx.RenderComponent<WorkflowCanvas>();
+            var cut = ctx.Render<WorkflowCanvas>();
 
             // Assert - The number of canvas-node elements should equal the number of nodes
             var nodeElements = cut.FindAll(".canvas-node");

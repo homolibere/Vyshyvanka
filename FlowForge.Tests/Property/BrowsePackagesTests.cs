@@ -93,7 +93,7 @@ public class BrowsePackagesTests
             SetSearchResults(pluginStateService, searchResults);
 
             // Render the component
-            var cut = ctx.RenderComponent<BrowsePackages>();
+            var cut = ctx.Render<BrowsePackages>();
 
             var markup = cut.Markup;
 

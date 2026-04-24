@@ -82,7 +82,7 @@ public class SourceManagerTests
             SetSources(pluginStateService, sources);
 
             // Render the component
-            var cut = ctx.RenderComponent<SourceManager>();
+            var cut = ctx.Render<SourceManager>();
 
             var markup = cut.Markup;
 
@@ -169,7 +169,7 @@ public class SourceManagerTests
             SetLoading(pluginStateService, true);
 
             // Render the component
-            var cut = ctx.RenderComponent<SourceManager>();
+            var cut = ctx.Render<SourceManager>();
 
             // Assert - All buttons should be disabled
             var buttons = cut.FindAll("button");

@@ -38,7 +38,7 @@ public class ConfirmDialogTests
             using var ctx = new TestContext();
 
             // Arrange & Act - Render ConfirmDialog with affected workflows
-            var cut = ctx.RenderComponent<ConfirmDialog>(parameters => parameters
+            var cut = ctx.Render<ConfirmDialog>(parameters => parameters
                 .Add(p => p.IsOpen, true)
                 .Add(p => p.Title, "Uninstall Package")
                 .Add(p => p.Message, "This package is used by the following workflows:")
@@ -93,7 +93,7 @@ public class ConfirmDialogTests
         {
             using var ctx = new TestContext();
 
-            var cut = ctx.RenderComponent<ConfirmDialog>(parameters => parameters
+            var cut = ctx.Render<ConfirmDialog>(parameters => parameters
                 .Add(p => p.IsOpen, true)
                 .Add(p => p.Title, "Confirm Delete")
                 .Add(p => p.Message, message)
@@ -124,7 +124,7 @@ public class ConfirmDialogTests
         {
             using var ctx = new TestContext();
 
-            var cut = ctx.RenderComponent<ConfirmDialog>(parameters => parameters
+            var cut = ctx.Render<ConfirmDialog>(parameters => parameters
                 .Add(p => p.IsOpen, true)
                 .Add(p => p.Title, "Warning")
                 .Add(p => p.Message, message)
@@ -154,7 +154,7 @@ public class ConfirmDialogTests
         {
             using var ctx = new TestContext();
 
-            var cut = ctx.RenderComponent<ConfirmDialog>(parameters => parameters
+            var cut = ctx.Render<ConfirmDialog>(parameters => parameters
                 .Add(p => p.IsOpen, true)
                 .Add(p => p.Title, "Processing")
                 .Add(p => p.Message, message)

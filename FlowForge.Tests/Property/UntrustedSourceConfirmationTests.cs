@@ -91,7 +91,7 @@ public class UntrustedSourceConfirmationTests
             var untrustedNames = untrustedSources.Select(s => s.Name).ToList();
 
             // Arrange & Act - Render ConfirmDialog simulating untrusted source warning
-            var cut = ctx.RenderComponent<ConfirmDialog>(parameters => parameters
+            var cut = ctx.Render<ConfirmDialog>(parameters => parameters
                 .Add(p => p.IsOpen, true)
                 .Add(p => p.Title, "Install from Untrusted Source")
                 .Add(p => p.Message,
@@ -223,7 +223,7 @@ public class UntrustedSourceConfirmationTests
             using var ctx = new TestContext();
 
             // Arrange & Act - Render ConfirmDialog in processing state
-            var cut = ctx.RenderComponent<ConfirmDialog>(parameters => parameters
+            var cut = ctx.Render<ConfirmDialog>(parameters => parameters
                 .Add(p => p.IsOpen, true)
                 .Add(p => p.Title, "Install from Untrusted Source")
                 .Add(p => p.Message, $"Installing {packageId}...")

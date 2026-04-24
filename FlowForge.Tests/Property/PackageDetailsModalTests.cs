@@ -128,7 +128,7 @@ public class PackageDetailsModalTests
             ctx.Services.AddSingleton<ToastService>();
 
             // Arrange & Act
-            var cut = ctx.RenderComponent<PackageDetailsModal>(parameters => parameters
+            var cut = ctx.Render<PackageDetailsModal>(parameters => parameters
                 .Add(p => p.IsOpen, true)
                 .Add(p => p.PackageId, package.PackageId));
 
@@ -269,7 +269,7 @@ public class PackageDetailsModalTests
             ctx.Services.AddSingleton(pluginStateService);
             ctx.Services.AddSingleton<ToastService>();
 
-            var cut = ctx.RenderComponent<PackageDetailsModal>(parameters => parameters
+            var cut = ctx.Render<PackageDetailsModal>(parameters => parameters
                 .Add(p => p.IsOpen, true)
                 .Add(p => p.PackageId, package.PackageId));
 
