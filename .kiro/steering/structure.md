@@ -6,41 +6,47 @@ inclusion: always
 
 ```
 FlowForge/
-├── FlowForge.Core/           # Domain layer (no dependencies)
-├── FlowForge.Engine/         # Execution engine, persistence, plugins
-├── FlowForge.Api/            # REST API
-├── FlowForge.Designer/       # Blazor WASM UI
-├── FlowForge.Plugin.*/       # Plugin projects
-├── FlowForge.Tests/          # All tests
-└── FlowForge.ServiceDefaults/# Shared service configuration
+├── FlowForge.Core/              # Domain layer — zero dependencies on other projects
+├── FlowForge.Engine/            # Execution engine, persistence, plugins, auth
+├── FlowForge.Api/               # ASP.NET Core REST API
+├── FlowForge.AppHost/           # .NET Aspire orchestration (dev hosting)
+├── FlowForge.Designer/          # Blazor WASM UI — communicates only via HTTP
+├── FlowForge.Plugin.*/          # Plugin projects (reference Core only)
+├── FlowForge.ServiceDefaults/   # Shared service configuration (Aspire defaults)
+├── FlowForge.Tests/             # All tests (unit, property, integration, E2E)
+├── docs/                        # Design documentation and architectural decisions
+└── FlowForge.sln                # Solution file
 ```
 
 ## Dependency Rules
 
-Dependencies flow downward only. Violations cause circular reference build errors.
+Dependencies flow strictly downward. NEVER introduce an upward or circular reference.
 
-| Project | Can Reference | NEVER Reference |
-|---------|---------------|-----------------|
-| Core | None | Any other project |
-| Engine | Core | Api, Designer |
-| Api | Core, Engine | Designer |
-| Designer | None (HTTP only) | Core, Engine, Api |
+| Project | Allowed References | Forbidden References |
+|---------|-------------------|----------------------|
+| Core | None | Everything else |
+| Engine | Core | Api, Designer, AppHost |
+| Api | Core, Engine | Designer, AppHost |
+| AppHost | Api, ServiceDefaults | Core, Engine directly |
+| Designer | None (HTTP calls only) | Core, Engine, Api |
 | Plugin.* | Core | Engine, Api, Designer |
-| Tests | All | - |
+| Tests | All projects | — |
 
 ## Code Placement
 
-### Core Project (`FlowForge.Core/`)
-| Type | Path |
-|------|------|
+Place new files according to these tables. Namespace MUST match the folder path (e.g., `FlowForge.Engine.Nodes.Actions`).
+
+### FlowForge.Core/
+| What | Where |
+|------|-------|
 | Domain models | `Models/` |
-| Interfaces | `Interfaces/` |
+| Interfaces / contracts | `Interfaces/` |
 | Enums | `Enums/` |
 | Custom exceptions | `Exceptions/` |
 
-### Engine Project (`FlowForge.Engine/`)
-| Type | Path |
-|------|------|
+### FlowForge.Engine/
+| What | Where |
+|------|-------|
 | Trigger nodes | `Nodes/Triggers/` |
 | Action nodes | `Nodes/Actions/` |
 | Logic nodes | `Nodes/Logic/` |
@@ -57,19 +63,19 @@ Dependencies flow downward only. Violations cause circular reference build error
 | Auth services | `Auth/` |
 | Credential handling | `Credentials/` |
 
-### Api Project (`FlowForge.Api/`)
-| Type | Path |
-|------|------|
+### FlowForge.Api/
+| What | Where |
+|------|-------|
 | Controllers | `Controllers/` |
 | Request/Response DTOs | `Models/` |
 | Middleware | `Middleware/` |
 | Authorization policies | `Authorization/` |
 | Service extensions | `Extensions/` |
-| API services | `Services/` |
+| API-layer services | `Services/` |
 
-### Designer Project (`FlowForge.Designer/`)
-| Type | Path |
-|------|------|
+### FlowForge.Designer/
+| What | Where |
+|------|-------|
 | Blazor components | `Components/` |
 | Pages | `Pages/` |
 | Client services | `Services/` |
@@ -77,9 +83,16 @@ Dependencies flow downward only. Violations cause circular reference build error
 | Static assets | `wwwroot/` |
 | JavaScript interop | `wwwroot/js/` |
 
-### Tests Project (`FlowForge.Tests/`)
-| Type | Path |
-|------|------|
+Blazor component rules:
+- Each component = up to 3 files: `Name.razor`, `Name.razor.cs`, `Name.razor.css`
+- Code-behind class MUST be `partial` and match the component name
+- Use `[Inject]` attribute in code-behind — NEVER `@inject` in markup
+- No `@code` blocks in `.razor` files
+- No `<style>` blocks in `.razor` files
+
+### FlowForge.Tests/
+| What | Where |
+|------|-------|
 | Unit tests | `Unit/` |
 | Property-based tests | `Property/` |
 | Integration tests | `Integration/` |
@@ -88,58 +101,35 @@ Dependencies flow downward only. Violations cause circular reference build error
 
 ## Naming Conventions
 
-| Element | Convention | Example |
-|---------|------------|---------|
-| Files | Match class name | `WorkflowEngine.cs` |
-| Namespaces | Match folder path | `FlowForge.Engine.Nodes.Actions` |
-| Interfaces | Prefix `I` | `IWorkflowEngine` |
-| Async methods | Suffix `Async` | `ExecuteAsync` |
-| Test classes | Suffix `Tests` | `NodeRegistryTests` |
-| Test methods | `When...Then...` | `WhenWorkflowHasNoTriggerThenValidationFails` |
-
-## Blazor Component Pattern
-
-Each component consists of up to three files:
-```
-ComponentName.razor      # Markup
-ComponentName.razor.cs   # Code-behind (partial class)
-ComponentName.razor.css  # Scoped styles (optional)
-```
+- File names match the class name: `WorkflowEngine.cs`
+- Interfaces prefixed with `I`: `IWorkflowEngine`
+- Async methods suffixed with `Async`: `ExecuteAsync`
+- Test classes suffixed with `Tests`: `NodeRegistryTests`
+- Test methods use `When{Condition}Then{ExpectedResult}`: `WhenWorkflowHasNoTriggerThenValidationFails`
 
 ## Service Registration
 
-- **Engine services**: Register in `Api/Extensions/ServiceCollectionExtensions.cs`
-- **API services**: Register in `Api/Program.cs`
-- **Designer services**: Register in `Designer/Program.cs`
+- Engine services → `FlowForge.Api/Extensions/ServiceCollectionExtensions.cs`
+- API services → `FlowForge.Api/Program.cs`
+- Designer services → `FlowForge.Designer/Program.cs`
 
-## When Modifying Code
+## Ripple-Effect Checklist
 
-| If changing... | Also check... |
-|----------------|---------------|
-| Interface in Core | Implementations in Engine |
-| Repository interface | Repository in `Engine/Persistence/` |
-| Node base class | All nodes inheriting from it |
-| API DTO | Designer models in `Designer/Models/` |
+When modifying code, ALWAYS check for downstream impact:
+
+| If you change… | Also update… |
+|----------------|--------------|
+| Interface in Core | All implementations in Engine |
+| Repository interface | Corresponding class in `Engine/Persistence/` |
+| Node base class | Every node that inherits from it |
+| API DTO | Matching model in `Designer/Models/` |
 | Controller endpoint | Integration tests in `Tests/Integration/` |
-| DbContext/Entity | EF migrations may be needed |
-| Node implementation | Register in `NodeRegistry` |
-
-## Architecture Layers
-
-1. **Presentation**: Designer (Blazor WASM), Api (REST controllers)
-2. **Application**: Services in Api orchestrating operations
-3. **Domain**: Engine (WorkflowEngine, NodeRegistry, ExpressionEvaluator)
-4. **Infrastructure**: Engine/Persistence (EF Core, repositories)
+| DbContext or Entity | EF migrations may be needed |
+| Node implementation | Registration in `NodeRegistry` |
 
 ## Key Patterns
 
-- **Records** for DTOs and immutable domain objects
-- **Repository pattern** via interfaces in Core, implementations in Engine
-- **Base classes** for nodes: `BaseNode`, `BaseTriggerNode`, `BaseActionNode`, `BaseLogicNode`
-- **Dependency injection** throughout all projects
-
-**Rules**:
-- No `@code` blocks in `.razor` files
-- No `<style>` blocks in `.razor` files
-- Code-behind class must be `partial` and match component name
-- Use `[Inject]` attribute in code-behind, not `@inject` in markup
+- Records for DTOs and immutable domain objects
+- Repository pattern: interfaces in Core, implementations in Engine
+- Node inheritance: `BaseTriggerNode`, `BaseActionNode`, `BaseLogicNode` in `Engine/Nodes/Base/`
+- Dependency injection throughout all projects

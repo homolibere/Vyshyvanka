@@ -2,98 +2,142 @@
 inclusion: always
 ---
 
-# FlowForge Tech Stack
+# FlowForge Tech Stack & Conventions
 
-## Quick Reference
+## DO / DON'T
 
 | DO | DON'T |
 |----|-------|
-| Use `System.Text.Json` for all serialization | Use `Newtonsoft.Json` |
-| Use `NSubstitute` for mocking | Use `Moq` |
-| Use `AwesomeAssertions` if needed | Use `FluentAssertions` |
-| Use `xUnit` with `CsCheck` for property tests | Use NUnit or MSTest |
-| Use records for DTOs | Use classes with mutable properties |
-| Use file-scoped namespaces | Use block-scoped namespaces |
-| Use `CancellationToken` in all async methods | Fire-and-forget async calls |
-| Return `Task`/`Task<T>` from async methods | Return `void` from async methods |
+| `System.Text.Json` for all serialization | `Newtonsoft.Json` |
+| `NSubstitute` for mocking | `Moq` |
+| `AwesomeAssertions` for assertions | `FluentAssertions` |
+| `xUnit` + `CsCheck` for property tests | NUnit, MSTest |
+| Records for DTOs and value objects | Classes with mutable properties for DTOs |
+| File-scoped namespaces | Block-scoped namespaces |
+| `CancellationToken` in every async method | Fire-and-forget async |
+| Return `Task`/`Task<T>` from async | Return `void` from async |
+| Primary constructors for DI | Manual field assignment when primary ctor works |
+| Collection expressions `[1, 2, 3]` | `new List<int> { 1, 2, 3 }` |
+| Raw string literals `"""..."""` for multi-line | Escaped strings or `@""` for multi-line JSON/SQL |
+| Pattern matching in switch expressions | Long if-else chains for type/value dispatch |
+| Central package versions via `Directory.Packages.props` | Inline `<PackageReference Version="...">` in csproj |
 
-## Framework & Runtime
+## Runtime
 
-- **.NET 10** with **C# 14**
-- **Blazor WebAssembly**: `FlowForge.Designer` (visual workflow editor)
-- **ASP.NET Core**: `FlowForge.Api` (REST API)
-- **Entity Framework Core**: Code-first with SQLite (dev) / PostgreSQL (prod)
-
-### C# 14 Features to Use
-
-- Records for immutable types and DTOs
-- Pattern matching in switch expressions
-- File-scoped namespaces (single line)
-- Raw string literals (`"""`) for multi-line JSON/SQL
-- Collection expressions (`[1, 2, 3]`)
-- Primary constructors where appropriate
+- .NET 10, C# 14, nullable enabled, implicit usings enabled
+- ASP.NET Core REST API (`FlowForge.Api`)
+- Blazor WebAssembly UI (`FlowForge.Designer`)
+- EF Core code-first: SQLite (dev) / PostgreSQL (prod)
+- .NET Aspire for dev orchestration (`FlowForge.AppHost`)
 
 ## Serialization
 
-```csharp
-// CORRECT: Use System.Text.Json with camelCase
-var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+Use `System.Text.Json` with camelCase policy everywhere. Prefer source-generated serializer contexts for performance. Only apply `[JsonPropertyName]` when the wire name differs from the C# property name.
 
-// CORRECT: Source-generated context for performance
+```csharp
+// Source-generated context
 [JsonSerializable(typeof(WorkflowDto))]
 public partial class FlowForgeJsonContext : JsonSerializerContext { }
 
-// CORRECT: Only use attribute when name differs
-[JsonPropertyName("workflow_id")]  // Only if API requires snake_case
+// Attribute only when name diverges
+[JsonPropertyName("workflow_id")]
 public string WorkflowId { get; init; }
 ```
 
-## Authentication & Security
+## Async Patterns
 
-| Mechanism | Use Case |
-|-----------|----------|
-| JWT Bearer | User authentication via `FlowForge.Designer` |
-| API Key | Webhooks and external integrations |
-| AES-256 | Credential encryption at rest |
+- Every async method accepts `CancellationToken` as its last parameter.
+- Suffix async methods with `Async`: `ExecuteAsync`, `GetByIdAsync`.
+- Always pass `CancellationToken` through to downstream calls.
+- Never use `.Result` or `.Wait()` — always `await`.
 
-**Rules:**
-- Never log credentials or sensitive data
-- Always validate user owns resource before operations
-- Use `ICurrentUserService` to get authenticated user context
+```csharp
+public async Task<Workflow> GetByIdAsync(Guid id, CancellationToken ct)
+{
+    return await _context.Workflows.FirstOrDefaultAsync(w => w.Id == id, ct)
+        ?? throw new WorkflowNotFoundException(id);
+}
+```
+
+## Error Handling
+
+Domain errors use typed exceptions inheriting `FlowForgeException` (defined in `FlowForge.Core/Exceptions/`). Each carries an `ErrorCode` string. The `ErrorHandlingMiddleware` maps these to consistent `ApiError` JSON responses with `code`, `message`, `details`, and `traceId`.
+
+- Throw domain-specific exceptions (`WorkflowNotFoundException`, `WorkflowValidationException`, etc.) — don't return error codes manually.
+- Never catch exceptions just to rethrow them without adding context.
+- Let the middleware handle HTTP status code mapping.
+
+## API Conventions
+
+- Controllers return `ActionResult<T>` with appropriate status codes.
+- All error responses use the `ApiError` record: `{ code, message, details?, traceId? }`.
+- Validate resource ownership via `ICurrentUserService` before any operation.
+- Use `[Authorize]` attributes with policies defined in `Authorization/Policies.cs`.
+
+## EF Core Conventions
+
+- DbContext lives at `FlowForge.Engine/Persistence/FlowForgeDbContext.cs`.
+- Entity classes in `FlowForge.Engine/Persistence/Entities/`.
+- Repository interfaces in `FlowForge.Core/Interfaces/`, implementations in `FlowForge.Engine/Persistence/`.
+- Always use `async` query methods with `CancellationToken`.
+- Use `EnsureCreatedAsync()` for dev; migrations for production schema changes.
+
+## Dependency Injection
+
+- Engine services registered in `FlowForge.Api/Extensions/ServiceCollectionExtensions.cs`.
+- API-layer services registered in `FlowForge.Api/Program.cs`.
+- Aspire defaults added via `builder.AddServiceDefaults()`.
+- Use interface-based registration: `services.AddScoped<IFoo, Foo>()`.
 
 ## Testing
 
-| Tool | Purpose | When to Use |
-|------|---------|-------------|
-| xUnit | Test framework | All tests |
-| CsCheck | Property-based testing | Validation, serialization, state transitions |
-| NSubstitute | Mocking | External dependencies only |
-| TestContainers | Integration tests | Database operations |
-| WireMock | HTTP mocking | External API calls |
+All tests live in `FlowForge.Tests/` organized by type: `Unit/`, `Property/`, `Integration/`, `E2E/`.
 
-**Test Naming**: `When{Condition}Then{ExpectedResult}`
+| Tool | Purpose |
+|------|---------|
+| xUnit | Test framework (global using via csproj) |
+| CsCheck | Property-based testing for validation, serialization, state machines |
+| NSubstitute | Mocking interfaces only — never mock concrete classes |
+| bUnit | Blazor component tests |
+| `Microsoft.AspNetCore.Mvc.Testing` | Integration tests via `WebApplicationFactory` |
+| EF Core InMemory | Lightweight DB tests |
+
+Test naming: `When{Condition}Then{ExpectedResult}`
+
 ```csharp
-// CORRECT
+[Fact]
 public void WhenWorkflowHasNoTriggerThenValidationFails() { }
-
-// INCORRECT
-public void TestValidation() { }
 ```
+
+CsCheck property test pattern:
+
+```csharp
+[Fact]
+public void WhenSerializedThenDeserializationRoundTrips()
+{
+    Gen.String.Sample(original =>
+    {
+        var json = JsonSerializer.Serialize(original);
+        var result = JsonSerializer.Deserialize<string>(json);
+        Assert.Equal(original, result);
+    });
+}
+```
+
+## Package Management
+
+Versions are centralized in `Directory.Packages.props` at the solution root. When adding a dependency:
+
+1. Add `<PackageVersion Include="Pkg" Version="X.Y.Z" />` to `Directory.Packages.props`.
+2. Add `<PackageReference Include="Pkg" />` (no version) to the project csproj.
 
 ## Commands
 
 ```bash
-dotnet build                              # Build solution
+dotnet build                              # Build entire solution
 dotnet test                               # Run all tests
-dotnet run --project FlowForge.Api        # Start API server
-dotnet run --project FlowForge.Designer   # Start Blazor designer
+dotnet test --filter "FullyQualifiedName~Unit"  # Run unit tests only
+dotnet run --project FlowForge.Api        # Start API
+dotnet run --project FlowForge.Designer   # Start Blazor UI
+dotnet run --project FlowForge.AppHost    # Start via Aspire (all services)
 ```
-
-## Key Dependencies
-
-| Package | Purpose |
-|---------|---------|
-| `System.Text.Json` | JSON serialization |
-| `Microsoft.AspNetCore.Authentication.JwtBearer` | JWT auth |
-| `Microsoft.EntityFrameworkCore.Sqlite` | Dev database |
-| `System.Security.Cryptography` | AES-256 encryption |

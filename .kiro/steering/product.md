@@ -2,34 +2,36 @@
 inclusion: always
 ---
 
-# FlowForge Product Overview
+# FlowForge Product Domain
 
-FlowForge is a workflow automation platform built on .NET 10. Users create automated workflows through a visual node-based designer.
+FlowForge is a .NET 10 workflow automation platform. Users build workflows visually by connecting nodes in a Blazor WebAssembly designer, then execute them via a REST API backed by a workflow engine.
 
-## Domain Entities
+## Domain Model
 
-| Entity | Description | Key Rules |
-|--------|-------------|-----------|
-| Workflow | Process definition with nodes and connections | Must have exactly one trigger node; owned by a user |
-| Node | Single operation unit with input/output ports | Belongs to one workflow; type determines base class |
-| Connection | Links output port to input port | Must respect port type compatibility |
-| Execution | Runtime instance of a workflow | Immutable once status is Completed/Failed/Cancelled |
-| Credential | Encrypted authentication data | Never expose in API responses or logs |
+| Entity | Description | Invariants |
+|--------|-------------|------------|
+| Workflow | Directed graph of nodes and connections | Exactly one trigger node; owned by a single user |
+| Node | Atomic operation with typed input/output ports | Belongs to one workflow; category determines base class |
+| Connection | Directed link from an output port to an input port | Port types must be compatible (see below) |
+| Execution | Immutable runtime record of a workflow run | Terminal states (`Completed`, `Failed`, `Cancelled`) are final — never mutate |
+| Credential | Encrypted authentication data (AES-256 at rest) | Never returned in API responses; never logged |
 
-## Node Types
+## Node Categories
 
-| Category | Base Class | Has Input Ports | Examples |
-|----------|------------|-----------------|----------|
-| Trigger | `BaseTriggerNode` | No | WebhookTrigger, ScheduleTrigger, ManualTrigger |
+| Category | Base Class | Input Ports | Examples |
+|----------|------------|-------------|----------|
+| Trigger | `BaseTriggerNode` | None | WebhookTrigger, ScheduleTrigger, ManualTrigger |
 | Action | `BaseActionNode` | Yes | HttpRequest, DatabaseQuery, EmailSend |
 | Logic | `BaseLogicNode` | Yes | If, Switch, Loop, Merge |
 
-When implementing nodes:
-- Inherit from the appropriate base class in `FlowForge.Engine/Nodes/Base/`
-- Override `ExecuteAsync(IExecutionContext context, CancellationToken ct)`
-- Register in `NodeRegistry` for discovery
+When implementing a new node:
+1. Inherit from the correct base class in `FlowForge.Engine/Nodes/Base/`
+2. Override `ExecuteAsync(IExecutionContext context, CancellationToken ct)`
+3. Register the node in `NodeRegistry` so the engine can discover it
 
-## Port Types & Compatibility
+## Port Type Compatibility
+
+A connection is valid when the source port type equals the target port type, OR either port is `Any`.
 
 | PortType | Compatible With |
 |----------|-----------------|
@@ -40,75 +42,78 @@ When implementing nodes:
 | `Number` | Number, Any |
 | `Boolean` | Boolean, Any |
 
-Connections are valid when: source port type equals target port type, OR either port is `Any`.
+## Execution State Machine
 
-## Execution Lifecycle
+```
+Pending ──→ Running ──→ Completed
+  │            │
+  │            ├──→ Failed
+  │            │
+  └──→ Cancelled ←──┘
+```
 
-| Status | Description | Transitions To |
-|--------|-------------|----------------|
-| `Pending` | Queued, not started | Running, Cancelled |
-| `Running` | Currently executing | Completed, Failed, Cancelled |
-| `Completed` | Finished successfully | (terminal) |
-| `Failed` | Error occurred | (terminal) |
-| `Cancelled` | Stopped by user/system | (terminal) |
+`Completed`, `Failed`, and `Cancelled` are terminal — no further transitions allowed.
 
-Execution flow:
-1. Trigger fires → Execution created with `Pending` status
-2. Engine resolves node order via topological sort
-3. Nodes execute sequentially, status becomes `Running`
-4. Each node output stored for expression evaluation
-5. Final status set to `Completed`, `Failed`, or `Cancelled`
+Execution sequence:
+1. Trigger fires → new Execution in `Pending`
+2. Engine resolves node order via topological sort → status becomes `Running`
+3. Each node executes; its output is stored for downstream expression evaluation
+4. Final status set based on outcome
 
 ## Expression Syntax
 
-Expressions use double-brace syntax to reference data from previous nodes:
+Double-brace expressions reference data from earlier nodes or execution metadata:
 
-| Pattern | Description |
+| Pattern | Resolves To |
 |---------|-------------|
-| `{{$node.NodeName.data}}` | Access output data from named node |
-| `{{$node.NodeName.data.propertyName}}` | Access nested property |
-| `{{$node.NodeName.data[0]}}` | Access array element |
+| `{{$node.NodeName.data}}` | Full output of the named node |
+| `{{$node.NodeName.data.prop}}` | Nested property access |
+| `{{$node.NodeName.data[0]}}` | Array index access |
 | `{{$execution.id}}` | Current execution ID |
 | `{{$workflow.id}}` | Current workflow ID |
 
-## Workflow Validation Rules
+Always sanitize user-supplied values before embedding them in expressions.
 
-Before execution, validate:
-- [ ] Exactly one trigger node exists
-- [ ] Trigger node has no incoming connections
-- [ ] All non-trigger nodes are reachable from trigger
-- [ ] No circular dependencies in connections
-- [ ] All required node properties are configured
-- [ ] Connection port types are compatible
+## Workflow Validation (pre-execution)
 
-## User Roles
+All of these must pass before a workflow can execute:
+- Exactly one trigger node exists
+- Trigger node has no incoming connections
+- All non-trigger nodes are reachable from the trigger
+- No circular dependencies exist in the connection graph
+- All required node configuration properties are set
+- Every connection satisfies port type compatibility
+
+## User Roles & Permissions
 
 | Role | Create/Edit | Execute | View | Manage Users |
-|------|-------------|---------|------|--------------|
-| `Viewer` | ❌ | ❌ | ✅ | ❌ |
-| `Editor` | ✅ | ✅ | ✅ | ❌ |
-| `Admin` | ✅ | ✅ | ✅ | ✅ |
+|------|:-----------:|:-------:|:----:|:------------:|
+| Viewer | ✗ | ✗ | ✓ | ✗ |
+| Editor | ✓ | ✓ | ✓ | ✗ |
+| Admin | ✓ | ✓ | ✓ | ✓ |
+
+Always check `ICurrentUserService` to verify the authenticated user owns or has access to a resource before performing any operation.
 
 ## Security Rules
 
-**Always:**
-- Encrypt credentials at rest using AES-256
-- Validate user owns workflow before any operation
-- Sanitize user input in expressions
-- Use parameterized queries for database operations
+**Always do:**
+- Encrypt credentials at rest with AES-256
+- Validate resource ownership before any CRUD or execution operation
+- Sanitize user input in expressions to prevent injection
+- Use parameterized queries for all database operations
 
-**Never:**
-- Return credential values in API responses
-- Log credential values or sensitive data
+**Never do:**
+- Return credential values in any API response
+- Log credentials or sensitive data at any log level
 - Allow cross-user workflow access without explicit sharing
-- Execute unvalidated workflows
+- Execute a workflow that has not passed validation
 
 ## Required Terminology
 
-Use these terms exactly in code, APIs, UI, and documentation:
+Use these terms consistently in code, APIs, UI text, comments, and documentation. Do not substitute synonyms.
 
-| Correct | Incorrect |
-|---------|-----------|
+| Correct Term | Do Not Use |
+|--------------|------------|
 | Workflow | flow, automation, process |
 | Node | step, block, task, action |
 | Execution | run, instance, job |
