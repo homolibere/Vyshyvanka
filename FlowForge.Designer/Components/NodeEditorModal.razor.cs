@@ -17,6 +17,12 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
     [Inject]
     private WorkflowStateService StateService { get; set; } = null!;
 
+    [Inject]
+    private FlowForgeApiClient ApiClient { get; set; } = null!;
+
+    [Inject]
+    private ToastService ToastService { get; set; } = null!;
+
     /// <summary>
     /// ID of the node to edit. Set this to open the modal.
     /// </summary>
@@ -53,6 +59,7 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
     private bool _hasSchema;
     private string? _initialRawJson;
     private NodeEditorConfigPanel? _configPanel;
+    private bool _isRunningToNode;
 
     /// <summary>
     /// Indicates whether the node has a configuration schema.
@@ -285,6 +292,54 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
         }
 
         return false;
+    }
+
+    private async Task RunUpToNode()
+    {
+        if (string.IsNullOrEmpty(NodeId) || _isRunningToNode) return;
+
+        // Save pending config changes before running
+        if (_isDirty)
+        {
+            SaveConfiguration();
+        }
+
+        _isRunningToNode = true;
+        StateHasChanged();
+
+        try
+        {
+            var result = await ApiClient.ExecuteUpToNodeAsync(
+                StateService.Workflow.Id, NodeId);
+
+            if (result is not null)
+            {
+                StateService.SetCurrentExecution(result);
+                _executionState = StateService.GetNodeExecutionState(NodeId);
+
+                if (result.Status == Core.Enums.ExecutionStatus.Failed)
+                {
+                    ToastService.ShowError(result.ErrorMessage ?? "Execution failed");
+                }
+                else
+                {
+                    ToastService.ShowSuccess($"Executed up to node — {result.NodeExecutions.Count} node(s) ran");
+                }
+            }
+        }
+        catch (ApiException ex)
+        {
+            ToastService.ShowError(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Execution failed: {ex.Message}");
+        }
+        finally
+        {
+            _isRunningToNode = false;
+            StateHasChanged();
+        }
     }
 
     /// <inheritdoc />

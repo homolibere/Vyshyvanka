@@ -12,6 +12,19 @@
                     <NodeIcon Icon="@definition?.Icon"/>
                 </span>
                 <h3>@node.Name</h3>
+                <button class="run-to-node-btn"
+                        title="Run workflow up to this node"
+                        disabled="@_isRunningToNode"
+                        @onclick="RunUpToNode">
+                    @if (_isRunningToNode)
+                    {
+                        <span class="run-icon spinning">⟳</span>
+                    }
+                    else
+                    {
+                        <span class="run-icon">▶</span>
+                    }
+                </button>
             </div>
 
             @* Execution status section *@

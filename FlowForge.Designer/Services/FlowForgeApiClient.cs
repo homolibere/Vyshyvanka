@@ -217,6 +217,22 @@ public partial class FlowForgeApiClient
         return await response.Content.ReadFromJsonAsync<ExecutionResponse>(cancellationToken);
     }
 
+    /// <summary>Executes a workflow from the trigger up to and including the specified node.</summary>
+    public async Task<ExecutionResponse?> ExecuteUpToNodeAsync(Guid workflowId, string targetNodeId,
+        JsonElement? triggerData = null, CancellationToken cancellationToken = default)
+    {
+        var request = new TriggerExecutionRequest
+        {
+            WorkflowId = workflowId,
+            InputData = triggerData,
+            Mode = ExecutionMode.Api,
+            TargetNodeId = targetNodeId
+        };
+        var response = await _httpClient.PostAsJsonAsync("api/execution", request, cancellationToken);
+        await EnsureSuccessAsync(response, cancellationToken);
+        return await response.Content.ReadFromJsonAsync<ExecutionResponse>(cancellationToken);
+    }
+
     /// <summary>Gets execution status.</summary>
     public async Task<ExecutionResponse?> GetExecutionAsync(Guid executionId,
         CancellationToken cancellationToken = default)

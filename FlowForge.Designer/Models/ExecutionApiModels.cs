@@ -11,6 +11,7 @@ public record TriggerExecutionRequest
     public Guid WorkflowId { get; init; }
     public JsonElement? InputData { get; init; }
     public ExecutionMode Mode { get; init; } = ExecutionMode.Api;
+    public string? TargetNodeId { get; init; }
 }
 
 /// <summary>

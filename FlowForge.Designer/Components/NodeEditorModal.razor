@@ -15,7 +15,23 @@
                         <span class="node-type">@(_definition?.Name ?? _node.Type)</span>
                     </div>
                 </div>
-                <button class="btn-close" @onclick="HandleClose" title="Close (Esc)">×</button>
+                <div class="header-actions">
+                    <button class="btn-run"
+                            title="Run workflow up to this node"
+                            disabled="@_isRunningToNode"
+                            @onclick="RunUpToNode">
+                        @if (_isRunningToNode)
+                        {
+                            <span class="run-icon spinning">⟳</span>
+                        }
+                        else
+                        {
+                            <span class="run-icon">▶</span>
+                        }
+                        <span>Run to here</span>
+                    </button>
+                    <button class="btn-close" @onclick="HandleClose" title="Close (Esc)">×</button>
+                </div>
             </div>
 
             <div class="modal-body">

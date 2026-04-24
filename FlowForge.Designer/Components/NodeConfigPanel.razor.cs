@@ -1,4 +1,5 @@
 using FlowForge.Core.Enums;
+using FlowForge.Designer.Models;
 using FlowForge.Designer.Services;
 using Microsoft.AspNetCore.Components;
 
@@ -9,11 +10,18 @@ public partial class NodeConfigPanel : IDisposable
     [Inject]
     private WorkflowStateService StateService { get; set; } = null!;
 
+    [Inject]
+    private FlowForgeApiClient ApiClient { get; set; } = null!;
+
+    [Inject]
+    private ToastService ToastService { get; set; } = null!;
+
     private string configJson = "{}";
     private string nodeName = "";
     private string? configError;
     private string _workflowName = "";
     private string _workflowDescription = "";
+    private bool _isRunningToNode;
 
     protected override void OnInitialized()
     {
@@ -146,6 +154,48 @@ public partial class NodeConfigPanel : IDisposable
         catch
         {
             return element.GetRawText();
+        }
+    }
+
+    private async Task RunUpToNode()
+    {
+        var nodeId = StateService.SelectedNodeId;
+        if (nodeId is null || _isRunningToNode) return;
+
+        _isRunningToNode = true;
+        StateHasChanged();
+
+        try
+        {
+            var result = await ApiClient.ExecuteUpToNodeAsync(
+                StateService.Workflow.Id, nodeId);
+
+            if (result is not null)
+            {
+                StateService.SetCurrentExecution(result);
+
+                if (result.Status == ExecutionStatus.Failed)
+                {
+                    ToastService.ShowError(result.ErrorMessage ?? "Execution failed");
+                }
+                else
+                {
+                    ToastService.ShowSuccess($"Executed up to node — {result.NodeExecutions.Count} node(s) ran");
+                }
+            }
+        }
+        catch (ApiException ex)
+        {
+            ToastService.ShowError(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Execution failed: {ex.Message}");
+        }
+        finally
+        {
+            _isRunningToNode = false;
+            StateHasChanged();
         }
     }
 

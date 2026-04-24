@@ -19,6 +19,12 @@ public record TriggerExecutionRequest
     
     /// <summary>Execution mode.</summary>
     public ExecutionMode Mode { get; init; } = ExecutionMode.Api;
+
+    /// <summary>
+    /// Optional target node ID. When set, only nodes from the trigger up to
+    /// and including this node will be executed (partial execution for debugging).
+    /// </summary>
+    public string? TargetNodeId { get; init; }
 }
 
 /// <summary>

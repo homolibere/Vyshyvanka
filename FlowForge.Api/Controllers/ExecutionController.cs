@@ -2,6 +2,7 @@ using FlowForge.Api.Authorization;
 using FlowForge.Api.Models;
 using FlowForge.Core.Enums;
 using FlowForge.Core.Interfaces;
+using FlowForge.Core.Models;
 using FlowForge.Engine.Credentials;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -69,6 +70,21 @@ public class ExecutionController : ControllerBase
                 Code = "WORKFLOW_INACTIVE",
                 Message = "Cannot execute an inactive workflow"
             });
+        }
+
+        // Prune workflow to target node if partial execution requested
+        if (!string.IsNullOrWhiteSpace(request.TargetNodeId))
+        {
+            if (workflow.Nodes.All(n => n.Id != request.TargetNodeId))
+            {
+                return BadRequest(new ApiError
+                {
+                    Code = "NODE_NOT_FOUND",
+                    Message = $"Node '{request.TargetNodeId}' does not exist in the workflow"
+                });
+            }
+
+            workflow = PruneWorkflowToNode(workflow, request.TargetNodeId);
         }
         
         // Create credential provider
@@ -287,5 +303,39 @@ public class ExecutionController : ControllerBase
         _logger.LogInformation("Cancelled execution {ExecutionId}", id);
         
         return Accepted();
+    }
+
+    /// <summary>
+    /// Prunes a workflow to only include nodes that are ancestors of (or equal to) the target node.
+    /// Walks backward from the target through incoming connections to find all required nodes.
+    /// </summary>
+    private static Workflow PruneWorkflowToNode(Workflow workflow, string targetNodeId)
+    {
+        var requiredNodeIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { targetNodeId };
+        var queue = new Queue<string>();
+        queue.Enqueue(targetNodeId);
+
+        while (queue.Count > 0)
+        {
+            var current = queue.Dequeue();
+            var incomingConnections = workflow.Connections
+                .Where(c => string.Equals(c.TargetNodeId, current, StringComparison.OrdinalIgnoreCase));
+
+            foreach (var conn in incomingConnections)
+            {
+                if (requiredNodeIds.Add(conn.SourceNodeId))
+                {
+                    queue.Enqueue(conn.SourceNodeId);
+                }
+            }
+        }
+
+        return workflow with
+        {
+            Nodes = workflow.Nodes.Where(n => requiredNodeIds.Contains(n.Id)).ToList(),
+            Connections = workflow.Connections.Where(c =>
+                requiredNodeIds.Contains(c.SourceNodeId) &&
+                requiredNodeIds.Contains(c.TargetNodeId)).ToList()
+        };
     }
 }
