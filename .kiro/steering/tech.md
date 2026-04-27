@@ -137,7 +137,7 @@ Versions are centralized in `Directory.Packages.props` at the solution root. Whe
 dotnet build                              # Build entire solution
 dotnet test                               # Run all tests
 dotnet test --filter "FullyQualifiedName~Unit"  # Run unit tests only
-dotnet run --project FlowForge.Api        # Start API
-dotnet run --project FlowForge.Designer   # Start Blazor UI
-dotnet run --project FlowForge.AppHost    # Start via Aspire (all services)
+dotnet run --project src/FlowForge.Api        # Start API
+dotnet run --project src/FlowForge.Designer   # Start Blazor UI
+dotnet run --project src/FlowForge.AppHost    # Start via Aspire (all services)
 ```

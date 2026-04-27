@@ -48,4 +48,4 @@ coverage*.json
 ## OS
 .DS_Store
 Thumbs.db
-FlowForge.Api/packages/*
+src/FlowForge.Api/packages/*

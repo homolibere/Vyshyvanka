@@ -1,10 +1,16 @@
 <Solution>
-  <Project Path="FlowForge.Core/FlowForge.Core.csproj" />
-  <Project Path="FlowForge.Engine/FlowForge.Engine.csproj" />
-  <Project Path="FlowForge.Api/FlowForge.Api.csproj" />
-  <Project Path="FlowForge.Designer/FlowForge.Designer.csproj" />
-  <Project Path="FlowForge.Tests/FlowForge.Tests.csproj" />
-  <Project Path="FlowForge.Plugin.AdvancedHttp/FlowForge.Plugin.AdvancedHttp.csproj" />
-  <Project Path="FlowForge.ServiceDefaults/FlowForge.ServiceDefaults.csproj" />
-  <Project Path="FlowForge.AppHost/FlowForge.AppHost.csproj" />
+  <Folder Name="/src/">
+    <Project Path="src/FlowForge.Core/FlowForge.Core.csproj" />
+    <Project Path="src/FlowForge.Engine/FlowForge.Engine.csproj" />
+    <Project Path="src/FlowForge.Api/FlowForge.Api.csproj" />
+    <Project Path="src/FlowForge.Designer/FlowForge.Designer.csproj" />
+    <Project Path="src/FlowForge.ServiceDefaults/FlowForge.ServiceDefaults.csproj" />
+    <Project Path="src/FlowForge.AppHost/FlowForge.AppHost.csproj" />
+  </Folder>
+  <Folder Name="/plugins/">
+    <Project Path="plugins/FlowForge.Plugin.AdvancedHttp/FlowForge.Plugin.AdvancedHttp.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/FlowForge.Tests/FlowForge.Tests.csproj" />
+  </Folder>
 </Solution>

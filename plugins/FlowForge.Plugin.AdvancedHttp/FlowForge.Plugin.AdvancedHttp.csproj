@@ -22,7 +22,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FlowForge.Core\FlowForge.Core.csproj">
+    <ProjectReference Include="../../src/FlowForge.Core/FlowForge.Core.csproj">
       <Private>false</Private>
       <ExcludeAssets>runtime</ExcludeAssets>
     </ProjectReference>

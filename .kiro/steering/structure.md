@@ -6,16 +6,20 @@ inclusion: always
 
 ```
 FlowForge/
-├── FlowForge.Core/              # Domain layer — zero dependencies on other projects
-├── FlowForge.Engine/            # Execution engine, persistence, plugins, auth
-├── FlowForge.Api/               # ASP.NET Core REST API
-├── FlowForge.AppHost/           # .NET Aspire orchestration (dev hosting)
-├── FlowForge.Designer/          # Blazor WASM UI — communicates only via HTTP
-├── FlowForge.Plugin.*/          # Plugin projects (reference Core only)
-├── FlowForge.ServiceDefaults/   # Shared service configuration (Aspire defaults)
-├── FlowForge.Tests/             # All tests (unit, property, integration, E2E)
-├── docs/                        # Design documentation and architectural decisions
-└── FlowForge.sln                # Solution file
+├── src/
+│   ├── FlowForge.Core/              # Domain layer — zero dependencies on other projects
+│   ├── FlowForge.Engine/            # Execution engine, persistence, plugins, auth
+│   ├── FlowForge.Api/               # ASP.NET Core REST API
+│   ├── FlowForge.AppHost/           # .NET Aspire orchestration (dev hosting)
+│   ├── FlowForge.Designer/          # Blazor WASM UI — communicates only via HTTP
+│   └── FlowForge.ServiceDefaults/   # Shared service configuration (Aspire defaults)
+├── plugins/
+│   └── FlowForge.Plugin.*/          # Plugin projects (reference Core only)
+├── tests/
+│   └── FlowForge.Tests/             # All tests (unit, property, integration, E2E)
+├── docs/                            # Design documentation and architectural decisions
+├── Directory.Packages.props         # Central package version management
+└── FlowForge.slnx                   # Solution file
 ```
 
 ## Dependency Rules

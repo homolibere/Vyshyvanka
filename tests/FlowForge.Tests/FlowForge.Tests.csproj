@@ -24,11 +24,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FlowForge.Core\FlowForge.Core.csproj" />
-    <ProjectReference Include="..\FlowForge.Engine\FlowForge.Engine.csproj" />
-    <ProjectReference Include="..\FlowForge.Api\FlowForge.Api.csproj" />
-    <ProjectReference Include="..\FlowForge.Designer\FlowForge.Designer.csproj" />
-    <ProjectReference Include="..\FlowForge.ServiceDefaults\FlowForge.ServiceDefaults.csproj" />
+    <ProjectReference Include="../../src/FlowForge.Core/FlowForge.Core.csproj" />
+    <ProjectReference Include="../../src/FlowForge.Engine/FlowForge.Engine.csproj" />
+    <ProjectReference Include="../../src/FlowForge.Api/FlowForge.Api.csproj" />
+    <ProjectReference Include="../../src/FlowForge.Designer/FlowForge.Designer.csproj" />
+    <ProjectReference Include="../../src/FlowForge.ServiceDefaults/FlowForge.ServiceDefaults.csproj" />
   </ItemGroup>
 
 </Project>

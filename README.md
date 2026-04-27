@@ -61,23 +61,23 @@ dotnet restore FlowForge.slnx
 Starts both the API and Designer with service discovery:
 
 ```bash
-dotnet run --project FlowForge.AppHost
+dotnet run --project src/FlowForge.AppHost
 ```
 
 This uses SQLite by default. To use PostgreSQL instead (requires Docker):
 
 ```bash
-USE_POSTGRES=true dotnet run --project FlowForge.AppHost
+USE_POSTGRES=true dotnet run --project src/FlowForge.AppHost
 ```
 
 ### Run individual projects
 
 ```bash
 # API only
-dotnet run --project FlowForge.Api
+dotnet run --project src/FlowForge.Api
 
 # Designer only
-dotnet run --project FlowForge.Designer
+dotnet run --project src/FlowForge.Designer
 ```
 
 ### Build & Test
@@ -89,16 +89,16 @@ dotnet test
 
 ## Project Structure
 
-| Project | Description |
-|---------|-------------|
-| `FlowForge.Core` | Domain models, interfaces, enums, exceptions. No external dependencies. |
-| `FlowForge.Engine` | Workflow execution engine, EF Core persistence, plugin system, node registry. |
-| `FlowForge.Api` | REST API controllers, middleware, authentication, DTOs. |
-| `FlowForge.Designer` | Blazor WebAssembly visual workflow editor. |
-| `FlowForge.AppHost` | .NET Aspire host for orchestrating services. |
-| `FlowForge.ServiceDefaults` | Shared Aspire service configuration (OpenTelemetry, resilience). |
-| `FlowForge.Plugin.*` | Plugin projects extending the node library. |
-| `FlowForge.Tests` | Unit, integration, property-based, and E2E tests. |
+| Project | Location | Description |
+|---------|----------|-------------|
+| `FlowForge.Core` | `src/` | Domain models, interfaces, enums, exceptions. No external dependencies. |
+| `FlowForge.Engine` | `src/` | Workflow execution engine, EF Core persistence, plugin system, node registry. |
+| `FlowForge.Api` | `src/` | REST API controllers, middleware, authentication, DTOs. |
+| `FlowForge.Designer` | `src/` | Blazor WebAssembly visual workflow editor. |
+| `FlowForge.AppHost` | `src/` | .NET Aspire host for orchestrating services. |
+| `FlowForge.ServiceDefaults` | `src/` | Shared Aspire service configuration (OpenTelemetry, resilience). |
+| `FlowForge.Plugin.*` | `plugins/` | Plugin projects extending the node library. |
+| `FlowForge.Tests` | `tests/` | Unit, integration, property-based, and E2E tests. |
 
 ## Key Concepts
 
