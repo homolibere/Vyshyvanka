@@ -36,7 +36,8 @@ Dependencies flow downward only. The Designer communicates with the API exclusiv
 | Database | SQLite (dev) / PostgreSQL (prod) |
 | ORM | Entity Framework Core (code-first) |
 | Orchestration | .NET Aspire |
-| Auth | JWT Bearer + API Key |
+| Auth | Built-in JWT, Keycloak, Authentik, or LDAP |
+| Credential Storage | Built-in AES-256, HashiCorp Vault, or OpenBao |
 | Serialization | System.Text.Json |
 | Testing | xUnit, CsCheck, NSubstitute, bUnit |
 
@@ -146,10 +147,106 @@ Extend FlowForge by creating plugin projects that reference `FlowForge.Core` and
 
 ## Authentication
 
-| Method | Use Case |
-|--------|----------|
-| JWT Bearer | User sessions from the Designer |
-| API Key | Webhooks and external integrations |
+FlowForge supports four authentication providers, configured via `Authentication:Provider` in `appsettings.json`:
+
+| Provider | Value | Description |
+|----------|-------|-------------|
+| Built-in | `BuiltIn` | Local email/password with self-issued JWT tokens (default) |
+| Keycloak | `Keycloak` | OpenID Connect via Keycloak |
+| Authentik | `Authentik` | OpenID Connect via Authentik |
+| LDAP | `Ldap` | LDAP directory with locally-issued JWT tokens |
+
+API key authentication (`X-API-Key` header) is always available for webhooks and external integrations, regardless of the active provider.
+
+### Built-in (default)
+
+Works out of the box. Users register and log in with email/password. Development seeds three users automatically (`admin@flowforge.local`, `editor@flowforge.local`, `viewer@flowforge.local`).
+
+### Keycloak / Authentik
+
+Configure the OIDC authority and role mappings. The API validates tokens issued by the external provider and auto-provisions local users on first login.
+
+```json
+{
+  "Authentication": {
+    "Provider": "Keycloak",
+    "Authority": "https://keycloak.example.com/realms/flowforge",
+    "ClientId": "flowforge-api",
+    "Audience": "flowforge-api",
+    "RoleClaimType": "realm_access",
+    "RoleMappings": {
+      "flowforge-admin": "Admin",
+      "flowforge-editor": "Editor"
+    }
+  }
+}
+```
+
+See [`appsettings.Keycloak.json`](src/FlowForge.Api/appsettings.Keycloak.json) and [`appsettings.Authentik.json`](src/FlowForge.Api/appsettings.Authentik.json) for full examples.
+
+### LDAP
+
+Credentials are verified against the LDAP directory. Sessions use locally-issued JWT tokens. Users are provisioned on first login with roles mapped from LDAP group memberships.
+
+```json
+{
+  "Authentication": {
+    "Provider": "Ldap",
+    "Ldap": {
+      "Host": "ldap.example.com",
+      "Port": 389,
+      "UseStartTls": true,
+      "BindDn": "cn=readonly,dc=example,dc=com",
+      "BindPassword": "...",
+      "SearchBase": "ou=users,dc=example,dc=com",
+      "UserSearchFilter": "(mail={0})",
+      "RoleMappings": {
+        "FlowForge-Admins": "Admin",
+        "FlowForge-Editors": "Editor"
+      }
+    }
+  }
+}
+```
+
+See [`appsettings.Ldap.json`](src/FlowForge.Api/appsettings.Ldap.json) for the full example.
+
+### Auth Discovery
+
+The `GET /api/auth/config` endpoint (anonymous) returns the active provider and OIDC settings so the Designer can configure its auth flow at runtime.
+
+## Credential Storage
+
+FlowForge supports three credential storage backends, configured via `CredentialStorage:Provider` in `appsettings.json`:
+
+| Provider | Value | Description |
+|----------|-------|-------------|
+| Built-in | `BuiltIn` | AES-256 encrypted in the local database (default) |
+| HashiCorp Vault | `HashiCorpVault` | KV v2 secrets engine |
+| OpenBao | `OpenBao` | KV v2 secrets engine (Vault-compatible) |
+
+### Built-in (default)
+
+Credential values are encrypted with AES-256 and stored alongside metadata in the database. Configure the encryption key via `FlowForge:EncryptionKey`.
+
+### HashiCorp Vault / OpenBao
+
+Metadata (name, type, owner) stays in the local database. Secret values are stored in Vault/OpenBao via the KV v2 API.
+
+```json
+{
+  "CredentialStorage": {
+    "Provider": "HashiCorpVault",
+    "Url": "https://vault.example.com:8200",
+    "MountPath": "secret",
+    "PathPrefix": "flowforge/credentials"
+  }
+}
+```
+
+The Vault token can be set via `CredentialStorage:Token` or the `VAULT_TOKEN` environment variable.
+
+See [`appsettings.Vault.json`](src/FlowForge.Api/appsettings.Vault.json) and [`appsettings.OpenBao.json`](src/FlowForge.Api/appsettings.OpenBao.json) for full examples.
 
 ## Documentation
 

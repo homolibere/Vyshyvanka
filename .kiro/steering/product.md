@@ -14,7 +14,7 @@ FlowForge is a .NET 10 workflow automation platform. Users build workflows visua
 | Node | Atomic operation with typed input/output ports | Belongs to one workflow; category determines base class |
 | Connection | Directed link from an output port to an input port | Port types must be compatible (see below) |
 | Execution | Immutable runtime record of a workflow run | Terminal states (`Completed`, `Failed`, `Cancelled`) are final — never mutate |
-| Credential | Encrypted authentication data (AES-256 at rest) | Never returned in API responses; never logged |
+| Credential | Authentication data stored locally (AES-256) or in an external secrets manager (Vault, OpenBao) | Never returned in API responses; never logged |
 
 ## Node Categories
 
@@ -97,7 +97,7 @@ Always check `ICurrentUserService` to verify the authenticated user owns or has 
 ## Security Rules
 
 **Always do:**
-- Encrypt credentials at rest with AES-256
+- Encrypt credentials at rest with AES-256 (built-in) or delegate to Vault/OpenBao
 - Validate resource ownership before any CRUD or execution operation
 - Sanitize user input in expressions to prevent injection
 - Use parameterized queries for all database operations
@@ -107,6 +107,7 @@ Always check `ICurrentUserService` to verify the authenticated user owns or has 
 - Log credentials or sensitive data at any log level
 - Allow cross-user workflow access without explicit sharing
 - Execute a workflow that has not passed validation
+- Store Vault/OpenBao tokens in plain text in appsettings.json (use environment variables)
 
 ## Required Terminology
 

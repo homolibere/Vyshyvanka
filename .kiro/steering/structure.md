@@ -69,7 +69,10 @@ Place new files according to these tables. Namespace MUST match the folder path 
 | Node registry | `Registry/` |
 | Workflow validation | `Validation/` |
 | Auth services | `Auth/` |
+| LDAP authentication | `Auth/LdapAuthenticationService.cs`, `Auth/LdapAuthService.cs` |
+| OIDC user provisioning | `Auth/OidcUserProvisioningService.cs` |
 | Credential handling | `Credentials/` |
+| Vault/OpenBao client | `Credentials/VaultClient.cs`, `Credentials/VaultCredentialService.cs` |
 
 ### FlowForge.Api/
 | What | Where |
@@ -77,6 +80,7 @@ Place new files according to these tables. Namespace MUST match the folder path 
 | Controllers | `Controllers/` |
 | Request/Response DTOs | `Models/` |
 | Middleware | `Middleware/` |
+| OIDC claims transformation | `Middleware/OidcClaimsTransformation.cs` |
 | Authorization policies | `Authorization/` |
 | Service extensions | `Extensions/` |
 | API-layer services | `Services/` |
@@ -136,6 +140,9 @@ When modifying code, ALWAYS check for downstream impact:
 | Controller endpoint | Integration tests in `Tests/Integration/` |
 | DbContext or Entity | EF migrations may be needed |
 | Node implementation | Registration in `NodeRegistry` |
+| Authentication provider setting | `ServiceCollectionExtensions`, `AuthController`, `DevelopmentUserSeeder` |
+| Credential storage provider setting | `ServiceCollectionExtensions`, `CredentialService` or `VaultCredentialService` |
+| `ICredentialService` interface | Both `CredentialService` and `VaultCredentialService` |
 
 ## Key Patterns
 

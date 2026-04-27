@@ -88,6 +88,37 @@ Domain errors use typed exceptions inheriting `FlowForgeException` (defined in `
 - API-layer services registered in `FlowForge.Api/Program.cs`.
 - Aspire defaults added via `builder.AddServiceDefaults()`.
 - Use interface-based registration: `services.AddScoped<IFoo, Foo>()`.
+- Authentication and credential storage providers are selected at startup via `appsettings.json` and branched in `ServiceCollectionExtensions`.
+
+## Authentication Providers
+
+Configured via `Authentication:Provider` in `appsettings.json`. Four options:
+
+| Provider | Value | Session Tokens | Login Endpoint |
+|----------|-------|---------------|----------------|
+| Built-in | `BuiltIn` | Local JWT | Yes |
+| Keycloak | `Keycloak` | External OIDC | No (redirect) |
+| Authentik | `Authentik` | External OIDC | No (redirect) |
+| LDAP | `Ldap` | Local JWT | Yes |
+
+- OIDC providers (Keycloak/Authentik): API validates external tokens; `OidcClaimsTransformation` provisions local users.
+- LDAP: `LdapAuthenticationService` verifies credentials against the directory; `LdapAuthService` issues local JWT tokens.
+- API key auth (`X-API-Key` header) is always available regardless of provider.
+- `GET /api/auth/config` returns the active provider so the Designer can adapt.
+
+## Credential Storage Providers
+
+Configured via `CredentialStorage:Provider` in `appsettings.json`. Three options:
+
+| Provider | Value | Secret Storage | Metadata Storage |
+|----------|-------|---------------|-----------------|
+| Built-in | `BuiltIn` | AES-256 in DB | DB |
+| HashiCorp Vault | `HashiCorpVault` | Vault KV v2 | DB |
+| OpenBao | `OpenBao` | OpenBao KV v2 | DB |
+
+- Built-in: `CredentialService` encrypts with `ICredentialEncryption` and persists via `ICredentialRepository`.
+- Vault/OpenBao: `VaultCredentialService` stores secrets via `IVaultClient`, metadata via `ICredentialRepository`.
+- Validation logic is shared via `CredentialValidator` regardless of backend.
 
 ## Testing
 
