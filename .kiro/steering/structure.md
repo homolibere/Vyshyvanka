@@ -14,7 +14,10 @@ FlowForge/
 │   ├── FlowForge.Designer/          # Blazor WASM UI — communicates only via HTTP
 │   └── FlowForge.ServiceDefaults/   # Shared service configuration (Aspire defaults)
 ├── plugins/
-│   └── FlowForge.Plugin.*/          # Plugin projects (reference Core only)
+│   ├── FlowForge.Plugin.AdvancedHttp/ # HTTP retry, polling, batch, GraphQL nodes
+│   ├── FlowForge.Plugin.GitLab/      # GitLab integration nodes
+│   ├── FlowForge.Plugin.Jira/        # Jira integration nodes
+│   └── FlowForge.Plugin.Tmplt/       # Starter template for new plugins
 ├── tests/
 │   └── FlowForge.Tests/             # All tests (unit, property, integration, E2E)
 ├── docs/                            # Design documentation and architectural decisions
@@ -47,6 +50,7 @@ Place new files according to these tables. Namespace MUST match the folder path 
 | Interfaces / contracts | `Interfaces/` |
 | Enums | `Enums/` |
 | Custom exceptions | `Exceptions/` |
+| Node / plugin attributes | `Attributes/` |
 
 ### FlowForge.Engine/
 | What | Where |
@@ -76,11 +80,13 @@ Place new files according to these tables. Namespace MUST match the folder path 
 | Authorization policies | `Authorization/` |
 | Service extensions | `Extensions/` |
 | API-layer services | `Services/` |
+| Installed plugin packages | `packages/` |
 
 ### FlowForge.Designer/
 | What | Where |
 |------|-------|
 | Blazor components | `Components/` |
+| Layout components | `Layout/` |
 | Pages | `Pages/` |
 | Client services | `Services/` |
 | Client models | `Models/` |

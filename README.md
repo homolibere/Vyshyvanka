@@ -97,7 +97,10 @@ dotnet test
 | `FlowForge.Designer` | `src/` | Blazor WebAssembly visual workflow editor. |
 | `FlowForge.AppHost` | `src/` | .NET Aspire host for orchestrating services. |
 | `FlowForge.ServiceDefaults` | `src/` | Shared Aspire service configuration (OpenTelemetry, resilience). |
-| `FlowForge.Plugin.*` | `plugins/` | Plugin projects extending the node library. |
+| `FlowForge.Plugin.AdvancedHttp` | `plugins/` | HTTP retry, polling, batch, and GraphQL nodes. |
+| `FlowForge.Plugin.GitLab` | `plugins/` | GitLab issues, merge requests, pipelines, files, tags, releases. |
+| `FlowForge.Plugin.Jira` | `plugins/` | Jira issues, comments, users, and JQL search. |
+| `FlowForge.Plugin.Tmplt` | `plugins/` | Starter template for building new plugins. |
 | `FlowForge.Tests` | `tests/` | Unit, integration, property-based, and E2E tests. |
 
 ## Key Concepts
@@ -132,7 +135,14 @@ Reference data from previous nodes using double-brace syntax:
 
 ### Plugins
 
-Extend FlowForge by creating plugin projects that reference `FlowForge.Core` and implement custom nodes. See `FlowForge.Plugin.AdvancedHttp` for an example.
+Extend FlowForge by creating plugin projects that reference `FlowForge.Core` and implement custom nodes.
+
+| Plugin | Description |
+|--------|-------------|
+| [AdvancedHttp](plugins/FlowForge.Plugin.AdvancedHttp/) | HTTP retry, polling, batch requests, and GraphQL |
+| [GitLab](plugins/FlowForge.Plugin.GitLab/) | GitLab issues, merge requests, pipelines, files, tags, releases, and webhook triggers |
+| [Jira](plugins/FlowForge.Plugin.Jira/) | Jira issues, comments, users, and JQL search |
+| [Template](plugins/FlowForge.Plugin.Tmplt/) | Starter template for building your own plugins |
 
 ## Authentication
 
@@ -140,6 +150,10 @@ Extend FlowForge by creating plugin projects that reference `FlowForge.Core` and
 |--------|----------|
 | JWT Bearer | User sessions from the Designer |
 | API Key | Webhooks and external integrations |
+
+## Documentation
+
+Detailed design docs and architectural decisions live in the [`docs/`](docs/) folder.
 
 ## License
 
