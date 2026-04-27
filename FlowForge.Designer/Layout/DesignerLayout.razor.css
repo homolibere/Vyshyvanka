@@ -28,10 +28,16 @@
 }
 
 .header-right {
-    text-align: right;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: flex-end;
 }
 
 .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     font-size: 1.25rem;
     font-weight: 600;
     color: #4fc3f7;
@@ -40,6 +46,11 @@
 
 .brand:hover {
     color: #81d4fa;
+}
+
+.brand-icon {
+    height: 28px;
+    width: 28px;
 }
 
 .btn-back {

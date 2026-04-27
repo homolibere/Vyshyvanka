@@ -1,0 +1,13 @@
+@if (AuthService.IsAuthenticated && AuthService.CurrentUser is not null)
+{
+    <div class="user-menu">
+        <div class="user-info">
+            <span class="user-avatar">@GetInitials()</span>
+            <span class="user-name">@GetDisplayName()</span>
+            <span class="user-role">@AuthService.CurrentUser.Role</span>
+        </div>
+        <button class="btn-logout" @onclick="HandleLogout" title="Sign out">
+            <i class="fas fa-sign-out-alt"></i>
+        </button>
+    </div>
+}

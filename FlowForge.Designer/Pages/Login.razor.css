@@ -15,6 +15,16 @@
     max-width: 400px;
 }
 
+.login-logo {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.login-logo img {
+    height: 48px;
+    width: auto;
+}
+
 .login-card h2 {
     text-align: center;
     color: #1a1a2e;

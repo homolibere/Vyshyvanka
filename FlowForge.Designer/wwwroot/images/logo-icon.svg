@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="flow-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1976d2"/>
+      <stop offset="100%" stop-color="#4fc3f7"/>
+    </linearGradient>
+    <linearGradient id="spark-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff9800"/>
+      <stop offset="100%" stop-color="#ffca28"/>
+    </linearGradient>
+  </defs>
+  <!-- Flow paths connecting nodes -->
+  <path d="M16 18 C28 18, 24 32, 36 32" stroke="url(#flow-grad)" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <path d="M36 32 C48 32, 44 46, 56 46" stroke="url(#flow-grad)" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <path d="M36 32 C48 32, 44 18, 56 18" stroke="url(#flow-grad)" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.5"/>
+  <!-- Node circles -->
+  <circle cx="14" cy="18" r="6" fill="url(#flow-grad)"/>
+  <circle cx="36" cy="32" r="7" fill="url(#flow-grad)"/>
+  <circle cx="56" cy="46" r="6" fill="url(#flow-grad)"/>
+  <circle cx="56" cy="18" r="4.5" fill="url(#flow-grad)" opacity="0.6"/>
+  <!-- Inner node highlights -->
+  <circle cx="14" cy="17" r="2.5" fill="white" opacity="0.3"/>
+  <circle cx="36" cy="31" r="3" fill="white" opacity="0.3"/>
+  <circle cx="56" cy="45" r="2.5" fill="white" opacity="0.3"/>
+  <!-- Forge spark -->
+  <path d="M28 8 L30 14 L26 12 L28 8Z" fill="url(#spark-grad)"/>
+  <path d="M32 6 L33 10 L31 9 L32 6Z" fill="url(#spark-grad)" opacity="0.7"/>
+  <circle cx="25" cy="11" r="1" fill="#ffca28" opacity="0.6"/>
+</svg>
