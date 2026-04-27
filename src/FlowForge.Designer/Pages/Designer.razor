@@ -4,6 +4,10 @@
 
 <PageTitle>@(StateService.Workflow.Name) - FlowForge Designer</PageTitle>
 
+@{
+    Layout?.SetToolbar(ToolbarContent);
+}
+
 <div class="designer-container">
     <aside class="node-palette @(_isPaletteCollapsed ? "collapsed" : "")">
         <div class="panel-toggle" @onclick="TogglePalette" title="@(_isPaletteCollapsed ? "Show Nodes" : "Hide Nodes")">
@@ -20,51 +24,6 @@
     </aside>
 
     <div class="canvas-area">
-        <div class="canvas-toolbar">
-            <button class="toolbar-btn" @onclick="OpenWorkflowBrowser" title="Open Workflow">
-                📂 Open
-            </button>
-            <span class="toolbar-separator"></span>
-            <button class="toolbar-btn" @onclick="StateService.Undo" disabled="@(!StateService.CanUndo)" title="Undo">
-                ↶
-            </button>
-            <button class="toolbar-btn" @onclick="StateService.Redo" disabled="@(!StateService.CanRedo)" title="Redo">
-                ↷
-            </button>
-            <span class="toolbar-separator"></span>
-            <button class="toolbar-btn" @onclick="ZoomIn" title="Zoom In">+</button>
-            <span class="zoom-level">@((StateService.CanvasState.Zoom * 100).ToString("0"))%</span>
-            <button class="toolbar-btn" @onclick="ZoomOut" title="Zoom Out">−</button>
-            <button class="toolbar-btn" @onclick="StateService.ResetView" title="Reset View">⟲</button>
-            <span class="toolbar-separator"></span>
-            @if (StateService.IsDirty)
-            {
-                <span class="dirty-indicator" title="Unsaved changes">●</span>
-            }
-            <button class="toolbar-btn primary" @onclick="SaveWorkflow" disabled="@(!StateService.ValidationResult.IsValid)" title="@GetSaveButtonTitle()">
-                💾 Save
-            </button>
-            <button class="toolbar-btn @(StateService.Workflow.IsActive ? "active" : "")" @onclick="ToggleWorkflowActive" title="@(StateService.Workflow.IsActive ? "Workflow is active (click to deactivate)" : "Workflow is inactive (click to activate)")">
-                @(StateService.Workflow.IsActive ? "🟢 Active" : "⚪ Inactive")
-            </button>
-            <button class="toolbar-btn" @onclick="ExecuteWorkflow" disabled="@(!StateService.ValidationResult.IsValid || StateService.IsExecutionActive || !StateService.Workflow.IsActive)" title="@GetRunButtonTitle()">
-                ▶ Run
-            </button>
-            @if (StateService.IsExecutionActive)
-            {
-                <button class="toolbar-btn" @onclick="StopExecution" title="Stop Execution">
-                    ⏹ Stop
-                </button>
-            }
-            <span class="toolbar-separator"></span>
-            <button class="toolbar-btn" @onclick="OpenPluginManager" title="Plugin Manager">
-                📦 Plugins
-            </button>
-            <button class="toolbar-btn" @onclick="OpenCredentialManager" title="Credential Manager">
-                🔑 Credentials
-            </button>
-        </div>
-
         @if (!StateService.ValidationResult.IsValid)
         {
             <div class="validation-panel">

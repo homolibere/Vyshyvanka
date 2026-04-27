@@ -9,20 +9,165 @@ namespace FlowForge.Designer.Pages;
 
 public partial class Designer : IDisposable
 {
-    [Inject]
-    private WorkflowStateService StateService { get; set; } = null!;
+    [Inject] private WorkflowStateService StateService { get; set; } = null!;
 
-    [Inject]
-    private FlowForgeApiClient ApiClient { get; set; } = null!;
+    [Inject] private FlowForgeApiClient ApiClient { get; set; } = null!;
 
-    [Inject]
-    private NavigationManager Navigation { get; set; } = null!;
+    [Inject] private NavigationManager Navigation { get; set; } = null!;
 
-    [Inject]
-    private ToastService Toast { get; set; } = null!;
+    [Inject] private ToastService Toast { get; set; } = null!;
 
-    [Parameter]
-    public Guid? WorkflowId { get; set; }
+    [Parameter] public Guid? WorkflowId { get; set; }
+
+    [CascadingParameter] private FlowForge.Designer.Layout.DesignerLayout? Layout { get; set; }
+
+    private RenderFragment ToolbarContent => builder =>
+    {
+        int seq = 0;
+        // Open
+        builder.OpenElement(seq++, "button");
+        builder.AddAttribute(seq++, "class", "toolbar-btn");
+        builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, OpenWorkflowBrowser));
+        builder.AddAttribute(seq++, "title", "Open Workflow");
+        builder.AddContent(seq++, "📂 Open");
+        builder.CloseElement();
+
+        // Separator
+        builder.OpenElement(seq++, "span");
+        builder.AddAttribute(seq++, "class", "toolbar-separator");
+        builder.CloseElement();
+
+        // Undo
+        builder.OpenElement(seq++, "button");
+        builder.AddAttribute(seq++, "class", "toolbar-btn");
+        builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, StateService.Undo));
+        builder.AddAttribute(seq++, "disabled", !StateService.CanUndo);
+        builder.AddAttribute(seq++, "title", "Undo");
+        builder.AddContent(seq++, "↶");
+        builder.CloseElement();
+
+        // Redo
+        builder.OpenElement(seq++, "button");
+        builder.AddAttribute(seq++, "class", "toolbar-btn");
+        builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, StateService.Redo));
+        builder.AddAttribute(seq++, "disabled", !StateService.CanRedo);
+        builder.AddAttribute(seq++, "title", "Redo");
+        builder.AddContent(seq++, "↷");
+        builder.CloseElement();
+
+        // Separator
+        builder.OpenElement(seq++, "span");
+        builder.AddAttribute(seq++, "class", "toolbar-separator");
+        builder.CloseElement();
+
+        // Zoom In
+        builder.OpenElement(seq++, "button");
+        builder.AddAttribute(seq++, "class", "toolbar-btn");
+        builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, ZoomIn));
+        builder.AddAttribute(seq++, "title", "Zoom In");
+        builder.AddContent(seq++, "+");
+        builder.CloseElement();
+
+        // Zoom level
+        builder.OpenElement(seq++, "span");
+        builder.AddAttribute(seq++, "class", "zoom-level");
+        builder.AddContent(seq++, $"{(StateService.CanvasState.Zoom * 100):0}%");
+        builder.CloseElement();
+
+        // Zoom Out
+        builder.OpenElement(seq++, "button");
+        builder.AddAttribute(seq++, "class", "toolbar-btn");
+        builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, ZoomOut));
+        builder.AddAttribute(seq++, "title", "Zoom Out");
+        builder.AddContent(seq++, "−");
+        builder.CloseElement();
+
+        // Reset View
+        builder.OpenElement(seq++, "button");
+        builder.AddAttribute(seq++, "class", "toolbar-btn");
+        builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, StateService.ResetView));
+        builder.AddAttribute(seq++, "title", "Reset View");
+        builder.AddContent(seq++, "⟲");
+        builder.CloseElement();
+
+        // Separator
+        builder.OpenElement(seq++, "span");
+        builder.AddAttribute(seq++, "class", "toolbar-separator");
+        builder.CloseElement();
+
+        // Dirty indicator
+        if (StateService.IsDirty)
+        {
+            builder.OpenElement(seq++, "span");
+            builder.AddAttribute(seq++, "class", "dirty-indicator");
+            builder.AddAttribute(seq++, "title", "Unsaved changes");
+            builder.AddContent(seq++, "●");
+            builder.CloseElement();
+        }
+
+        // Save
+        builder.OpenElement(seq++, "button");
+        builder.AddAttribute(seq++, "class", "toolbar-btn primary");
+        builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, SaveWorkflow));
+        builder.AddAttribute(seq++, "disabled", !StateService.ValidationResult.IsValid);
+        builder.AddAttribute(seq++, "title", GetSaveButtonTitle());
+        builder.AddContent(seq++, "💾 Save");
+        builder.CloseElement();
+
+        // Active toggle
+        builder.OpenElement(seq++, "button");
+        builder.AddAttribute(seq++, "class", $"toolbar-btn {(StateService.Workflow.IsActive ? "active" : "")}");
+        builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, ToggleWorkflowActive));
+        builder.AddAttribute(seq++, "title",
+            StateService.Workflow.IsActive
+                ? "Workflow is active (click to deactivate)"
+                : "Workflow is inactive (click to activate)");
+        builder.AddContent(seq++, StateService.Workflow.IsActive ? "🟢 Active" : "⚪ Inactive");
+        builder.CloseElement();
+
+        // Run
+        builder.OpenElement(seq++, "button");
+        builder.AddAttribute(seq++, "class", "toolbar-btn");
+        builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, ExecuteWorkflow));
+        builder.AddAttribute(seq++, "disabled",
+            !StateService.ValidationResult.IsValid || StateService.IsExecutionActive ||
+            !StateService.Workflow.IsActive);
+        builder.AddAttribute(seq++, "title", GetRunButtonTitle());
+        builder.AddContent(seq++, "▶ Run");
+        builder.CloseElement();
+
+        // Stop (conditional)
+        if (StateService.IsExecutionActive)
+        {
+            builder.OpenElement(seq++, "button");
+            builder.AddAttribute(seq++, "class", "toolbar-btn");
+            builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, StopExecution));
+            builder.AddAttribute(seq++, "title", "Stop Execution");
+            builder.AddContent(seq++, "⏹ Stop");
+            builder.CloseElement();
+        }
+
+        // Separator
+        builder.OpenElement(seq++, "span");
+        builder.AddAttribute(seq++, "class", "toolbar-separator");
+        builder.CloseElement();
+
+        // Plugins
+        builder.OpenElement(seq++, "button");
+        builder.AddAttribute(seq++, "class", "toolbar-btn");
+        builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, OpenPluginManager));
+        builder.AddAttribute(seq++, "title", "Plugin Manager");
+        builder.AddContent(seq++, "📦 Plugins");
+        builder.CloseElement();
+
+        // Credentials
+        builder.OpenElement(seq++, "button");
+        builder.AddAttribute(seq++, "class", "toolbar-btn");
+        builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, OpenCredentialManager));
+        builder.AddAttribute(seq++, "title", "Credential Manager");
+        builder.AddContent(seq++, "🔑 Credentials");
+        builder.CloseElement();
+    };
 
     private bool _isValidationPanelExpanded = true;
     private bool _isPluginManagerOpen;
@@ -157,7 +302,9 @@ public partial class Designer : IDisposable
                 StateService.MarkAsSaved();
 
                 Toast.ShowSuccess(
-                    isNew ? $"Workflow '{saved.Name}' created successfully" : $"Workflow '{saved.Name}' updated (v{saved.Version})",
+                    isNew
+                        ? $"Workflow '{saved.Name}' created successfully"
+                        : $"Workflow '{saved.Name}' updated (v{saved.Version})",
                     isNew ? "Created" : "Saved");
 
                 // Navigate to the workflow URL if this was a new workflow
@@ -217,7 +364,8 @@ public partial class Designer : IDisposable
             if (execution.Status == ExecutionStatus.Completed)
             {
                 StopExecutionPolling();
-                Toast.ShowSuccess($"Workflow executed successfully in {execution.Duration?.TotalMilliseconds:0}ms", "Completed");
+                Toast.ShowSuccess($"Workflow executed successfully in {execution.Duration?.TotalMilliseconds:0}ms",
+                    "Completed");
             }
             else if (execution.Status == ExecutionStatus.Failed)
             {
@@ -303,7 +451,10 @@ public partial class Designer : IDisposable
                 Description = "Conditional branching",
                 Category = NodeCategory.Logic,
                 Icon = "fa-solid fa-code-branch",
-                Inputs = [new PortDefinition { Name = "input", DisplayName = "Input", Type = PortType.Any, IsRequired = true }],
+                Inputs =
+                [
+                    new PortDefinition { Name = "input", DisplayName = "Input", Type = PortType.Any, IsRequired = true }
+                ],
                 Outputs =
                 [
                     new PortDefinition { Name = "true", DisplayName = "True", Type = PortType.Any },
@@ -317,7 +468,10 @@ public partial class Designer : IDisposable
                 Description = "Multi-way branching",
                 Category = NodeCategory.Logic,
                 Icon = "fa-solid fa-shuffle",
-                Inputs = [new PortDefinition { Name = "input", DisplayName = "Input", Type = PortType.Any, IsRequired = true }],
+                Inputs =
+                [
+                    new PortDefinition { Name = "input", DisplayName = "Input", Type = PortType.Any, IsRequired = true }
+                ],
                 Outputs = [new PortDefinition { Name = "output", DisplayName = "Output", Type = PortType.Any }]
             },
             new NodeDefinition
@@ -341,7 +495,11 @@ public partial class Designer : IDisposable
                 Description = "Iterate over items",
                 Category = NodeCategory.Logic,
                 Icon = "fa-solid fa-rotate",
-                Inputs = [new PortDefinition { Name = "input", DisplayName = "Input", Type = PortType.Array, IsRequired = true }],
+                Inputs =
+                [
+                    new PortDefinition
+                        { Name = "input", DisplayName = "Input", Type = PortType.Array, IsRequired = true }
+                ],
                 Outputs =
                 [
                     new PortDefinition { Name = "item", DisplayName = "Item", Type = PortType.Any },

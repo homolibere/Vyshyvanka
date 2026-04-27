@@ -4,6 +4,14 @@ namespace FlowForge.Designer.Layout;
 
 public partial class DesignerLayout
 {
-    [Parameter]
-    public RenderFragment? ChildContent { get; set; }
+    private RenderFragment? _toolbarContent;
+
+    /// <summary>
+    /// Called by child pages to inject toolbar content into the header.
+    /// </summary>
+    public void SetToolbar(RenderFragment? content)
+    {
+        _toolbarContent = content;
+        StateHasChanged();
+    }
 }

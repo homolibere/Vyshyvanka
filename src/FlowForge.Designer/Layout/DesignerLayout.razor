@@ -8,19 +8,17 @@
                 <span>FlowForge</span>
             </a>
         </div>
-        <div class="header-center">
-            @if (ChildContent is not null)
-            {
-                @ChildContent
-            }
+        <div class="header-toolbar">
+            @_toolbarContent
         </div>
         <div class="header-right">
-            <a href="/" class="btn-back">← Back to Home</a>
             <UserMenu/>
         </div>
     </header>
 
-    <main class="designer-main">
-        @Body
-    </main>
+    <CascadingValue Value="this" IsFixed="true">
+        <main class="designer-main">
+            @Body
+        </main>
+    </CascadingValue>
 </div>
