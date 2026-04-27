@@ -1,0 +1,134 @@
+@namespace FlowForge.Designer.Components
+
+<div class="apikey-manager">
+    <div class="section-header">
+        <div>
+            <h2>🔐 API Keys</h2>
+            <p class="section-desc">Create keys for programmatic access and webhook integrations.</p>
+        </div>
+        <button class="btn-add" @onclick="ShowCreateForm" disabled="@_showCreateForm">+ New Key</button>
+    </div>
+
+    @if (_showCreateForm)
+    {
+        <div class="apikey-form">
+            <div class="form-field">
+                <label class="field-label">Name</label>
+                <input class="form-input" placeholder="e.g. CI/CD Pipeline" @bind="_formName" />
+            </div>
+            <div class="form-field">
+                <label class="field-label">Expiration (optional)</label>
+                <select class="form-input" @bind="_formExpiry">
+                    <option value="">No expiration</option>
+                    <option value="7">7 days</option>
+                    <option value="30">30 days</option>
+                    <option value="90">90 days</option>
+                    <option value="365">1 year</option>
+                </select>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-secondary" @onclick="CloseForm" disabled="@_isSaving">Cancel</button>
+                <button class="btn btn-primary" @onclick="HandleCreate" disabled="@_isSaving">
+                    @(_isSaving ? "Creating…" : "Create Key")
+                </button>
+            </div>
+            @if (!string.IsNullOrEmpty(_formError))
+            {
+                <p class="form-error">@_formError</p>
+            }
+        </div>
+    }
+
+    @if (_createdKey is not null)
+    {
+        <div class="key-reveal">
+            <div class="key-reveal-header">
+                <span>🎉 Key created — copy it now, it won't be shown again.</span>
+            </div>
+            <div class="key-reveal-value">
+                <code>@_createdKey</code>
+                <button class="btn-copy" @onclick="CopyKey" title="Copy to clipboard">
+                    @(_copied ? "✓ Copied" : "📋 Copy")
+                </button>
+            </div>
+            <button class="btn btn-secondary btn-sm" @onclick="DismissCreatedKey">Dismiss</button>
+        </div>
+    }
+
+    @if (_isLoading)
+    {
+        <div class="loading-state">Loading API keys…</div>
+    }
+    else if (_keys.Count == 0 && !_showCreateForm)
+    {
+        <div class="empty-state">
+            <span class="empty-icon">🔐</span>
+            <p>No API keys yet</p>
+            <p class="empty-hint">API keys allow external systems to authenticate with FlowForge via the <code>X-API-Key</code> header.</p>
+            <button class="btn btn-primary" @onclick="ShowCreateForm">Create your first key</button>
+        </div>
+    }
+    else
+    {
+        <div class="apikey-list">
+            @foreach (var key in _keys)
+            {
+                <div class="apikey-item @(!key.IsActive ? "revoked" : "")">
+                    <div class="apikey-info">
+                        <span class="apikey-name">@key.Name</span>
+                        <span class="apikey-meta">
+                            Created @key.CreatedAt.ToString("MMM d, yyyy")
+                            @if (key.ExpiresAt.HasValue)
+                            {
+                                <span> · Expires @key.ExpiresAt.Value.ToString("MMM d, yyyy")</span>
+                            }
+                            @if (key.LastUsedAt.HasValue)
+                            {
+                                <span> · Last used @key.LastUsedAt.Value.ToString("MMM d, yyyy")</span>
+                            }
+                        </span>
+                    </div>
+                    <div class="apikey-status-actions">
+                        @if (key.IsActive)
+                        {
+                            <span class="badge badge-active">Active</span>
+                        }
+                        else
+                        {
+                            <span class="badge badge-revoked">Revoked</span>
+                        }
+                        <div class="apikey-actions">
+                            @if (key.IsActive)
+                            {
+                                <button class="btn-icon" title="Revoke" @onclick="() => RequestRevoke(key.Id)">⏸️</button>
+                            }
+                            <button class="btn-icon btn-danger" title="Delete" @onclick="() => RequestDelete(key.Id)">🗑️</button>
+                        </div>
+                    </div>
+                </div>
+
+                @if (_confirmRevokeId == key.Id)
+                {
+                    <div class="confirm-bar confirm-warn">
+                        <span>Revoke "<strong>@key.Name</strong>"? It will stop working immediately.</span>
+                        <div class="confirm-actions">
+                            <button class="btn btn-secondary btn-sm" @onclick="CancelAction">Cancel</button>
+                            <button class="btn btn-warn-solid btn-sm" @onclick="ConfirmRevoke">Revoke</button>
+                        </div>
+                    </div>
+                }
+
+                @if (_confirmDeleteId == key.Id)
+                {
+                    <div class="confirm-bar confirm-danger">
+                        <span>Delete "<strong>@key.Name</strong>"? This cannot be undone.</span>
+                        <div class="confirm-actions">
+                            <button class="btn btn-secondary btn-sm" @onclick="CancelAction">Cancel</button>
+                            <button class="btn btn-danger-solid btn-sm" @onclick="ConfirmDelete">Delete</button>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    }
+</div>

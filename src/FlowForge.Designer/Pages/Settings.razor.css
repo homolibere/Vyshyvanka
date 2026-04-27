@@ -1,0 +1,36 @@
+.settings-container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 32px 20px;
+}
+
+.settings-nav {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.settings-nav h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #e0e0e0;
+}
+
+.back-link {
+    font-size: 0.8rem;
+    color: #4fc3f7;
+    text-decoration: none;
+    padding: 4px 10px;
+    border: 1px solid #2d2d44;
+    border-radius: 4px;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.back-link:hover {
+    background: #1e1e36;
+    border-color: #4fc3f7;
+}

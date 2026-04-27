@@ -6,6 +6,9 @@
             <span class="user-name">@GetDisplayName()</span>
             <span class="user-role">@AuthService.CurrentUser.Role</span>
         </div>
+        <a href="/settings" class="btn-settings" title="Settings">
+            <i class="fas fa-cog"></i>
+        </a>
         <button class="btn-logout" @onclick="HandleLogout" title="Sign out">
             <i class="fas fa-sign-out-alt"></i>
         </button>
