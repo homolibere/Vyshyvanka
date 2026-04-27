@@ -1,0 +1,70 @@
+name: Publish NuGet Packages
+
+on:
+  push:
+    tags:
+      - "core/v*"
+      - "plugin-advancedhttp/v*"
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Determine package from tag
+        id: meta
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+          if [[ "$TAG" == core/v* ]]; then
+            VERSION="${TAG#core/v}"
+            echo "project=FlowForge.Core/FlowForge.Core.csproj" >> "$GITHUB_OUTPUT"
+            echo "package=FlowForge.Core" >> "$GITHUB_OUTPUT"
+          elif [[ "$TAG" == plugin-advancedhttp/v* ]]; then
+            VERSION="${TAG#plugin-advancedhttp/v}"
+            echo "project=FlowForge.Plugin.AdvancedHttp/FlowForge.Plugin.AdvancedHttp.csproj" >> "$GITHUB_OUTPUT"
+            echo "package=FlowForge.Plugin.AdvancedHttp" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::Unknown tag prefix: $TAG"
+            exit 1
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Restore
+        run: dotnet restore FlowForge.slnx
+
+      - name: Build
+        run: dotnet build ${{ steps.meta.outputs.project }} -c Release --no-restore
+
+      - name: Pack
+        run: >
+          dotnet pack ${{ steps.meta.outputs.project }}
+          -c Release
+          --no-build
+          -p:PackageVersion=${{ steps.meta.outputs.version }}
+          -o ./artifacts
+
+      - name: Push to NuGet.org
+        run: >
+          dotnet nuget push ./artifacts/${{ steps.meta.outputs.package }}.${{ steps.meta.outputs.version }}.nupkg
+          --api-key ${{ secrets.NUGET_API_KEY }}
+          --source https://api.nuget.org/v3/index.json
+          --skip-duplicate
+
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.meta.outputs.package }}-${{ steps.meta.outputs.version }}
+          path: ./artifacts/*.nupkg
