@@ -13,6 +13,7 @@
     <Description>Advanced HTTP client plugin for FlowForge with retry, polling, and batch request capabilities.</Description>
     <PackageTags>flowforge;plugin;http;rest;api</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryType>git</RepositoryType>
     
     <!-- Plugin output settings -->
@@ -25,6 +26,10 @@
       <Private>false</Private>
       <ExcludeAssets>runtime</ExcludeAssets>
     </ProjectReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>
