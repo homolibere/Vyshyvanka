@@ -266,7 +266,17 @@ Policies are registered in `AuthorizationExtensions.AddFlowForgePolicies()` and 
 
 ## Credential Management
 
-### Encryption Architecture
+### Configurable Storage Backend
+
+FlowForge supports three credential storage backends, selected via the `CredentialStorage:Provider` setting in `appsettings.json`:
+
+| Provider | Value | Description |
+|----------|-------|-------------|
+| Built-in | `BuiltIn` | AES-256 encrypted storage in the local database (default) |
+| HashiCorp Vault | `HashiCorpVault` | KV v2 secrets engine on a HashiCorp Vault server |
+| OpenBao | `OpenBao` | KV v2 secrets engine on an OpenBao server (Vault-compatible API) |
+
+### Built-in Storage (default)
 
 ```mermaid
 flowchart LR
@@ -286,22 +296,67 @@ flowchart LR
 
 | Aspect | Detail |
 |--------|--------|
-| Algorithm | AES-256 (symmetric) |
+| Algorithm | AES-256 (symmetric, CBC mode, PKCS7 padding) |
 | IV | Unique per encryption, prepended to ciphertext |
 | Storage | `EncryptedData` field on `Credential` entity |
-| API Exposure | `EncryptedData` is marked `[JsonIgnore]` — never serialized to API responses |
-| Runtime | `DecryptedCredential` exists only in memory during node execution |
+| Key | Configurable via `FlowForge:EncryptionKey` (Base64-encoded 256-bit key) |
+
+### Vault / OpenBao Storage
+
+When an external secrets manager is configured, credential metadata (ID, name, type, owner, timestamps) stays in the local database, while the actual secret values are stored in Vault or OpenBao.
+
+```mermaid
+flowchart LR
+    subgraph "Create Credential"
+        PlainText2["Plain-text<br/>Key-Value Pairs"] -->|KV v2 PUT| Vault[(Vault / OpenBao)]
+        Metadata["Metadata<br/>(name, type, owner)"] -->|Store| DB3[(Database)]
+    end
+
+    subgraph "Use at Execution"
+        DB4[(Database)] -->|Load metadata| Meta2["Credential ID"]
+        Meta2 -->|KV v2 GET| Vault2[(Vault / OpenBao)]
+        Vault2 -->|Secret data| Memory2["DecryptedCredential<br/>(in-memory only)"]
+        Memory2 -->|Provide to Node| Node2["Node Execution"]
+    end
+```
+
+#### Configuration
+
+```json
+{
+  "CredentialStorage": {
+    "Provider": "HashiCorpVault",
+    "Url": "https://vault.example.com:8200",
+    "Token": "",
+    "MountPath": "secret",
+    "PathPrefix": "flowforge/credentials",
+    "SkipTlsVerify": false
+  }
+}
+```
+
+For OpenBao, use `"Provider": "OpenBao"` — the API is identical.
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| `Url` | Base URL of the Vault/OpenBao server | (required) |
+| `Token` | Authentication token. Falls back to `VAULT_TOKEN` env var | — |
+| `MountPath` | KV v2 mount path | `secret` |
+| `PathPrefix` | Path prefix under the mount | `flowforge/credentials` |
+| `SkipTlsVerify` | Disable TLS verification (dev only) | `false` |
+
+Secrets are stored at `{MountPath}/data/{PathPrefix}/{credentialId}`.
 
 ### Credential Types
 
 | Type | Expected Fields |
 |------|----------------|
-| ApiKey | `key` |
+| ApiKey | `apiKey` |
 | OAuth2 | `clientId`, `clientSecret`, `accessToken`, `refreshToken` |
 | BasicAuth | `username`, `password` |
 | CustomHeaders | Arbitrary key-value pairs added as HTTP headers |
 
-The `ICredentialService.ValidateCredentialData()` method validates that the provided data matches the expected schema for the credential type.
+The `CredentialValidator` validates that the provided data matches the expected schema for the credential type, regardless of the storage backend.
 
 ### Security Rules
 
@@ -310,6 +365,7 @@ The `ICredentialService.ValidateCredentialData()` method validates that the prov
 - The `EncryptedData` property is excluded from JSON serialization
 - Decrypted credentials exist only in memory during node execution
 - Users can only access their own credentials (enforced by `OwnerId`)
+- When using Vault/OpenBao, the `Token` should be injected via the `VAULT_TOKEN` environment variable rather than stored in `appsettings.json`
 
 ## Audit Logging
 

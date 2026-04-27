@@ -73,14 +73,43 @@ public static class ServiceCollectionExtensions
 
         // Register credential services
         services.AddScoped<ICredentialRepository, CredentialRepository>();
-        services.AddSingleton<ICredentialEncryption>(_ =>
+
+        var credentialStorageSettings = new CredentialStorageSettings();
+        configuration.GetSection("CredentialStorage").Bind(credentialStorageSettings);
+        services.AddSingleton(credentialStorageSettings);
+
+        switch (credentialStorageSettings.Provider)
         {
-            // Default key for development - should be overridden in production via configuration
-            var encryptionKey = configuration["FlowForge:EncryptionKey"] ??
-                                "Rk93Rm9yZ2VEZXZLZXkxMjM0NTY3ODkwMTIzNDU2Nzg=";
-            return new AesCredentialEncryption(encryptionKey);
-        });
-        services.AddScoped<ICredentialService, CredentialService>();
+            case CredentialStorageProvider.BuiltIn:
+                services.AddSingleton<ICredentialEncryption>(_ =>
+                {
+                    var encryptionKey = configuration["FlowForge:EncryptionKey"] ??
+                                        "Rk93Rm9yZ2VEZXZLZXkxMjM0NTY3ODkwMTIzNDU2Nzg=";
+                    return new AesCredentialEncryption(encryptionKey);
+                });
+                services.AddScoped<ICredentialService, CredentialService>();
+                break;
+
+            case CredentialStorageProvider.HashiCorpVault:
+            case CredentialStorageProvider.OpenBao:
+                if (string.IsNullOrWhiteSpace(credentialStorageSettings.Url))
+                {
+                    throw new InvalidOperationException(
+                        $"CredentialStorage:Url is required when using {credentialStorageSettings.Provider}");
+                }
+
+                services.AddSingleton<IVaultClient>(sp =>
+                {
+                    var logger = sp.GetRequiredService<ILogger<VaultClient>>();
+                    return new VaultClient(credentialStorageSettings, logger);
+                });
+                services.AddScoped<ICredentialService, VaultCredentialService>();
+                break;
+
+            default:
+                throw new InvalidOperationException(
+                    $"Unsupported credential storage provider: {credentialStorageSettings.Provider}");
+        }
 
         // Bind authentication settings
         var authSettings = new AuthenticationSettings();

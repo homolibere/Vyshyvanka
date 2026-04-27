@@ -13,7 +13,7 @@
 | Observability | OpenTelemetry (traces, metrics, logs) |
 | Serialization | System.Text.Json |
 | Authentication | JWT Bearer + API Key (dual scheme); configurable OIDC (Keycloak, Authentik) or LDAP |
-| Encryption | AES-256 for credentials at rest |
+| Encryption | AES-256 for credentials at rest; optional HashiCorp Vault / OpenBao integration |
 | Package Management | NuGet Protocol |
 
 ## Project Structure
