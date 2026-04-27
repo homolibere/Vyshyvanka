@@ -10,7 +10,7 @@ FlowForge is a workflow automation platform built on .NET 10. It enables users t
 - Node-based execution engine with topological ordering and parallel branch support
 - Expression language for referencing data between nodes at runtime
 - Plugin system backed by NuGet for extending the node library
-- Role-based access control with JWT and API key authentication
+- Role-based access control with configurable authentication (built-in JWT, Keycloak, Authentik OIDC, or LDAP) and API key support
 - Credential vault with AES-256 encryption at rest
 - Audit logging for all security-sensitive operations
 - Execution persistence with full node-level tracing

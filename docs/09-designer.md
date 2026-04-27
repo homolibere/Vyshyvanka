@@ -213,7 +213,7 @@ Dashboard page showing workflow summaries and recent execution activity.
 
 ### Login
 
-Authentication page with email/password form. On successful login, stores tokens and redirects to the Designer.
+Authentication page. When the built-in provider is active, shows an email/password form. When Keycloak or Authentik is configured, redirects to the external identity provider's login page. The active provider is determined by calling `GET /api/auth/config` at startup. On successful login, stores tokens and redirects to the Designer.
 
 ### Designer
 

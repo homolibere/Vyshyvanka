@@ -2,7 +2,9 @@ using System.Text;
 using FlowForge.Api.Authorization;
 using FlowForge.Api.Middleware;
 using FlowForge.Api.Services;
+using FlowForge.Core.Enums;
 using FlowForge.Core.Interfaces;
+using FlowForge.Core.Models;
 using FlowForge.Engine.Auth;
 using FlowForge.Engine.Credentials;
 using FlowForge.Engine.Execution;
@@ -12,6 +14,7 @@ using FlowForge.Engine.Persistence;
 using FlowForge.Engine.Plugins;
 using FlowForge.Engine.Registry;
 using FlowForge.Engine.Validation;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -73,12 +76,60 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ICredentialEncryption>(_ =>
         {
             // Default key for development - should be overridden in production via configuration
-            var encryptionKey = configuration["FlowForge:EncryptionKey"] ?? "Rk93Rm9yZ2VEZXZLZXkxMjM0NTY3ODkwMTIzNDU2Nzg=";
+            var encryptionKey = configuration["FlowForge:EncryptionKey"] ??
+                                "Rk93Rm9yZ2VEZXZLZXkxMjM0NTY3ODkwMTIzNDU2Nzg=";
             return new AesCredentialEncryption(encryptionKey);
         });
         services.AddScoped<ICredentialService, CredentialService>();
 
-        // Register authentication services
+        // Bind authentication settings
+        var authSettings = new AuthenticationSettings();
+        configuration.GetSection("Authentication").Bind(authSettings);
+        services.AddSingleton(authSettings);
+
+        services.AddScoped<IUserRepository, UserRepository>();
+
+        // Register audit logging
+        services.AddScoped<IAuditLogService, AuditLogService>();
+
+        // Register API key services
+        services.AddScoped<IApiKeyRepository, ApiKeyRepository>();
+        services.AddScoped<IApiKeyService, ApiKeyService>();
+
+        // Register NuGet package manager services
+        services.AddFlowForgePackageServices(configuration);
+
+        // Branch authentication setup based on the configured provider
+        switch (authSettings.Provider)
+        {
+            case AuthenticationProvider.BuiltIn:
+                services.AddFlowForgeBuiltInAuth(configuration);
+                break;
+
+            case AuthenticationProvider.Keycloak:
+            case AuthenticationProvider.Authentik:
+                services.AddFlowForgeOidcAuth(authSettings);
+                break;
+
+            case AuthenticationProvider.Ldap:
+                services.AddFlowForgeLdapAuth(configuration, authSettings);
+                break;
+
+            default:
+                throw new InvalidOperationException(
+                    $"Unsupported authentication provider: {authSettings.Provider}");
+        }
+
+        services.AddAuthorization(options => { options.AddFlowForgePolicies(); });
+
+        return services;
+    }
+
+    /// <summary>
+    /// Configures built-in JWT + API key authentication (the original default).
+    /// </summary>
+    private static void AddFlowForgeBuiltInAuth(this IServiceCollection services, IConfiguration configuration)
+    {
         var jwtSettings = new JwtSettings
         {
             SecretKey = configuration["Jwt:SecretKey"] ?? "FlowForgeDefaultSecretKey123456789012345678901234567890",
@@ -91,20 +142,8 @@ public static class ServiceCollectionExtensions
         };
         services.AddSingleton(jwtSettings);
         services.AddSingleton<IJwtTokenService, JwtTokenService>();
-        services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IAuthService, AuthService>();
 
-        // Register audit logging
-        services.AddScoped<IAuditLogService, AuditLogService>();
-
-        // Register API key services
-        services.AddScoped<IApiKeyRepository, ApiKeyRepository>();
-        services.AddScoped<IApiKeyService, ApiKeyService>();
-
-        // Register NuGet package manager services
-        services.AddFlowForgePackageServices(configuration);
-
-        // Configure authentication with both JWT and API key
         services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -131,10 +170,10 @@ public static class ServiceCollectionExtensions
                     {
                         return ApiKeyAuthenticationDefaults.AuthenticationScheme;
                     }
-                    return null; // Use JWT Bearer
+
+                    return null;
                 };
 
-                // Return JSON responses for 401/403 instead of HTML
                 options.Events = new JwtBearerEvents
                 {
                     OnChallenge = async context =>
@@ -142,7 +181,8 @@ public static class ServiceCollectionExtensions
                         context.HandleResponse();
                         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                         context.Response.ContentType = "application/json";
-                        await context.Response.WriteAsJsonAsync(new { code = "UNAUTHORIZED", message = "Authentication required" });
+                        await context.Response.WriteAsJsonAsync(new
+                            { code = "UNAUTHORIZED", message = "Authentication required" });
                     },
                     OnForbidden = async context =>
                     {
@@ -155,10 +195,161 @@ public static class ServiceCollectionExtensions
             .AddScheme<ApiKeyAuthenticationOptions, ApiKeyAuthenticationHandler>(
                 ApiKeyAuthenticationDefaults.AuthenticationScheme,
                 _ => { });
+    }
 
-        services.AddAuthorization(options => { options.AddFlowForgePolicies(); });
+    /// <summary>
+    /// Configures OIDC-based authentication for Keycloak or Authentik.
+    /// The API validates access tokens issued by the external provider.
+    /// </summary>
+    private static void AddFlowForgeOidcAuth(this IServiceCollection services, AuthenticationSettings authSettings)
+    {
+        if (string.IsNullOrWhiteSpace(authSettings.Authority))
+        {
+            throw new InvalidOperationException(
+                $"Authentication:Authority is required when using {authSettings.Provider}");
+        }
 
-        return services;
+        // Register OIDC user provisioning and claims transformation
+        services.AddScoped<IOidcUserProvisioningService, OidcUserProvisioningService>();
+        services.AddScoped<IClaimsTransformation, OidcClaimsTransformation>();
+
+        var audience = authSettings.Audience ?? authSettings.ClientId;
+
+        services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.Authority = authSettings.Authority;
+                options.RequireHttpsMetadata = authSettings.RequireHttpsMetadata;
+
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = !string.IsNullOrWhiteSpace(audience),
+                    ValidAudience = audience,
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.FromSeconds(30)
+                };
+
+                // Forward to API key authentication if X-API-Key header is present
+                options.ForwardDefaultSelector = context =>
+                {
+                    if (context.Request.Headers.ContainsKey("X-API-Key"))
+                    {
+                        return ApiKeyAuthenticationDefaults.AuthenticationScheme;
+                    }
+
+                    return null;
+                };
+
+                options.Events = new JwtBearerEvents
+                {
+                    OnChallenge = async context =>
+                    {
+                        context.HandleResponse();
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        context.Response.ContentType = "application/json";
+                        await context.Response.WriteAsJsonAsync(new
+                            { code = "UNAUTHORIZED", message = "Authentication required" });
+                    },
+                    OnForbidden = async context =>
+                    {
+                        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                        context.Response.ContentType = "application/json";
+                        await context.Response.WriteAsJsonAsync(new { code = "FORBIDDEN", message = "Access denied" });
+                    }
+                };
+            })
+            .AddScheme<ApiKeyAuthenticationOptions, ApiKeyAuthenticationHandler>(
+                ApiKeyAuthenticationDefaults.AuthenticationScheme,
+                _ => { });
+    }
+
+    /// <summary>
+    /// Configures LDAP authentication. Credentials are verified against the LDAP directory,
+    /// but sessions use locally-issued JWT tokens (same as built-in).
+    /// </summary>
+    private static void AddFlowForgeLdapAuth(this IServiceCollection services, IConfiguration configuration,
+        AuthenticationSettings authSettings)
+    {
+        if (authSettings.Ldap is null || string.IsNullOrWhiteSpace(authSettings.Ldap.Host))
+        {
+            throw new InvalidOperationException(
+                "Authentication:Ldap:Host is required when using LDAP authentication");
+        }
+
+        // LDAP uses local JWT tokens, same as built-in
+        var jwtSettings = new JwtSettings
+        {
+            SecretKey = configuration["Jwt:SecretKey"] ?? "FlowForgeDefaultSecretKey123456789012345678901234567890",
+            Issuer = configuration["Jwt:Issuer"] ?? "FlowForge",
+            Audience = configuration["Jwt:Audience"] ?? "FlowForge",
+            AccessTokenExpirationMinutes =
+                int.TryParse(configuration["Jwt:AccessTokenExpirationMinutes"], out var minutes) ? minutes : 60,
+            RefreshTokenExpirationDays =
+                int.TryParse(configuration["Jwt:RefreshTokenExpirationDays"], out var days) ? days : 7
+        };
+        services.AddSingleton(jwtSettings);
+        services.AddSingleton<IJwtTokenService, JwtTokenService>();
+
+        // Register LDAP services
+        services.AddScoped<ILdapAuthenticationService, LdapAuthenticationService>();
+        services.AddScoped<IAuthService, LdapAuthService>();
+
+        // Same JWT bearer + API key setup as built-in
+        services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey)),
+                    ValidateIssuer = true,
+                    ValidIssuer = jwtSettings.Issuer,
+                    ValidateAudience = true,
+                    ValidAudience = jwtSettings.Audience,
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero
+                };
+
+                options.ForwardDefaultSelector = context =>
+                {
+                    if (context.Request.Headers.ContainsKey("X-API-Key"))
+                    {
+                        return ApiKeyAuthenticationDefaults.AuthenticationScheme;
+                    }
+
+                    return null;
+                };
+
+                options.Events = new JwtBearerEvents
+                {
+                    OnChallenge = async context =>
+                    {
+                        context.HandleResponse();
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        context.Response.ContentType = "application/json";
+                        await context.Response.WriteAsJsonAsync(new
+                            { code = "UNAUTHORIZED", message = "Authentication required" });
+                    },
+                    OnForbidden = async context =>
+                    {
+                        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                        context.Response.ContentType = "application/json";
+                        await context.Response.WriteAsJsonAsync(new { code = "FORBIDDEN", message = "Access denied" });
+                    }
+                };
+            })
+            .AddScheme<ApiKeyAuthenticationOptions, ApiKeyAuthenticationHandler>(
+                ApiKeyAuthenticationDefaults.AuthenticationScheme,
+                _ => { });
     }
 
     /// <summary>

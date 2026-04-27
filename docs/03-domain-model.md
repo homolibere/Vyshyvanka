@@ -27,6 +27,8 @@ erDiagram
         bool IsActive
         DateTime CreatedAt
         DateTime LastLoginAt
+        string ExternalId UK
+        AuthenticationProvider AuthenticationProvider
     }
 
     Workflow {
@@ -210,6 +212,19 @@ Role-based access control levels.
 | Viewer | Read-only access to workflows and executions |
 | Editor | Create, edit, and execute workflows; manage credentials |
 | Admin | Full access including user management and plugin installation |
+
+### AuthenticationProvider
+
+Identifies which authentication provider owns a user account.
+
+| Value | Description |
+|-------|------------|
+| BuiltIn | Local email/password authentication with self-issued JWT tokens |
+| Keycloak | User provisioned from a Keycloak OIDC realm |
+| Authentik | User provisioned from an Authentik OIDC application |
+| Ldap | User provisioned from an LDAP directory |
+
+Users with `Keycloak`, `Authentik`, or `Ldap` have an `ExternalId` and an empty `PasswordHash`.
 
 ## Validation Rules
 

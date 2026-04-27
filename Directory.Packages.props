@@ -28,6 +28,7 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.7" />
 
     <!-- Identity & Security -->
+    <PackageVersion Include="System.DirectoryServices.Protocols" Version="9.0.5" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.17.0" />
 
     <!-- NuGet -->

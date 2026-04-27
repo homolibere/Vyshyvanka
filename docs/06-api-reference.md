@@ -34,9 +34,12 @@ The `ErrorHandlingMiddleware` maps all unhandled exceptions to appropriate HTTP 
 
 | Method | Path | Auth | Description |
 |--------|------|------|------------|
-| POST | `/api/auth/login` | Anonymous | Login with email and password. Returns JWT access token, refresh token, and user info. |
-| POST | `/api/auth/register` | Anonymous | Register a new user account. Returns tokens and user info. |
-| POST | `/api/auth/refresh` | Anonymous | Exchange a refresh token for a new access token. |
+| GET | `/api/auth/config` | Anonymous | Returns the active authentication provider and OIDC settings (authority, client ID). Used by the Designer to configure its auth flow. |
+| POST | `/api/auth/login` | Anonymous | Login with email/username and password. Returns JWT access token, refresh token, and user info. **Built-in and LDAP providers only.** |
+| POST | `/api/auth/register` | Anonymous | Register a new user account. Returns tokens and user info. **Built-in provider only.** |
+| POST | `/api/auth/refresh` | Anonymous | Exchange a refresh token for a new access token. **Built-in and LDAP providers only.** |
+
+When the active provider is Keycloak or Authentik, the login, register, and refresh endpoints return HTTP 400 with code `UNSUPPORTED`. When the provider is LDAP, only the register endpoint is disabled.
 
 ### Workflows
 

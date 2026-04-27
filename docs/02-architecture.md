@@ -12,7 +12,7 @@
 | Orchestration | .NET Aspire 9.1 |
 | Observability | OpenTelemetry (traces, metrics, logs) |
 | Serialization | System.Text.Json |
-| Authentication | JWT Bearer + API Key (dual scheme) |
+| Authentication | JWT Bearer + API Key (dual scheme); configurable OIDC (Keycloak, Authentik) or LDAP |
 | Encryption | AES-256 for credentials at rest |
 | Package Management | NuGet Protocol |
 
@@ -139,5 +139,6 @@ graph TB
 | Plugin isolation via AssemblyLoadContext | Prevents plugin failures from crashing the host; enables hot-unloading |
 | Central package version management | `Directory.Packages.props` ensures consistent dependency versions across all projects |
 | Dual authentication scheme | JWT for interactive sessions; API keys for programmatic and webhook access |
+| Pluggable authentication provider | Configurable via `appsettings.json` — built-in JWT, Keycloak, Authentik OIDC, or LDAP directory with JIT user provisioning |
 | Topological sort for execution order | Guarantees correct data flow; detects cycles at execution time |
 | Optimistic concurrency on workflows | Version field prevents lost updates in concurrent editing scenarios |

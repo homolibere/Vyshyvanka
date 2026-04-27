@@ -1,5 +1,6 @@
 using FlowForge.Core.Enums;
 using FlowForge.Core.Interfaces;
+using FlowForge.Core.Models;
 
 namespace FlowForge.Api.Extensions;
 
@@ -10,11 +11,21 @@ public static class DevelopmentUserSeeder
 {
     /// <summary>
     /// Seeds default development users if they don't exist.
+    /// Only runs when the built-in authentication provider is active.
     /// </summary>
     public static async Task SeedDevelopmentUsersAsync(IServiceProvider services)
     {
         var logger = services.GetService<ILogger<Program>>();
-        
+
+        var authSettings = services.GetRequiredService<AuthenticationSettings>();
+        if (authSettings.Provider is not AuthenticationProvider.BuiltIn)
+        {
+            logger?.LogInformation(
+                "Skipping development user seeding — authentication provider is {Provider}",
+                authSettings.Provider);
+            return;
+        }
+
         using var scope = services.CreateScope();
         var authService = scope.ServiceProvider.GetRequiredService<IAuthService>();
         var userRepository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
@@ -44,6 +55,7 @@ public static class DevelopmentUserSeeder
                     var user = result.User with { Role = role };
                     await userRepository.UpdateAsync(user);
                 }
+
                 logger?.LogInformation("Created development user: {Email} ({Role})", email, role);
             }
             else
