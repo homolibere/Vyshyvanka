@@ -9,6 +9,8 @@
   </Folder>
   <Folder Name="/plugins/">
     <Project Path="plugins/FlowForge.Plugin.AdvancedHttp/FlowForge.Plugin.AdvancedHttp.csproj" />
+    <Project Path="plugins/FlowForge.Plugin.GitLab/src/FlowForge.Plugin.GitLab.csproj" />
+    <Project Path="plugins/FlowForge.Plugin.Jira/src/FlowForge.Plugin.Jira.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/FlowForge.Tests/FlowForge.Tests.csproj" />

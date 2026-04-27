@@ -1,0 +1,54 @@
+name: Publish NuGet Package
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Extract version from tag
+        id: meta
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build src/*.csproj -c Release --no-restore
+
+      - name: Pack
+        run: >
+          dotnet pack src/*.csproj
+          -c Release
+          --no-build
+          -p:PackageVersion=${{ steps.meta.outputs.version }}
+          -o ./artifacts
+
+      - name: Push to NuGet.org
+        run: >
+          dotnet nuget push ./artifacts/*.nupkg
+          --api-key ${{ secrets.NUGET_API_KEY }}
+          --source https://api.nuget.org/v3/index.json
+          --skip-duplicate
+
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nupkg-${{ steps.meta.outputs.version }}
+          path: ./artifacts/*.nupkg

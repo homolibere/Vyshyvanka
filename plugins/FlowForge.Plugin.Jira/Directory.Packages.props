@@ -1,0 +1,10 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- FlowForge SDK — update to match the FlowForge version you target -->
+    <PackageVersion Include="FlowForge.Core" Version="0.1.0" />
+  </ItemGroup>
+</Project>
