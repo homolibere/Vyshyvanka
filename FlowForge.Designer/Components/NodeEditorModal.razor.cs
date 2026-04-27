@@ -192,6 +192,14 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
         _isJsonMode = isJsonMode;
     }
 
+    private void HandleCredentialChanged(Guid? credentialId)
+    {
+        if (_node is null || string.IsNullOrEmpty(NodeId)) return;
+        StateService.UpdateNodeCredential(NodeId, credentialId);
+        _node = StateService.GetNode(NodeId);
+        _isDirty = true;
+    }
+
     private async Task HandleSave()
     {
         // Validate required fields

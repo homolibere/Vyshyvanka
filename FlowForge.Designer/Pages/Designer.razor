@@ -60,6 +60,9 @@
             <button class="toolbar-btn" @onclick="OpenPluginManager" title="Plugin Manager">
                 📦 Plugins
             </button>
+            <button class="toolbar-btn" @onclick="OpenCredentialManager" title="Credential Manager">
+                🔑 Credentials
+            </button>
         </div>
 
         @if (!StateService.ValidationResult.IsValid)
@@ -105,6 +108,9 @@
 
 @* Plugin Manager Modal *@
 <PluginManager IsOpen="@_isPluginManagerOpen" OnClose="ClosePluginManager"/>
+
+@* Credential Manager Modal *@
+<CredentialManager IsOpen="@_isCredentialManagerOpen" OnClose="CloseCredentialManager"/>
 
 @* Workflow Browser Modal *@
 <WorkflowBrowser IsOpen="@_isWorkflowBrowserOpen"

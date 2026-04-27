@@ -582,6 +582,24 @@ public class WorkflowStateService
         NotifyStateChanged();
     }
 
+    public void UpdateNodeCredential(string nodeId, Guid? credentialId)
+    {
+        var node = _workflow.Nodes.FirstOrDefault(n => n.Id == nodeId);
+        if (node is null) return;
+
+        SaveUndoState("Update Node Credential");
+        var updatedNode = node with { CredentialId = credentialId };
+        var nodes = _workflow.Nodes.Select(n => n.Id == nodeId ? updatedNode : n).ToList();
+
+        _workflow = _workflow with
+        {
+            Nodes = nodes,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _isDirty = true;
+        NotifyStateChanged();
+    }
+
     /// <summary>Starts dragging a node from the palette.</summary>
     public void StartDragFromPalette(string nodeType)
     {

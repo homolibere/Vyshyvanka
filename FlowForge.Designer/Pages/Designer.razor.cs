@@ -26,6 +26,7 @@ public partial class Designer : IDisposable
 
     private bool _isValidationPanelExpanded = true;
     private bool _isPluginManagerOpen;
+    private bool _isCredentialManagerOpen;
     private bool _isWorkflowBrowserOpen;
     private bool _isNodeEditorOpen;
     private string? _editingNodeId;
@@ -87,6 +88,9 @@ public partial class Designer : IDisposable
 
     private void OpenPluginManager() => _isPluginManagerOpen = true;
     private void ClosePluginManager() => _isPluginManagerOpen = false;
+
+    private void OpenCredentialManager() => _isCredentialManagerOpen = true;
+    private void CloseCredentialManager() => _isCredentialManagerOpen = false;
 
     private void OpenWorkflowBrowser() => _isWorkflowBrowserOpen = true;
     private void CloseWorkflowBrowser() => _isWorkflowBrowserOpen = false;

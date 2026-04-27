@@ -35,6 +35,14 @@
             </div>
 
             <div class="modal-body">
+                @if (_definition?.RequiredCredentialType is not null)
+                {
+                    <CredentialPicker
+                        SelectedCredentialId="@_node.CredentialId"
+                        SelectedCredentialIdChanged="@HandleCredentialChanged"
+                        FilterType="@_definition.RequiredCredentialType" />
+                }
+
                 <div class="three-panel-layout">
                     <NodeEditorInputPanel InputData="@_executionState?.InputData" />
                     
