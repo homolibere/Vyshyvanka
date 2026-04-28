@@ -10,6 +10,18 @@
 
 **Vyshyvanka** (Вишиванка) is a traditional Ukrainian embroidered shirt. Each pattern is crafted by weaving threads through fabric — every stitch deliberate, every connection meaningful. The same idea drives this project: workflows are patterns woven from nodes and connections, each one carrying data from one point to the next. The name reflects both the craft of building something intricate from simple elements and the Ukrainian roots of the team behind it.
 
+## Screenshots
+
+### Light Theme
+| Designer | Home |
+|----------|------|
+| ![Designer Light](docs/screenshots/designer-light.png) | ![Home Light](docs/screenshots/home-light.png) |
+
+### Dark Theme (Vyshyvanka Red)
+| Designer | Settings |
+|----------|----------|
+| ![Designer Dark](docs/screenshots/designer-dark.png) | ![Settings Dark](docs/screenshots/settings-dark.png) |
+
 ## Architecture
 
 ```mermaid

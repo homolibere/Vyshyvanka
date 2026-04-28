@@ -15,7 +15,8 @@
         "browser_resize",
         "browser_take_screenshot",
         "browser_evaluate",
-        "browser_run_code"
+        "browser_run_code",
+        "browser_close"
       ]
     }
   }
