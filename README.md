@@ -1,27 +1,22 @@
-# Vyshyvanka
+<p align="center">
+  <img src="src/Vyshyvanka.Designer/wwwroot/images/logo-light.svg" alt="Vyshyvanka" width="320"/>
+</p>
 
-A workflow automation platform built on .NET 10. Users create automated workflows through a visual node-based designer, connect nodes to define data flow, and execute workflows triggered by webhooks, schedules, or manual actions.
+<p align="center">
+  A workflow automation platform built on .NET 10. Users create automated workflows through a visual node-based designer, connect nodes to define data flow, and execute workflows triggered by webhooks, schedules, or manual actions.
+</p>
+
+## Why "Vyshyvanka"?
+
+**Vyshyvanka** (Вишиванка) is a traditional Ukrainian embroidered shirt. Each pattern is crafted by weaving threads through fabric — every stitch deliberate, every connection meaningful. The same idea drives this project: workflows are patterns woven from nodes and connections, each one carrying data from one point to the next. The name reflects both the craft of building something intricate from simple elements and the Ukrainian roots of the team behind it.
 
 ## Architecture
 
-```
-┌─────────────────┐     ┌─────────────────┐
-│    Designer      │────▶│      API        │
-│  (Blazor WASM)   │ HTTP│  (ASP.NET Core) │
-└─────────────────┘     └────────┬────────┘
-                                 │
-                        ┌────────┴────────┐
-                        │     Engine      │
-                        │  (Execution,    │
-                        │   Persistence,  │
-                        │   Plugins)      │
-                        └────────┬────────┘
-                                 │
-                        ┌────────┴────────┐
-                        │      Core       │
-                        │  (Domain Models,│
-                        │   Interfaces)   │
-                        └─────────────────┘
+```mermaid
+graph TD
+    Designer["Designer\n(Blazor WASM)"] -->|HTTP| API["API\n(ASP.NET Core)"]
+    API --> Engine["Engine\n(Execution, Persistence, Plugins)"]
+    Engine --> Core["Core\n(Domain Models, Interfaces)"]
 ```
 
 Dependencies flow downward only. The Designer communicates with the API exclusively over HTTP.
