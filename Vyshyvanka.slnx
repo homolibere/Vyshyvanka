@@ -1,0 +1,18 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Vyshyvanka.Core/Vyshyvanka.Core.csproj" />
+    <Project Path="src/Vyshyvanka.Engine/Vyshyvanka.Engine.csproj" />
+    <Project Path="src/Vyshyvanka.Api/Vyshyvanka.Api.csproj" />
+    <Project Path="src/Vyshyvanka.Designer/Vyshyvanka.Designer.csproj" />
+    <Project Path="src/Vyshyvanka.ServiceDefaults/Vyshyvanka.ServiceDefaults.csproj" />
+    <Project Path="src/Vyshyvanka.AppHost/Vyshyvanka.AppHost.csproj" />
+  </Folder>
+  <Folder Name="/plugins/">
+    <Project Path="plugins/Vyshyvanka.Plugin.AdvancedHttp/Vyshyvanka.Plugin.AdvancedHttp.csproj" />
+    <Project Path="plugins/Vyshyvanka.Plugin.GitLab/src/Vyshyvanka.Plugin.GitLab.csproj" />
+    <Project Path="plugins/Vyshyvanka.Plugin.Jira/src/Vyshyvanka.Plugin.Jira.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Vyshyvanka.Tests/Vyshyvanka.Tests.csproj" />
+  </Folder>
+</Solution>

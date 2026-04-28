@@ -1,0 +1,29 @@
+@namespace Vyshyvanka.Designer.Components
+
+<div class="property-editor number-editor">
+    <label class="property-label">
+        @Property.DisplayName
+        @if (Property.IsRequired)
+        {
+            <span class="required-indicator">*</span>
+        }
+    </label>
+    
+    <input type="text"
+           inputmode="decimal"
+           class="property-input @(HasValidationError ? "has-error" : "")"
+           value="@DisplayValue"
+           placeholder="@GetPlaceholder()"
+           @oninput="OnInput"
+           @onblur="OnBlur" />
+    
+    @if (!string.IsNullOrEmpty(Property.Description))
+    {
+        <div class="property-description">@Property.Description</div>
+    }
+    
+    @if (HasValidationError)
+    {
+        <div class="validation-error">@ValidationMessage</div>
+    }
+</div>

@@ -29,12 +29,12 @@ jobs:
 
           if [[ "$TAG" == core/v* ]]; then
             VERSION="${TAG#core/v}"
-            echo "project=FlowForge.Core/FlowForge.Core.csproj" >> "$GITHUB_OUTPUT"
-            echo "package=FlowForge.Core" >> "$GITHUB_OUTPUT"
+            echo "project=Vyshyvanka.Core/Vyshyvanka.Core.csproj" >> "$GITHUB_OUTPUT"
+            echo "package=Vyshyvanka.Core" >> "$GITHUB_OUTPUT"
           elif [[ "$TAG" == plugin-advancedhttp/v* ]]; then
             VERSION="${TAG#plugin-advancedhttp/v}"
-            echo "project=FlowForge.Plugin.AdvancedHttp/FlowForge.Plugin.AdvancedHttp.csproj" >> "$GITHUB_OUTPUT"
-            echo "package=FlowForge.Plugin.AdvancedHttp" >> "$GITHUB_OUTPUT"
+            echo "project=Vyshyvanka.Plugin.AdvancedHttp/Vyshyvanka.Plugin.AdvancedHttp.csproj" >> "$GITHUB_OUTPUT"
+            echo "package=Vyshyvanka.Plugin.AdvancedHttp" >> "$GITHUB_OUTPUT"
           else
             echo "::error::Unknown tag prefix: $TAG"
             exit 1
@@ -43,7 +43,7 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Restore
-        run: dotnet restore FlowForge.slnx
+        run: dotnet restore Vyshyvanka.slnx
 
       - name: Build
         run: dotnet build ${{ steps.meta.outputs.project }} -c Release --no-restore

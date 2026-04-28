@@ -251,7 +251,7 @@ Workflows use optimistic concurrency via a `Version` field. On every update, the
 
 ## Custom Exceptions
 
-All domain exceptions extend `FlowForgeException`, which carries a structured `ErrorCode` for programmatic handling.
+All domain exceptions extend `VyshyvankaException`, which carries a structured `ErrorCode` for programmatic handling.
 
 | Exception | Error Code | HTTP Status |
 |-----------|-----------|-------------|

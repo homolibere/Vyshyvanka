@@ -20,14 +20,14 @@
 
 ```mermaid
 graph TD
-    AppHost["FlowForge.AppHost<br/><i>.NET Aspire Host</i>"]
-    Designer["FlowForge.Designer<br/><i>Blazor WASM</i>"]
-    Api["FlowForge.Api<br/><i>ASP.NET Core</i>"]
-    Engine["FlowForge.Engine<br/><i>Execution, Persistence, Plugins</i>"]
-    Core["FlowForge.Core<br/><i>Domain Models, Interfaces</i>"]
-    ServiceDefaults["FlowForge.ServiceDefaults<br/><i>Aspire Shared Config</i>"]
-    Plugin["FlowForge.Plugin.*<br/><i>Extension Packages</i>"]
-    Tests["FlowForge.Tests<br/><i>Unit, Property, Integration</i>"]
+    AppHost["Vyshyvanka.AppHost<br/><i>.NET Aspire Host</i>"]
+    Designer["Vyshyvanka.Designer<br/><i>Blazor WASM</i>"]
+    Api["Vyshyvanka.Api<br/><i>ASP.NET Core</i>"]
+    Engine["Vyshyvanka.Engine<br/><i>Execution, Persistence, Plugins</i>"]
+    Core["Vyshyvanka.Core<br/><i>Domain Models, Interfaces</i>"]
+    ServiceDefaults["Vyshyvanka.ServiceDefaults<br/><i>Aspire Shared Config</i>"]
+    Plugin["Vyshyvanka.Plugin.*<br/><i>Extension Packages</i>"]
+    Tests["Vyshyvanka.Tests<br/><i>Unit, Property, Integration</i>"]
 
     AppHost --> Api
     AppHost --> Designer

@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Vyshyvanka.Plugin.Jira</RootNamespace>
+
+    <!-- NuGet Package Metadata -->
+    <PackageId>Vyshyvanka.Plugin.Jira</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Vyshyvanka</Authors>
+    <Description>Jira Software integration plugin for Vyshyvanka. Create, update, and manage issues, comments, and users.</Description>
+    <PackageTags>vyshyvanka;plugin;jira;atlassian;project-management</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryType>git</RepositoryType>
+
+    <!-- Required for Vyshyvanka plugin loading -->
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+
+    <!-- XML docs for IntelliSense -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Vyshyvanka.Core is provided by the host at runtime — do not bundle it -->
+    <PackageReference Include="Vyshyvanka.Core">
+      <Private>false</Private>
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="../README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

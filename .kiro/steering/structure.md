@@ -2,27 +2,27 @@
 inclusion: always
 ---
 
-# FlowForge Project Structure
+# Vyshyvanka Project Structure
 
 ```
-FlowForge/
+Vyshyvanka/
 ├── src/
-│   ├── FlowForge.Core/              # Domain layer — zero dependencies on other projects
-│   ├── FlowForge.Engine/            # Execution engine, persistence, plugins, auth
-│   ├── FlowForge.Api/               # ASP.NET Core REST API
-│   ├── FlowForge.AppHost/           # .NET Aspire orchestration (dev hosting)
-│   ├── FlowForge.Designer/          # Blazor WASM UI — communicates only via HTTP
-│   └── FlowForge.ServiceDefaults/   # Shared service configuration (Aspire defaults)
+│   ├── Vyshyvanka.Core/              # Domain layer — zero dependencies on other projects
+│   ├── Vyshyvanka.Engine/            # Execution engine, persistence, plugins, auth
+│   ├── Vyshyvanka.Api/               # ASP.NET Core REST API
+│   ├── Vyshyvanka.AppHost/           # .NET Aspire orchestration (dev hosting)
+│   ├── Vyshyvanka.Designer/          # Blazor WASM UI — communicates only via HTTP
+│   └── Vyshyvanka.ServiceDefaults/   # Shared service configuration (Aspire defaults)
 ├── plugins/
-│   ├── FlowForge.Plugin.AdvancedHttp/ # HTTP retry, polling, batch, GraphQL nodes
-│   ├── FlowForge.Plugin.GitLab/      # GitLab integration nodes
-│   ├── FlowForge.Plugin.Jira/        # Jira integration nodes
-│   └── FlowForge.Plugin.Tmplt/       # Starter template for new plugins
+│   ├── Vyshyvanka.Plugin.AdvancedHttp/ # HTTP retry, polling, batch, GraphQL nodes
+│   ├── Vyshyvanka.Plugin.GitLab/      # GitLab integration nodes
+│   ├── Vyshyvanka.Plugin.Jira/        # Jira integration nodes
+│   └── Vyshyvanka.Plugin.Tmplt/       # Starter template for new plugins
 ├── tests/
-│   └── FlowForge.Tests/             # All tests (unit, property, integration, E2E)
+│   └── Vyshyvanka.Tests/             # All tests (unit, property, integration, E2E)
 ├── docs/                            # Design documentation and architectural decisions
 ├── Directory.Packages.props         # Central package version management
-└── FlowForge.slnx                   # Solution file
+└── Vyshyvanka.slnx                   # Solution file
 ```
 
 ## Dependency Rules
@@ -41,9 +41,9 @@ Dependencies flow strictly downward. NEVER introduce an upward or circular refer
 
 ## Code Placement
 
-Place new files according to these tables. Namespace MUST match the folder path (e.g., `FlowForge.Engine.Nodes.Actions`).
+Place new files according to these tables. Namespace MUST match the folder path (e.g., `Vyshyvanka.Engine.Nodes.Actions`).
 
-### FlowForge.Core/
+### Vyshyvanka.Core/
 | What | Where |
 |------|-------|
 | Domain models | `Models/` |
@@ -52,7 +52,7 @@ Place new files according to these tables. Namespace MUST match the folder path 
 | Custom exceptions | `Exceptions/` |
 | Node / plugin attributes | `Attributes/` |
 
-### FlowForge.Engine/
+### Vyshyvanka.Engine/
 | What | Where |
 |------|-------|
 | Trigger nodes | `Nodes/Triggers/` |
@@ -61,7 +61,7 @@ Place new files according to these tables. Namespace MUST match the folder path 
 | Node base classes | `Nodes/Base/` |
 | Workflow execution | `Execution/` |
 | Expression evaluation | `Expressions/` |
-| EF Core DbContext | `Persistence/FlowForgeDbContext.cs` |
+| EF Core DbContext | `Persistence/VyshyvankaDbContext.cs` |
 | Repository implementations | `Persistence/` |
 | Entity classes | `Persistence/Entities/` |
 | Plugin system | `Plugins/` |
@@ -74,7 +74,7 @@ Place new files according to these tables. Namespace MUST match the folder path 
 | Credential handling | `Credentials/` |
 | Vault/OpenBao client | `Credentials/VaultClient.cs`, `Credentials/VaultCredentialService.cs` |
 
-### FlowForge.Api/
+### Vyshyvanka.Api/
 | What | Where |
 |------|-------|
 | Controllers | `Controllers/` |
@@ -86,7 +86,7 @@ Place new files according to these tables. Namespace MUST match the folder path 
 | API-layer services | `Services/` |
 | Installed plugin packages | `packages/` |
 
-### FlowForge.Designer/
+### Vyshyvanka.Designer/
 | What | Where |
 |------|-------|
 | Blazor components | `Components/` |
@@ -104,7 +104,7 @@ Blazor component rules:
 - No `@code` blocks in `.razor` files
 - No `<style>` blocks in `.razor` files
 
-### FlowForge.Tests/
+### Vyshyvanka.Tests/
 | What | Where |
 |------|-------|
 | Unit tests | `Unit/` |
@@ -123,9 +123,9 @@ Blazor component rules:
 
 ## Service Registration
 
-- Engine services → `FlowForge.Api/Extensions/ServiceCollectionExtensions.cs`
-- API services → `FlowForge.Api/Program.cs`
-- Designer services → `FlowForge.Designer/Program.cs`
+- Engine services → `Vyshyvanka.Api/Extensions/ServiceCollectionExtensions.cs`
+- API services → `Vyshyvanka.Api/Program.cs`
+- Designer services → `Vyshyvanka.Designer/Program.cs`
 
 ## Ripple-Effect Checklist
 

@@ -1,0 +1,83 @@
+@page "/designer"
+@page "/designer/{WorkflowId:guid}"
+@layout DesignerLayout
+
+<PageTitle>@(StateService.Workflow.Name) - Vyshyvanka Designer</PageTitle>
+
+@{
+    Layout?.SetToolbar(ToolbarContent);
+}
+
+<div class="designer-container">
+    <aside class="node-palette @(_isPaletteCollapsed ? "collapsed" : "")">
+        <div class="panel-toggle" @onclick="TogglePalette" title="@(_isPaletteCollapsed ? "Show Nodes" : "Hide Nodes")">
+            <span class="toggle-icon">@(_isPaletteCollapsed ? "▶" : "◀")</span>
+            @if (_isPaletteCollapsed)
+            {
+                <span class="toggle-label-vertical">Nodes</span>
+            }
+        </div>
+        @if (!_isPaletteCollapsed)
+        {
+            <NodePalette/>
+        }
+    </aside>
+
+    <div class="canvas-area">
+        @if (!StateService.ValidationResult.IsValid)
+        {
+            <div class="validation-panel">
+                <div class="validation-header" @onclick="ToggleValidationPanel">
+                    <span class="validation-icon">⚠️</span>
+                    <span>@StateService.ValidationResult.Errors.Count validation error(s)</span>
+                    <span class="validation-toggle">@(_isValidationPanelExpanded ? "▼" : "▶")</span>
+                </div>
+                @if (_isValidationPanelExpanded)
+                {
+                    <div class="validation-errors">
+                        @foreach (var error in StateService.ValidationResult.Errors)
+                        {
+                            <div class="validation-error">
+                                <span class="error-path">@error.Path</span>
+                                <span class="error-message">@error.Message</span>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+
+        <WorkflowCanvas OnNodeDoubleClick="OpenNodeEditor"/>
+    </div>
+
+    <aside class="config-panel @(_isConfigCollapsed ? "collapsed" : "")">
+        <div class="panel-toggle" @onclick="ToggleConfig" title="@(_isConfigCollapsed ? "Show Properties" : "Hide Properties")">
+            @if (_isConfigCollapsed)
+            {
+                <span class="toggle-label-vertical">Properties</span>
+            }
+            <span class="toggle-icon">@(_isConfigCollapsed ? "◀" : "▶")</span>
+        </div>
+        @if (!_isConfigCollapsed)
+        {
+            <NodeConfigPanel/>
+        }
+    </aside>
+</div>
+
+@* Plugin Manager Modal *@
+<PluginManager IsOpen="@_isPluginManagerOpen" OnClose="ClosePluginManager"/>
+
+@* Credential Manager Modal *@
+<CredentialManager IsOpen="@_isCredentialManagerOpen" OnClose="CloseCredentialManager"/>
+
+@* Workflow Browser Modal *@
+<WorkflowBrowser IsOpen="@_isWorkflowBrowserOpen"
+                 CurrentWorkflowId="@WorkflowId"
+                 OnClose="CloseWorkflowBrowser"/>
+
+@* Node Editor Modal *@
+<NodeEditorModal IsOpen="@_isNodeEditorOpen"
+                 NodeId="@_editingNodeId"
+                 OnClose="CloseNodeEditor"
+                 OnSave="CloseNodeEditor"/>

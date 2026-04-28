@@ -2,7 +2,7 @@
 
 ## Overview
 
-The FlowForge Designer is a Blazor WebAssembly single-page application that provides a visual canvas for designing workflows. It communicates with the API exclusively over HTTP and has no direct dependency on the Engine or persistence layers.
+The Vyshyvanka Designer is a Blazor WebAssembly single-page application that provides a visual canvas for designing workflows. It communicates with the API exclusively over HTTP and has no direct dependency on the Engine or persistence layers.
 
 ## Application Structure
 
@@ -100,8 +100,8 @@ Every Blazor component follows a strict three-file pattern:
 ```mermaid
 flowchart LR
     subgraph "Services"
-        ApiClient["FlowForgeApiClient<br/>HTTP calls to API"]
-        ApiClientPkg["FlowForgeApiClient.Packages<br/>Package operations"]
+        ApiClient["VyshyvankaApiClient<br/>HTTP calls to API"]
+        ApiClientPkg["VyshyvankaApiClient.Packages<br/>Package operations"]
         AuthService["AuthService<br/>Login, Register, Logout"]
         AuthState["AuthStateService<br/>Token storage, auth state"]
         WorkflowState["WorkflowStateService<br/>Canvas state management"]
@@ -134,7 +134,7 @@ Central state manager for the Designer canvas. Manages:
 - Workflow serialization and deserialization
 - Validation state
 
-#### FlowForgeApiClient
+#### VyshyvankaApiClient
 
 Typed HTTP client for all API communication:
 

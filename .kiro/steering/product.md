@@ -2,9 +2,9 @@
 inclusion: always
 ---
 
-# FlowForge Product Domain
+# Vyshyvanka Product Domain
 
-FlowForge is a .NET 10 workflow automation platform. Users build workflows visually by connecting nodes in a Blazor WebAssembly designer, then execute them via a REST API backed by a workflow engine.
+Vyshyvanka is a .NET 10 workflow automation platform. Users build workflows visually by connecting nodes in a Blazor WebAssembly designer, then execute them via a REST API backed by a workflow engine.
 
 ## Domain Model
 
@@ -25,7 +25,7 @@ FlowForge is a .NET 10 workflow automation platform. Users build workflows visua
 | Logic | `BaseLogicNode` | Yes | If, Switch, Loop, Merge |
 
 When implementing a new node:
-1. Inherit from the correct base class in `FlowForge.Engine/Nodes/Base/`
+1. Inherit from the correct base class in `Vyshyvanka.Engine/Nodes/Base/`
 2. Override `ExecuteAsync(IExecutionContext context, CancellationToken ct)`
 3. Register the node in `NodeRegistry` so the engine can discover it
 

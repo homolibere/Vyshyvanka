@@ -1,0 +1,83 @@
+@namespace Vyshyvanka.Designer.Components
+
+<div class="modal-overlay @(IsOpen ? "open" : "")" 
+     @onclick="HandleOverlayClick"
+     @onkeydown="HandleKeyDown"
+     tabindex="-1">
+    <div class="modal-content node-editor-modal" @onclick:stopPropagation="true">
+        @if (_node is not null)
+        {
+            <div class="modal-header">
+                <div class="header-info">
+                    <NodeIcon Icon="@_definition?.Icon" Size="24px" />
+                    <div class="header-text">
+                        <h2 class="node-name">@_node.Name</h2>
+                        <span class="node-type">@(_definition?.Name ?? _node.Type)</span>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-run"
+                            title="Run workflow up to this node"
+                            disabled="@_isRunningToNode"
+                            @onclick="RunUpToNode">
+                        @if (_isRunningToNode)
+                        {
+                            <span class="run-icon spinning">⟳</span>
+                        }
+                        else
+                        {
+                            <span class="run-icon">▶</span>
+                        }
+                        <span>Run to here</span>
+                    </button>
+                    <button class="btn-close" @onclick="HandleClose" title="Close (Esc)">×</button>
+                </div>
+            </div>
+
+            <div class="modal-body">
+                @if (_definition?.RequiredCredentialType is not null)
+                {
+                    <CredentialPicker
+                        SelectedCredentialId="@_node.CredentialId"
+                        SelectedCredentialIdChanged="@HandleCredentialChanged"
+                        FilterType="@_definition.RequiredCredentialType" />
+                }
+
+                <div class="three-panel-layout">
+                    <NodeEditorInputPanel InputData="@_executionState?.InputData" />
+                    
+                    <NodeEditorConfigPanel @ref="_configPanel"
+                                           Properties="@_properties"
+                                           Values="@_configValues"
+                                           OnValueChanged="@HandleValueChanged"
+                                           OnValuesChanged="@HandleValuesChanged"
+                                           IsJsonMode="@_isJsonMode"
+                                           IsJsonModeChanged="@HandleJsonModeChanged"
+                                           ShowValidationErrors="@_showValidationErrors"
+                                           HasSchema="@HasSchema"
+                                           InitialRawJson="@_initialRawJson" />
+                    
+                    <NodeEditorOutputPanel OutputData="@_executionState?.OutputData" />
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" @onclick="HandleCancel">Cancel</button>
+                <button class="btn btn-primary" @onclick="HandleSave">Save</button>
+            </div>
+        }
+        else if (_errorMessage is not null)
+        {
+            <div class="modal-header header-error">
+                <h2>Error</h2>
+                <button class="btn-close" @onclick="HandleClose">×</button>
+            </div>
+            <div class="modal-body">
+                <p class="error-message">@_errorMessage</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" @onclick="HandleClose">Close</button>
+            </div>
+        }
+    </div>
+</div>

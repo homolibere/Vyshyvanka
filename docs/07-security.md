@@ -2,13 +2,13 @@
 
 ## Overview
 
-FlowForge implements a layered security model covering authentication, authorization, credential management, and audit logging. Security is enforced at the API layer through middleware and authorization policies.
+Vyshyvanka implements a layered security model covering authentication, authorization, credential management, and audit logging. Security is enforced at the API layer through middleware and authorization policies.
 
 ## Authentication
 
 ### Configurable Authentication Provider
 
-FlowForge supports four authentication providers, selected via the `Authentication:Provider` setting in `appsettings.json`:
+Vyshyvanka supports four authentication providers, selected via the `Authentication:Provider` setting in `appsettings.json`:
 
 | Provider | Value | Description |
 |----------|-------|-------------|
@@ -86,15 +86,15 @@ When an external provider is configured, the API validates access tokens issued 
 {
   "Authentication": {
     "Provider": "Keycloak",
-    "Authority": "https://keycloak.example.com/realms/flowforge",
-    "ClientId": "flowforge-api",
-    "Audience": "flowforge-api",
+    "Authority": "https://keycloak.example.com/realms/vyshyvanka",
+    "ClientId": "vyshyvanka-api",
+    "Audience": "vyshyvanka-api",
     "RequireHttpsMetadata": true,
     "RoleClaimType": "realm_access",
     "RoleMappings": {
-      "flowforge-admin": "Admin",
-      "flowforge-editor": "Editor",
-      "flowforge-viewer": "Viewer"
+      "vyshyvanka-admin": "Admin",
+      "vyshyvanka-editor": "Editor",
+      "vyshyvanka-viewer": "Viewer"
     },
     "DefaultRole": "Viewer",
     "AutoProvisionUsers": true
@@ -166,9 +166,9 @@ When the LDAP provider is configured, the API accepts username/password via the 
       "DisplayNameAttribute": "cn",
       "MemberOfAttribute": "memberOf",
       "RoleMappings": {
-        "FlowForge-Admins": "Admin",
-        "FlowForge-Editors": "Editor",
-        "FlowForge-Viewers": "Viewer"
+        "Vyshyvanka-Admins": "Admin",
+        "Vyshyvanka-Editors": "Editor",
+        "Vyshyvanka-Viewers": "Viewer"
       },
       "DefaultRole": "Viewer"
     }
@@ -262,13 +262,13 @@ graph TD
 | CanViewPackages | ✅ | ✅ | ✅ |
 | CanViewWorkflows | ✅ | ✅ | ✅ |
 
-Policies are registered in `AuthorizationExtensions.AddFlowForgePolicies()` and applied to controllers via `[Authorize(Policy = ...)]` attributes.
+Policies are registered in `AuthorizationExtensions.AddVyshyvankaPolicies()` and applied to controllers via `[Authorize(Policy = ...)]` attributes.
 
 ## Credential Management
 
 ### Configurable Storage Backend
 
-FlowForge supports three credential storage backends, selected via the `CredentialStorage:Provider` setting in `appsettings.json`:
+Vyshyvanka supports three credential storage backends, selected via the `CredentialStorage:Provider` setting in `appsettings.json`:
 
 | Provider | Value | Description |
 |----------|-------|-------------|
@@ -299,7 +299,7 @@ flowchart LR
 | Algorithm | AES-256 (symmetric, CBC mode, PKCS7 padding) |
 | IV | Unique per encryption, prepended to ciphertext |
 | Storage | `EncryptedData` field on `Credential` entity |
-| Key | Configurable via `FlowForge:EncryptionKey` (Base64-encoded 256-bit key) |
+| Key | Configurable via `Vyshyvanka:EncryptionKey` (Base64-encoded 256-bit key) |
 
 ### Vault / OpenBao Storage
 
@@ -329,7 +329,7 @@ flowchart LR
     "Url": "https://vault.example.com:8200",
     "Token": "",
     "MountPath": "secret",
-    "PathPrefix": "flowforge/credentials",
+    "PathPrefix": "vyshyvanka/credentials",
     "SkipTlsVerify": false
   }
 }
@@ -342,7 +342,7 @@ For OpenBao, use `"Provider": "OpenBao"` — the API is identical.
 | `Url` | Base URL of the Vault/OpenBao server | (required) |
 | `Token` | Authentication token. Falls back to `VAULT_TOKEN` env var | — |
 | `MountPath` | KV v2 mount path | `secret` |
-| `PathPrefix` | Path prefix under the mount | `flowforge/credentials` |
+| `PathPrefix` | Path prefix under the mount | `vyshyvanka/credentials` |
 | `SkipTlsVerify` | Disable TLS verification (dev only) | `false` |
 
 Secrets are stored at `{MountPath}/data/{PathPrefix}/{credentialId}`.

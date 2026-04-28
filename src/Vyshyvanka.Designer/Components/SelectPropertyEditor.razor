@@ -1,0 +1,37 @@
+@namespace Vyshyvanka.Designer.Components
+
+<div class="property-editor select-editor">
+    <label class="property-label">
+        @Property.DisplayName
+        @if (Property.IsRequired)
+        {
+            <span class="required-indicator">*</span>
+        }
+    </label>
+    
+    <select class="property-select @(ShowValidationError ? "has-error" : "")"
+            value="@CurrentValue"
+            @onchange="OnChange">
+        @if (!Property.IsRequired || string.IsNullOrEmpty(CurrentValue))
+        {
+            <option value="">-- Select --</option>
+        }
+        @if (Property.Options is not null)
+        {
+            @foreach (var option in Property.Options)
+            {
+                <option value="@option" selected="@(option == CurrentValue)">@option</option>
+            }
+        }
+    </select>
+    
+    @if (!string.IsNullOrEmpty(Property.Description))
+    {
+        <div class="property-description">@Property.Description</div>
+    }
+    
+    @if (ShowValidationError)
+    {
+        <div class="validation-error">This field is required</div>
+    }
+</div>

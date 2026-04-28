@@ -1,0 +1,42 @@
+@page "/login"
+
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-logo">
+            <img src="images/logo-light.svg" alt="Vyshyvanka"/>
+        </div>
+        <p class="subtitle">Sign in to continue</p>
+
+        @if (!string.IsNullOrEmpty(_errorMessage))
+        {
+            <div class="alert alert-danger">@_errorMessage</div>
+        }
+
+        <EditForm Model="_model" OnValidSubmit="HandleLogin">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <InputText id="email" class="form-control" @bind-Value="_model.Email" placeholder="Enter your email"/>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <InputText id="password" type="password" class="form-control" @bind-Value="_model.Password" placeholder="Enter your password"/>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" disabled="@_isLoading">
+                @if (_isLoading)
+                {
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                }
+                Sign In
+            </button>
+        </EditForm>
+
+        <div class="dev-credentials">
+            <p>
+                <strong>Development credentials:</strong>
+            </p>
+            <code>admin@vyshyvanka.local / Admin123!</code>
+        </div>
+    </div>
+</div>

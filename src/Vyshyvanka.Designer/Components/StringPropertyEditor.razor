@@ -1,0 +1,46 @@
+@namespace Vyshyvanka.Designer.Components
+
+<div class="property-editor string-editor">
+    <label class="property-label">
+        @Property.DisplayName
+        @if (Property.IsRequired)
+        {
+            <span class="required-indicator">*</span>
+        }
+        @if (HasExpression)
+        {
+            <span class="expression-indicator" title="Contains expression syntax">⚡</span>
+        }
+    </label>
+    
+    <input type="text"
+           class="property-input @(HasExpression ? "has-expression" : "") @(ShowValidationError ? "has-error" : "")"
+           value="@CurrentValue"
+           placeholder="@GetPlaceholder()"
+           @oninput="OnInput"
+           @onblur="OnBlur" />
+    
+    @if (!string.IsNullOrEmpty(Property.Description))
+    {
+        <div class="property-description">@Property.Description</div>
+    }
+    
+    @if (HasExpression)
+    {
+        <div class="expression-hint">
+            <span class="expression-hint-icon">💡</span>
+            Expression detected: Use <code>@("{{ nodes.nodeName.output.field }}")</code> syntax to reference data from other nodes.
+        </div>
+    }
+    else
+    {
+        <div class="expression-syntax-hint">
+            Tip: Use <code>@("{{ }}")</code> syntax for expressions
+        </div>
+    }
+    
+    @if (ShowValidationError)
+    {
+        <div class="validation-error">This field is required</div>
+    }
+</div>

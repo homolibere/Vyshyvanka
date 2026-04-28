@@ -2,7 +2,7 @@
 
 ## Overview
 
-FlowForge supports extending its node library through plugins distributed as NuGet packages. The plugin system handles the full lifecycle: discovery, installation, validation, loading, isolation, and uninstallation.
+Vyshyvanka supports extending its node library through plugins distributed as NuGet packages. The plugin system handles the full lifecycle: discovery, installation, validation, loading, isolation, and uninstallation.
 
 ## Plugin Architecture
 
@@ -203,13 +203,13 @@ Each installed package tracks:
 
 A plugin is a .NET class library that:
 
-1. References `FlowForge.Core` (with `Private=false` and `ExcludeAssets=runtime`)
+1. References `Vyshyvanka.Core` (with `Private=false` and `ExcludeAssets=runtime`)
 2. Has `EnableDynamicLoading` set to `true` in the project file
 3. Contains an assembly-level `[Plugin]` attribute with metadata
 4. Contains one or more classes inheriting from the appropriate base node class
 5. Is packaged as a NuGet package with appropriate metadata
 
-The `FlowForge.Plugin.AdvancedHttp` project serves as a reference implementation, providing:
+The `Vyshyvanka.Plugin.AdvancedHttp` project serves as a reference implementation, providing:
 
 | Node | Description |
 |------|------------|

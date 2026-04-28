@@ -1,6 +1,6 @@
-# FlowForge Documentation
+# Vyshyvanka Documentation
 
-Comprehensive business requirements and architectural documentation for the FlowForge workflow automation platform.
+Comprehensive business requirements and architectural documentation for the Vyshyvanka workflow automation platform.
 
 ## Table of Contents
 

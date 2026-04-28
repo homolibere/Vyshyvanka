@@ -1,0 +1,10 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Vyshyvanka SDK — update to match the Vyshyvanka version you target -->
+    <PackageVersion Include="Vyshyvanka.Core" Version="0.1.0" />
+  </ItemGroup>
+</Project>

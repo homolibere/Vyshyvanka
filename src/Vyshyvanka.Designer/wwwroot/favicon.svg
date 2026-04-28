@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <defs>
+    <linearGradient id="fv-r" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#c62828"/>
+      <stop offset="100%" stop-color="#e53935"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="32" height="32" rx="6" fill="#1a1a2e"/>
+  <!-- Outer diamond -->
+  <path d="M16 4 L28 16 L16 28 L4 16 Z" stroke="url(#fv-r)" stroke-width="1.5" fill="none"/>
+  <!-- Inner diamond -->
+  <path d="M16 9 L23 16 L16 23 L9 16 Z" stroke="url(#fv-r)" stroke-width="1.2" fill="url(#fv-r)" fill-opacity="0.15"/>
+  <!-- Cross-stitch center -->
+  <line x1="14" y1="14" x2="18" y2="18" stroke="url(#fv-r)" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="18" y1="14" x2="14" y2="18" stroke="url(#fv-r)" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Axis diamonds -->
+  <path d="M16 2 L17.5 4 L16 6 L14.5 4 Z" fill="url(#fv-r)"/>
+  <path d="M16 26 L17.5 28 L16 30 L14.5 28 Z" fill="url(#fv-r)"/>
+  <path d="M2 16 L4 14.5 L6 16 L4 17.5 Z" fill="url(#fv-r)"/>
+  <path d="M26 16 L28 14.5 L30 16 L28 17.5 Z" fill="url(#fv-r)"/>
+  <!-- Thread knot dots -->
+  <circle cx="11" cy="10" r="1" fill="url(#fv-r)" opacity="0.7"/>
+  <circle cx="21" cy="10" r="1" fill="url(#fv-r)" opacity="0.7"/>
+  <circle cx="11" cy="22" r="1" fill="url(#fv-r)" opacity="0.7"/>
+  <circle cx="21" cy="22" r="1" fill="url(#fv-r)" opacity="0.7"/>
+</svg>

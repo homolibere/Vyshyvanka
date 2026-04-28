@@ -4,11 +4,11 @@
 
 ### OpenTelemetry Integration
 
-FlowForge uses OpenTelemetry for distributed tracing, metrics, and logging, configured through the `FlowForge.ServiceDefaults` shared project.
+Vyshyvanka uses OpenTelemetry for distributed tracing, metrics, and logging, configured through the `Vyshyvanka.ServiceDefaults` shared project.
 
 ```mermaid
 flowchart LR
-    subgraph "FlowForge Services"
+    subgraph "Vyshyvanka Services"
         API["API Service"]
         Designer["Designer"]
     end
@@ -61,7 +61,7 @@ Every API error response includes a `traceId` field that correlates with the dis
 
 ```mermaid
 graph TD
-    subgraph "FlowForge.Tests"
+    subgraph "Vyshyvanka.Tests"
         Unit["Unit Tests<br/>Isolated component tests"]
         Property["Property-Based Tests<br/>CsCheck generators"]
         Integration["Integration Tests<br/>Full API pipeline"]
@@ -130,7 +130,7 @@ Property-based tests verify invariants across randomly generated inputs:
 | Component | Purpose |
 |-----------|---------|
 | `CustomWebApplicationFactory` | Configures in-memory database and test services |
-| `FlowForgeApiFixture` | Shared fixture for API integration tests |
+| `VyshyvankaApiFixture` | Shared fixture for API integration tests |
 | `TestDataFactory` | Generates valid test entities (workflows, users, nodes) |
 | `MockHttpMessageHandler` | Intercepts HTTP calls for Designer client tests |
 

@@ -1,8 +1,8 @@
-# FlowForge — Product Overview
+# Vyshyvanka — Product Overview
 
 ## Vision
 
-FlowForge is a workflow automation platform built on .NET 10. It enables users to design, execute, and monitor automated workflows through a visual node-based editor. Workflows are composed of interconnected nodes that define data flow and processing logic, triggered by webhooks, schedules, or manual actions.
+Vyshyvanka is a workflow automation platform built on .NET 10. It enables users to design, execute, and monitor automated workflows through a visual node-based editor. Workflows are composed of interconnected nodes that define data flow and processing logic, triggered by webhooks, schedules, or manual actions.
 
 ## Core Capabilities
 
@@ -45,21 +45,21 @@ The following terms are used consistently across the codebase, API, UI, and docu
 
 ```mermaid
 C4Context
-    title FlowForge System Context
+    title Vyshyvanka System Context
 
     Person(designer, "Workflow Designer", "Creates workflows in the visual editor")
     Person(operator, "Operator", "Triggers and monitors executions")
     Person(admin, "Administrator", "Manages users, plugins, sources")
 
-    System(flowforge, "FlowForge", "Workflow automation platform")
+    System(vyshyvanka, "Vyshyvanka", "Workflow automation platform")
 
     System_Ext(external, "External Systems", "Webhooks, APIs, email servers, databases")
     System_Ext(nuget, "NuGet Feeds", "Plugin package sources")
 
-    Rel(designer, flowforge, "Designs workflows")
-    Rel(operator, flowforge, "Executes and monitors")
-    Rel(admin, flowforge, "Administers")
-    Rel(flowforge, external, "Sends HTTP requests, emails, DB queries")
-    Rel(external, flowforge, "Triggers via webhooks")
-    Rel(flowforge, nuget, "Searches, downloads plugins")
+    Rel(designer, vyshyvanka, "Designs workflows")
+    Rel(operator, vyshyvanka, "Executes and monitors")
+    Rel(admin, vyshyvanka, "Administers")
+    Rel(vyshyvanka, external, "Sends HTTP requests, emails, DB queries")
+    Rel(external, vyshyvanka, "Triggers via webhooks")
+    Rel(vyshyvanka, nuget, "Searches, downloads plugins")
 ```

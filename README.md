@@ -1,4 +1,4 @@
-# FlowForge
+# Vyshyvanka
 
 A workflow automation platform built on .NET 10. Users create automated workflows through a visual node-based designer, connect nodes to define data flow, and execute workflows triggered by webhooks, schedules, or manual actions.
 
@@ -53,8 +53,8 @@ Clone the repo and restore dependencies:
 
 ```bash
 git clone <repository-url>
-cd FlowForge
-dotnet restore FlowForge.slnx
+cd Vyshyvanka
+dotnet restore Vyshyvanka.slnx
 ```
 
 ### Run with Aspire (recommended)
@@ -62,23 +62,23 @@ dotnet restore FlowForge.slnx
 Starts both the API and Designer with service discovery:
 
 ```bash
-dotnet run --project src/FlowForge.AppHost
+dotnet run --project src/Vyshyvanka.AppHost
 ```
 
 This uses SQLite by default. To use PostgreSQL instead (requires Docker):
 
 ```bash
-USE_POSTGRES=true dotnet run --project src/FlowForge.AppHost
+USE_POSTGRES=true dotnet run --project src/Vyshyvanka.AppHost
 ```
 
 ### Run individual projects
 
 ```bash
 # API only
-dotnet run --project src/FlowForge.Api
+dotnet run --project src/Vyshyvanka.Api
 
 # Designer only
-dotnet run --project src/FlowForge.Designer
+dotnet run --project src/Vyshyvanka.Designer
 ```
 
 ### Build & Test
@@ -92,17 +92,17 @@ dotnet test
 
 | Project | Location | Description |
 |---------|----------|-------------|
-| `FlowForge.Core` | `src/` | Domain models, interfaces, enums, exceptions. No external dependencies. |
-| `FlowForge.Engine` | `src/` | Workflow execution engine, EF Core persistence, plugin system, node registry. |
-| `FlowForge.Api` | `src/` | REST API controllers, middleware, authentication, DTOs. |
-| `FlowForge.Designer` | `src/` | Blazor WebAssembly visual workflow editor. |
-| `FlowForge.AppHost` | `src/` | .NET Aspire host for orchestrating services. |
-| `FlowForge.ServiceDefaults` | `src/` | Shared Aspire service configuration (OpenTelemetry, resilience). |
-| `FlowForge.Plugin.AdvancedHttp` | `plugins/` | HTTP retry, polling, batch, and GraphQL nodes. |
-| `FlowForge.Plugin.GitLab` | `plugins/` | GitLab issues, merge requests, pipelines, files, tags, releases. |
-| `FlowForge.Plugin.Jira` | `plugins/` | Jira issues, comments, users, and JQL search. |
-| `FlowForge.Plugin.Tmplt` | `plugins/` | Starter template for building new plugins. |
-| `FlowForge.Tests` | `tests/` | Unit, integration, property-based, and E2E tests. |
+| `Vyshyvanka.Core` | `src/` | Domain models, interfaces, enums, exceptions. No external dependencies. |
+| `Vyshyvanka.Engine` | `src/` | Workflow execution engine, EF Core persistence, plugin system, node registry. |
+| `Vyshyvanka.Api` | `src/` | REST API controllers, middleware, authentication, DTOs. |
+| `Vyshyvanka.Designer` | `src/` | Blazor WebAssembly visual workflow editor. |
+| `Vyshyvanka.AppHost` | `src/` | .NET Aspire host for orchestrating services. |
+| `Vyshyvanka.ServiceDefaults` | `src/` | Shared Aspire service configuration (OpenTelemetry, resilience). |
+| `Vyshyvanka.Plugin.AdvancedHttp` | `plugins/` | HTTP retry, polling, batch, and GraphQL nodes. |
+| `Vyshyvanka.Plugin.GitLab` | `plugins/` | GitLab issues, merge requests, pipelines, files, tags, releases. |
+| `Vyshyvanka.Plugin.Jira` | `plugins/` | Jira issues, comments, users, and JQL search. |
+| `Vyshyvanka.Plugin.Tmplt` | `plugins/` | Starter template for building new plugins. |
+| `Vyshyvanka.Tests` | `tests/` | Unit, integration, property-based, and E2E tests. |
 
 ## Key Concepts
 
@@ -136,18 +136,18 @@ Reference data from previous nodes using double-brace syntax:
 
 ### Plugins
 
-Extend FlowForge by creating plugin projects that reference `FlowForge.Core` and implement custom nodes.
+Extend Vyshyvanka by creating plugin projects that reference `Vyshyvanka.Core` and implement custom nodes.
 
 | Plugin | Description |
 |--------|-------------|
-| [AdvancedHttp](plugins/FlowForge.Plugin.AdvancedHttp/) | HTTP retry, polling, batch requests, and GraphQL |
-| [GitLab](plugins/FlowForge.Plugin.GitLab/) | GitLab issues, merge requests, pipelines, files, tags, releases, and webhook triggers |
-| [Jira](plugins/FlowForge.Plugin.Jira/) | Jira issues, comments, users, and JQL search |
-| [Template](plugins/FlowForge.Plugin.Tmplt/) | Starter template for building your own plugins |
+| [AdvancedHttp](plugins/Vyshyvanka.Plugin.AdvancedHttp/) | HTTP retry, polling, batch requests, and GraphQL |
+| [GitLab](plugins/Vyshyvanka.Plugin.GitLab/) | GitLab issues, merge requests, pipelines, files, tags, releases, and webhook triggers |
+| [Jira](plugins/Vyshyvanka.Plugin.Jira/) | Jira issues, comments, users, and JQL search |
+| [Template](plugins/Vyshyvanka.Plugin.Tmplt/) | Starter template for building your own plugins |
 
 ## Authentication
 
-FlowForge supports four authentication providers, configured via `Authentication:Provider` in `appsettings.json`:
+Vyshyvanka supports four authentication providers, configured via `Authentication:Provider` in `appsettings.json`:
 
 | Provider | Value | Description |
 |----------|-------|-------------|
@@ -160,7 +160,7 @@ API key authentication (`X-API-Key` header) is always available for webhooks and
 
 ### Built-in (default)
 
-Works out of the box. Users register and log in with email/password. Development seeds three users automatically (`admin@flowforge.local`, `editor@flowforge.local`, `viewer@flowforge.local`).
+Works out of the box. Users register and log in with email/password. Development seeds three users automatically (`admin@vyshyvanka.local`, `editor@vyshyvanka.local`, `viewer@vyshyvanka.local`).
 
 ### Keycloak / Authentik
 
@@ -170,19 +170,19 @@ Configure the OIDC authority and role mappings. The API validates tokens issued 
 {
   "Authentication": {
     "Provider": "Keycloak",
-    "Authority": "https://keycloak.example.com/realms/flowforge",
-    "ClientId": "flowforge-api",
-    "Audience": "flowforge-api",
+    "Authority": "https://keycloak.example.com/realms/vyshyvanka",
+    "ClientId": "vyshyvanka-api",
+    "Audience": "vyshyvanka-api",
     "RoleClaimType": "realm_access",
     "RoleMappings": {
-      "flowforge-admin": "Admin",
-      "flowforge-editor": "Editor"
+      "vyshyvanka-admin": "Admin",
+      "vyshyvanka-editor": "Editor"
     }
   }
 }
 ```
 
-See [`appsettings.Keycloak.json`](src/FlowForge.Api/appsettings.Keycloak.json) and [`appsettings.Authentik.json`](src/FlowForge.Api/appsettings.Authentik.json) for full examples.
+See [`appsettings.Keycloak.json`](src/Vyshyvanka.Api/appsettings.Keycloak.json) and [`appsettings.Authentik.json`](src/Vyshyvanka.Api/appsettings.Authentik.json) for full examples.
 
 ### LDAP
 
@@ -201,15 +201,15 @@ Credentials are verified against the LDAP directory. Sessions use locally-issued
       "SearchBase": "ou=users,dc=example,dc=com",
       "UserSearchFilter": "(mail={0})",
       "RoleMappings": {
-        "FlowForge-Admins": "Admin",
-        "FlowForge-Editors": "Editor"
+        "Vyshyvanka-Admins": "Admin",
+        "Vyshyvanka-Editors": "Editor"
       }
     }
   }
 }
 ```
 
-See [`appsettings.Ldap.json`](src/FlowForge.Api/appsettings.Ldap.json) for the full example.
+See [`appsettings.Ldap.json`](src/Vyshyvanka.Api/appsettings.Ldap.json) for the full example.
 
 ### Auth Discovery
 
@@ -217,7 +217,7 @@ The `GET /api/auth/config` endpoint (anonymous) returns the active provider and 
 
 ## Credential Storage
 
-FlowForge supports three credential storage backends, configured via `CredentialStorage:Provider` in `appsettings.json`:
+Vyshyvanka supports three credential storage backends, configured via `CredentialStorage:Provider` in `appsettings.json`:
 
 | Provider | Value | Description |
 |----------|-------|-------------|
@@ -227,7 +227,7 @@ FlowForge supports three credential storage backends, configured via `Credential
 
 ### Built-in (default)
 
-Credential values are encrypted with AES-256 and stored alongside metadata in the database. Configure the encryption key via `FlowForge:EncryptionKey`.
+Credential values are encrypted with AES-256 and stored alongside metadata in the database. Configure the encryption key via `Vyshyvanka:EncryptionKey`.
 
 ### HashiCorp Vault / OpenBao
 
@@ -239,14 +239,14 @@ Metadata (name, type, owner) stays in the local database. Secret values are stor
     "Provider": "HashiCorpVault",
     "Url": "https://vault.example.com:8200",
     "MountPath": "secret",
-    "PathPrefix": "flowforge/credentials"
+    "PathPrefix": "vyshyvanka/credentials"
   }
 }
 ```
 
 The Vault token can be set via `CredentialStorage:Token` or the `VAULT_TOKEN` environment variable.
 
-See [`appsettings.Vault.json`](src/FlowForge.Api/appsettings.Vault.json) and [`appsettings.OpenBao.json`](src/FlowForge.Api/appsettings.OpenBao.json) for full examples.
+See [`appsettings.Vault.json`](src/Vyshyvanka.Api/appsettings.Vault.json) and [`appsettings.OpenBao.json`](src/Vyshyvanka.Api/appsettings.OpenBao.json) for full examples.
 
 ## Documentation
 

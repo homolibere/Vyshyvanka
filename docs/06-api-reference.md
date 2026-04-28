@@ -2,7 +2,7 @@
 
 ## Overview
 
-The FlowForge API is an ASP.NET Core REST API that serves as the backend for the Designer and external integrations. All endpoints return JSON responses and use consistent error formatting.
+The Vyshyvanka API is an ASP.NET Core REST API that serves as the backend for the Designer and external integrations. All endpoints return JSON responses and use consistent error formatting.
 
 Base URL: `/api`
 

@@ -2,7 +2,7 @@
 inclusion: always
 ---
 
-# FlowForge Tech Stack & Conventions
+# Vyshyvanka Tech Stack & Conventions
 
 ## DO / DON'T
 
@@ -25,10 +25,10 @@ inclusion: always
 ## Runtime
 
 - .NET 10, C# 14, nullable enabled, implicit usings enabled
-- ASP.NET Core REST API (`FlowForge.Api`)
-- Blazor WebAssembly UI (`FlowForge.Designer`)
+- ASP.NET Core REST API (`Vyshyvanka.Api`)
+- Blazor WebAssembly UI (`Vyshyvanka.Designer`)
 - EF Core code-first: SQLite (dev) / PostgreSQL (prod)
-- .NET Aspire for dev orchestration (`FlowForge.AppHost`)
+- .NET Aspire for dev orchestration (`Vyshyvanka.AppHost`)
 
 ## Serialization
 
@@ -37,7 +37,7 @@ Use `System.Text.Json` with camelCase policy everywhere. Prefer source-generated
 ```csharp
 // Source-generated context
 [JsonSerializable(typeof(WorkflowDto))]
-public partial class FlowForgeJsonContext : JsonSerializerContext { }
+public partial class VyshyvankaJsonContext : JsonSerializerContext { }
 
 // Attribute only when name diverges
 [JsonPropertyName("workflow_id")]
@@ -61,7 +61,7 @@ public async Task<Workflow> GetByIdAsync(Guid id, CancellationToken ct)
 
 ## Error Handling
 
-Domain errors use typed exceptions inheriting `FlowForgeException` (defined in `FlowForge.Core/Exceptions/`). Each carries an `ErrorCode` string. The `ErrorHandlingMiddleware` maps these to consistent `ApiError` JSON responses with `code`, `message`, `details`, and `traceId`.
+Domain errors use typed exceptions inheriting `VyshyvankaException` (defined in `Vyshyvanka.Core/Exceptions/`). Each carries an `ErrorCode` string. The `ErrorHandlingMiddleware` maps these to consistent `ApiError` JSON responses with `code`, `message`, `details`, and `traceId`.
 
 - Throw domain-specific exceptions (`WorkflowNotFoundException`, `WorkflowValidationException`, etc.) — don't return error codes manually.
 - Never catch exceptions just to rethrow them without adding context.
@@ -76,16 +76,16 @@ Domain errors use typed exceptions inheriting `FlowForgeException` (defined in `
 
 ## EF Core Conventions
 
-- DbContext lives at `FlowForge.Engine/Persistence/FlowForgeDbContext.cs`.
-- Entity classes in `FlowForge.Engine/Persistence/Entities/`.
-- Repository interfaces in `FlowForge.Core/Interfaces/`, implementations in `FlowForge.Engine/Persistence/`.
+- DbContext lives at `Vyshyvanka.Engine/Persistence/VyshyvankaDbContext.cs`.
+- Entity classes in `Vyshyvanka.Engine/Persistence/Entities/`.
+- Repository interfaces in `Vyshyvanka.Core/Interfaces/`, implementations in `Vyshyvanka.Engine/Persistence/`.
 - Always use `async` query methods with `CancellationToken`.
 - Use `EnsureCreatedAsync()` for dev; migrations for production schema changes.
 
 ## Dependency Injection
 
-- Engine services registered in `FlowForge.Api/Extensions/ServiceCollectionExtensions.cs`.
-- API-layer services registered in `FlowForge.Api/Program.cs`.
+- Engine services registered in `Vyshyvanka.Api/Extensions/ServiceCollectionExtensions.cs`.
+- API-layer services registered in `Vyshyvanka.Api/Program.cs`.
 - Aspire defaults added via `builder.AddServiceDefaults()`.
 - Use interface-based registration: `services.AddScoped<IFoo, Foo>()`.
 - Authentication and credential storage providers are selected at startup via `appsettings.json` and branched in `ServiceCollectionExtensions`.
@@ -122,7 +122,7 @@ Configured via `CredentialStorage:Provider` in `appsettings.json`. Three options
 
 ## Testing
 
-All tests live in `FlowForge.Tests/` organized by type: `Unit/`, `Property/`, `Integration/`, `E2E/`.
+All tests live in `Vyshyvanka.Tests/` organized by type: `Unit/`, `Property/`, `Integration/`, `E2E/`.
 
 | Tool | Purpose |
 |------|---------|
@@ -168,7 +168,7 @@ Versions are centralized in `Directory.Packages.props` at the solution root. Whe
 dotnet build                              # Build entire solution
 dotnet test                               # Run all tests
 dotnet test --filter "FullyQualifiedName~Unit"  # Run unit tests only
-dotnet run --project src/FlowForge.Api        # Start API
-dotnet run --project src/FlowForge.Designer   # Start Blazor UI
-dotnet run --project src/FlowForge.AppHost    # Start via Aspire (all services)
+dotnet run --project src/Vyshyvanka.Api        # Start API
+dotnet run --project src/Vyshyvanka.Designer   # Start Blazor UI
+dotnet run --project src/Vyshyvanka.AppHost    # Start via Aspire (all services)
 ```
