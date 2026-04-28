@@ -30,13 +30,14 @@ public class AuthService : IAuthService
         _auditLogService = auditLogService;
     }
 
-    public async Task<AuthResult> LoginAsync(string email, string password, CancellationToken cancellationToken = default)
+    public async Task<AuthResult> LoginAsync(string email, string password,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(email);
         ArgumentNullException.ThrowIfNull(password);
 
         var user = await _userRepository.GetByEmailAsync(email, cancellationToken);
-        
+
         if (user is null)
         {
             await LogAuthenticationAsync(email, false, "Invalid email or password", cancellationToken);
@@ -59,7 +60,8 @@ public class AuthService : IAuthService
         var refreshToken = _jwtTokenService.GenerateRefreshToken();
         var refreshTokenExpiry = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationDays);
 
-        await _userRepositoryInternal.UpdateRefreshTokenAsync(user.Id, refreshToken, refreshTokenExpiry, cancellationToken);
+        await _userRepositoryInternal.UpdateRefreshTokenAsync(user.Id, refreshToken, refreshTokenExpiry,
+            cancellationToken);
 
         var updatedUser = user with { LastLoginAt = DateTime.UtcNow };
         await _userRepository.UpdateAsync(updatedUser, cancellationToken);
@@ -76,7 +78,8 @@ public class AuthService : IAuthService
         };
     }
 
-    public async Task<AuthResult> RegisterAsync(string email, string password, string? displayName = null, CancellationToken cancellationToken = default)
+    public async Task<AuthResult> RegisterAsync(string email, string password, string? displayName = null,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(email);
         ArgumentNullException.ThrowIfNull(password);
@@ -94,7 +97,7 @@ public class AuthService : IAuthService
             Email = email,
             DisplayName = displayName,
             PasswordHash = passwordHash,
-            Role = UserRole.Editor,
+            Role = UserRole.Viewer,
             IsActive = true,
             CreatedAt = DateTime.UtcNow
         };
@@ -105,7 +108,8 @@ public class AuthService : IAuthService
         var refreshToken = _jwtTokenService.GenerateRefreshToken();
         var refreshTokenExpiry = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationDays);
 
-        await _userRepositoryInternal.UpdateRefreshTokenAsync(createdUser.Id, refreshToken, refreshTokenExpiry, cancellationToken);
+        await _userRepositoryInternal.UpdateRefreshTokenAsync(createdUser.Id, refreshToken, refreshTokenExpiry,
+            cancellationToken);
 
         return new AuthResult
         {
@@ -128,7 +132,7 @@ public class AuthService : IAuthService
         }
 
         var (storedToken, expiresAt) = await _userRepositoryInternal.GetRefreshTokenAsync(user.Id, cancellationToken);
-        
+
         if (storedToken != refreshToken || expiresAt < DateTime.UtcNow)
         {
             return new AuthResult { Success = false, ErrorMessage = "Refresh token expired" };
@@ -143,7 +147,8 @@ public class AuthService : IAuthService
         var newRefreshToken = _jwtTokenService.GenerateRefreshToken();
         var newRefreshTokenExpiry = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationDays);
 
-        await _userRepositoryInternal.UpdateRefreshTokenAsync(user.Id, newRefreshToken, newRefreshTokenExpiry, cancellationToken);
+        await _userRepositoryInternal.UpdateRefreshTokenAsync(user.Id, newRefreshToken, newRefreshTokenExpiry,
+            cancellationToken);
 
         return new AuthResult
         {
@@ -181,28 +186,22 @@ public class AuthService : IAuthService
     public bool VerifyPassword(string password, string passwordHash)
     {
         var hashBytes = Convert.FromBase64String(passwordHash);
-        
+
         var salt = new byte[16];
         Array.Copy(hashBytes, 0, salt, 0, 16);
 
         var hash = Rfc2898DeriveBytes.Pbkdf2(password, salt, 100000, HashAlgorithmName.SHA256, 32);
 
-        for (var i = 0; i < 32; i++)
-        {
-            if (hashBytes[i + 16] != hash[i])
-            {
-                return false;
-            }
-        }
-
-        return true;
+        return CryptographicOperations.FixedTimeEquals(hashBytes.AsSpan(16), hash);
     }
 
-    private async Task LogAuthenticationAsync(string email, bool success, string? errorMessage, CancellationToken cancellationToken)
+    private async Task LogAuthenticationAsync(string email, bool success, string? errorMessage,
+        CancellationToken cancellationToken)
     {
         if (_auditLogService is not null)
         {
-            await _auditLogService.LogAuthenticationAttemptAsync(email, success, null, null, errorMessage, cancellationToken);
+            await _auditLogService.LogAuthenticationAttemptAsync(email, success, null, null, errorMessage,
+                cancellationToken);
         }
     }
 }

@@ -74,13 +74,13 @@ public class WebhookController : ControllerBase
         CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Webhook triggered for path: {WebhookPath}", webhookPath);
-        
+
         // Search for workflows with matching webhook path
         var workflows = await _workflowRepository.SearchAsync(webhookPath, 0, 10, cancellationToken);
-        var workflow = workflows.FirstOrDefault(w => 
-            w.IsActive && 
+        var workflow = workflows.FirstOrDefault(w =>
+            w.IsActive &&
             HasWebhookTriggerWithPath(w, webhookPath));
-        
+
         if (workflow is null)
         {
             return NotFound(new ApiError
@@ -89,7 +89,7 @@ public class WebhookController : ControllerBase
                 Message = $"No active workflow found with webhook path '{webhookPath}'"
             });
         }
-        
+
         return await TriggerWebhookAsync(workflow.Id, cancellationToken);
     }
 
@@ -99,7 +99,7 @@ public class WebhookController : ControllerBase
         CancellationToken cancellationToken)
     {
         _logger.LogDebug("Webhook triggered for workflow {WorkflowId}", workflowId);
-        
+
         // Get the workflow
         var workflow = await _workflowRepository.GetByIdAsync(workflowId, cancellationToken);
         if (workflow is null)
@@ -110,7 +110,7 @@ public class WebhookController : ControllerBase
                 Message = $"Workflow with ID '{workflowId}' was not found"
             });
         }
-        
+
         if (!workflow.IsActive)
         {
             return BadRequest(new ApiError
@@ -119,15 +119,28 @@ public class WebhookController : ControllerBase
                 Message = "Cannot trigger an inactive workflow"
             });
         }
-        
+
+        // Verify the workflow has a webhook trigger configured
+        var hasWebhookTrigger = workflow.Nodes.Any(n =>
+            n.Type.Equals("WebhookTrigger", StringComparison.OrdinalIgnoreCase));
+
+        if (!hasWebhookTrigger)
+        {
+            return NotFound(new ApiError
+            {
+                Code = "WEBHOOK_NOT_CONFIGURED",
+                Message = "This workflow does not have a webhook trigger configured"
+            });
+        }
+
         // Build webhook data from request
         var webhookData = await BuildWebhookDataAsync(cancellationToken);
-        
+
         // Create credential provider
         ICredentialProvider credentialProvider = _credentialService is not null
             ? new CredentialProvider(_credentialService)
             : NullCredentialProvider.Instance;
-        
+
         // Create execution context
         var executionId = Guid.NewGuid();
         var context = new ExecutionContext(
@@ -135,37 +148,39 @@ public class WebhookController : ControllerBase
             workflow.Id,
             credentialProvider,
             cancellationToken);
-        
+
         // Add webhook data to context
         context.Variables["webhook"] = webhookData;
         context.Variables["input"] = webhookData;
-        
+
         try
         {
             // Execute the workflow
             var result = await _workflowEngine.ExecuteAsync(workflow, context, cancellationToken);
-            
+
             // Get the persisted execution record
             var execution = await _executionRepository.GetByIdAsync(executionId, cancellationToken);
-            
+
             var response = new WebhookResponse
             {
                 ExecutionId = executionId,
                 WorkflowId = workflow.Id,
                 Status = execution?.Status ?? (result.Success ? ExecutionStatus.Completed : ExecutionStatus.Failed),
-                Message = result.Success ? "Workflow executed successfully" : result.ErrorMessage ?? "Workflow execution failed"
+                Message = result.Success
+                    ? "Workflow executed successfully"
+                    : result.ErrorMessage ?? "Workflow execution failed"
             };
-            
+
             // If the workflow produced output, include it in the response
             if (execution?.OutputData.HasValue == true)
             {
                 response = response with { OutputData = execution.OutputData };
             }
-            
+
             _logger.LogInformation(
                 "Webhook triggered workflow {WorkflowId}, execution {ExecutionId} completed with status {Status}",
                 workflow.Id, executionId, response.Status);
-            
+
             return Ok(response);
         }
         catch (Exception ex)
@@ -189,13 +204,13 @@ public class WebhookController : ControllerBase
             ["headers"] = GetHeadersDictionary(),
             ["query"] = GetQueryDictionary()
         };
-        
+
         // Read body if present
         if (Request.ContentLength > 0 || Request.ContentType is not null)
         {
             webhookData["body"] = await ReadBodyAsync(cancellationToken);
         }
-        
+
         return JsonSerializer.SerializeToElement(webhookData);
     }
 
@@ -210,8 +225,10 @@ public class WebhookController : ControllerBase
             {
                 continue;
             }
+
             headers[header.Key] = header.Value.ToString();
         }
+
         return headers;
     }
 
@@ -222,6 +239,7 @@ public class WebhookController : ControllerBase
         {
             query[param.Key] = param.Value.ToString();
         }
+
         return query;
     }
 
@@ -233,12 +251,12 @@ public class WebhookController : ControllerBase
             using var reader = new StreamReader(Request.Body, leaveOpen: true);
             var bodyString = await reader.ReadToEndAsync(cancellationToken);
             Request.Body.Position = 0;
-            
+
             if (string.IsNullOrWhiteSpace(bodyString))
             {
                 return null;
             }
-            
+
             // Try to parse as JSON
             if (Request.ContentType?.Contains("application/json", StringComparison.OrdinalIgnoreCase) == true)
             {
@@ -252,7 +270,7 @@ public class WebhookController : ControllerBase
                     return bodyString;
                 }
             }
-            
+
             return bodyString;
         }
         catch
@@ -264,7 +282,7 @@ public class WebhookController : ControllerBase
     private static bool HasWebhookTriggerWithPath(Core.Models.Workflow workflow, string path)
     {
         // Check if any node is a webhook trigger with matching path
-        return workflow.Nodes.Any(n => 
+        return workflow.Nodes.Any(n =>
             n.Type.Equals("WebhookTrigger", StringComparison.OrdinalIgnoreCase) &&
             n.Configuration.TryGetProperty("path", out var pathProp) &&
             pathProp.GetString()?.Equals(path, StringComparison.OrdinalIgnoreCase) == true);
@@ -278,16 +296,16 @@ public record WebhookResponse
 {
     /// <summary>ID of the triggered execution.</summary>
     public Guid ExecutionId { get; init; }
-    
+
     /// <summary>ID of the workflow that was executed.</summary>
     public Guid WorkflowId { get; init; }
-    
+
     /// <summary>Status of the execution.</summary>
     public ExecutionStatus Status { get; init; }
-    
+
     /// <summary>Status message.</summary>
     public string Message { get; init; } = string.Empty;
-    
+
     /// <summary>Output data from the workflow (if any).</summary>
     public JsonElement? OutputData { get; init; }
 }

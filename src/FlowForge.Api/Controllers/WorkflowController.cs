@@ -46,11 +46,11 @@ public class WorkflowController : ControllerBase
         CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Getting workflows: skip={Skip}, take={Take}, search={Search}", skip, take, search);
-        
+
         var workflows = string.IsNullOrWhiteSpace(search)
             ? await _repository.GetAllAsync(skip, take, cancellationToken)
             : await _repository.SearchAsync(search, skip, take, cancellationToken);
-        
+
         var response = new PagedResponse<WorkflowResponse>
         {
             Items = workflows.Select(WorkflowResponse.FromModel).ToList(),
@@ -58,7 +58,7 @@ public class WorkflowController : ControllerBase
             Take = take,
             TotalCount = workflows.Count
         };
-        
+
         return Ok(response);
     }
 
@@ -74,9 +74,9 @@ public class WorkflowController : ControllerBase
         CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Getting workflow {WorkflowId}", id);
-        
+
         var workflow = await _repository.GetByIdAsync(id, cancellationToken);
-        if (workflow is null)
+        if (workflow is null || !IsOwnerOrAdmin(workflow))
         {
             return NotFound(new ApiError
             {
@@ -84,7 +84,7 @@ public class WorkflowController : ControllerBase
                 Message = $"Workflow with ID '{id}' was not found"
             });
         }
-        
+
         return Ok(WorkflowResponse.FromModel(workflow));
     }
 
@@ -101,9 +101,9 @@ public class WorkflowController : ControllerBase
         CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Creating workflow: {WorkflowName}", request.Name);
-        
+
         var workflow = MapToWorkflow(request, _currentUserService.UserId ?? Guid.Empty);
-        
+
         // Validate the workflow
         var validationResult = _validator.Validate(workflow);
         if (!validationResult.IsValid)
@@ -117,10 +117,10 @@ public class WorkflowController : ControllerBase
                     e => new[] { e.Message })
             });
         }
-        
+
         var created = await _repository.CreateAsync(workflow, cancellationToken);
         _logger.LogInformation("Created workflow {WorkflowId}: {WorkflowName}", created.Id, created.Name);
-        
+
         return CreatedAtAction(
             nameof(GetById),
             new { id = created.Id },
@@ -142,9 +142,9 @@ public class WorkflowController : ControllerBase
         CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Updating workflow {WorkflowId}", id);
-        
+
         var existing = await _repository.GetByIdAsync(id, cancellationToken);
-        if (existing is null)
+        if (existing is null || !IsOwnerOrAdmin(existing))
         {
             return NotFound(new ApiError
             {
@@ -152,19 +152,20 @@ public class WorkflowController : ControllerBase
                 Message = $"Workflow with ID '{id}' was not found"
             });
         }
-        
+
         // Check version for optimistic concurrency
         if (existing.Version != request.Version)
         {
             return Conflict(new ApiError
             {
                 Code = "WORKFLOW_VERSION_CONFLICT",
-                Message = $"Workflow has been modified. Expected version {request.Version}, but current version is {existing.Version}"
+                Message =
+                    $"Workflow has been modified. Expected version {request.Version}, but current version is {existing.Version}"
             });
         }
-        
+
         var workflow = MapToWorkflow(request, existing);
-        
+
         // Validate the workflow
         var validationResult = _validator.Validate(workflow);
         if (!validationResult.IsValid)
@@ -178,10 +179,10 @@ public class WorkflowController : ControllerBase
                     e => new[] { e.Message })
             });
         }
-        
+
         var updated = await _repository.UpdateAsync(workflow, cancellationToken);
         _logger.LogInformation("Updated workflow {WorkflowId}: {WorkflowName}", updated.Id, updated.Name);
-        
+
         return Ok(WorkflowResponse.FromModel(updated));
     }
 
@@ -198,9 +199,9 @@ public class WorkflowController : ControllerBase
         CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Deleting workflow {WorkflowId}", id);
-        
-        var deleted = await _repository.DeleteAsync(id, cancellationToken);
-        if (!deleted)
+
+        var existing = await _repository.GetByIdAsync(id, cancellationToken);
+        if (existing is null || !IsOwnerOrAdmin(existing))
         {
             return NotFound(new ApiError
             {
@@ -208,7 +209,9 @@ public class WorkflowController : ControllerBase
                 Message = $"Workflow with ID '{id}' was not found"
             });
         }
-        
+
+        await _repository.DeleteAsync(id, cancellationToken);
+
         _logger.LogInformation("Deleted workflow {WorkflowId}", id);
         return NoContent();
     }
@@ -225,9 +228,9 @@ public class WorkflowController : ControllerBase
         CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Getting active workflows: skip={Skip}, take={Take}", skip, take);
-        
+
         var workflows = await _repository.GetActiveAsync(skip, take, cancellationToken);
-        
+
         var response = new PagedResponse<WorkflowResponse>
         {
             Items = workflows.Select(WorkflowResponse.FromModel).ToList(),
@@ -235,7 +238,7 @@ public class WorkflowController : ControllerBase
             Take = take,
             TotalCount = workflows.Count
         };
-        
+
         return Ok(response);
     }
 
@@ -308,12 +311,21 @@ public class WorkflowController : ControllerBase
 
         return new WorkflowSettings
         {
-            Timeout = dto.TimeoutSeconds.HasValue 
-                ? TimeSpan.FromSeconds(dto.TimeoutSeconds.Value) 
+            Timeout = dto.TimeoutSeconds.HasValue
+                ? TimeSpan.FromSeconds(dto.TimeoutSeconds.Value)
                 : null,
             MaxRetries = dto.MaxRetries,
             ErrorHandling = dto.ErrorHandling,
             MaxDegreeOfParallelism = dto.MaxDegreeOfParallelism
         };
+    }
+
+    private bool IsOwnerOrAdmin(Workflow workflow)
+    {
+        if (User.IsInRole("Admin"))
+            return true;
+
+        var userId = _currentUserService.UserId;
+        return userId is not null && workflow.CreatedBy == userId;
     }
 }
