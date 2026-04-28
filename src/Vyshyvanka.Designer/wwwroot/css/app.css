@@ -176,19 +176,19 @@ code {
 }
 
 .node-header.category-trigger {
-    fill: #4caf50;
+    fill: var(--category-trigger);
 }
 
 .node-header.category-action {
-    fill: #2196f3;
+    fill: var(--category-action);
 }
 
 .node-header.category-logic {
-    fill: #ff9800;
+    fill: var(--category-logic);
 }
 
 .node-header.category-transform {
-    fill: #9c27b0;
+    fill: var(--category-transform);
 }
 
 .node-header-bottom {

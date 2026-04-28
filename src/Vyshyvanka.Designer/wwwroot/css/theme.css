@@ -80,6 +80,12 @@
     --grid-motif: #c62828;
     --grid-accent: #1a1a2e;
 
+    /* Node category colors */
+    --category-trigger: #4caf50;
+    --category-action: #2196f3;
+    --category-logic: #ff9800;
+    --category-transform: #9c27b0;
+
     /* Spinner */
     --spinner-track: #d4c9bc;
     --spinner-fill: #c62828;
@@ -171,6 +177,12 @@
     --grid-color: rgba(255, 255, 255, 0.03);
     --grid-motif: #f5c16c;
     --grid-accent: #ef5350;
+
+    /* Node category colors — brighter for dark red bg */
+    --category-trigger: #66bb6a;
+    --category-action: #64b5f6;
+    --category-logic: #ffb74d;
+    --category-transform: #ce93d8;
 
     /* Spinner */
     --spinner-track: #4a2020;
