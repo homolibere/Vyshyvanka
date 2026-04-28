@@ -288,9 +288,10 @@ public class OfflineLoadingTests
                 // Assert: Initialization should complete without throwing
                 Assert.Null(exception);
 
-                // Property: All packages should still be in the list (manifest is preserved)
+                // Property: Missing packages should be removed, present ones should remain
                 var loadedPackages = packageManager.GetInstalledPackages();
-                Assert.Equal(scenario.Packages.Count, loadedPackages.Count);
+                var expectedCount = scenario.Packages.Count - scenario.MissingIndices.Count;
+                Assert.Equal(expectedCount, loadedPackages.Count);
             }
             finally
             {

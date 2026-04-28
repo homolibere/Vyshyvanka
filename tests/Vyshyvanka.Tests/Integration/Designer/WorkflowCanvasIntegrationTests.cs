@@ -24,6 +24,9 @@ public class WorkflowCanvasIntegrationTests : BunitContext
         JSInterop.SetupVoid("canvasInterop.observeResize", _ => true);
         JSInterop.SetupVoid("canvasInterop.disconnectObserver", _ => true);
         JSInterop.Mode = JSRuntimeMode.Loose;
+
+        // Register ThemeService for canvas pattern rendering
+        Services.AddScoped<ThemeService>();
     }
 
     #region Node Rendering Tests (Task 11.1)
@@ -39,10 +42,10 @@ public class WorkflowCanvasIntegrationTests : BunitContext
         var stateService = new WorkflowStateService();
         var workflow = TestFixtures.CreateSimpleWorkflow();
         var definitions = TestFixtures.CreateCommonNodeDefinitions();
-        
+
         stateService.SetNodeDefinitions(definitions);
         stateService.LoadWorkflow(workflow);
-        
+
         Services.AddSingleton(stateService);
 
         // Act
@@ -64,10 +67,10 @@ public class WorkflowCanvasIntegrationTests : BunitContext
         var stateService = new WorkflowStateService();
         var workflow = TestFixtures.CreateSimpleWorkflow();
         var definitions = TestFixtures.CreateCommonNodeDefinitions();
-        
+
         stateService.SetNodeDefinitions(definitions);
         stateService.LoadWorkflow(workflow);
-        
+
         Services.AddSingleton(stateService);
 
         // Act
@@ -92,10 +95,10 @@ public class WorkflowCanvasIntegrationTests : BunitContext
         var stateService = new WorkflowStateService();
         var workflow = TestFixtures.CreateEmptyWorkflow();
         var definitions = TestFixtures.CreateCommonNodeDefinitions();
-        
+
         stateService.SetNodeDefinitions(definitions);
         stateService.LoadWorkflow(workflow);
-        
+
         Services.AddSingleton(stateService);
 
         // Act
@@ -116,10 +119,10 @@ public class WorkflowCanvasIntegrationTests : BunitContext
         // Arrange
         var stateService = new WorkflowStateService();
         var definitions = TestFixtures.CreateCommonNodeDefinitions();
-        
+
         stateService.SetNodeDefinitions(definitions);
         stateService.NewWorkflow();
-        
+
         Services.AddSingleton(stateService);
         var cut = Render<WorkflowCanvas>();
 
@@ -147,10 +150,10 @@ public class WorkflowCanvasIntegrationTests : BunitContext
         var stateService = new WorkflowStateService();
         var workflow = TestFixtures.CreateSimpleWorkflow();
         var definitions = TestFixtures.CreateCommonNodeDefinitions();
-        
+
         stateService.SetNodeDefinitions(definitions);
         stateService.LoadWorkflow(workflow);
-        
+
         Services.AddSingleton(stateService);
         var cut = Render<WorkflowCanvas>();
 
@@ -291,22 +294,23 @@ public class WorkflowCanvasIntegrationTests : BunitContext
         {
             // Create a fresh BunitContext for each iteration
             using var ctx = new BunitContext();
-            
+
             // Setup JSInterop for canvasInterop calls
             ctx.JSInterop.Setup<CanvasDimensions>("canvasInterop.getElementDimensions", _ => true)
                 .SetResult(new CanvasDimensions(800, 600));
             ctx.JSInterop.SetupVoid("canvasInterop.observeResize", _ => true);
             ctx.JSInterop.SetupVoid("canvasInterop.disconnectObserver", _ => true);
             ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-            
+
             // Arrange
             var stateService = new WorkflowStateService();
             var definitions = TestFixtures.CreateCommonNodeDefinitions();
-            
+
             stateService.SetNodeDefinitions(definitions);
             stateService.LoadWorkflow(workflow);
-            
+
             ctx.Services.AddSingleton(stateService);
+            ctx.Services.AddScoped<ThemeService>();
 
             // Act
             var cut = ctx.Render<WorkflowCanvas>();

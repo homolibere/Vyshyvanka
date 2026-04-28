@@ -47,11 +47,42 @@ public static class TestDataFactory
     }
 
     /// <summary>
+    /// Creates a valid workflow request with a webhook trigger node.
+    /// </summary>
+    public static CreateWorkflowRequest CreateWebhookWorkflow(
+        string name = "Webhook Workflow",
+        bool isActive = true)
+    {
+        return new CreateWorkflowRequest
+        {
+            Name = name,
+            Description = $"Webhook workflow: {name}",
+            IsActive = isActive,
+            Nodes =
+            [
+                new WorkflowNodeDto
+                {
+                    Id = "trigger-1",
+                    Type = "webhook-trigger",
+                    Name = "Webhook Trigger",
+                    Position = new PositionDto(100, 100),
+                    Configuration = JsonSerializer.SerializeToElement(new { })
+                }
+            ],
+            Connections = [],
+            Settings = new WorkflowSettingsDto
+            {
+                TimeoutSeconds = 300,
+                MaxRetries = 3,
+                ErrorHandling = ErrorHandlingMode.StopOnFirstError
+            },
+            Tags = ["test", "webhook"]
+        };
+    }
+
+    /// <summary>
     /// Creates a valid workflow request with a manual trigger and an HTTP request action node.
     /// </summary>
-    /// <param name="name">Workflow name</param>
-    /// <param name="isActive">Whether the workflow is active</param>
-    /// <returns>A valid CreateWorkflowRequest with trigger and action nodes</returns>
     public static CreateWorkflowRequest CreateValidWorkflowWithAction(
         string name = "Test Workflow with Action",
         bool isActive = true)

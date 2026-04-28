@@ -122,7 +122,7 @@ public class WebhookController : ControllerBase
 
         // Verify the workflow has a webhook trigger configured
         var hasWebhookTrigger = workflow.Nodes.Any(n =>
-            n.Type.Equals("WebhookTrigger", StringComparison.OrdinalIgnoreCase));
+            n.Type.Equals("webhook-trigger", StringComparison.OrdinalIgnoreCase));
 
         if (!hasWebhookTrigger)
         {
@@ -283,7 +283,7 @@ public class WebhookController : ControllerBase
     {
         // Check if any node is a webhook trigger with matching path
         return workflow.Nodes.Any(n =>
-            n.Type.Equals("WebhookTrigger", StringComparison.OrdinalIgnoreCase) &&
+            n.Type.Equals("webhook-trigger", StringComparison.OrdinalIgnoreCase) &&
             n.Configuration.TryGetProperty("path", out var pathProp) &&
             pathProp.GetString()?.Equals(path, StringComparison.OrdinalIgnoreCase) == true);
     }

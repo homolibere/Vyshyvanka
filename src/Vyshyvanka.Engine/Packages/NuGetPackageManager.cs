@@ -66,20 +66,12 @@ public class NuGetPackageManager : INuGetPackageManager
                 try
                 {
                     var plugins = _pluginLoader.LoadPlugins(package.InstallPath);
-                    var anyLoaded = false;
                     foreach (var plugin in plugins)
                     {
                         if (plugin.IsLoaded && plugin.Assembly is not null)
                         {
                             _nodeRegistry.RegisterFromAssembly(plugin.Assembly);
-                            anyLoaded = true;
                         }
-                    }
-
-                    if (!anyLoaded)
-                    {
-                        _logger?.LogWarning("No loadable plugins found in {PackageId}, removing from installed", package.PackageId);
-                        failedPackages.Add(package.PackageId);
                     }
                 }
                 catch (Exception ex)

@@ -44,7 +44,7 @@ public class WebhookControllerTests : IClassFixture<VyshyvankaApiFixture>, IAsyn
     public async Task WhenPostWebhookWithActiveWorkflowThenReturns200()
     {
         // Arrange - Create an active workflow
-        var workflowRequest = TestDataFactory.CreateValidWorkflow("Webhook POST Test", isActive: true);
+        var workflowRequest = TestDataFactory.CreateWebhookWorkflow("Webhook POST Test", isActive: true);
         var createResponse = await _authenticatedClient.PostAsJsonAsync("/api/workflow", workflowRequest);
         Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
 
@@ -72,7 +72,7 @@ public class WebhookControllerTests : IClassFixture<VyshyvankaApiFixture>, IAsyn
     public async Task WhenGetWebhookWithActiveWorkflowThenReturns200()
     {
         // Arrange - Create an active workflow
-        var workflowRequest = TestDataFactory.CreateValidWorkflow("Webhook GET Test", isActive: true);
+        var workflowRequest = TestDataFactory.CreateWebhookWorkflow("Webhook GET Test", isActive: true);
         var createResponse = await _authenticatedClient.PostAsJsonAsync("/api/workflow", workflowRequest);
         Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
 
@@ -151,7 +151,7 @@ public class WebhookControllerTests : IClassFixture<VyshyvankaApiFixture>, IAsyn
     public async Task WhenWebhookWithJsonBodyThenBodyPassedToContext()
     {
         // Arrange - Create an active workflow
-        var workflowRequest = TestDataFactory.CreateValidWorkflow("Webhook Body Test", isActive: true);
+        var workflowRequest = TestDataFactory.CreateWebhookWorkflow("Webhook Body Test", isActive: true);
         var createResponse = await _authenticatedClient.PostAsJsonAsync("/api/workflow", workflowRequest);
         Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
 
@@ -181,7 +181,7 @@ public class WebhookControllerTests : IClassFixture<VyshyvankaApiFixture>, IAsyn
         {
             var execution = await executionRepository.GetByIdAsync(webhookResponse.ExecutionId);
             Assert.NotNull(execution);
-            
+
             // The webhook data should be stored - check that execution completed
             Assert.Equal(workflow.Id, execution.WorkflowId);
         }
@@ -195,7 +195,7 @@ public class WebhookControllerTests : IClassFixture<VyshyvankaApiFixture>, IAsyn
     public async Task WhenWebhookWithQueryParametersThenQueryPassedToContext()
     {
         // Arrange - Create an active workflow
-        var workflowRequest = TestDataFactory.CreateValidWorkflow("Webhook Query Test", isActive: true);
+        var workflowRequest = TestDataFactory.CreateWebhookWorkflow("Webhook Query Test", isActive: true);
         var createResponse = await _authenticatedClient.PostAsJsonAsync("/api/workflow", workflowRequest);
         Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
 
@@ -219,7 +219,7 @@ public class WebhookControllerTests : IClassFixture<VyshyvankaApiFixture>, IAsyn
         {
             var execution = await executionRepository.GetByIdAsync(webhookResponse.ExecutionId);
             Assert.NotNull(execution);
-            
+
             // The webhook data should be stored - check that execution completed
             Assert.Equal(workflow.Id, execution.WorkflowId);
         }
