@@ -29,11 +29,11 @@ jobs:
 
           if [[ "$TAG" == core/v* ]]; then
             VERSION="${TAG#core/v}"
-            echo "project=Vyshyvanka.Core/Vyshyvanka.Core.csproj" >> "$GITHUB_OUTPUT"
+            echo "project=src/Vyshyvanka.Core/Vyshyvanka.Core.csproj" >> "$GITHUB_OUTPUT"
             echo "package=Vyshyvanka.Core" >> "$GITHUB_OUTPUT"
           elif [[ "$TAG" == plugin-advancedhttp/v* ]]; then
             VERSION="${TAG#plugin-advancedhttp/v}"
-            echo "project=Vyshyvanka.Plugin.AdvancedHttp/Vyshyvanka.Plugin.AdvancedHttp.csproj" >> "$GITHUB_OUTPUT"
+            echo "project=plugins/Vyshyvanka.Plugin.AdvancedHttp/Vyshyvanka.Plugin.AdvancedHttp.csproj" >> "$GITHUB_OUTPUT"
             echo "package=Vyshyvanka.Plugin.AdvancedHttp" >> "$GITHUB_OUTPUT"
           else
             echo "::error::Unknown tag prefix: $TAG"
