@@ -6,44 +6,44 @@
 
 .palette-header {
     padding: 16px;
-    border-bottom: 1px solid #2d2d44;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .palette-header h3 {
     margin: 0;
     font-size: 0.875rem;
     font-weight: 600;
-    color: #e0e0e0;
+    color: var(--text-primary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .palette-search {
     padding: 12px 16px;
-    border-bottom: 1px solid #2d2d44;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .palette-search input {
     width: 100%;
     padding: 8px 12px;
-    background: #0d0d1a;
-    border: 1px solid #2d2d44;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
     border-radius: 4px;
-    color: #e0e0e0;
+    color: var(--text-primary);
     font-size: 0.875rem;
 }
 
 .palette-search input:focus {
     outline: none;
-    border-color: #4fc3f7;
+    border-color: var(--accent);
 }
 
 .palette-search input::placeholder {
-    color: #666;
+    color: var(--text-muted);
 }
 
 .palette-category {
-    border-bottom: 1px solid #2d2d44;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .category-header {
@@ -56,7 +56,7 @@
 }
 
 .category-header:hover {
-    background: #2d2d44;
+    background: var(--bg-hover);
 }
 
 .category-icon {
@@ -67,12 +67,12 @@
     flex: 1;
     font-size: 0.875rem;
     font-weight: 500;
-    color: #e0e0e0;
+    color: var(--text-primary);
 }
 
 .category-toggle {
     font-size: 0.625rem;
-    color: #666;
+    color: var(--text-muted);
 }
 
 .category-nodes {
@@ -89,7 +89,7 @@
 }
 
 .palette-node:hover {
-    background: #2d2d44;
+    background: var(--bg-hover);
 }
 
 .palette-node:active {
@@ -103,7 +103,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #0d0d1a;
+    background: var(--bg-input);
     border-radius: 6px;
 }
 
@@ -116,7 +116,7 @@
 
 .node-name {
     font-size: 0.875rem;
-    color: #e0e0e0;
+    color: var(--text-primary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -124,7 +124,7 @@
 
 .node-description {
     font-size: 0.75rem;
-    color: #666;
+    color: var(--text-muted);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -137,7 +137,7 @@
 }
 
 .palette-node.plugin-node:hover {
-    background: #2d2d44;
+    background: var(--bg-hover);
     border-left-color: #ba68c8;
 }
 

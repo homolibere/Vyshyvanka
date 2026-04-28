@@ -8,19 +8,19 @@
     gap: 6px;
     font-size: 0.75rem;
     font-weight: 500;
-    color: #9e9e9e;
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 8px;
 }
 
 .required-indicator {
-    color: #ef5350;
+    color: var(--danger);
     font-weight: bold;
 }
 
 .expression-indicator {
-    color: #4fc3f7;
+    color: var(--accent);
     font-size: 0.875rem;
     cursor: help;
 }
@@ -28,35 +28,35 @@
 .property-input {
     width: 100%;
     padding: 8px 12px;
-    background: #0d0d1a;
-    border: 1px solid #2d2d44;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
     border-radius: 4px;
-    color: #e0e0e0;
+    color: var(--text-primary);
     font-size: 0.875rem;
     transition: border-color 0.15s ease;
 }
 
 .property-input:focus {
     outline: none;
-    border-color: #4fc3f7;
+    border-color: var(--accent);
 }
 
 .property-input.has-expression {
-    border-color: #4fc3f7;
+    border-color: var(--accent);
     background: rgba(79, 195, 247, 0.05);
 }
 
 .property-input.has-error {
-    border-color: #ef5350;
+    border-color: var(--danger);
 }
 
 .property-input::placeholder {
-    color: #666;
+    color: var(--text-muted);
 }
 
 .property-description {
     font-size: 0.75rem;
-    color: #666;
+    color: var(--text-muted);
     margin-top: 6px;
     line-height: 1.4;
 }
@@ -64,20 +64,20 @@
 .validation-error {
     margin-top: 6px;
     padding: 6px 8px;
-    background: rgba(239, 83, 80, 0.1);
-    border: 1px solid #ef5350;
+    background: var(--danger-bg);
+    border: 1px solid var(--danger);
     border-radius: 4px;
-    color: #ef5350;
+    color: var(--danger);
     font-size: 0.75rem;
 }
 
 .expression-hint {
     margin-top: 6px;
     padding: 8px 10px;
-    background: rgba(79, 195, 247, 0.1);
-    border: 1px solid rgba(79, 195, 247, 0.3);
+    background: var(--accent-light);
+    border: 1px solid var(--accent-border);
     border-radius: 4px;
-    color: #4fc3f7;
+    color: var(--accent);
     font-size: 0.75rem;
     display: flex;
     align-items: flex-start;
@@ -99,7 +99,7 @@
 .expression-syntax-hint {
     margin-top: 6px;
     font-size: 0.7rem;
-    color: #666;
+    color: var(--text-muted);
 }
 
 .expression-syntax-hint code {
@@ -107,5 +107,5 @@
     padding: 2px 4px;
     border-radius: 3px;
     font-family: 'Consolas', 'Monaco', monospace;
-    color: #888;
+    color: var(--text-muted);
 }

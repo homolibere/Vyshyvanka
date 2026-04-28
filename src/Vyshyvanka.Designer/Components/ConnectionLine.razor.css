@@ -10,13 +10,13 @@
 
 .connection-line {
     fill: none;
-    stroke: #4fc3f7;
+    stroke: var(--accent);
     stroke-width: 2;
     transition: stroke 0.15s ease;
 }
 
 .connection:hover .connection-line {
-    stroke: #81d4fa;
+    stroke: var(--accent-hover);
 }
 
 .connection.selected .connection-line {
@@ -25,12 +25,12 @@
 }
 
 .connection-arrow {
-    fill: #4fc3f7;
+    fill: var(--accent);
     transition: fill 0.15s ease;
 }
 
 .connection:hover .connection-arrow {
-    fill: #81d4fa;
+    fill: var(--accent-hover);
 }
 
 .connection.selected .connection-arrow {

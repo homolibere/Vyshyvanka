@@ -4,7 +4,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: var(--overlay-bg);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -20,8 +20,8 @@
 }
 
 .plugin-manager-modal {
-    background: #1a1a2e;
-    border: 1px solid #2d2d44;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
     border-radius: 12px;
     width: 100%;
     max-width: 800px;
@@ -29,7 +29,7 @@
     max-height: 700px;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    box-shadow: var(--shadow-lg);
     transform: scale(0.95);
     transition: transform 0.2s ease;
 }
@@ -43,7 +43,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 16px 20px;
-    border-bottom: 1px solid #2d2d44;
+    border-bottom: 1px solid var(--border-color);
     flex-shrink: 0;
 }
 
@@ -51,13 +51,13 @@
     margin: 0;
     font-size: 1.25rem;
     font-weight: 600;
-    color: #e0e0e0;
+    color: var(--text-primary);
 }
 
 .btn-close {
     background: transparent;
     border: none;
-    color: #888;
+    color: var(--text-muted);
     font-size: 1.5rem;
     cursor: pointer;
     padding: 0;
@@ -66,7 +66,7 @@
 }
 
 .btn-close:hover:not(:disabled) {
-    color: #e0e0e0;
+    color: var(--text-primary);
 }
 
 .btn-close:disabled {
@@ -78,7 +78,7 @@
     display: flex;
     gap: 0;
     padding: 0 20px;
-    border-bottom: 1px solid #2d2d44;
+    border-bottom: 1px solid var(--border-color);
     flex-shrink: 0;
 }
 
@@ -90,7 +90,7 @@
     background: transparent;
     border: none;
     border-bottom: 2px solid transparent;
-    color: #888;
+    color: var(--text-muted);
     font-size: 0.875rem;
     font-weight: 500;
     cursor: pointer;
@@ -99,12 +99,12 @@
 }
 
 .tab:hover {
-    color: #e0e0e0;
+    color: var(--text-primary);
 }
 
 .tab.active {
-    color: #4fc3f7;
-    border-bottom-color: #4fc3f7;
+    color: var(--accent);
+    border-bottom-color: var(--accent);
 }
 
 .tab-count {
@@ -116,14 +116,14 @@
     padding: 0 6px;
     font-size: 0.75rem;
     font-weight: 600;
-    color: #e0e0e0;
-    background: #2d2d44;
+    color: var(--text-primary);
+    background: var(--bg-hover);
     border-radius: 10px;
 }
 
 .tab.active .tab-count {
-    background: rgba(79, 195, 247, 0.2);
-    color: #4fc3f7;
+    background: var(--accent-light);
+    color: var(--accent);
 }
 
 .plugin-manager-content {

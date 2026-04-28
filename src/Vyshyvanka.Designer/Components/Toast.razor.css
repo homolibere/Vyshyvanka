@@ -3,10 +3,10 @@
     align-items: flex-start;
     gap: 12px;
     padding: 14px 16px;
-    background: #1a1a2e;
-    border: 1px solid #2d2d44;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    box-shadow: var(--shadow-md);
     min-width: 280px;
     max-width: 400px;
     opacity: 1;
@@ -39,13 +39,13 @@
 .toast-title {
     font-size: 0.875rem;
     font-weight: 600;
-    color: #e0e0e0;
+    color: var(--text-primary);
     margin-bottom: 4px;
 }
 
 .toast-message {
     font-size: 0.8125rem;
-    color: #b0b0b0;
+    color: var(--text-secondary);
     line-height: 1.4;
     word-wrap: break-word;
 }
@@ -54,7 +54,7 @@
     flex-shrink: 0;
     background: transparent;
     border: none;
-    color: #666;
+    color: var(--text-muted);
     font-size: 1.25rem;
     cursor: pointer;
     padding: 0;
@@ -63,7 +63,7 @@
 }
 
 .toast-close:hover {
-    color: #e0e0e0;
+    color: var(--text-primary);
 }
 
 .toast-actions {
@@ -77,7 +77,7 @@
 .toast-copy {
     background: transparent;
     border: none;
-    color: #666;
+    color: var(--text-muted);
     font-size: 0.875rem;
     cursor: pointer;
     padding: 4px;
@@ -87,12 +87,12 @@
 }
 
 .toast-copy:hover {
-    color: #e0e0e0;
+    color: var(--text-primary);
     background: rgba(255, 255, 255, 0.1);
 }
 
 .toast-copy.copied {
-    color: #4caf50;
+    color: var(--success);
 }
 
 /* Success variant */
@@ -101,12 +101,12 @@
 }
 
 .toast-success .toast-icon {
-    background: rgba(76, 175, 80, 0.15);
-    color: #4caf50;
+    background: var(--success-bg);
+    color: var(--success);
 }
 
 .toast-success .toast-title {
-    color: #4caf50;
+    color: var(--success);
 }
 
 /* Error variant */
@@ -116,11 +116,11 @@
 
 .toast-error .toast-icon {
     background: rgba(239, 83, 80, 0.15);
-    color: #ef5350;
+    color: var(--danger);
 }
 
 .toast-error .toast-title {
-    color: #ef5350;
+    color: var(--danger);
 }
 
 /* Warning variant */
@@ -130,23 +130,23 @@
 
 .toast-warning .toast-icon {
     background: rgba(255, 183, 77, 0.15);
-    color: #ffb74d;
+    color: var(--warning);
 }
 
 .toast-warning .toast-title {
-    color: #ffb74d;
+    color: var(--warning);
 }
 
 /* Info variant */
 .toast-info {
-    border-left: 3px solid #4fc3f7;
+    border-left: 3px solid var(--accent);
 }
 
 .toast-info .toast-icon {
     background: rgba(79, 195, 247, 0.15);
-    color: #4fc3f7;
+    color: var(--accent);
 }
 
 .toast-info .toast-title {
-    color: #4fc3f7;
+    color: var(--accent);
 }

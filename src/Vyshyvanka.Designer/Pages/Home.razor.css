@@ -8,13 +8,13 @@
 h1 {
     font-size: 2.5rem;
     font-weight: 700;
-    color: #e0e0e0;
+    color: var(--text-primary);
     margin-bottom: 16px;
 }
 
 .lead {
     font-size: 1.25rem;
-    color: #9e9e9e;
+    color: var(--text-muted);
     margin-bottom: 32px;
 }
 
@@ -27,8 +27,8 @@ h1 {
     align-items: center;
     gap: 8px;
     padding: 12px 24px;
-    background: #1976d2;
-    color: white;
+    background: var(--btn-primary-bg);
+    color: var(--btn-primary-text);
     text-decoration: none;
     border-radius: 8px;
     font-size: 1rem;
@@ -37,7 +37,7 @@ h1 {
 }
 
 .btn-primary:hover {
-    background: #1565c0;
+    background: var(--btn-primary-hover);
 }
 
 .btn-icon {
@@ -53,9 +53,9 @@ h1 {
 
 .feature {
     padding: 24px;
-    background: #1a1a2e;
+    background: var(--bg-surface);
     border-radius: 8px;
-    border: 1px solid #2d2d44;
+    border: 1px solid var(--border-color);
 }
 
 .feature-icon {
@@ -67,13 +67,13 @@ h1 {
 .feature h3 {
     font-size: 1rem;
     font-weight: 600;
-    color: #e0e0e0;
+    color: var(--text-primary);
     margin-bottom: 8px;
 }
 
 .feature p {
     font-size: 0.875rem;
-    color: #9e9e9e;
+    color: var(--text-muted);
     margin: 0;
     line-height: 1.5;
 }

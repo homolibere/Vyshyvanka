@@ -10,7 +10,7 @@
     align-items: center;
     gap: 12px;
     padding-bottom: 16px;
-    border-bottom: 1px solid #2d2d44;
+    border-bottom: 1px solid var(--border-color);
     margin-bottom: 16px;
 }
 
@@ -22,7 +22,7 @@
     margin: 0;
     font-size: 1rem;
     font-weight: 600;
-    color: #e0e0e0;
+    color: var(--text-primary);
     flex: 1;
 }
 
@@ -33,18 +33,18 @@
     width: 32px;
     height: 32px;
     padding: 0;
-    background: rgba(76, 175, 80, 0.15);
-    border: 1px solid rgba(76, 175, 80, 0.4);
+    background: var(--success-bg);
+    border: 1px solid var(--success);
     border-radius: 6px;
-    color: #66bb6a;
+    color: var(--success);
     cursor: pointer;
     transition: all 0.15s ease;
     flex-shrink: 0;
 }
 
 .run-to-node-btn:hover:not(:disabled) {
-    background: rgba(76, 175, 80, 0.3);
-    border-color: #66bb6a;
+    background: var(--success-bg);
+    border-color: var(--success);
 }
 
 .run-to-node-btn:disabled {
@@ -74,7 +74,7 @@
     display: block;
     font-size: 0.75rem;
     font-weight: 500;
-    color: #9e9e9e;
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 8px;
@@ -83,27 +83,27 @@
 .config-input {
     width: 100%;
     padding: 8px 12px;
-    background: #0d0d1a;
-    border: 1px solid #2d2d44;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
     border-radius: 4px;
-    color: #e0e0e0;
+    color: var(--text-primary);
     font-size: 0.875rem;
 }
 
 .config-input:focus {
     outline: none;
-    border-color: #4fc3f7;
+    border-color: var(--accent);
 }
 
 .config-value {
     font-size: 0.875rem;
-    color: #e0e0e0;
+    color: var(--text-primary);
     padding: 8px 0;
 }
 
 .config-description {
     font-size: 0.875rem;
-    color: #9e9e9e;
+    color: var(--text-muted);
     line-height: 1.5;
 }
 
@@ -111,10 +111,10 @@
     width: 100%;
     min-height: 120px;
     padding: 8px 12px;
-    background: #0d0d1a;
-    border: 1px solid #2d2d44;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
     border-radius: 4px;
-    color: #e0e0e0;
+    color: var(--text-primary);
     font-size: 0.75rem;
     font-family: 'Monaco', 'Menlo', monospace;
     resize: vertical;
@@ -122,55 +122,56 @@
 
 .config-textarea:focus {
     outline: none;
-    border-color: #4fc3f7;
+    border-color: var(--accent);
 }
 
 .config-hint {
     font-size: 0.75rem;
-    color: #666;
+    color: var(--text-muted);
     margin-bottom: 8px;
 }
 
 .config-hint code {
-    background: #0d0d1a;
+    background: var(--bg-input);
     padding: 2px 6px;
     border-radius: 3px;
-    color: #4fc3f7;
+    color: var(--accent);
 }
 
 .config-error {
     margin-top: 8px;
     padding: 8px;
-    background: rgba(239, 83, 80, 0.1);
-    border: 1px solid #ef5350;
+    background: var(--danger-bg);
+    border: 1px solid var(--danger);
     border-radius: 4px;
-    color: #ef5350;
+    color: var(--danger);
     font-size: 0.75rem;
 }
 
 .config-btn {
     margin-top: 8px;
     padding: 8px 16px;
-    background: #2d2d44;
-    border: 1px solid #3d3d5c;
+    background: var(--bg-hover);
+    border: 1px solid var(--border-hover);
     border-radius: 4px;
-    color: #e0e0e0;
+    color: var(--text-primary);
     font-size: 0.875rem;
     cursor: pointer;
     transition: all 0.15s ease;
 }
 
 .config-btn:hover {
-    background: #3d3d5c;
+    background: var(--border-hover);
 }
 
 .config-btn.danger {
-    background: #c62828;
-    border-color: #b71c1c;
+    background: var(--accent);
+    border-color: var(--accent-hover);
+    color: var(--text-on-accent);
 }
 
 .config-btn.danger:hover {
-    background: #b71c1c;
+    background: var(--accent-hover);
 }
 
 .port-list {
@@ -184,7 +185,7 @@
     align-items: center;
     gap: 8px;
     padding: 6px 8px;
-    background: #0d0d1a;
+    background: var(--bg-input);
     border-radius: 4px;
 }
 
@@ -192,7 +193,7 @@
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: #9e9e9e;
+    background: var(--text-muted);
 }
 
 .port-dot.port-string { background: #4caf50; }
@@ -200,21 +201,21 @@
 .port-dot.port-boolean { background: #ff9800; }
 .port-dot.port-array { background: #9c27b0; }
 .port-dot.port-object { background: #00bcd4; }
-.port-dot.port-any { background: #9e9e9e; }
+.port-dot.port-any { background: var(--text-muted); }
 
 .port-name {
     flex: 1;
     font-size: 0.875rem;
-    color: #e0e0e0;
+    color: var(--text-primary);
 }
 
 .port-type {
     font-size: 0.75rem;
-    color: #666;
+    color: var(--text-muted);
 }
 
 .port-required {
-    color: #ef5350;
+    color: var(--danger);
     font-weight: bold;
 }
 
@@ -230,24 +231,24 @@
 .position-field label {
     display: block;
     font-size: 0.75rem;
-    color: #666;
+    color: var(--text-muted);
     margin-bottom: 4px;
 }
 
 .position-field input {
     width: 100%;
     padding: 6px 8px;
-    background: #0d0d1a;
-    border: 1px solid #2d2d44;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
     border-radius: 4px;
-    color: #9e9e9e;
+    color: var(--text-muted);
     font-size: 0.875rem;
 }
 
 .config-actions {
     margin-top: auto;
     padding-top: 16px;
-    border-top: 1px solid #2d2d44;
+    border-top: 1px solid var(--border-color);
 }
 
 .config-empty {
@@ -257,7 +258,7 @@
     justify-content: center;
     height: 100%;
     text-align: center;
-    color: #666;
+    color: var(--text-muted);
 }
 
 .empty-icon {
@@ -275,9 +276,9 @@
 .execution-section {
     margin-bottom: 16px;
     padding: 12px;
-    background: #0d0d1a;
+    background: var(--bg-input);
     border-radius: 8px;
-    border: 1px solid #2d2d44;
+    border: 1px solid var(--border-color);
 }
 
 .execution-status {
@@ -291,23 +292,23 @@
 }
 
 .execution-status.status-running {
-    background: rgba(25, 118, 210, 0.2);
-    color: #42a5f5;
+    background: var(--info-bg);
+    color: var(--info);
 }
 
 .execution-status.status-completed {
-    background: rgba(76, 175, 80, 0.2);
-    color: #66bb6a;
+    background: var(--success-bg);
+    color: var(--success);
 }
 
 .execution-status.status-failed {
-    background: rgba(239, 83, 80, 0.2);
-    color: #ef5350;
+    background: var(--danger-bg);
+    color: var(--danger);
 }
 
 .execution-status.status-pending {
-    background: rgba(255, 152, 0, 0.2);
-    color: #ffa726;
+    background: var(--warning-bg);
+    color: var(--warning);
 }
 
 .status-icon {
@@ -320,7 +321,7 @@
 
 .status-duration {
     font-size: 0.75rem;
-    color: #9e9e9e;
+    color: var(--text-muted);
 }
 
 .execution-error {
@@ -329,10 +330,10 @@
 
 .error-message {
     padding: 8px;
-    background: rgba(239, 83, 80, 0.1);
-    border: 1px solid #ef5350;
+    background: var(--danger-bg);
+    border: 1px solid var(--danger);
     border-radius: 4px;
-    color: #ef5350;
+    color: var(--danger);
     font-size: 0.75rem;
     font-family: monospace;
     white-space: pre-wrap;
@@ -346,10 +347,10 @@
 .data-preview {
     margin: 0;
     padding: 8px;
-    background: #16162a;
-    border: 1px solid #2d2d44;
+    background: var(--bg-code);
+    border: 1px solid var(--border-color);
     border-radius: 4px;
-    color: #e0e0e0;
+    color: var(--text-primary);
     font-size: 0.75rem;
     font-family: 'Monaco', 'Menlo', monospace;
     white-space: pre-wrap;
@@ -380,11 +381,11 @@
 }
 
 .status-indicator.active {
-    color: #4caf50;
+    color: var(--success);
 }
 
 .status-indicator.inactive {
-    color: #9e9e9e;
+    color: var(--text-muted);
 }
 
 .stats-grid {
@@ -398,19 +399,19 @@
     flex-direction: column;
     align-items: center;
     padding: 12px;
-    background: #0d0d1a;
+    background: var(--bg-input);
     border-radius: 6px;
-    border: 1px solid #2d2d44;
+    border: 1px solid var(--border-color);
 }
 
 .stat-value {
     font-size: 1.5rem;
     font-weight: 600;
-    color: #4fc3f7;
+    color: var(--accent);
 }
 
 .stat-label {
     font-size: 0.75rem;
-    color: #9e9e9e;
+    color: var(--text-muted);
     margin-top: 4px;
 }

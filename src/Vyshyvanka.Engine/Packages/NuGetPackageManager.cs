@@ -55,6 +55,7 @@ public class NuGetPackageManager : INuGetPackageManager
         _logger?.LogInformation("Initializing package manager...");
 
         var manifest = await _manifestManager.LoadAsync();
+        var failedPackages = new List<string>();
 
         foreach (var package in manifest.Packages)
         {
@@ -65,26 +66,45 @@ public class NuGetPackageManager : INuGetPackageManager
                 try
                 {
                     var plugins = _pluginLoader.LoadPlugins(package.InstallPath);
+                    var anyLoaded = false;
                     foreach (var plugin in plugins)
                     {
                         if (plugin.IsLoaded && plugin.Assembly is not null)
                         {
                             _nodeRegistry.RegisterFromAssembly(plugin.Assembly);
+                            anyLoaded = true;
                         }
+                    }
+
+                    if (!anyLoaded)
+                    {
+                        _logger?.LogWarning("No loadable plugins found in {PackageId}, removing from installed", package.PackageId);
+                        failedPackages.Add(package.PackageId);
                     }
                 }
                 catch (Exception ex)
                 {
-                    _logger?.LogWarning(ex, "Failed to load plugin from {PackageId}", package.PackageId);
+                    _logger?.LogWarning(ex, "Failed to load plugin from {PackageId}, removing from installed", package.PackageId);
+                    failedPackages.Add(package.PackageId);
                 }
             }
             else
             {
-                _logger?.LogWarning("Install path missing for {PackageId}: {Path}", package.PackageId, package.InstallPath);
+                _logger?.LogWarning("Install path missing for {PackageId}: {Path}, removing from installed", package.PackageId, package.InstallPath);
+                failedPackages.Add(package.PackageId);
             }
         }
 
-        _logger?.LogInformation("Package manager initialized with {Count} packages", _installedPackages.Count);
+        // Remove failed packages from manifest and in-memory tracking
+        foreach (var packageId in failedPackages)
+        {
+            _installedPackages.TryRemove(packageId, out _);
+            await _manifestManager.RemovePackageAsync(packageId);
+            _logger?.LogInformation("Removed failed package {PackageId} from manifest", packageId);
+        }
+
+        _logger?.LogInformation("Package manager initialized with {Count} packages ({Failed} removed due to load failures)",
+            _installedPackages.Count, failedPackages.Count);
     }
 
     public async Task<PackageSearchResult> SearchPackagesAsync(

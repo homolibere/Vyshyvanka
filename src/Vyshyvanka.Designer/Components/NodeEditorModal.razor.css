@@ -21,8 +21,8 @@
 }
 
 .modal-content.node-editor-modal {
-    background: #1a1a2e;
-    border: 1px solid #2d2d44;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
     border-radius: 12px;
     width: 95%;
     max-width: 1400px;
@@ -45,7 +45,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 16px 24px;
-    border-bottom: 1px solid #2d2d44;
+    border-bottom: 1px solid var(--border-color);
     flex-shrink: 0;
 }
 
@@ -54,7 +54,7 @@
 }
 
 .modal-header.header-error h2 {
-    color: #ef5350;
+    color: var(--danger);
 }
 
 .header-info {
@@ -74,10 +74,10 @@
     align-items: center;
     gap: 6px;
     padding: 6px 14px;
-    background: rgba(76, 175, 80, 0.15);
-    border: 1px solid rgba(76, 175, 80, 0.4);
+    background: var(--success-bg);
+    border: 1px solid var(--success);
     border-radius: 6px;
-    color: #66bb6a;
+    color: var(--success);
     font-size: 0.8125rem;
     font-weight: 500;
     cursor: pointer;
@@ -86,8 +86,8 @@
 }
 
 .btn-run:hover:not(:disabled) {
-    background: rgba(76, 175, 80, 0.3);
-    border-color: #66bb6a;
+    background: var(--success-bg);
+    border-color: var(--success);
 }
 
 .btn-run:disabled {
@@ -119,7 +119,7 @@
     margin: 0;
     font-size: 1.125rem;
     font-weight: 600;
-    color: #e0e0e0;
+    color: var(--text-primary);
 }
 
 .node-type {
@@ -130,7 +130,7 @@
 .btn-close {
     background: transparent;
     border: none;
-    color: #888;
+    color: var(--text-muted);
     font-size: 1.75rem;
     cursor: pointer;
     padding: 0;
@@ -145,7 +145,7 @@
 }
 
 .btn-close:hover {
-    color: #e0e0e0;
+    color: var(--text-primary);
     background: rgba(255, 255, 255, 0.1);
 }
 
@@ -176,7 +176,7 @@
     justify-content: flex-end;
     gap: 12px;
     padding: 16px 24px;
-    border-top: 1px solid #2d2d44;
+    border-top: 1px solid var(--border-color);
     flex-shrink: 0;
 }
 
@@ -196,31 +196,31 @@
 }
 
 .btn-primary {
-    background: #4fc3f7;
-    color: #0d0d1a;
+    background: var(--accent);
+    color: var(--bg-primary);
 }
 
 .btn-primary:hover:not(:disabled) {
-    background: #29b6f6;
+    background: var(--accent-hover);
 }
 
 .btn-secondary {
-    background: #2d2d44;
-    color: #e0e0e0;
+    background: var(--bg-hover);
+    color: var(--text-primary);
 }
 
 .btn-secondary:hover:not(:disabled) {
-    background: #3d3d5c;
+    background: var(--border-hover);
 }
 
 /* Error state */
 .error-message {
-    color: #ef5350;
+    color: var(--danger);
     font-size: 0.9375rem;
     line-height: 1.5;
     margin: 0;
     padding: 16px;
-    background: rgba(239, 83, 80, 0.1);
+    background: var(--danger-bg);
     border: 1px solid rgba(239, 83, 80, 0.3);
     border-radius: 8px;
 }

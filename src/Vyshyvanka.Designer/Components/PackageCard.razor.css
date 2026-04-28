@@ -3,20 +3,20 @@
     align-items: flex-start;
     gap: 16px;
     padding: 16px;
-    background: #1a1a2e;
-    border: 1px solid #2d2d44;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     cursor: pointer;
     transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .package-card:hover {
-    background: #252540;
-    border-color: #3d3d5c;
+    background: var(--bg-hover);
+    border-color: var(--border-hover);
 }
 
 .package-card.installed {
-    border-left: 3px solid #4caf50;
+    border-left: 3px solid var(--success);
 }
 
 .package-icon {
@@ -26,7 +26,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #0d0d1a;
+    background: var(--bg-input);
     border-radius: 8px;
     overflow: hidden;
 }
@@ -60,7 +60,7 @@
     margin: 0;
     font-size: 1rem;
     font-weight: 600;
-    color: #e0e0e0;
+    color: var(--text-primary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -68,22 +68,22 @@
 
 .package-version {
     font-size: 0.75rem;
-    color: #888;
-    background: #0d0d1a;
+    color: var(--text-muted);
+    background: var(--bg-input);
     padding: 2px 6px;
     border-radius: 4px;
 }
 
 .update-badge {
     font-size: 0.875rem;
-    color: #4fc3f7;
+    color: var(--accent);
     cursor: help;
 }
 
 .package-description {
     margin: 0;
     font-size: 0.875rem;
-    color: #999;
+    color: var(--text-muted);
     line-height: 1.4;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -100,14 +100,14 @@
 
 .meta-item {
     font-size: 0.75rem;
-    color: #666;
+    color: var(--text-muted);
     display: flex;
     align-items: center;
     gap: 4px;
 }
 
 .meta-item.installed-version {
-    color: #4caf50;
+    color: var(--success);
 }
 
 .package-actions {
@@ -134,20 +134,20 @@
 }
 
 .btn-primary {
-    background: #4fc3f7;
-    color: #0d0d1a;
+    background: var(--accent);
+    color: var(--bg-primary);
 }
 
 .btn-primary:hover:not(:disabled) {
-    background: #29b6f6;
+    background: var(--accent-hover);
 }
 
 .btn-danger {
     background: transparent;
-    color: #ef5350;
-    border: 1px solid #ef5350;
+    color: var(--danger);
+    border: 1px solid var(--danger);
 }
 
 .btn-danger:hover:not(:disabled) {
-    background: rgba(239, 83, 80, 0.1);
+    background: var(--danger-bg);
 }

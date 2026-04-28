@@ -4,7 +4,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: var(--overlay-bg);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -20,8 +20,8 @@
 }
 
 .workflow-browser-modal {
-    background: #1a1a2e;
-    border: 1px solid #2d2d44;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
     border-radius: 12px;
     width: 100%;
     max-width: 600px;
@@ -29,7 +29,7 @@
     max-height: 600px;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    box-shadow: var(--shadow-lg);
     transform: scale(0.95);
     transition: transform 0.2s ease;
 }
@@ -43,7 +43,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 16px 20px;
-    border-bottom: 1px solid #2d2d44;
+    border-bottom: 1px solid var(--border-color);
     flex-shrink: 0;
 }
 
@@ -51,13 +51,13 @@
     margin: 0;
     font-size: 1.25rem;
     font-weight: 600;
-    color: #e0e0e0;
+    color: var(--text-primary);
 }
 
 .btn-close {
     background: transparent;
     border: none;
-    color: #888;
+    color: var(--text-muted);
     font-size: 1.5rem;
     cursor: pointer;
     padding: 0;
@@ -66,7 +66,7 @@
 }
 
 .btn-close:hover:not(:disabled) {
-    color: #e0e0e0;
+    color: var(--text-primary);
 }
 
 .btn-close:disabled {
@@ -78,32 +78,32 @@
     display: flex;
     gap: 12px;
     padding: 16px 20px;
-    border-bottom: 1px solid #2d2d44;
+    border-bottom: 1px solid var(--border-color);
     flex-shrink: 0;
 }
 
 .search-input {
     flex: 1;
     padding: 8px 12px;
-    background: #0d0d1a;
-    border: 1px solid #2d2d44;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
     border-radius: 6px;
-    color: #e0e0e0;
+    color: var(--text-primary);
     font-size: 0.875rem;
 }
 
 .search-input:focus {
     outline: none;
-    border-color: #4fc3f7;
+    border-color: var(--accent);
 }
 
 .search-input::placeholder {
-    color: #666;
+    color: var(--text-muted);
 }
 
 .btn-new {
     padding: 8px 16px;
-    background: #1976d2;
+    background: var(--btn-primary-bg);
     border: none;
     border-radius: 6px;
     color: white;
@@ -115,7 +115,7 @@
 }
 
 .btn-new:hover {
-    background: #1565c0;
+    background: var(--btn-primary-hover);
 }
 
 .workflow-list {
@@ -133,15 +133,15 @@
     justify-content: center;
     gap: 12px;
     height: 100%;
-    color: #888;
+    color: var(--text-muted);
     font-size: 0.875rem;
 }
 
 .spinner {
     width: 24px;
     height: 24px;
-    border: 2px solid #2d2d44;
-    border-top-color: #4fc3f7;
+    border: 2px solid var(--border-color);
+    border-top-color: var(--accent);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
 }
@@ -152,16 +152,16 @@
 
 .btn-retry {
     padding: 6px 12px;
-    background: #2d2d44;
+    background: var(--bg-hover);
     border: none;
     border-radius: 4px;
-    color: #e0e0e0;
+    color: var(--text-primary);
     font-size: 0.75rem;
     cursor: pointer;
 }
 
 .btn-retry:hover {
-    background: #3d3d5c;
+    background: var(--border-hover);
 }
 
 .workflow-item {
@@ -175,12 +175,12 @@
 }
 
 .workflow-item:hover {
-    background: #2d2d44;
+    background: var(--bg-hover);
 }
 
 .workflow-item.current {
-    background: rgba(79, 195, 247, 0.1);
-    border: 1px solid rgba(79, 195, 247, 0.3);
+    background: var(--accent-light);
+    border: 1px solid var(--accent-border);
 }
 
 .workflow-info {
@@ -194,7 +194,7 @@
     gap: 8px;
     font-size: 0.9375rem;
     font-weight: 500;
-    color: #e0e0e0;
+    color: var(--text-primary);
 }
 
 .status-dot {
@@ -217,14 +217,14 @@
     font-weight: 600;
     text-transform: uppercase;
     padding: 2px 6px;
-    background: rgba(79, 195, 247, 0.2);
-    color: #4fc3f7;
+    background: var(--accent-light);
+    color: var(--accent);
     border-radius: 4px;
 }
 
 .workflow-description {
     font-size: 0.8125rem;
-    color: #888;
+    color: var(--text-muted);
     margin-top: 4px;
     white-space: nowrap;
     overflow: hidden;
@@ -235,7 +235,7 @@
     display: flex;
     gap: 6px;
     font-size: 0.75rem;
-    color: #666;
+    color: var(--text-muted);
     margin-top: 4px;
 }
 
@@ -247,15 +247,15 @@
     width: 32px;
     height: 32px;
     background: transparent;
-    border: 1px solid #2d2d44;
+    border: 1px solid var(--border-color);
     border-radius: 6px;
-    color: #888;
+    color: var(--text-muted);
     font-size: 1rem;
     cursor: pointer;
     transition: all 0.15s ease;
 }
 
 .workflow-item:hover .btn-open {
-    border-color: #4fc3f7;
-    color: #4fc3f7;
+    border-color: var(--accent);
+    color: var(--accent);
 }

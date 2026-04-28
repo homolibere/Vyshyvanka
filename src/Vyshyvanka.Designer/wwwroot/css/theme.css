@@ -1,0 +1,185 @@
+/* ============================================
+   Vyshyvanka Theme System
+   Light (default) + Dark theme via CSS variables
+   ============================================ */
+
+:root,
+[data-theme="light"] {
+    /* Backgrounds */
+    --bg-primary: #f8f5f0;
+    --bg-surface: #ffffff;
+    --bg-elevated: #ffffff;
+    --bg-input: #f0ebe4;
+    --bg-canvas: #ede8e1;
+    --bg-code: #f0ebe4;
+    --bg-hover: #ede8e1;
+    --bg-gradient-start: #f8f5f0;
+    --bg-gradient-end: #ede8e1;
+
+    /* Borders */
+    --border-color: #d4c9bc;
+    --border-hover: #bfb2a3;
+    --border-active: #a89888;
+    --border-subtle: #e8e0d6;
+
+    /* Text */
+    --text-primary: #1a1a2e;
+    --text-secondary: #555555;
+    --text-muted: #888888;
+    --text-on-accent: #ffffff;
+    --text-on-surface-dark: #ffffff;
+
+    /* Accent — vyshyvanka red */
+    --accent: #c62828;
+    --accent-hover: #b71c1c;
+    --accent-light: rgba(198, 40, 40, 0.1);
+    --accent-border: rgba(198, 40, 40, 0.3);
+
+    /* Links */
+    --link-color: #c62828;
+    --link-hover: #b71c1c;
+
+    /* Buttons */
+    --btn-primary-bg: #c62828;
+    --btn-primary-border: #b71c1c;
+    --btn-primary-hover: #b71c1c;
+    --btn-primary-text: #ffffff;
+    --btn-secondary-bg: #e8e0d6;
+    --btn-secondary-border: #d4c9bc;
+    --btn-secondary-hover: #d4c9bc;
+    --btn-secondary-text: #1a1a2e;
+
+    /* Status */
+    --success: #2e7d32;
+    --success-bg: rgba(46, 125, 50, 0.1);
+    --danger: #c62828;
+    --danger-bg: rgba(198, 40, 40, 0.1);
+    --warning: #e65100;
+    --warning-bg: rgba(230, 81, 0, 0.1);
+    --info: #1565c0;
+    --info-bg: rgba(21, 101, 192, 0.1);
+
+    /* Shadows */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+    --overlay-bg: rgba(0, 0, 0, 0.3);
+
+    /* Canvas / SVG nodes */
+    --node-bg: #ffffff;
+    --node-border: #d4c9bc;
+    --node-header-bg: #e8e0d6;
+    --node-selected: #c62828;
+    --connection-color: #c62828;
+    --connection-hover: #b71c1c;
+    --connection-selected: #e65100;
+    --port-fill: #ffffff;
+    --port-stroke: #c62828;
+    --port-label: #888888;
+    --grid-color: rgba(0, 0, 0, 0.05);
+
+    /* Spinner */
+    --spinner-track: #d4c9bc;
+    --spinner-fill: #c62828;
+
+    /* Focus ring */
+    --focus-ring-outer: #f8f5f0;
+    --focus-ring-inner: #c62828;
+
+    /* Scrollbar */
+    --scrollbar-track: transparent;
+    --scrollbar-thumb: #d4c9bc;
+    --scrollbar-thumb-hover: #bfb2a3;
+
+    color-scheme: light;
+}
+
+[data-theme="dark"] {
+    /* Backgrounds — deep red base */
+    --bg-primary: #1a0a0a;
+    --bg-surface: #2b1111;
+    --bg-elevated: #2b1111;
+    --bg-input: #1a0a0a;
+    --bg-canvas: #1a0a0a;
+    --bg-code: #220e0e;
+    --bg-hover: #3d1a1a;
+    --bg-gradient-start: #2b1111;
+    --bg-gradient-end: #1a0a0a;
+
+    /* Borders */
+    --border-color: #4a2020;
+    --border-hover: #5c2a2a;
+    --border-active: #6e3535;
+    --border-subtle: #3a1616;
+
+    /* Text */
+    --text-primary: #f0d8d8;
+    --text-secondary: #c9a8a8;
+    --text-muted: #9a7777;
+    --text-on-accent: #1a0a0a;
+    --text-on-surface-dark: #ffffff;
+
+    /* Accent — warm gold/cream to contrast the red */
+    --accent: #f5c16c;
+    --accent-hover: #f7d08a;
+    --accent-light: rgba(245, 193, 108, 0.15);
+    --accent-border: rgba(245, 193, 108, 0.4);
+
+    /* Links */
+    --link-color: #f5c16c;
+    --link-hover: #f7d08a;
+
+    /* Buttons */
+    --btn-primary-bg: #c62828;
+    --btn-primary-border: #a12020;
+    --btn-primary-hover: #a12020;
+    --btn-primary-text: #ffffff;
+    --btn-secondary-bg: #3d1a1a;
+    --btn-secondary-border: #4a2020;
+    --btn-secondary-hover: #5c2a2a;
+    --btn-secondary-text: #f0d8d8;
+
+    /* Status */
+    --success: #66bb6a;
+    --success-bg: rgba(102, 187, 106, 0.2);
+    --danger: #ef5350;
+    --danger-bg: rgba(239, 83, 80, 0.2);
+    --warning: #ffb74d;
+    --warning-bg: rgba(255, 183, 77, 0.2);
+    --info: #64b5f6;
+    --info-bg: rgba(100, 181, 246, 0.2);
+
+    /* Shadows */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+    --overlay-bg: rgba(0, 0, 0, 0.6);
+
+    /* Canvas / SVG nodes */
+    --node-bg: #2b1111;
+    --node-border: #4a2020;
+    --node-header-bg: #3d1a1a;
+    --node-selected: #f5c16c;
+    --connection-color: #f5c16c;
+    --connection-hover: #f7d08a;
+    --connection-selected: #ef5350;
+    --port-fill: #2b1111;
+    --port-stroke: #f5c16c;
+    --port-label: #9a7777;
+    --grid-color: rgba(255, 255, 255, 0.03);
+
+    /* Spinner */
+    --spinner-track: #4a2020;
+    --spinner-fill: #f5c16c;
+
+    /* Focus ring */
+    --focus-ring-outer: #1a0a0a;
+    --focus-ring-inner: #f5c16c;
+
+    /* Scrollbar */
+    --scrollbar-track: transparent;
+    --scrollbar-thumb: #4a2020;
+    --scrollbar-thumb-hover: #5c2a2a;
+
+    color-scheme: dark;
+}

@@ -17,7 +17,7 @@
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    background: #1976d2;
+    background: var(--btn-primary-bg);
     color: white;
     font-size: 0.7rem;
     font-weight: 600;
@@ -25,7 +25,7 @@
 }
 
 .user-name {
-    color: #e0e0e0;
+    color: var(--text-primary);
     font-size: 0.85rem;
     max-width: 160px;
     overflow: hidden;
@@ -34,12 +34,12 @@
 }
 
 .user-role {
-    color: #9e9e9e;
+    color: var(--text-muted);
     font-size: 0.7rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     padding: 1px 6px;
-    border: 1px solid #2d2d44;
+    border: 1px solid var(--border-color);
     border-radius: 4px;
 }
 
@@ -48,8 +48,8 @@
     align-items: center;
     justify-content: center;
     background: none;
-    border: 1px solid #2d2d44;
-    color: #9e9e9e;
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
     width: 30px;
     height: 30px;
     border-radius: 6px;
@@ -59,9 +59,9 @@
 }
 
 .btn-logout:hover {
-    color: #ef5350;
-    border-color: #ef5350;
-    background: rgba(239, 83, 80, 0.1);
+    color: var(--danger);
+    border-color: var(--danger);
+    background: var(--danger-bg);
 }
 
 .btn-settings {
@@ -69,8 +69,8 @@
     align-items: center;
     justify-content: center;
     background: none;
-    border: 1px solid #2d2d44;
-    color: #9e9e9e;
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
     width: 30px;
     height: 30px;
     border-radius: 6px;
@@ -81,7 +81,7 @@
 }
 
 .btn-settings:hover {
-    color: #4fc3f7;
-    border-color: #4fc3f7;
-    background: rgba(79, 195, 247, 0.1);
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--accent-light);
 }

@@ -1,33 +1,31 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 64" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 64" fill="none">
   <defs>
-    <linearGradient id="fg-flow" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1976d2"/>
-      <stop offset="100%" stop-color="#4fc3f7"/>
-    </linearGradient>
-    <linearGradient id="fg-spark" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#ff9800"/>
-      <stop offset="100%" stop-color="#ffca28"/>
+    <linearGradient id="vy-red" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e53935"/>
+      <stop offset="100%" stop-color="#ef5350"/>
     </linearGradient>
   </defs>
-  <!-- Icon: Flow paths -->
-  <path d="M16 18 C28 18, 24 32, 36 32" stroke="url(#fg-flow)" stroke-width="3" stroke-linecap="round" fill="none"/>
-  <path d="M36 32 C48 32, 44 46, 56 46" stroke="url(#fg-flow)" stroke-width="3" stroke-linecap="round" fill="none"/>
-  <path d="M36 32 C48 32, 44 18, 56 18" stroke="url(#fg-flow)" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.5"/>
-  <!-- Icon: Nodes -->
-  <circle cx="14" cy="18" r="6" fill="url(#fg-flow)"/>
-  <circle cx="36" cy="32" r="7" fill="url(#fg-flow)"/>
-  <circle cx="56" cy="46" r="6" fill="url(#fg-flow)"/>
-  <circle cx="56" cy="18" r="4.5" fill="url(#fg-flow)" opacity="0.6"/>
-  <!-- Icon: Highlights -->
-  <circle cx="14" cy="17" r="2.5" fill="white" opacity="0.3"/>
-  <circle cx="36" cy="31" r="3" fill="white" opacity="0.3"/>
-  <circle cx="56" cy="45" r="2.5" fill="white" opacity="0.3"/>
-  <!-- Icon: Spark -->
-  <path d="M28 8 L30 14 L26 12 L28 8Z" fill="url(#fg-spark)"/>
-  <path d="M32 6 L33 10 L31 9 L32 6Z" fill="url(#fg-spark)" opacity="0.7"/>
-  <circle cx="25" cy="11" r="1" fill="#ffca28" opacity="0.6"/>
-  <!-- Wordmark -->
-  <text x="72" y="40" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="28" font-weight="700" fill="#e0e0e0">
-    Flow<tspan fill="#4fc3f7">Forge</tspan>
+
+  <!-- Vyshyvanka embroidery pattern icon — diamond/rhombus motif -->
+  <path d="M32 8 L52 32 L32 56 L12 32 Z" stroke="url(#vy-red)" stroke-width="2.5" fill="none"/>
+  <path d="M32 18 L42 32 L32 46 L22 32 Z" stroke="url(#vy-red)" stroke-width="2" fill="url(#vy-red)" fill-opacity="0.12"/>
+  <line x1="28" y1="28" x2="36" y2="36" stroke="url(#vy-red)" stroke-width="2" stroke-linecap="round"/>
+  <line x1="36" y1="28" x2="28" y2="36" stroke="url(#vy-red)" stroke-width="2" stroke-linecap="round"/>
+  <path d="M32 4 L35 8 L32 12 L29 8 Z" fill="url(#vy-red)"/>
+  <path d="M32 52 L35 56 L32 60 L29 56 Z" fill="url(#vy-red)"/>
+  <path d="M4 32 L8 29 L12 32 L8 35 Z" fill="url(#vy-red)"/>
+  <path d="M52 32 L56 29 L60 32 L56 35 Z" fill="url(#vy-red)"/>
+  <circle cx="22" cy="20" r="2" fill="url(#vy-red)" opacity="0.7"/>
+  <circle cx="42" cy="20" r="2" fill="url(#vy-red)" opacity="0.7"/>
+  <circle cx="22" cy="44" r="2" fill="url(#vy-red)" opacity="0.7"/>
+  <circle cx="42" cy="44" r="2" fill="url(#vy-red)" opacity="0.7"/>
+  <line x1="8" y1="32" x2="22" y2="32" stroke="url(#vy-red)" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+  <line x1="42" y1="32" x2="56" y2="32" stroke="url(#vy-red)" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+  <line x1="32" y1="8" x2="32" y2="18" stroke="url(#vy-red)" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+  <line x1="32" y1="46" x2="32" y2="56" stroke="url(#vy-red)" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+
+  <!-- Wordmark (light text for dark backgrounds) -->
+  <text x="72" y="42" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="30" font-weight="700" fill="#e0e0e0">
+    Vyshy<tspan fill="#e53935">vanka</tspan>
   </text>
 </svg>

@@ -1,7 +1,7 @@
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    background: #0d0d1a;
-    color: #e0e0e0;
+    background: var(--bg-primary);
+    color: var(--text-primary);
     margin: 0;
     padding: 0;
 }
@@ -11,17 +11,17 @@ h1:focus {
 }
 
 a, .btn-link {
-    color: #4fc3f7;
+    color: var(--link-color);
 }
 
 .btn-primary {
-    color: #fff;
-    background-color: #1976d2;
-    border-color: #1565c0;
+    color: var(--btn-primary-text);
+    background-color: var(--btn-primary-bg);
+    border-color: var(--btn-primary-border);
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem #0d0d1a, 0 0 0 0.25rem #4fc3f7;
+  box-shadow: 0 0 0 0.1rem var(--focus-ring-outer), 0 0 0 0.25rem var(--focus-ring-inner);
 }
 
 .content {
@@ -29,15 +29,15 @@ a, .btn-link {
 }
 
 .valid.modified:not([type=checkbox]) {
-    outline: 1px solid #4caf50;
+    outline: 1px solid var(--success);
 }
 
 .invalid {
-    outline: 1px solid #ef5350;
+    outline: 1px solid var(--danger);
 }
 
 .validation-message {
-    color: #ef5350;
+    color: var(--danger);
 }
 
 #blazor-error-ui {
@@ -82,14 +82,14 @@ a, .btn-link {
 
     .loading-progress circle {
         fill: none;
-        stroke: #e0e0e0;
+        stroke: var(--text-primary);
         stroke-width: 0.6rem;
         transform-origin: 50% 50%;
         transform: rotate(-90deg);
     }
 
         .loading-progress circle:last-child {
-            stroke: #1b6ec2;
+            stroke: var(--accent);
             stroke-dasharray: calc(3.141 * var(--blazor-load-percentage, 0%) * 0.8), 500%;
             transition: stroke-dasharray 0.05s ease-in-out;
         }
@@ -106,7 +106,7 @@ a, .btn-link {
     }
 
 code {
-    color: #c02d76;
+    color: var(--accent);
 }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
@@ -124,7 +124,7 @@ code {
     flex: 1;
     overflow: hidden;
     cursor: default;
-    background: #0d0d1a;
+    background: var(--bg-canvas);
     position: relative;
 }
 
@@ -161,18 +161,18 @@ code {
 }
 
 .canvas-node.selected .node-bg {
-    stroke: #4fc3f7;
+    stroke: var(--node-selected);
     stroke-width: 2;
 }
 
 .node-bg {
-    fill: #1a1a2e;
-    stroke: #2d2d44;
+    fill: var(--node-bg);
+    stroke: var(--node-border);
     stroke-width: 1;
 }
 
 .node-header {
-    fill: #2d2d44;
+    fill: var(--node-header-bg);
 }
 
 .node-header.category-trigger {
@@ -192,7 +192,7 @@ code {
 }
 
 .node-header-bottom {
-    fill: #1a1a2e;
+    fill: var(--node-bg);
 }
 
 .node-icon {
@@ -224,19 +224,19 @@ code {
 }
 
 .port-circle {
-    fill: #1a1a2e;
-    stroke: #4fc3f7;
+    fill: var(--port-fill);
+    stroke: var(--port-stroke);
     stroke-width: 2;
     transition: all 0.15s ease;
 }
 
 .port:hover .port-circle {
-    fill: #4fc3f7;
+    fill: var(--port-stroke);
 }
 
 .port-label {
     font-size: 10px;
-    fill: #9e9e9e;
+    fill: var(--port-label);
     pointer-events: none;
 }
 
@@ -249,7 +249,7 @@ code {
 
 .pending-connection {
     fill: none;
-    stroke: #4fc3f7;
+    stroke: var(--connection-color);
     stroke-width: 2;
     stroke-dasharray: 5, 5;
     pointer-events: none;
@@ -257,19 +257,19 @@ code {
 
 .connection-line {
     fill: none;
-    stroke: #4fc3f7;
+    stroke: var(--connection-color);
     stroke-width: 2;
     pointer-events: stroke;
     cursor: pointer;
 }
 
 .connection-line:hover {
-    stroke: #81d4fa;
+    stroke: var(--connection-hover);
     stroke-width: 3;
 }
 
 .connection-line.selected {
-    stroke: #ff9800;
+    stroke: var(--connection-selected);
     stroke-width: 3;
 }
 
@@ -279,23 +279,23 @@ code {
 }
 
 .canvas-node.executed-success .node-bg {
-    stroke: #4caf50;
+    stroke: var(--success);
     stroke-width: 2;
 }
 
 .canvas-node.executed-failed .node-bg {
-    stroke: #ef5350;
+    stroke: var(--danger);
     stroke-width: 2;
 }
 
 .indicator-running {
-    stroke: #1976d2;
+    stroke: var(--info);
     animation: pulse-indicator 1s ease-in-out infinite;
 }
 
-.indicator-completed { stroke: #4caf50; }
-.indicator-failed { stroke: #ef5350; }
-.indicator-pending { stroke: #ff9800; }
+.indicator-completed { stroke: var(--success); }
+.indicator-failed { stroke: var(--danger); }
+.indicator-pending { stroke: var(--warning); }
 
 .execution-badge,
 .execution-duration {
@@ -304,12 +304,12 @@ code {
 
 .execution-duration {
     font-size: 10px;
-    fill: #9e9e9e;
+    fill: var(--text-muted);
 }
 
 @keyframes pulse-running {
-    0%, 100% { stroke: #1976d2; stroke-width: 2; }
-    50% { stroke: #42a5f5; stroke-width: 3; }
+    0%, 100% { stroke: var(--info); stroke-width: 2; }
+    50% { stroke: var(--accent); stroke-width: 3; }
 }
 
 @keyframes pulse-indicator {
@@ -332,23 +332,23 @@ code {
 }
 
 .connection:hover .connection-line {
-    stroke: #81d4fa;
+    stroke: var(--connection-hover);
 }
 
 .connection.selected .connection-line {
-    stroke: #fff;
+    stroke: var(--text-on-accent);
     stroke-width: 3;
 }
 
 .connection-arrow {
-    fill: #4fc3f7;
+    fill: var(--connection-color);
     pointer-events: none;
 }
 
 .connection:hover .connection-arrow {
-    fill: #81d4fa;
+    fill: var(--connection-hover);
 }
 
 .connection.selected .connection-arrow {
-    fill: #fff;
+    fill: var(--text-on-accent);
 }

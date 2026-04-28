@@ -14,8 +14,8 @@ main {
     justify-content: space-between;
     height: 48px;
     padding: 0 20px;
-    background: #1a1a2e;
-    border-bottom: 1px solid #2d2d44;
+    background: var(--bg-elevated);
+    border-bottom: 1px solid var(--border-color);
     flex-shrink: 0;
 }
 
@@ -25,12 +25,12 @@ main {
     gap: 10px;
     font-size: 1.15rem;
     font-weight: 600;
-    color: #4fc3f7;
+    color: var(--accent);
     text-decoration: none;
 }
 
 .top-bar-brand:hover {
-    color: #81d4fa;
+    color: var(--accent-hover);
 }
 
 .top-bar-logo {

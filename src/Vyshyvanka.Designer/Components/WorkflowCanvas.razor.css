@@ -2,7 +2,7 @@
     flex: 1;
     overflow: hidden;
     cursor: default;
-    background: #0d0d1a;
+    background: var(--bg-input);
 }
 
 .canvas-container:active {
@@ -15,7 +15,7 @@
 
 .pending-connection {
     fill: none;
-    stroke: #4fc3f7;
+    stroke: var(--accent);
     stroke-width: 2;
     stroke-dasharray: 5, 5;
     pointer-events: none;

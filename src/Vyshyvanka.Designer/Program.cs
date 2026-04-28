@@ -38,6 +38,7 @@ builder.Services.AddScoped<VyshyvankaApiClient>();
 builder.Services.AddScoped<WorkflowStateService>();
 builder.Services.AddScoped<PluginStateService>();
 builder.Services.AddScoped<ToastService>();
+builder.Services.AddScoped<ThemeService>();
 
 var host = builder.Build();
 
@@ -48,6 +49,10 @@ using (var scope = host.Services.CreateScope())
     var storage = scope.ServiceProvider.GetRequiredService<BrowserStorageService>();
     authState.SetStorageService(storage);
     await authState.InitializeAsync();
+
+    // Initialize theme from browser storage
+    var themeService = scope.ServiceProvider.GetRequiredService<ThemeService>();
+    await themeService.InitializeAsync();
 }
 
 await host.RunAsync();
