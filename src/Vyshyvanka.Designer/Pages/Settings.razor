@@ -8,5 +8,28 @@
         <h1>Settings</h1>
     </div>
 
-    <ApiKeyManager/>
+    <div class="settings-section">
+        <h2 class="section-title">Appearance</h2>
+        <div class="setting-row">
+            <div class="setting-info">
+                <span class="setting-label">Canvas background</span>
+                <span class="setting-hint">Choose between vyshyvanka embroidery pattern or simple dots</span>
+            </div>
+            <div class="pattern-toggle">
+                <button class="pattern-btn @(_themeService.IsVyshyvankaPattern ? "active" : "")"
+                        @onclick="() => SetPattern(true)">
+                    <i class="fas fa-star-of-life"></i> Vyshyvanka
+                </button>
+                <button class="pattern-btn @(!_themeService.IsVyshyvankaPattern ? "active" : "")"
+                        @onclick="() => SetPattern(false)">
+                    <i class="fas fa-braille"></i> Dots
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="settings-section">
+        <h2 class="section-title">API Keys</h2>
+        <ApiKeyManager/>
+    </div>
 </div>

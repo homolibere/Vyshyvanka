@@ -14,6 +14,9 @@ public partial class WorkflowCanvas : IAsyncDisposable
     [Inject]
     private IJSRuntime JS { get; set; } = null!;
 
+    [Inject]
+    private ThemeService ThemeService { get; set; } = null!;
+
     /// <summary>
     /// Event callback invoked when a node is double-clicked to open the editor modal.
     /// </summary>
@@ -35,6 +38,7 @@ public partial class WorkflowCanvas : IAsyncDisposable
     protected override void OnInitialized()
     {
         StateService.OnStateChanged += StateHasChanged;
+        ThemeService.OnThemeChanged += StateHasChanged;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -250,6 +254,7 @@ public partial class WorkflowCanvas : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         StateService.OnStateChanged -= StateHasChanged;
+        ThemeService.OnThemeChanged -= StateHasChanged;
 
         if (_resizeObserver is not null)
         {

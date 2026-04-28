@@ -77,6 +77,8 @@
     --port-stroke: #c62828;
     --port-label: #888888;
     --grid-color: rgba(0, 0, 0, 0.05);
+    --grid-motif: #c62828;
+    --grid-accent: #1a1a2e;
 
     /* Spinner */
     --spinner-track: #d4c9bc;
@@ -167,6 +169,8 @@
     --port-stroke: #f5c16c;
     --port-label: #9a7777;
     --grid-color: rgba(255, 255, 255, 0.03);
+    --grid-motif: #f5c16c;
+    --grid-accent: #ef5350;
 
     /* Spinner */
     --spinner-track: #4a2020;

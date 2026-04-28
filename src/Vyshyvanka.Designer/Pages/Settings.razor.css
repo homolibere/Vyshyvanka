@@ -34,3 +34,73 @@
     background: var(--bg-hover);
     border-color: var(--accent);
 }
+
+.settings-section {
+    margin-bottom: 32px;
+}
+
+.section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 0;
+}
+
+.setting-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.setting-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.setting-hint {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.pattern-toggle {
+    display: flex;
+    gap: 4px;
+    background: var(--bg-input);
+    border-radius: 6px;
+    padding: 3px;
+    border: 1px solid var(--border-color);
+}
+
+.pattern-btn {
+    padding: 6px 14px;
+    font-size: 0.8rem;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.pattern-btn:hover {
+    color: var(--text-primary);
+}
+
+.pattern-btn.active {
+    background: var(--accent);
+    color: var(--text-on-accent);
+}

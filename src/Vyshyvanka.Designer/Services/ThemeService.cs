@@ -9,11 +9,14 @@ public class ThemeService
 {
     private readonly IJSRuntime _jsRuntime;
     private string _currentTheme = "light";
+    private string _canvasPattern = "vyshyvanka";
 
     public event Action? OnThemeChanged;
 
     public string CurrentTheme => _currentTheme;
     public bool IsDark => _currentTheme == "dark";
+    public string CanvasPattern => _canvasPattern;
+    public bool IsVyshyvankaPattern => _canvasPattern == "vyshyvanka";
 
     public ThemeService(IJSRuntime jsRuntime)
     {
@@ -24,6 +27,10 @@ public class ThemeService
     {
         var saved = await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", "vyshyvanka-theme");
         _currentTheme = saved ?? "light";
+
+        var pattern = await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", "vyshyvanka-canvas-pattern");
+        _canvasPattern = pattern ?? "vyshyvanka";
+
         await ApplyThemeAsync();
     }
 
@@ -40,6 +47,13 @@ public class ThemeService
         _currentTheme = theme;
         await ApplyThemeAsync();
         await _jsRuntime.InvokeVoidAsync("localStorage.setItem", "vyshyvanka-theme", _currentTheme);
+        OnThemeChanged?.Invoke();
+    }
+
+    public async Task SetCanvasPatternAsync(string pattern)
+    {
+        _canvasPattern = pattern;
+        await _jsRuntime.InvokeVoidAsync("localStorage.setItem", "vyshyvanka-canvas-pattern", _canvasPattern);
         OnThemeChanged?.Invoke();
     }
 
