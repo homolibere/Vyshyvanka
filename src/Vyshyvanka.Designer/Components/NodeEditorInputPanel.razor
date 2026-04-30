@@ -3,8 +3,20 @@
 <div class="node-editor-panel input-panel">
     <div class="panel-header">
         <span class="panel-title">Input</span>
+        @if (HasMultiplePorts)
+        {
+            <div class="port-tabs">
+                @foreach (var port in Ports!)
+                {
+                    <button class="port-tab @(port.Name == SelectedPort ? "active" : "")"
+                            @onclick="() => SelectPort(port.Name)">
+                        @port.DisplayName
+                    </button>
+                }
+            </div>
+        }
     </div>
-    
+
     <div class="panel-content">
         @if (HasInputData)
         {

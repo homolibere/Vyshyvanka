@@ -134,6 +134,7 @@ public class NodeRegistry : INodeRegistry
         var credentialAttr = nodeType.GetCustomAttribute<RequiresCredentialAttribute>();
 
         // Build input port definitions
+        // Trigger nodes are entry points — they never receive input from other nodes
         var inputs = inputAttrs.Count > 0
             ? inputAttrs.Select(a => new PortDefinition
             {
@@ -142,7 +143,13 @@ public class NodeRegistry : INodeRegistry
                 Type = a.Type,
                 IsRequired = a.IsRequired
             }).ToList()
-            : [new PortDefinition { Name = "input", DisplayName = "Input", Type = PortType.Any, IsRequired = false }];
+            : instance.Category == NodeCategory.Trigger
+                ? []
+                :
+                [
+                    new PortDefinition
+                        { Name = "input", DisplayName = "Input", Type = PortType.Any, IsRequired = false }
+                ];
 
         // Build output port definitions
         var outputs = outputAttrs.Count > 0

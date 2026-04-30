@@ -1,6 +1,6 @@
 @namespace Vyshyvanka.Designer.Components
 
-<div class="modal-overlay @(IsOpen ? "open" : "")" 
+<div class="modal-overlay @(IsOpen ? "open" : "")"
      @onclick="HandleOverlayClick"
      @onkeydown="HandleKeyDown"
      tabindex="-1">
@@ -9,7 +9,7 @@
         {
             <div class="modal-header">
                 <div class="header-info">
-                    <NodeIcon Icon="@_definition?.Icon" Size="24px" />
+                    <NodeIcon Icon="@_definition?.Icon" Size="24px"/>
                     <div class="header-text">
                         <h2 class="node-name">@_node.Name</h2>
                         <span class="node-type">@(_definition?.Name ?? _node.Type)</span>
@@ -40,12 +40,13 @@
                     <CredentialPicker
                         SelectedCredentialId="@_node.CredentialId"
                         SelectedCredentialIdChanged="@HandleCredentialChanged"
-                        FilterType="@_definition.RequiredCredentialType" />
+                        FilterType="@_definition.RequiredCredentialType"/>
                 }
 
                 <div class="three-panel-layout">
-                    <NodeEditorInputPanel InputData="@_executionState?.InputData" />
-                    
+                    <NodeEditorInputPanel InputData="@_executionState?.InputData"
+                                          Ports="@_definition?.Inputs"/>
+
                     <NodeEditorConfigPanel @ref="_configPanel"
                                            Properties="@_properties"
                                            Values="@_configValues"
@@ -55,9 +56,10 @@
                                            IsJsonModeChanged="@HandleJsonModeChanged"
                                            ShowValidationErrors="@_showValidationErrors"
                                            HasSchema="@HasSchema"
-                                           InitialRawJson="@_initialRawJson" />
-                    
-                    <NodeEditorOutputPanel OutputData="@_executionState?.OutputData" />
+                                           InitialRawJson="@_initialRawJson"/>
+
+                    <NodeEditorOutputPanel OutputData="@_executionState?.OutputData"
+                                           Ports="@_definition?.Outputs"/>
                 </div>
             </div>
 
