@@ -8,14 +8,11 @@ namespace Vyshyvanka.Designer.Components;
 
 public partial class WorkflowCanvas : IAsyncDisposable
 {
-    [Inject]
-    private WorkflowStateService StateService { get; set; } = null!;
+    [Inject] private WorkflowStateService StateService { get; set; } = null!;
 
-    [Inject]
-    private IJSRuntime JS { get; set; } = null!;
+    [Inject] private IJSRuntime JS { get; set; } = null!;
 
-    [Inject]
-    private ThemeService ThemeService { get; set; } = null!;
+    [Inject] private ThemeService ThemeService { get; set; } = null!;
 
     /// <summary>
     /// Event callback invoked when a node is double-clicked to open the editor modal.
@@ -48,11 +45,13 @@ public partial class WorkflowCanvas : IAsyncDisposable
             _dotNetRef = DotNetObjectReference.Create(this);
 
             // Get initial dimensions
-            var dimensions = await JS.InvokeAsync<CanvasDimensions>("canvasInterop.getElementDimensions", _canvasContainer);
+            var dimensions =
+                await JS.InvokeAsync<CanvasDimensions>("canvasInterop.getElementDimensions", _canvasContainer);
             StateService.SetCanvasSize(dimensions.Width, dimensions.Height);
 
             // Set up resize observer
-            _resizeObserver = await JS.InvokeAsync<IJSObjectReference>("canvasInterop.observeResize", _canvasContainer, _dotNetRef);
+            _resizeObserver =
+                await JS.InvokeAsync<IJSObjectReference>("canvasInterop.observeResize", _canvasContainer, _dotNetRef);
         }
     }
 
@@ -213,9 +212,8 @@ public partial class WorkflowCanvas : IAsyncDisposable
         if (node is null) return (0, 0);
 
         var definition = StateService.GetNodeDefinition(node.Type);
-        const double nodeWidth = 180;
-        const double nodeHeight = 80;
-        const double portSpacing = 20;
+        var nodeWidth = NodeLayout.GetWidth(node.Name);
+        var nodeHeight = NodeLayout.GetHeight(definition);
 
         var x = isOutput ? node.Position.X + nodeWidth : node.Position.X;
         var y = node.Position.Y + nodeHeight / 2;
@@ -228,8 +226,10 @@ public partial class WorkflowCanvas : IAsyncDisposable
             if (index >= 0)
             {
                 var totalPorts = ports.Count;
-                var startY = node.Position.Y + (nodeHeight - (totalPorts - 1) * portSpacing) / 2;
-                y = startY + index * portSpacing;
+                var bodyHeight = nodeHeight - NodeLayout.HeaderHeight;
+                var startY = node.Position.Y + NodeLayout.HeaderHeight +
+                             (bodyHeight - (totalPorts - 1) * NodeLayout.PortSpacing) / 2;
+                y = startY + index * NodeLayout.PortSpacing;
             }
         }
 

@@ -33,10 +33,6 @@
     fill: #9c27b0;
 }
 
-.node-header-bottom {
-    fill: var(--bg-surface);
-}
-
 .node-icon {
     font-size: 14px;
     fill: white;

@@ -9,8 +9,8 @@
 
     <!-- Node background -->
     <rect class="node-bg @GetCategoryClass()"
-          width="@NodeWidth"
-          height="@NodeHeight"
+          width="@ComputedWidth"
+          height="@ComputedHeight"
           rx="8"/>
 
     <!-- Execution status indicator -->
@@ -22,8 +22,8 @@
         <rect class="execution-indicator @GetExecutionIndicatorClass(execState.Status)"
               x="-3"
               y="-3"
-              width="@(NodeWidth + 6)"
-              height="@(NodeHeight + 6)"
+              width="@(ComputedWidth + 6)"
+              height="@(ComputedHeight + 6)"
               rx="10"
               fill="none"
               stroke-width="3"/>
@@ -31,13 +31,9 @@
 
     <!-- Node header -->
     <rect class="node-header @GetCategoryClass()"
-          width="@NodeWidth"
+          width="@ComputedWidth"
           height="28"
           rx="8"/>
-    <rect class="node-header-bottom"
-          y="20"
-          width="@NodeWidth"
-          height="8"/>
 
     <!-- Node icon and title -->
     <SvgNodeIcon Icon="@Definition?.Icon" X="12" Y="20"/>
@@ -46,7 +42,7 @@
     <!-- Execution status badge -->
     @if (execState is not null)
     {
-        <g class="execution-badge" transform="translate(@(NodeWidth - 24), -8)">
+        <g class="execution-badge" transform="translate(@(ComputedWidth - 24), -8)">
             <circle r="10" fill="@GetStatusBadgeColor(execState.Status)"/>
             <text x="0" y="4" text-anchor="middle" fill="white" font-size="10">@GetStatusBadgeIcon(execState.Status)</text>
         </g>
@@ -55,7 +51,7 @@
     <!-- Delete button (shown when selected and not executing) -->
     @if (IsSelected && execState is null)
     {
-        <g class="delete-btn" transform="translate(@(NodeWidth - 20), 4)" @onclick="OnDeleteClick" @onclick:stopPropagation>
+        <g class="delete-btn" transform="translate(@(ComputedWidth - 20), 4)" @onclick="OnDeleteClick" @onclick:stopPropagation>
             <circle r="8" fill="#ef5350"/>
             <text x="0" y="4" text-anchor="middle" fill="white" font-size="12">×</text>
         </g>
@@ -65,7 +61,7 @@
     @if (execState?.DurationMs is not null)
     {
         <g class="execution-duration-group">
-            <text class="execution-duration" x="@(NodeWidth / 2)" y="@(NodeHeight + 14)" text-anchor="middle">@FormatDuration(execState.DurationMs.Value)</text>
+            <text class="execution-duration" x="@(ComputedWidth / 2)" y="@(ComputedHeight + 14)" text-anchor="middle">@FormatDuration(execState.DurationMs.Value)</text>
         </g>
     }
 
@@ -73,12 +69,12 @@
     @if (Definition?.Inputs is not null)
     {
         var inputCount = Definition.Inputs.Count;
-        var startY = (NodeHeight - (inputCount - 1) * PortSpacing) / 2;
+        var startY = NodeLayout.HeaderHeight + (ComputedHeight - NodeLayout.HeaderHeight - (inputCount - 1) * NodeLayout.PortSpacing) / 2;
 
         @for (var i = 0; i < inputCount; i++)
         {
             var port = Definition.Inputs[i];
-            var portY = startY + i * PortSpacing;
+            var portY = startY + i * NodeLayout.PortSpacing;
             <g class="port input-port"
                transform="translate(0, @portY)"
                @onmouseup="() => OnPortMouseUp(port.Name)"
@@ -93,14 +89,14 @@
     @if (Definition?.Outputs is not null)
     {
         var outputCount = Definition.Outputs.Count;
-        var startY = (NodeHeight - (outputCount - 1) * PortSpacing) / 2;
+        var startY = NodeLayout.HeaderHeight + (ComputedHeight - NodeLayout.HeaderHeight - (outputCount - 1) * NodeLayout.PortSpacing) / 2;
 
         @for (var i = 0; i < outputCount; i++)
         {
             var port = Definition.Outputs[i];
-            var portY = startY + i * PortSpacing;
+            var portY = startY + i * NodeLayout.PortSpacing;
             <g class="port output-port"
-               transform="translate(@NodeWidth, @portY)"
+               transform="translate(@ComputedWidth, @portY)"
                @onmousedown="() => OnPortMouseDown(port.Name)"
                @onmousedown:stopPropagation>
                 <circle r="6" class="port-circle @GetPortTypeClass(port.Type)"/>
@@ -109,4 +105,3 @@
         }
     }
 </g>
-

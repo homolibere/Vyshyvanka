@@ -16,7 +16,8 @@
         "browser_take_screenshot",
         "browser_evaluate",
         "browser_run_code",
-        "browser_close"
+        "browser_close",
+        "browser_drag"
       ]
     }
   }

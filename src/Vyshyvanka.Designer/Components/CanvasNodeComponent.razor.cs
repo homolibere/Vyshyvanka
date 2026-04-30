@@ -10,35 +10,25 @@ namespace Vyshyvanka.Designer.Components;
 
 public partial class CanvasNodeComponent
 {
-    [Inject]
-    private WorkflowStateService StateService { get; set; } = null!;
+    [Inject] private WorkflowStateService StateService { get; set; } = null!;
 
-    [Parameter, EditorRequired]
-    public WorkflowNode Node { get; set; } = null!;
+    [Parameter, EditorRequired] public WorkflowNode Node { get; set; } = null!;
 
-    [Parameter]
-    public NodeDefinition? Definition { get; set; }
+    [Parameter] public NodeDefinition? Definition { get; set; }
 
-    [Parameter]
-    public bool IsSelected { get; set; }
+    [Parameter] public bool IsSelected { get; set; }
 
-    [Parameter]
-    public EventCallback OnSelect { get; set; }
+    [Parameter] public EventCallback OnSelect { get; set; }
 
-    [Parameter]
-    public EventCallback<MouseEventArgs> OnStartDrag { get; set; }
+    [Parameter] public EventCallback<MouseEventArgs> OnStartDrag { get; set; }
 
-    [Parameter]
-    public EventCallback<string> OnStartConnection { get; set; }
+    [Parameter] public EventCallback<string> OnStartConnection { get; set; }
 
-    [Parameter]
-    public EventCallback<string> OnEndConnection { get; set; }
+    [Parameter] public EventCallback<string> OnEndConnection { get; set; }
 
-    [Parameter]
-    public EventCallback<Position> OnMove { get; set; }
+    [Parameter] public EventCallback<Position> OnMove { get; set; }
 
-    [Parameter]
-    public EventCallback OnDelete { get; set; }
+    [Parameter] public EventCallback OnDelete { get; set; }
 
     /// <summary>
     /// Event callback invoked when the node is double-clicked to open the editor modal.
@@ -46,9 +36,8 @@ public partial class CanvasNodeComponent
     [Parameter]
     public EventCallback OnDoubleClick { get; set; }
 
-    private const double NodeWidth = 180;
-    private const double NodeHeight = 80;
-    private const double PortSpacing = 20;
+    private double ComputedWidth => NodeLayout.GetWidth(Node.Name);
+    private double ComputedHeight => NodeLayout.GetHeight(Definition);
 
     private string GetCategoryClass() => Definition?.Category switch
     {
