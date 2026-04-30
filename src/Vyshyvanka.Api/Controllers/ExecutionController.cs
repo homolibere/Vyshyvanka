@@ -22,18 +22,21 @@ public class ExecutionController : ControllerBase
     private readonly IWorkflowRepository _workflowRepository;
     private readonly IExecutionRepository _executionRepository;
     private readonly ICredentialService? _credentialService;
+    private readonly ICurrentUserService _currentUserService;
     private readonly ILogger<ExecutionController> _logger;
 
     public ExecutionController(
         IWorkflowEngine workflowEngine,
         IWorkflowRepository workflowRepository,
         IExecutionRepository executionRepository,
+        ICurrentUserService currentUserService,
         ILogger<ExecutionController> logger,
         ICredentialService? credentialService = null)
     {
         _workflowEngine = workflowEngine ?? throw new ArgumentNullException(nameof(workflowEngine));
         _workflowRepository = workflowRepository ?? throw new ArgumentNullException(nameof(workflowRepository));
         _executionRepository = executionRepository ?? throw new ArgumentNullException(nameof(executionRepository));
+        _currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _credentialService = credentialService;
     }
@@ -51,7 +54,7 @@ public class ExecutionController : ControllerBase
         CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Triggering execution for workflow {WorkflowId}", request.WorkflowId);
-        
+
         // Get the workflow
         var workflow = await _workflowRepository.GetByIdAsync(request.WorkflowId, cancellationToken);
         if (workflow is null)
@@ -62,7 +65,7 @@ public class ExecutionController : ControllerBase
                 Message = $"Workflow with ID '{request.WorkflowId}' was not found"
             });
         }
-        
+
         if (!workflow.IsActive)
         {
             return BadRequest(new ApiError
@@ -86,31 +89,33 @@ public class ExecutionController : ControllerBase
 
             workflow = PruneWorkflowToNode(workflow, request.TargetNodeId);
         }
-        
+
         // Create credential provider
         ICredentialProvider credentialProvider = _credentialService is not null
             ? new CredentialProvider(_credentialService)
             : NullCredentialProvider.Instance;
-        
+
         // Create execution context
         var executionId = Guid.NewGuid();
         var context = new ExecutionContext(
             executionId,
             workflow.Id,
             credentialProvider,
-            cancellationToken);
-        
+            cancellationToken,
+            HttpContext.RequestServices,
+            _currentUserService.UserId);
+
         // Add trigger data to context if provided
         if (request.InputData.HasValue)
         {
             context.Variables["input"] = request.InputData.Value;
         }
-        
+
         try
         {
             // Execute the workflow
             var result = await _workflowEngine.ExecuteAsync(workflow, context, cancellationToken);
-            
+
             // Get the persisted execution record
             var execution = await _executionRepository.GetByIdAsync(executionId, cancellationToken);
             if (execution is null)
@@ -129,11 +134,11 @@ public class ExecutionController : ControllerBase
                     ErrorMessage = result.ErrorMessage
                 });
             }
-            
+
             _logger.LogInformation(
                 "Workflow {WorkflowId} execution {ExecutionId} completed with status {Status}",
                 workflow.Id, execution.Id, execution.Status);
-            
+
             return Accepted(ExecutionResponse.FromModel(execution));
         }
         catch (Exception ex)
@@ -160,7 +165,7 @@ public class ExecutionController : ControllerBase
         CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Getting execution {ExecutionId}", id);
-        
+
         var execution = await _executionRepository.GetByIdAsync(id, cancellationToken);
         if (execution is null)
         {
@@ -170,7 +175,7 @@ public class ExecutionController : ControllerBase
                 Message = $"Execution with ID '{id}' was not found"
             });
         }
-        
+
         return Ok(ExecutionResponse.FromModel(execution));
     }
 
@@ -187,7 +192,7 @@ public class ExecutionController : ControllerBase
         _logger.LogDebug(
             "Getting execution history: workflowId={WorkflowId}, status={Status}, skip={Skip}, take={Take}",
             query.WorkflowId, query.Status, query.Skip, query.Take);
-        
+
         var executionQuery = new ExecutionQuery
         {
             WorkflowId = query.WorkflowId,
@@ -198,9 +203,9 @@ public class ExecutionController : ControllerBase
             Skip = query.Skip,
             Take = query.Take
         };
-        
+
         var executions = await _executionRepository.QueryAsync(executionQuery, cancellationToken);
-        
+
         var response = new PagedResponse<ExecutionSummaryResponse>
         {
             Items = executions.Select(ExecutionSummaryResponse.FromModel).ToList(),
@@ -208,7 +213,7 @@ public class ExecutionController : ControllerBase
             Take = query.Take,
             TotalCount = executions.Count
         };
-        
+
         return Ok(response);
     }
 
@@ -225,9 +230,9 @@ public class ExecutionController : ControllerBase
         CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Getting executions for workflow {WorkflowId}", workflowId);
-        
+
         var executions = await _executionRepository.GetByWorkflowIdAsync(workflowId, skip, take, cancellationToken);
-        
+
         var response = new PagedResponse<ExecutionSummaryResponse>
         {
             Items = executions.Select(ExecutionSummaryResponse.FromModel).ToList(),
@@ -235,7 +240,7 @@ public class ExecutionController : ControllerBase
             Take = take,
             TotalCount = executions.Count
         };
-        
+
         return Ok(response);
     }
 
@@ -252,9 +257,9 @@ public class ExecutionController : ControllerBase
         CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Getting executions with status {Status}", status);
-        
+
         var executions = await _executionRepository.GetByStatusAsync(status, skip, take, cancellationToken);
-        
+
         var response = new PagedResponse<ExecutionSummaryResponse>
         {
             Items = executions.Select(ExecutionSummaryResponse.FromModel).ToList(),
@@ -262,7 +267,7 @@ public class ExecutionController : ControllerBase
             Take = take,
             TotalCount = executions.Count
         };
-        
+
         return Ok(response);
     }
 
@@ -279,7 +284,7 @@ public class ExecutionController : ControllerBase
         CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Cancelling execution {ExecutionId}", id);
-        
+
         var execution = await _executionRepository.GetByIdAsync(id, cancellationToken);
         if (execution is null)
         {
@@ -289,7 +294,7 @@ public class ExecutionController : ControllerBase
                 Message = $"Execution with ID '{id}' was not found"
             });
         }
-        
+
         if (execution.Status != ExecutionStatus.Running && execution.Status != ExecutionStatus.Pending)
         {
             return BadRequest(new ApiError
@@ -298,10 +303,10 @@ public class ExecutionController : ControllerBase
                 Message = $"Execution with status '{execution.Status}' cannot be cancelled"
             });
         }
-        
+
         await _workflowEngine.CancelExecutionAsync(id);
         _logger.LogInformation("Cancelled execution {ExecutionId}", id);
-        
+
         return Accepted();
     }
 

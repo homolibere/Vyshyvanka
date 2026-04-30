@@ -10,21 +10,27 @@ public class ExecutionContext : IExecutionContext
 {
     /// <inheritdoc />
     public Guid ExecutionId { get; }
-    
+
     /// <inheritdoc />
     public Guid WorkflowId { get; }
-    
+
     /// <inheritdoc />
     public Dictionary<string, object> Variables { get; } = [];
-    
+
     /// <inheritdoc />
     public INodeOutputStore NodeOutputs { get; }
-    
+
     /// <inheritdoc />
     public ICredentialProvider Credentials { get; }
-    
+
     /// <inheritdoc />
     public CancellationToken CancellationToken { get; }
+
+    /// <inheritdoc />
+    public IServiceProvider? Services { get; }
+
+    /// <inheritdoc />
+    public Guid? UserId { get; }
 
     /// <summary>
     /// Creates a new execution context.
@@ -33,13 +39,17 @@ public class ExecutionContext : IExecutionContext
         Guid executionId,
         Guid workflowId,
         ICredentialProvider credentialProvider,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        IServiceProvider? services = null,
+        Guid? userId = null)
     {
         ExecutionId = executionId;
         WorkflowId = workflowId;
         Credentials = credentialProvider ?? throw new ArgumentNullException(nameof(credentialProvider));
         CancellationToken = cancellationToken;
         NodeOutputs = new NodeOutputStore();
+        Services = services;
+        UserId = userId;
     }
 }
 
@@ -50,7 +60,10 @@ public class ExecutionContext : IExecutionContext
 public class NodeOutputStore : INodeOutputStore
 {
     private const string DefaultPort = "output";
-    private readonly Dictionary<string, Dictionary<string, JsonElement>> _outputs = new Dictionary<string, Dictionary<string, JsonElement>>(StringComparer.OrdinalIgnoreCase);
+
+    private readonly Dictionary<string, Dictionary<string, JsonElement>> _outputs =
+        new Dictionary<string, Dictionary<string, JsonElement>>(StringComparer.OrdinalIgnoreCase);
+
     private readonly Lock _lock = new Lock();
 
     /// <inheritdoc />
@@ -64,7 +77,7 @@ public class NodeOutputStore : INodeOutputStore
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(nodeId);
         ArgumentException.ThrowIfNullOrWhiteSpace(portName);
-        
+
         lock (_lock)
         {
             if (!_outputs.TryGetValue(nodeId, out var ports))
@@ -72,6 +85,7 @@ public class NodeOutputStore : INodeOutputStore
                 ports = new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase);
                 _outputs[nodeId] = ports;
             }
+
             ports[portName] = output;
         }
     }
@@ -87,11 +101,12 @@ public class NodeOutputStore : INodeOutputStore
     {
         lock (_lock)
         {
-            if (_outputs.TryGetValue(nodeId, out var ports) && 
+            if (_outputs.TryGetValue(nodeId, out var ports) &&
                 ports.TryGetValue(portName, out var output))
             {
                 return output;
             }
+
             return null;
         }
     }
@@ -123,6 +138,7 @@ public class NodeOutputStore : INodeOutputStore
             {
                 return new Dictionary<string, JsonElement>(ports);
             }
+
             return new Dictionary<string, JsonElement>();
         }
     }

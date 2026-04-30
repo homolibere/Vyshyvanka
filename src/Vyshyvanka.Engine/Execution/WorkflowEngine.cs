@@ -79,36 +79,21 @@ public class WorkflowEngine : IWorkflowEngine
                     var failedResult = levelResults.FirstOrDefault(r => !r.Success);
                     if (failedResult is not null)
                     {
-                        return new ExecutionResult
-                        {
-                            ExecutionId = context.ExecutionId,
-                            Success = false,
-                            ErrorMessage = failedResult.ErrorMessage,
-                            Duration = DateTime.UtcNow - startTime,
-                            NodeResults = nodeResults.ToList()
-                        };
+                        return BuildResult(context.ExecutionId, nodeResults, startTime,
+                            success: false, errorMessage: failedResult.ErrorMessage);
                     }
                 }
             }
 
-            return new ExecutionResult
-            {
-                ExecutionId = context.ExecutionId,
-                Success = nodeResults.All(r => r.Success),
-                Duration = DateTime.UtcNow - startTime,
-                NodeResults = nodeResults.ToList()
-            };
+            var allSuccess = nodeResults.All(r => r.Success);
+            return BuildResult(context.ExecutionId, nodeResults, startTime,
+                success: allSuccess,
+                errorMessage: allSuccess ? null : nodeResults.FirstOrDefault(r => !r.Success)?.ErrorMessage);
         }
         catch (OperationCanceledException)
         {
-            return new ExecutionResult
-            {
-                ExecutionId = context.ExecutionId,
-                Success = false,
-                ErrorMessage = "Execution was cancelled",
-                Duration = DateTime.UtcNow - startTime,
-                NodeResults = nodeResults.ToList()
-            };
+            return BuildResult(context.ExecutionId, nodeResults, startTime,
+                success: false, errorMessage: "Execution was cancelled");
         }
         finally
         {
@@ -196,12 +181,36 @@ public class WorkflowEngine : IWorkflowEngine
         {
             cts.Cancel();
         }
+
         return Task.CompletedTask;
     }
 
     private static int GetEffectiveMaxParallelism(int configured)
     {
         return configured > 0 ? configured : DefaultMaxParallelism;
+    }
+
+    /// <summary>
+    /// Builds an ExecutionResult with OutputData always populated from the last successful node.
+    /// This ensures partial results are available even when the workflow fails or is cancelled.
+    /// </summary>
+    private static ExecutionResult BuildResult(
+        Guid executionId,
+        ConcurrentBag<NodeExecutionResult> nodeResults,
+        DateTime startTime,
+        bool success,
+        string? errorMessage = null)
+    {
+        var resultList = nodeResults.ToList();
+        return new ExecutionResult
+        {
+            ExecutionId = executionId,
+            Success = success,
+            OutputData = resultList.LastOrDefault(r => r.Success)?.OutputData,
+            ErrorMessage = errorMessage,
+            Duration = DateTime.UtcNow - startTime,
+            NodeResults = resultList
+        };
     }
 
     private async Task<NodeExecutionResult[]> ExecuteLevelWithThrottlingAsync(

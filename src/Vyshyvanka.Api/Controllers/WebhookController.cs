@@ -147,7 +147,9 @@ public class WebhookController : ControllerBase
             executionId,
             workflow.Id,
             credentialProvider,
-            cancellationToken);
+            cancellationToken,
+            HttpContext.RequestServices,
+            userId: null);
 
         // Add webhook data to context
         context.Variables["webhook"] = webhookData;
