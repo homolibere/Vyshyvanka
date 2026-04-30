@@ -37,6 +37,7 @@
     <PackageVersion Include="NuGet.Versioning" Version="7.3.1" />
 
     <!-- Testing -->
+    <PackageVersion Include="AwesomeAssertions" Version="9.4.0" />
     <PackageVersion Include="bunit" Version="2.7.2" />
     <PackageVersion Include="coverlet.collector" Version="10.0.0" />
     <PackageVersion Include="CsCheck" Version="4.6.2" />

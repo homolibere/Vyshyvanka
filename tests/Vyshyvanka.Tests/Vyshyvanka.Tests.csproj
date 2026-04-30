@@ -1,13 +1,21 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
     <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
   </PropertyGroup>
 
   <ItemGroup>
+    <Using Include="Xunit" />
+    <Using Include="NSubstitute" />
+    <Using Include="AwesomeAssertions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AwesomeAssertions" />
     <PackageReference Include="bunit" />
     <PackageReference Include="coverlet.collector" />
     <PackageReference Include="CsCheck" />
@@ -20,15 +28,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Using Include="Xunit" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="../../src/Vyshyvanka.Core/Vyshyvanka.Core.csproj" />
-    <ProjectReference Include="../../src/Vyshyvanka.Engine/Vyshyvanka.Engine.csproj" />
-    <ProjectReference Include="../../src/Vyshyvanka.Api/Vyshyvanka.Api.csproj" />
-    <ProjectReference Include="../../src/Vyshyvanka.Designer/Vyshyvanka.Designer.csproj" />
-    <ProjectReference Include="../../src/Vyshyvanka.ServiceDefaults/Vyshyvanka.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\..\src\Vyshyvanka.Api\Vyshyvanka.Api.csproj" />
+    <ProjectReference Include="..\..\src\Vyshyvanka.Core\Vyshyvanka.Core.csproj" />
+    <ProjectReference Include="..\..\src\Vyshyvanka.Designer\Vyshyvanka.Designer.csproj" />
+    <ProjectReference Include="..\..\src\Vyshyvanka.Engine\Vyshyvanka.Engine.csproj" />
   </ItemGroup>
 
 </Project>
