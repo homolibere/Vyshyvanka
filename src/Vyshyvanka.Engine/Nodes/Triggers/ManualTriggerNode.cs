@@ -7,12 +7,16 @@ namespace Vyshyvanka.Engine.Nodes.Triggers;
 
 /// <summary>
 /// A trigger node that is manually activated by a user or API call.
+/// When configured with test data, outputs that data. Otherwise passes through
+/// any data provided at trigger time, or a default payload.
 /// </summary>
 [NodeDefinition(
     Name = "Manual Trigger",
     Description = "Manually trigger a workflow execution",
     Icon = "fa-solid fa-play")]
 [NodeOutput("output", DisplayName = "Output")]
+[ConfigurationProperty("testData", "object",
+    Description = "Custom JSON payload to output when triggered. Leave empty to pass through trigger data.")]
 public class ManualTriggerNode : BaseTriggerNode
 {
     private string _id = Guid.NewGuid().ToString();
@@ -26,19 +30,30 @@ public class ManualTriggerNode : BaseTriggerNode
     /// <inheritdoc />
     public override Task<bool> ShouldTriggerAsync(TriggerContext context)
     {
-        // Manual triggers always return true when invoked
-        // The actual triggering is controlled by the execution service
         return Task.FromResult(true);
     }
 
     /// <inheritdoc />
     public override Task<NodeOutput> ExecuteAsync(NodeInput input, IExecutionContext context)
     {
-        // Pass through any input data provided during manual execution
-        var outputData = input.Data.ValueKind != JsonValueKind.Undefined
-            ? input.Data
-            : JsonSerializer.SerializeToElement(new { triggered = true, timestamp = DateTime.UtcNow });
+        // Priority: runtime trigger data > configured test data > default payload
+        if (input.Data.ValueKind is not JsonValueKind.Undefined and not JsonValueKind.Null)
+        {
+            return Task.FromResult(SuccessOutput(input.Data));
+        }
 
-        return Task.FromResult(SuccessOutput(outputData));
+        var testData = GetConfigValue<JsonElement?>(input, "testData");
+        if (testData is { ValueKind: not JsonValueKind.Undefined and not JsonValueKind.Null })
+        {
+            return Task.FromResult(SuccessOutput(testData.Value));
+        }
+
+        var defaultPayload = JsonSerializer.SerializeToElement(new
+        {
+            triggered = true,
+            timestamp = DateTime.UtcNow
+        });
+
+        return Task.FromResult(SuccessOutput(defaultPayload));
     }
 }
