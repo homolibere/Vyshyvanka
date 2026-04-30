@@ -1,3 +1,4 @@
+@namespace Vyshyvanka.Designer.Components
 @* Toast notification component *@
 
 <div class="toast @GetTypeClass() @(_isVisible ? "visible" : "hiding")" role="alert">
@@ -16,4 +17,3 @@
         <button class="toast-close" @onclick="Dismiss" aria-label="Close">×</button>
     </div>
 </div>
-

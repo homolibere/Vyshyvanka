@@ -1,3 +1,4 @@
+@namespace Vyshyvanka.Designer.Components
 @* Package card component for displaying package information *@<div class="package-card @(IsInstalled ? "installed" : "")" @onclick="HandleClick">
     <div class="package-icon">
         @if (!string.IsNullOrEmpty(IconUrl))
@@ -88,4 +89,3 @@
         }
     </div>
 </div>
-

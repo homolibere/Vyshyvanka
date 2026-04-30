@@ -89,7 +89,13 @@ Place new files according to these tables. Namespace MUST match the folder path 
 ### Vyshyvanka.Designer/
 | What | Where |
 |------|-------|
-| Blazor components | `Components/` |
+| Canvas & node rendering | `Components/Canvas/` |
+| Node editor modal & panels | `Components/NodeEditor/` |
+| Typed property editors | `Components/PropertyEditors/` |
+| Plugin/package management | `Components/Packages/` |
+| Credentials, API keys, sources | `Components/Settings/` |
+| Reusable UI (dialogs, toasts) | `Components/Shared/` |
+| Workflow browser | `Components/Workflow/` |
 | Layout components | `Layout/` |
 | Pages | `Pages/` |
 | Client services | `Services/` |
@@ -103,6 +109,7 @@ Blazor component rules:
 - Use `[Inject]` attribute in code-behind — NEVER `@inject` in markup
 - No `@code` blocks in `.razor` files
 - No `<style>` blocks in `.razor` files
+- All components use `@namespace Vyshyvanka.Designer.Components` regardless of subfolder
 
 ### Vyshyvanka.Tests/
 | What | Where |
