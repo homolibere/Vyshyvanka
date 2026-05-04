@@ -4,6 +4,7 @@ using Vyshyvanka.Core.Models;
 using Vyshyvanka.Designer.Models;
 using Vyshyvanka.Designer.Services;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 
 namespace Vyshyvanka.Designer.Pages;
 
@@ -16,6 +17,8 @@ public partial class Designer : IDisposable
     [Inject] private NavigationManager Navigation { get; set; } = null!;
 
     [Inject] private ToastService Toast { get; set; } = null!;
+
+    [Inject] private IJSRuntime JS { get; set; } = null!;
 
     [Parameter] public Guid? WorkflowId { get; set; }
 
@@ -112,6 +115,14 @@ public partial class Designer : IDisposable
         builder.AddAttribute(seq++, "disabled", !StateService.ValidationResult.IsValid);
         builder.AddAttribute(seq++, "title", GetSaveButtonTitle());
         builder.AddContent(seq++, "💾 Save");
+        builder.CloseElement();
+
+        // Export JSON
+        builder.OpenElement(seq++, "button");
+        builder.AddAttribute(seq++, "class", "toolbar-btn");
+        builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, ExportWorkflowJson));
+        builder.AddAttribute(seq++, "title", "Export workflow as JSON");
+        builder.AddContent(seq++, "📥 Export");
         builder.CloseElement();
 
         // Active toggle
@@ -322,6 +333,29 @@ public partial class Designer : IDisposable
         catch (Exception ex)
         {
             Toast.ShowError(ex.Message, "Save Failed");
+        }
+    }
+
+    private async Task ExportWorkflowJson()
+    {
+        try
+        {
+            var workflow = StateService.Workflow;
+            var json = System.Text.Json.JsonSerializer.Serialize(workflow, new System.Text.Json.JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+            });
+
+            var safeName = string.Join("_", workflow.Name.Split(Path.GetInvalidFileNameChars()));
+            var filename = $"{safeName}.json";
+
+            await JS.InvokeVoidAsync("downloadFile", filename, json, "application/json");
+            Toast.ShowSuccess("Workflow exported", "Export");
+        }
+        catch (Exception ex)
+        {
+            Toast.ShowError($"Export failed: {ex.Message}", "Export Failed");
         }
     }
 
