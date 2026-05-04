@@ -83,6 +83,83 @@ public class WorkflowEngine : IWorkflowEngine
                             success: false, errorMessage: failedResult.ErrorMessage);
                     }
                 }
+
+                // Handle loop iteration: if any node in this level produced output
+                // with a __loopItems array, re-execute the downstream "item"
+                // subgraph for each item.
+                foreach (var loopNodeId in level)
+                {
+                    var defaultOutput = context.NodeOutputs.Get(loopNodeId);
+                    if (!defaultOutput.HasValue ||
+                        defaultOutput.Value.ValueKind != JsonValueKind.Object ||
+                        !defaultOutput.Value.TryGetProperty("__loopItems", out var loopItemsElement) ||
+                        loopItemsElement.ValueKind != JsonValueKind.Array)
+                    {
+                        continue;
+                    }
+
+                    var items = loopItemsElement.EnumerateArray().Select(e => e.Clone()).ToList();
+                    if (items.Count == 0)
+                        continue;
+
+                    // Find all nodes reachable from this loop's "item" port
+                    var itemSubgraph = GetItemPortSubgraph(workflow, loopNodeId);
+                    if (itemSubgraph.Count == 0)
+                        continue;
+
+                    // Build execution levels for just the subgraph
+                    var subgraphLevels = BuildSubgraphExecutionLevels(workflow, itemSubgraph, loopNodeId);
+
+                    // Execute the subgraph for each item
+                    for (int i = 0; i < items.Count; i++)
+                    {
+                        cts.Token.ThrowIfCancellationRequested();
+
+                        // Set the current item on the loop node's "item" port
+                        var itemData = JsonSerializer.SerializeToElement(new
+                        {
+                            index = i,
+                            item = JsonSerializer.Deserialize<object>(items[i].GetRawText()),
+                            isFirst = i == 0,
+                            isLast = i == items.Count - 1,
+                            totalCount = items.Count,
+                            outputPort = "item"
+                        });
+                        context.NodeOutputs.Set(loopNodeId, "item", itemData);
+                        context.NodeOutputs.Set(loopNodeId, itemData);
+
+                        // Execute each level of the subgraph
+                        foreach (var subLevel in subgraphLevels)
+                        {
+                            var subResults = await ExecuteLevelWithThrottlingAsync(
+                                workflow, subLevel, context, nodeResults, maxParallelism, cts.Token);
+
+                            if (workflow.Settings.ErrorHandling == ErrorHandlingMode.StopOnFirstError)
+                            {
+                                var failedSub = subResults.FirstOrDefault(r => !r.Success);
+                                if (failedSub is not null)
+                                {
+                                    return BuildResult(context.ExecutionId, nodeResults, startTime,
+                                        success: false, errorMessage: failedSub.ErrorMessage);
+                                }
+                            }
+                        }
+                    }
+
+                    // After all iterations, set the "done" port
+                    context.NodeOutputs.Set(loopNodeId, "done", JsonSerializer.SerializeToElement(new
+                    {
+                        totalCount = items.Count,
+                        processedCount = items.Count,
+                        isComplete = true
+                    }));
+
+                    // Mark subgraph nodes as processed so they're skipped in later levels
+                    foreach (var subNodeId in itemSubgraph)
+                    {
+                        context.Variables[$"__loop_processed_{subNodeId}"] = true;
+                    }
+                }
             }
 
             var allSuccess = nodeResults.All(r => r.Success);
@@ -254,9 +331,41 @@ public class WorkflowEngine : IWorkflowEngine
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+            // Check if this node is on an inactive branch (all incoming connections
+            // come from ports that were not activated by their source nodes).
+            if (IsOnInactiveBranch(workflow, nodeId, context))
+            {
+                // Don't add a result — this node was skipped, not executed.
+                return new NodeExecutionResult
+                {
+                    NodeId = nodeId,
+                    Success = true,
+                    InputData = EmptyObjectElement,
+                    Duration = TimeSpan.Zero
+                };
+            }
+
+            // Skip nodes that were already executed as part of a loop iteration
+            if (context.Variables.ContainsKey($"__loop_processed_{nodeId}"))
+            {
+                return new NodeExecutionResult
+                {
+                    NodeId = nodeId,
+                    Success = true,
+                    InputData = EmptyObjectElement,
+                    Duration = TimeSpan.Zero
+                };
+            }
+
+            // Gather input data first so expressions in config can reference it via "input."
+            var inputData = GatherInputData(workflow, nodeId, context);
+            context.Variables["__currentInput"] = inputData;
+
             var evaluatedConfig = EvaluateConfiguration(node.Configuration, context, nodeId);
             var nodeInstance = _nodeRegistry.CreateNode(node.Type, evaluatedConfig);
-            var inputData = GatherInputData(workflow, nodeId, context);
+
+            // Clean up temporary variable
+            context.Variables.Remove("__currentInput");
 
             var input = new NodeInput
             {
@@ -354,6 +463,27 @@ public class WorkflowEngine : IWorkflowEngine
         if (incomingConnections.Count == 1)
         {
             var connection = incomingConnections[0];
+
+            // Check port-based routing: if the source node produced an outputPort
+            // value that differs from this connection's source port, the branch is
+            // inactive and should not receive data.
+            if (!string.IsNullOrEmpty(connection.SourcePort))
+            {
+                var defaultOutput = context.NodeOutputs.Get(connection.SourceNodeId);
+                if (defaultOutput.HasValue &&
+                    defaultOutput.Value.ValueKind == JsonValueKind.Object &&
+                    defaultOutput.Value.TryGetProperty("outputPort", out var routedPort) &&
+                    routedPort.ValueKind == JsonValueKind.String)
+                {
+                    var activePort = routedPort.GetString();
+                    if (!string.Equals(activePort, connection.SourcePort, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // This branch is not active — return empty input
+                        return EmptyObjectElement;
+                    }
+                }
+            }
+
             var output = context.NodeOutputs.Get(connection.SourceNodeId, connection.SourcePort);
             return output ?? EmptyObjectElement;
         }
@@ -362,6 +492,23 @@ public class WorkflowEngine : IWorkflowEngine
 
         foreach (var connection in incomingConnections)
         {
+            // Apply the same port-routing check for multi-input merges
+            if (!string.IsNullOrEmpty(connection.SourcePort))
+            {
+                var defaultOutput = context.NodeOutputs.Get(connection.SourceNodeId);
+                if (defaultOutput.HasValue &&
+                    defaultOutput.Value.ValueKind == JsonValueKind.Object &&
+                    defaultOutput.Value.TryGetProperty("outputPort", out var routedPort) &&
+                    routedPort.ValueKind == JsonValueKind.String)
+                {
+                    var activePort = routedPort.GetString();
+                    if (!string.Equals(activePort, connection.SourcePort, StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue; // Skip inactive branch
+                    }
+                }
+            }
+
             var output = context.NodeOutputs.Get(connection.SourceNodeId, connection.SourcePort);
             if (output.HasValue)
             {
@@ -387,7 +534,142 @@ public class WorkflowEngine : IWorkflowEngine
         context.NodeOutputs.Set(nodeId, output.Data);
     }
 
+    /// <summary>
+    /// Checks whether a node sits on an inactive branch. A node is inactive when
+    /// every incoming connection originates from a source port that was not the
+    /// active output port of its source node (e.g. the "true" branch of an If
+    /// node whose condition evaluated to false).
+    /// </summary>
+    private static bool IsOnInactiveBranch(Workflow workflow, string nodeId, IExecutionContext context)
+    {
+        var incomingConnections = workflow.Connections
+            .Where(c => c.TargetNodeId == nodeId)
+            .ToList();
+
+        if (incomingConnections.Count == 0)
+            return false;
+
+        foreach (var connection in incomingConnections)
+        {
+            if (string.IsNullOrEmpty(connection.SourcePort))
+                return false; // Default port — always active
+
+            var defaultOutput = context.NodeOutputs.Get(connection.SourceNodeId);
+            if (!defaultOutput.HasValue)
+                continue; // Source hasn't run yet — not inactive, just pending
+
+            // If the source output doesn't declare an outputPort, the connection is active
+            if (defaultOutput.Value.ValueKind != JsonValueKind.Object ||
+                !defaultOutput.Value.TryGetProperty("outputPort", out var routedPort) ||
+                routedPort.ValueKind != JsonValueKind.String)
+            {
+                return false;
+            }
+
+            // If this connection's source port matches the active port, the branch is active
+            if (string.Equals(routedPort.GetString(), connection.SourcePort, StringComparison.OrdinalIgnoreCase))
+                return false;
+        }
+
+        // All incoming connections are from inactive ports
+        return true;
+    }
+
     private static List<List<string>> BuildExecutionLevels(Workflow workflow)
+    {
+        return BuildExecutionLevelsForNodes(workflow, workflow.Nodes.Select(n => n.Id).ToHashSet());
+    }
+
+    /// <summary>
+    /// Finds all nodes reachable from a loop node's "item" output port.
+    /// </summary>
+    private static HashSet<string> GetItemPortSubgraph(Workflow workflow, string loopNodeId)
+    {
+        var reachable = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var queue = new Queue<string>();
+
+        // Seed with nodes directly connected to the "item" port
+        foreach (var conn in workflow.Connections)
+        {
+            if (string.Equals(conn.SourceNodeId, loopNodeId, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(conn.SourcePort, "item", StringComparison.OrdinalIgnoreCase))
+            {
+                if (reachable.Add(conn.TargetNodeId))
+                    queue.Enqueue(conn.TargetNodeId);
+            }
+        }
+
+        // BFS to find all downstream nodes
+        while (queue.Count > 0)
+        {
+            var current = queue.Dequeue();
+            foreach (var conn in workflow.Connections)
+            {
+                if (string.Equals(conn.SourceNodeId, current, StringComparison.OrdinalIgnoreCase) &&
+                    reachable.Add(conn.TargetNodeId))
+                {
+                    queue.Enqueue(conn.TargetNodeId);
+                }
+            }
+        }
+
+        return reachable;
+    }
+
+    /// <summary>
+    /// Builds topological execution levels for a subgraph of nodes,
+    /// treating edges from the loop node as already satisfied.
+    /// </summary>
+    private static List<List<string>> BuildSubgraphExecutionLevels(
+        Workflow workflow, HashSet<string> subgraphNodes, string loopNodeId)
+    {
+        var inDegree = subgraphNodes.ToDictionary(n => n, _ => 0, StringComparer.OrdinalIgnoreCase);
+
+        foreach (var connection in workflow.Connections)
+        {
+            if (subgraphNodes.Contains(connection.TargetNodeId) &&
+                !string.Equals(connection.SourceNodeId, loopNodeId, StringComparison.OrdinalIgnoreCase) &&
+                subgraphNodes.Contains(connection.SourceNodeId))
+            {
+                inDegree[connection.TargetNodeId]++;
+            }
+        }
+
+        var adjacency = subgraphNodes.ToDictionary(n => n, _ => new List<string>(), StringComparer.OrdinalIgnoreCase);
+        foreach (var connection in workflow.Connections)
+        {
+            if (subgraphNodes.Contains(connection.SourceNodeId) &&
+                subgraphNodes.Contains(connection.TargetNodeId))
+            {
+                adjacency[connection.SourceNodeId].Add(connection.TargetNodeId);
+            }
+        }
+
+        var levels = new List<List<string>>();
+        var currentLevel = inDegree.Where(kv => kv.Value == 0).Select(kv => kv.Key).ToList();
+
+        while (currentLevel.Count > 0)
+        {
+            levels.Add(currentLevel);
+            var nextLevel = new List<string>();
+
+            foreach (var nodeId in currentLevel)
+            {
+                foreach (var neighbor in adjacency[nodeId])
+                {
+                    inDegree[neighbor]--;
+                    if (inDegree[neighbor] == 0)
+                        nextLevel.Add(neighbor);
+                }
+            }
+
+            currentLevel = nextLevel;
+        }
+
+        return levels;
+    }
+
+    private static List<List<string>> BuildExecutionLevelsForNodes(Workflow workflow, HashSet<string> nodeIds)
     {
         var inDegree = workflow.Nodes.ToDictionary(n => n.Id, _ => 0);
         var adjacency = workflow.Nodes.ToDictionary(n => n.Id, _ => new List<string>());

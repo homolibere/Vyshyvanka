@@ -8,7 +8,7 @@
 
     <!-- NuGet Package Metadata -->
     <PackageId>Vyshyvanka.Plugin.Jira</PackageId>
-    <Version>1.0.0</Version>
+    <Version>0.1.0</Version>
     <Authors>Vyshyvanka</Authors>
     <Description>Jira Software integration plugin for Vyshyvanka. Create, update, and manage issues, comments, and users.</Description>
     <PackageTags>vyshyvanka;plugin;jira;atlassian;project-management</PackageTags>

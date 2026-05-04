@@ -26,7 +26,7 @@ public partial class ExpressionEvaluator : IExpressionEvaluator
         {
             throw new ExpressionEvaluationException(error ?? "Unknown evaluation error", expression);
         }
-        
+
         return result;
     }
 
@@ -84,12 +84,12 @@ public partial class ExpressionEvaluator : IExpressionEvaluator
             {
                 // Append text before this match
                 sb.Append(expression, lastIndex, match.Index - lastIndex);
-                
+
                 // Evaluate and append the expression result
                 var path = match.Groups[1].Value.Trim();
                 var value = EvaluatePath(path, context);
                 sb.Append(ConvertToString(value));
-                
+
                 lastIndex = match.Index + match.Length;
             }
 
@@ -155,7 +155,7 @@ public partial class ExpressionEvaluator : IExpressionEvaluator
         // Check for valid root
         var normalizedPath = NormalizePath(path);
         var parts = normalizedPath.Split('.');
-        
+
         if (parts.Length == 0 || string.IsNullOrWhiteSpace(parts[0]))
         {
             return new ExpressionError
@@ -199,7 +199,7 @@ public partial class ExpressionEvaluator : IExpressionEvaluator
         // Normalize path: convert bracket notation to dot notation
         var normalizedPath = NormalizePath(path);
         var parts = normalizedPath.Split('.');
-        
+
         if (parts.Length == 0)
         {
             throw new ExpressionEvaluationException($"Empty path in expression", path);
@@ -209,8 +209,9 @@ public partial class ExpressionEvaluator : IExpressionEvaluator
         {
             "nodes" => EvaluateNodePath(parts[1..], context, path),
             "variables" => EvaluateVariablePath(parts[1..], context, path),
+            "input" => EvaluateInputPath(parts[1..], context, path),
             _ => throw new ExpressionEvaluationException(
-                $"Unknown expression root '{parts[0]}'. Expected 'nodes' or 'variables'", path)
+                $"Unknown expression root '{parts[0]}'. Expected 'nodes', 'variables', or 'input'", path)
         };
     }
 
@@ -226,7 +227,7 @@ public partial class ExpressionEvaluator : IExpressionEvaluator
 
         // Parse arguments
         var args = ParseFunctionArguments(argsString, context, originalPath);
-        
+
         return ExpressionFunctions.Invoke(funcName, args);
     }
 
@@ -259,6 +260,7 @@ public partial class ExpressionEvaluator : IExpressionEvaluator
                 {
                     inString = false;
                 }
+
                 currentArg.Append(c);
                 continue;
             }
@@ -310,21 +312,22 @@ public partial class ExpressionEvaluator : IExpressionEvaluator
         }
 
         // Check for string literals
-        if ((arg.StartsWith('"') && arg.EndsWith('"')) || 
+        if ((arg.StartsWith('"') && arg.EndsWith('"')) ||
             (arg.StartsWith('\'') && arg.EndsWith('\'')))
         {
             return arg[1..^1]; // Remove quotes
         }
 
         // Check for numeric literals
-        if (double.TryParse(arg, System.Globalization.NumberStyles.Any, 
-            System.Globalization.CultureInfo.InvariantCulture, out var numValue))
+        if (double.TryParse(arg, System.Globalization.NumberStyles.Any,
+                System.Globalization.CultureInfo.InvariantCulture, out var numValue))
         {
             // Return as int if it's a whole number
             if (numValue == Math.Floor(numValue) && numValue >= int.MinValue && numValue <= int.MaxValue)
             {
                 return (int)numValue;
             }
+
             return numValue;
         }
 
@@ -333,6 +336,7 @@ public partial class ExpressionEvaluator : IExpressionEvaluator
         {
             return true;
         }
+
         if (arg.Equals("false", StringComparison.OrdinalIgnoreCase))
         {
             return false;
@@ -368,13 +372,14 @@ public partial class ExpressionEvaluator : IExpressionEvaluator
 
         var nodeId = parts[0];
         var output = context.NodeOutputs.Get(nodeId);
-        
+
         if (output is null)
         {
             throw new ExpressionEvaluationException(
-                $"Node '{nodeId}' has no output data. Ensure the node has executed before referencing its output.", originalPath);
+                $"Node '{nodeId}' has no output data. Ensure the node has executed before referencing its output.",
+                originalPath);
         }
-        
+
         if (parts.Length == 1)
         {
             return ConvertJsonElement(output.Value);
@@ -411,8 +416,30 @@ public partial class ExpressionEvaluator : IExpressionEvaluator
         }
 
         throw new ExpressionEvaluationException(
-            $"Cannot access property '{parts[1]}' on variable '{variableName}' of type {value?.GetType().Name ?? "null"}", 
+            $"Cannot access property '{parts[1]}' on variable '{variableName}' of type {value?.GetType().Name ?? "null"}",
             originalPath);
+    }
+
+    /// <summary>
+    /// Evaluates an "input" path that references the current node's input data.
+    /// The engine stores the current input in context.Variables["__currentInput"]
+    /// before evaluating configuration expressions.
+    /// </summary>
+    private static object? EvaluateInputPath(string[] parts, IExecutionContext context, string originalPath)
+    {
+        if (!context.Variables.TryGetValue("__currentInput", out var inputObj) || inputObj is not JsonElement inputData)
+        {
+            throw new ExpressionEvaluationException(
+                "Input data is not available in this context. 'input' can only be used in node configuration expressions.",
+                originalPath);
+        }
+
+        if (parts.Length == 0)
+        {
+            return ConvertJsonElement(inputData);
+        }
+
+        return NavigateJson(inputData, parts, originalPath);
     }
 
     private static object? NavigateJson(JsonElement element, string[] path, string originalPath)
@@ -423,7 +450,7 @@ public partial class ExpressionEvaluator : IExpressionEvaluator
         foreach (var part in path)
         {
             currentPath.Add(part);
-            
+
             if (current.ValueKind == JsonValueKind.Object)
             {
                 if (!current.TryGetProperty(part, out current))
@@ -438,21 +465,22 @@ public partial class ExpressionEvaluator : IExpressionEvaluator
                 if (index < 0 || index >= arrayLength)
                 {
                     throw new ExpressionEvaluationException(
-                        $"Array index {index} is out of bounds. Array length is {arrayLength} at path '{string.Join(".", currentPath)}'", 
+                        $"Array index {index} is out of bounds. Array length is {arrayLength} at path '{string.Join(".", currentPath)}'",
                         originalPath);
                 }
+
                 current = current[index];
             }
             else if (current.ValueKind == JsonValueKind.Array)
             {
                 throw new ExpressionEvaluationException(
-                    $"Expected numeric index for array access, got '{part}' at path '{string.Join(".", currentPath)}'", 
+                    $"Expected numeric index for array access, got '{part}' at path '{string.Join(".", currentPath)}'",
                     originalPath);
             }
             else
             {
                 throw new ExpressionEvaluationException(
-                    $"Cannot access '{part}' on {current.ValueKind} value at path '{string.Join(".", currentPath)}'", 
+                    $"Cannot access '{part}' on {current.ValueKind} value at path '{string.Join(".", currentPath)}'",
                     originalPath);
             }
         }
@@ -514,7 +542,7 @@ public class ExpressionEvaluationException : Exception
     /// <summary>
     /// Creates a new expression evaluation exception.
     /// </summary>
-    public ExpressionEvaluationException(string message, string expression) 
+    public ExpressionEvaluationException(string message, string expression)
         : base(message)
     {
         Expression = expression;
@@ -523,7 +551,7 @@ public class ExpressionEvaluationException : Exception
     /// <summary>
     /// Creates a new expression evaluation exception with inner exception.
     /// </summary>
-    public ExpressionEvaluationException(string message, string expression, Exception innerException) 
+    public ExpressionEvaluationException(string message, string expression, Exception innerException)
         : base(message, innerException)
     {
         Expression = expression;

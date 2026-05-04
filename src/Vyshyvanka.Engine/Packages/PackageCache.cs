@@ -118,7 +118,29 @@ public class PackageCache : IPackageCache
         var extractionPath = GetExtractionPath(packageId, version);
         if (Directory.Exists(extractionPath))
         {
-            Directory.Delete(extractionPath, recursive: true);
+            try
+            {
+                Directory.Delete(extractionPath, recursive: true);
+            }
+            catch (IOException)
+            {
+                // DLLs may still be locked by the AssemblyLoadContext that hasn't
+                // been garbage-collected yet. Force a GC and retry once.
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                GC.Collect();
+
+                try
+                {
+                    Directory.Delete(extractionPath, recursive: true);
+                }
+                catch (IOException ex)
+                {
+                    _logger?.LogWarning(ex,
+                        "Could not delete extraction directory {Path} — files may still be locked by the runtime",
+                        extractionPath);
+                }
+            }
         }
 
         _logger?.LogDebug("Removed cached package {PackageId} v{Version}", packageId, version);

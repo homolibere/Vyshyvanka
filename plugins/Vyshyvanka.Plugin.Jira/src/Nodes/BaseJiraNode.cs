@@ -19,7 +19,9 @@ public abstract class BaseJiraNode : INode
     private readonly string _id = Guid.NewGuid().ToString();
     private readonly HttpClient? _httpClient;
 
-    protected BaseJiraNode() : this(null) { }
+    protected BaseJiraNode() : this(null)
+    {
+    }
 
     internal BaseJiraNode(HttpClient? httpClient)
     {
@@ -47,6 +49,36 @@ public abstract class BaseJiraNode : INode
         ErrorMessage = errorMessage
     };
 
+    /// <summary>
+    /// Creates a failure output that includes the request details for debugging.
+    /// The error message contains the HTTP method, URL, request body, and response.
+    /// </summary>
+    protected static NodeOutput FailureOutputWithDebug(
+        string message, string method, string url, string? requestBody, string? responseBody)
+    {
+        var debug = new StringBuilder(message);
+        debug.AppendLine();
+        debug.Append($"  Request: {method} {url}");
+        if (requestBody is not null)
+        {
+            debug.AppendLine();
+            debug.Append($"  Body: {requestBody}");
+        }
+
+        if (responseBody is not null)
+        {
+            debug.AppendLine();
+            debug.Append($"  Response: {responseBody}");
+        }
+
+        return new NodeOutput
+        {
+            Data = default,
+            Success = false,
+            ErrorMessage = debug.ToString()
+        };
+    }
+
     protected static T? GetConfigValue<T>(NodeInput input, string key)
     {
         if (input.Configuration.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
@@ -70,10 +102,11 @@ public abstract class BaseJiraNode : INode
         NodeInput input, IExecutionContext context)
     {
         if (!input.CredentialId.HasValue)
-            throw new InvalidOperationException("Jira credential is required. Attach a BasicAuth credential with email, apiToken, and domain.");
+            throw new InvalidOperationException(
+                "Jira credential is required. Attach a BasicAuth credential with email, apiToken, and domain.");
 
         var creds = await context.Credentials.GetCredentialAsync(input.CredentialId.Value, context.CancellationToken)
-            ?? throw new InvalidOperationException("Credential not found.");
+                    ?? throw new InvalidOperationException("Credential not found.");
 
         var email = creds.TryGetValue("email", out var e) ? e
             : creds.TryGetValue("username", out var u) ? u
@@ -112,12 +145,11 @@ public abstract class BaseJiraNode : INode
         request.Headers.Authorization = auth;
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
+        string? requestBodyJson = null;
         if (body is not null && method != HttpMethod.Get)
         {
-            request.Content = new StringContent(
-                JsonSerializer.Serialize(body),
-                Encoding.UTF8,
-                "application/json");
+            requestBodyJson = JsonSerializer.Serialize(body);
+            request.Content = new StringContent(requestBodyJson, Encoding.UTF8, "application/json");
         }
 
         var response = await client.SendAsync(request, ct);
@@ -126,16 +158,32 @@ public abstract class BaseJiraNode : INode
         JsonElement? parsed = null;
         if (!string.IsNullOrWhiteSpace(responseBody))
         {
-            try { parsed = JsonSerializer.Deserialize<JsonElement>(responseBody); }
-            catch (JsonException) { /* non-JSON response */ }
+            try
+            {
+                parsed = JsonSerializer.Deserialize<JsonElement>(responseBody);
+            }
+            catch (JsonException)
+            {
+                /* non-JSON response */
+            }
         }
 
         return new JiraApiResponse(
+            method.Method,
+            url,
+            requestBodyJson,
             (int)response.StatusCode,
             response.IsSuccessStatusCode,
             parsed,
             response.IsSuccessStatusCode ? null : responseBody);
     }
 
-    protected record JiraApiResponse(int StatusCode, bool IsSuccess, JsonElement? Data, string? ErrorBody);
+    protected record JiraApiResponse(
+        string Method,
+        string Url,
+        string? RequestBody,
+        int StatusCode,
+        bool IsSuccess,
+        JsonElement? Data,
+        string? ErrorBody);
 }

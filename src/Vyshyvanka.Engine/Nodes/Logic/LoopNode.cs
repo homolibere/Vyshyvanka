@@ -13,7 +13,7 @@ namespace Vyshyvanka.Engine.Nodes.Logic;
     Description = "Iterate over an array and process each item",
     Icon = "fa-solid fa-rotate")]
 [NodeInput("input", DisplayName = "Input Array", IsRequired = true)]
-[NodeOutput("item", DisplayName = "Current Item")]
+[NodeOutput("item", DisplayName = "Output")]
 [NodeOutput("done", DisplayName = "Loop Complete")]
 [ConfigurationProperty("field", "string", Description = "Field path to the array to iterate")]
 [ConfigurationProperty("batchSize", "number", Description = "Number of items to process in parallel")]
@@ -31,7 +31,6 @@ public class LoopNode : BaseLogicNode
     public override Task<NodeOutput> ExecuteAsync(NodeInput input, IExecutionContext context)
     {
         var field = GetConfigValue<string>(input, "field");
-        var batchSize = GetConfigValue<int?>(input, "batchSize") ?? 1;
 
         // Get the array to iterate
         JsonElement arrayElement;
@@ -49,56 +48,19 @@ public class LoopNode : BaseLogicNode
             return Task.FromResult(FailureOutput($"Expected array but got {arrayElement.ValueKind}"));
         }
 
-        var items = arrayElement.EnumerateArray().ToList();
+        var items = arrayElement.EnumerateArray().Select(e => e.Clone()).ToList();
 
         if (items.Count == 0)
         {
-            // Empty array — emit on the "done" port with summary data
-            context.NodeOutputs.Set(Id, "done", JsonSerializer.SerializeToElement(new
-            {
-                items = Array.Empty<object>(),
-                totalCount = 0,
-                processedCount = 0,
-                isComplete = true
-            }));
-
             return Task.FromResult(SuccessOutput(new
                 { items = Array.Empty<object>(), totalCount = 0, isComplete = true, outputPort = "done" }));
         }
 
-        // Build per-item metadata
-        var loopItems = new List<object>();
-        for (int i = 0; i < items.Count; i++)
-        {
-            loopItems.Add(new
-            {
-                index = i,
-                item = JsonSerializer.Deserialize<object>(items[i].GetRawText()),
-                isFirst = i == 0,
-                isLast = i == items.Count - 1
-            });
-        }
-
-        // Store the full items array on the "done" port for downstream summary use
-        context.NodeOutputs.Set(Id, "done", JsonSerializer.SerializeToElement(new
-        {
-            items = loopItems,
-            totalCount = items.Count,
-            processedCount = items.Count,
-            batchSize,
-            isComplete = true
-        }));
-
-        // The "item" port carries the first item directly so downstream nodes
-        // connected to it receive usable data in the current single-pass model.
-        // Return the first item as the node output routed to the "item" port.
-        var firstItem = JsonSerializer.Deserialize<object>(items[0].GetRawText());
+        // Return the items array wrapped in metadata. The engine detects the
+        // __loopItems marker and handles per-item iteration of downstream nodes.
         return Task.FromResult(SuccessOutput(new
         {
-            index = 0,
-            item = firstItem,
-            isFirst = true,
-            isLast = items.Count == 1,
+            __loopItems = items.Select((e, i) => JsonSerializer.Deserialize<object>(e.GetRawText())).ToList(),
             totalCount = items.Count,
             outputPort = "item"
         }));
