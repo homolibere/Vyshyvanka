@@ -434,10 +434,29 @@ public class WorkflowStateService
         NotifyStateChanged();
     }
 
-    /// <summary>Resets the canvas view.</summary>
+    /// <summary>Resets the canvas view to zoom 1.0, centered on the first node (or origin if no nodes).</summary>
     public void ResetView()
     {
-        _canvasState = new CanvasState { Width = _canvasState.Width, Height = _canvasState.Height };
+        var firstNode = _workflow.Nodes.FirstOrDefault();
+        if (firstNode is not null)
+        {
+            // Center the viewport on the first node
+            var panX = -firstNode.Position.X + _canvasState.Width / 2;
+            var panY = -firstNode.Position.Y + _canvasState.Height / 2;
+            _canvasState = new CanvasState
+            {
+                PanX = panX,
+                PanY = panY,
+                Zoom = 1.0,
+                Width = _canvasState.Width,
+                Height = _canvasState.Height
+            };
+        }
+        else
+        {
+            _canvasState = new CanvasState { Width = _canvasState.Width, Height = _canvasState.Height };
+        }
+
         NotifyStateChanged();
     }
 
@@ -551,7 +570,7 @@ public class WorkflowStateService
     public void SetWorkflowActive(bool isActive)
     {
         if (_workflow.IsActive == isActive) return;
-        
+
         SaveUndoState(isActive ? "Activate Workflow" : "Deactivate Workflow");
         _workflow = _workflow with
         {

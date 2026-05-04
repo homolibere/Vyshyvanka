@@ -30,8 +30,24 @@ public partial class NodeEditorOutputPanel : ComponentBase
 
     protected override void OnParametersSet()
     {
-        if (Ports is { Count: > 0 } &&
-            (SelectedPort is null || Ports.All(p => p.Name != SelectedPort)))
+        if (Ports is not { Count: > 0 })
+            return;
+
+        // Auto-select the active output port based on the execution result's outputPort field
+        if (OutputData.HasValue &&
+            OutputData.Value.ValueKind == JsonValueKind.Object &&
+            OutputData.Value.TryGetProperty("outputPort", out var outputPortEl) &&
+            outputPortEl.ValueKind == JsonValueKind.String)
+        {
+            var activePort = outputPortEl.GetString();
+            if (activePort is not null && Ports.Any(p => p.Name == activePort))
+            {
+                SelectedPort = activePort;
+                return;
+            }
+        }
+
+        if (SelectedPort is null || Ports.All(p => p.Name != SelectedPort))
         {
             SelectedPort = Ports[0].Name;
         }
@@ -47,8 +63,8 @@ public partial class NodeEditorOutputPanel : ComponentBase
 
     /// <summary>
     /// Extracts the data for the currently selected port.
-    /// If the output data is an object with a key matching the port name, returns that value.
-    /// Otherwise falls back to the full output data.
+    /// For nodes with multiple output ports, only shows data on the port that was
+    /// actually activated during execution (determined by the outputPort field).
     /// </summary>
     private JsonElement? CurrentPortData
     {
@@ -60,12 +76,26 @@ public partial class NodeEditorOutputPanel : ComponentBase
             if (!HasMultiplePorts || SelectedPort is null)
                 return OutputData;
 
+            // If the output has port-keyed data (e.g. {"true": {...}, "false": {...}}), extract it
             if (OutputData.Value.ValueKind == JsonValueKind.Object &&
                 OutputData.Value.TryGetProperty(SelectedPort, out var portData))
             {
                 return portData;
             }
 
+            // Check if the output declares which port was activated via outputPort field.
+            // Only show data on the matching tab; other tabs get nothing.
+            if (OutputData.Value.ValueKind == JsonValueKind.Object &&
+                OutputData.Value.TryGetProperty("outputPort", out var outputPortEl) &&
+                outputPortEl.ValueKind == JsonValueKind.String)
+            {
+                var activePort = outputPortEl.GetString();
+                return string.Equals(activePort, SelectedPort, StringComparison.OrdinalIgnoreCase)
+                    ? OutputData
+                    : null;
+            }
+
+            // No routing info — show on the first port only
             return Ports?.FirstOrDefault()?.Name == SelectedPort ? OutputData : null;
         }
     }
