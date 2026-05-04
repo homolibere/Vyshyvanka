@@ -24,7 +24,8 @@ public class NuGetPackageManager : INuGetPackageManager
     private readonly PackageOptions _options;
     private readonly ILogger<NuGetPackageManager>? _logger;
 
-    private readonly ConcurrentDictionary<string, InstalledPackage> _installedPackages = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, InstalledPackage> _installedPackages =
+        new(StringComparer.OrdinalIgnoreCase);
 
     public NuGetPackageManager(
         IPackageSourceService sourceService,
@@ -76,13 +77,15 @@ public class NuGetPackageManager : INuGetPackageManager
                 }
                 catch (Exception ex)
                 {
-                    _logger?.LogWarning(ex, "Failed to load plugin from {PackageId}, removing from installed", package.PackageId);
+                    _logger?.LogWarning(ex, "Failed to load plugin from {PackageId}, removing from installed",
+                        package.PackageId);
                     failedPackages.Add(package.PackageId);
                 }
             }
             else
             {
-                _logger?.LogWarning("Install path missing for {PackageId}: {Path}, removing from installed", package.PackageId, package.InstallPath);
+                _logger?.LogWarning("Install path missing for {PackageId}: {Path}, removing from installed",
+                    package.PackageId, package.InstallPath);
                 failedPackages.Add(package.PackageId);
             }
         }
@@ -95,7 +98,8 @@ public class NuGetPackageManager : INuGetPackageManager
             _logger?.LogInformation("Removed failed package {PackageId} from manifest", packageId);
         }
 
-        _logger?.LogInformation("Package manager initialized with {Count} packages ({Failed} removed due to load failures)",
+        _logger?.LogInformation(
+            "Package manager initialized with {Count} packages ({Failed} removed due to load failures)",
             _installedPackages.Count, failedPackages.Count);
     }
 
@@ -142,7 +146,8 @@ public class NuGetPackageManager : INuGetPackageManager
                         DownloadCount = result.DownloadCount ?? 0,
                         IconUrl = result.IconUrl?.ToString(),
                         ProjectUrl = result.ProjectUrl?.ToString(),
-                        Tags = result.Tags?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList() ?? [],
+                        Tags = result.Tags?.Split(',',
+                            StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList() ?? [],
                         IsInstalled = installed is not null,
                         InstalledVersion = installed?.Version
                     });
@@ -206,7 +211,10 @@ public class NuGetPackageManager : INuGetPackageManager
                     License = target.LicenseUrl?.ToString(),
                     ProjectUrl = target.ProjectUrl?.ToString(),
                     IconUrl = target.IconUrl?.ToString(),
-                    Tags = target.Tags?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList() ?? [],
+                    Tags = target.Tags
+                               ?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                               .ToList() ??
+                           [],
                     Dependencies = target.DependencySets
                         .SelectMany(ds => ds.Packages)
                         .Select(d => $"{d.Id} {d.VersionRange}")
@@ -231,7 +239,8 @@ public class NuGetPackageManager : INuGetPackageManager
         bool prerelease = false,
         CancellationToken cancellationToken = default)
     {
-        _logger?.LogInformation("Installing package {PackageId} v{Version}", packageId, version?.ToString() ?? "latest");
+        _logger?.LogInformation("Installing package {PackageId} v{Version}", packageId,
+            version?.ToString() ?? "latest");
 
         // Check block list
         if (_options.BlockedPackages.Any(b => string.Equals(b, packageId, StringComparison.OrdinalIgnoreCase)))
@@ -268,7 +277,8 @@ public class NuGetPackageManager : INuGetPackageManager
             }
 
             // Find the source that has this package
-            var (sourceRepository, source) = await FindPackageSourceAsync(packageId, resolvedVersion, cancellationToken);
+            var (sourceRepository, source) =
+                await FindPackageSourceAsync(packageId, resolvedVersion, cancellationToken);
             if (sourceRepository is null || source is null)
             {
                 return new PackageInstallResult
@@ -305,7 +315,8 @@ public class NuGetPackageManager : INuGetPackageManager
                 {
                     Success = false,
                     Errors = depResult.Conflicts.Select(c =>
-                        $"Dependency conflict: {c.PackageId} requires {c.RequestedVersion} but {c.InstalledVersion} is installed (requested by {c.RequestedBy})").ToList()
+                            $"Dependency conflict: {c.PackageId} requires {c.RequestedVersion} but {c.InstalledVersion} is installed (requested by {c.RequestedBy})")
+                        .ToList()
                 };
             }
 
@@ -318,6 +329,18 @@ public class NuGetPackageManager : INuGetPackageManager
             // Load and validate the plugin
             var nodeTypes = new List<string>();
             var warnings = new List<string>();
+
+            // Ensure any previously loaded plugin from this package is unloaded first
+            // (handles reinstall after failed cleanup during uninstall)
+            _pluginLoader.UnloadPlugin(packageId);
+            foreach (var loadedPlugin in _pluginLoader.GetLoadedPlugins())
+            {
+                if (string.Equals(loadedPlugin.FilePath, installPath, StringComparison.OrdinalIgnoreCase) ||
+                    loadedPlugin.FilePath.StartsWith(installPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    _pluginLoader.UnloadPlugin(loadedPlugin.Id);
+                }
+            }
 
             try
             {
@@ -333,7 +356,8 @@ public class NuGetPackageManager : INuGetPackageManager
                             return new PackageInstallResult
                             {
                                 Success = false,
-                                Errors = validation.Errors.Select(e => $"Plugin validation failed: {e.Message}").ToList()
+                                Errors = validation.Errors.Select(e => $"Plugin validation failed: {e.Message}")
+                                    .ToList()
                             };
                         }
 
@@ -359,12 +383,15 @@ public class NuGetPackageManager : INuGetPackageManager
             }
             catch (Exception ex)
             {
-                _logger?.LogDebug(ex, "No plugin assembly found in {PackageId}, treating as library dependency", packageId);
+                _logger?.LogDebug(ex, "No plugin assembly found in {PackageId}, treating as library dependency",
+                    packageId);
             }
 
             // Install dependencies
             var installedDeps = new List<InstalledPackage>();
-            foreach (var dep in depResult.Dependencies.Where(d => !d.IsAlreadyInstalled && !string.Equals(d.PackageId, packageId, StringComparison.OrdinalIgnoreCase)))
+            foreach (var dep in depResult.Dependencies.Where(d =>
+                         !d.IsAlreadyInstalled &&
+                         !string.Equals(d.PackageId, packageId, StringComparison.OrdinalIgnoreCase)))
             {
                 try
                 {
@@ -454,7 +481,8 @@ public class NuGetPackageManager : INuGetPackageManager
         }
 
         var previousVersion = existing.Version;
-        var newVersion = targetVersion ?? await ResolveLatestVersionAsync(packageId, prerelease: false, cancellationToken);
+        var newVersion = targetVersion ??
+                         await ResolveLatestVersionAsync(packageId, prerelease: false, cancellationToken);
 
         if (newVersion is null)
         {
@@ -487,7 +515,8 @@ public class NuGetPackageManager : INuGetPackageManager
                 Success = false,
                 PreviousVersion = previousVersion,
                 Errors = compat.Conflicts.Select(c =>
-                    $"Conflict: {c.PackageId} requires {c.RequestedVersion} but {c.InstalledVersion} is installed").ToList()
+                        $"Conflict: {c.PackageId} requires {c.RequestedVersion} but {c.InstalledVersion} is installed")
+                    .ToList()
             };
         }
 
@@ -503,6 +532,7 @@ public class NuGetPackageManager : INuGetPackageManager
                 _pluginLoader.UnloadPlugin(loadedPlugin.Id);
             }
         }
+
         if (oldPlugin?.Assembly is not null)
         {
             _nodeRegistry.UnregisterFromAssembly(oldPlugin.Assembly);
@@ -579,7 +609,10 @@ public class NuGetPackageManager : INuGetPackageManager
                 Success = false,
                 PackageId = packageId,
                 AffectedWorkflows = affectedWorkflows,
-                Errors = [$"Package '{packageId}' is referenced by {affectedWorkflows.Count} workflow(s). Use force=true to uninstall anyway."]
+                Errors =
+                [
+                    $"Package '{packageId}' is referenced by {affectedWorkflows.Count} workflow(s). Use force=true to uninstall anyway."
+                ]
             };
         }
 
@@ -764,7 +797,8 @@ public class NuGetPackageManager : INuGetPackageManager
                                 return new PackageInstallResult
                                 {
                                     Success = false,
-                                    Errors = validation.Errors.Select(e => $"Plugin validation failed: {e.Message}").ToList()
+                                    Errors = validation.Errors.Select(e => $"Plugin validation failed: {e.Message}")
+                                        .ToList()
                                 };
                             }
 
@@ -807,7 +841,8 @@ public class NuGetPackageManager : INuGetPackageManager
                 _installedPackages[packageId] = installedPackage;
                 await _manifestManager.AddPackageAsync(installedPackage);
 
-                _logger?.LogInformation("Successfully installed uploaded package {PackageId} v{Version}", packageId, version);
+                _logger?.LogInformation("Successfully installed uploaded package {PackageId} v{Version}", packageId,
+                    version);
 
                 return new PackageInstallResult
                 {
@@ -855,7 +890,8 @@ public class NuGetPackageManager : INuGetPackageManager
             }
             catch (Exception ex)
             {
-                _logger?.LogDebug(ex, "Failed to resolve latest version for {PackageId} from {Source}", packageId, source.Name);
+                _logger?.LogDebug(ex, "Failed to resolve latest version for {PackageId} from {Source}", packageId,
+                    source.Name);
             }
         }
 

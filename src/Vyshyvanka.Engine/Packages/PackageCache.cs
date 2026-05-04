@@ -36,7 +36,8 @@ public class PackageCache : IPackageCache
             return nupkgPath;
         }
 
-        _logger?.LogInformation("Downloading {PackageId} v{Version} from {Source}", packageId, version, source.PackageSource.Source);
+        _logger?.LogInformation("Downloading {PackageId} v{Version} from {Source}", packageId, version,
+            source.PackageSource.Source);
 
         var findResource = await source.GetResourceAsync<FindPackageByIdResource>(cancellationToken);
         Directory.CreateDirectory(Path.GetDirectoryName(nupkgPath)!);
@@ -65,8 +66,19 @@ public class PackageCache : IPackageCache
 
         if (Directory.Exists(extractionPath))
         {
-            _logger?.LogDebug("Package {PackageId} v{Version} already extracted", packageId, version);
-            return extractionPath;
+            // Verify the directory actually contains DLL files; if empty or stale
+            // (e.g. partial cleanup during uninstall), delete and re-extract.
+            var hasFiles = Directory.EnumerateFiles(extractionPath, "*.dll").Any();
+            if (hasFiles)
+            {
+                _logger?.LogDebug("Package {PackageId} v{Version} already extracted", packageId, version);
+                return extractionPath;
+            }
+
+            _logger?.LogWarning(
+                "Extraction directory for {PackageId} v{Version} exists but contains no DLLs, re-extracting", packageId,
+                version);
+            Directory.Delete(extractionPath, recursive: true);
         }
 
         Directory.CreateDirectory(extractionPath);

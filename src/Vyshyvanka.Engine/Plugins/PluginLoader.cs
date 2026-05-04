@@ -11,8 +11,10 @@ namespace Vyshyvanka.Engine.Plugins;
 /// </summary>
 public class PluginLoader : IPluginLoader
 {
-    private readonly ConcurrentDictionary<string, PluginLoadContext> _loadContexts = new();
-    private readonly ConcurrentDictionary<string, PluginInfo> _plugins = new();
+    private readonly ConcurrentDictionary<string, PluginLoadContext> _loadContexts =
+        new(StringComparer.OrdinalIgnoreCase);
+
+    private readonly ConcurrentDictionary<string, PluginInfo> _plugins = new(StringComparer.OrdinalIgnoreCase);
     private readonly IPluginValidator _validator;
     private readonly ILogger<PluginLoader>? _logger;
 
@@ -26,7 +28,7 @@ public class PluginLoader : IPluginLoader
     public IEnumerable<PluginInfo> LoadPlugins(string pluginDirectory)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(pluginDirectory);
-        
+
         if (!Directory.Exists(pluginDirectory))
         {
             _logger?.LogWarning("Plugin directory does not exist: {Directory}", pluginDirectory);
@@ -66,9 +68,9 @@ public class PluginLoader : IPluginLoader
             {
                 _logger?.LogInformation("Unloading plugin: {PluginId} ({PluginName})", pluginId, pluginInfo.Name);
             }
-            
+
             context.Unload();
-            
+
             // Request garbage collection to help unload the assembly
             GC.Collect();
             GC.WaitForPendingFinalizers();
@@ -95,10 +97,10 @@ public class PluginLoader : IPluginLoader
     private PluginInfo? LoadPlugin(string pluginPath)
     {
         var fullPath = Path.GetFullPath(pluginPath);
-        
+
         // Create a new load context for isolation
         var loadContext = new PluginLoadContext(fullPath);
-        
+
         Assembly assembly;
         try
         {
@@ -129,7 +131,7 @@ public class PluginLoader : IPluginLoader
 
         // Discover node types
         var nodeTypes = DiscoverNodeTypes(assembly);
-        
+
         // Validate the plugin
         var validationResult = _validator.ValidatePlugin(assembly);
         if (!validationResult.IsValid)
@@ -137,7 +139,7 @@ public class PluginLoader : IPluginLoader
             var errorMessages = string.Join("; ", validationResult.Errors.Select(e => $"{e.Code}: {e.Message}"));
             _logger?.LogWarning("Plugin validation failed for {PluginId}: {Errors}", pluginAttr.Id, errorMessages);
             loadContext.Unload();
-            
+
             return new PluginInfo
             {
                 Id = pluginAttr.Id,
@@ -149,14 +151,14 @@ public class PluginLoader : IPluginLoader
                 LoadError = errorMessages
             };
         }
-        
+
         // Log warnings
         foreach (var warning in validationResult.Warnings)
         {
-            _logger?.LogWarning("Plugin {PluginId} warning: {Code} - {Message}", 
+            _logger?.LogWarning("Plugin {PluginId} warning: {Code} - {Message}",
                 pluginAttr.Id, warning.Code, warning.Message);
         }
-        
+
         var pluginInfo = new PluginInfo
         {
             Id = pluginAttr.Id,
@@ -184,12 +186,12 @@ public class PluginLoader : IPluginLoader
     private List<Type> DiscoverNodeTypes(Assembly assembly)
     {
         var nodeTypes = new List<Type>();
-        
+
         try
         {
             var types = assembly.GetTypes()
                 .Where(t => typeof(INode).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
-            
+
             nodeTypes.AddRange(types);
         }
         catch (ReflectionTypeLoadException ex)
@@ -198,9 +200,9 @@ public class PluginLoader : IPluginLoader
             var loadedTypes = ex.Types
                 .Where(t => t is not null && typeof(INode).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract)
                 .Cast<Type>();
-            
+
             nodeTypes.AddRange(loadedTypes);
-            
+
             _logger?.LogWarning(ex, "Some types could not be loaded from assembly");
         }
 

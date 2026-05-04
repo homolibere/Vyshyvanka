@@ -58,8 +58,8 @@ public class PersistentWorkflowEngine : IWorkflowEngine
             {
                 Status = result.Success ? ExecutionStatus.Completed : ExecutionStatus.Failed,
                 CompletedAt = DateTime.UtcNow,
-                OutputData = result.OutputData is not null 
-                    ? JsonSerializer.SerializeToElement(result.OutputData) 
+                OutputData = result.OutputData is not null
+                    ? JsonSerializer.SerializeToElement(result.OutputData)
                     : null,
                 ErrorMessage = result.ErrorMessage
             };
@@ -123,19 +123,21 @@ public class PersistentWorkflowEngine : IWorkflowEngine
             var result = await _innerEngine.ExecuteNodeAsync(node, context, cancellationToken);
 
             // Update node execution with a result
+            var nodeResult = result.NodeResults.FirstOrDefault(r => r.NodeId == node.Id);
             var completedNodeExecution = nodeExecution with
             {
                 Status = result.Success ? ExecutionStatus.Completed : ExecutionStatus.Failed,
                 CompletedAt = DateTime.UtcNow,
-                OutputData = result.OutputData is not null 
-                    ? JsonSerializer.SerializeToElement(result.OutputData) 
+                InputData = nodeResult?.InputData,
+                OutputData = result.OutputData is not null
+                    ? JsonSerializer.SerializeToElement(result.OutputData)
                     : null,
                 ErrorMessage = result.ErrorMessage
             };
 
             await _repository.UpdateNodeExecutionAsync(
-                context.ExecutionId, 
-                completedNodeExecution, 
+                context.ExecutionId,
+                completedNodeExecution,
                 cancellationToken);
 
             return result;
@@ -151,8 +153,8 @@ public class PersistentWorkflowEngine : IWorkflowEngine
             };
 
             await _repository.UpdateNodeExecutionAsync(
-                context.ExecutionId, 
-                failedNodeExecution, 
+                context.ExecutionId,
+                failedNodeExecution,
                 cancellationToken);
 
             throw;
@@ -178,6 +180,7 @@ public class PersistentWorkflowEngine : IWorkflowEngine
                 Status = nodeResult.Success ? ExecutionStatus.Completed : ExecutionStatus.Failed,
                 StartedAt = DateTime.UtcNow - nodeResult.Duration,
                 CompletedAt = DateTime.UtcNow,
+                InputData = nodeResult.InputData,
                 OutputData = SerializeOutputData(nodeResult.OutputData),
                 ErrorMessage = nodeResult.ErrorMessage
             };
@@ -203,6 +206,7 @@ public class PersistentWorkflowEngine : IWorkflowEngine
             {
                 return null;
             }
+
             return jsonElement;
         }
 

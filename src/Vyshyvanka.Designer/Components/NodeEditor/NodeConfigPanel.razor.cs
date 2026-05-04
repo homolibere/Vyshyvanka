@@ -7,14 +7,11 @@ namespace Vyshyvanka.Designer.Components;
 
 public partial class NodeConfigPanel : IDisposable
 {
-    [Inject]
-    private WorkflowStateService StateService { get; set; } = null!;
+    [Inject] private WorkflowStateService StateService { get; set; } = null!;
 
-    [Inject]
-    private VyshyvankaApiClient ApiClient { get; set; } = null!;
+    [Inject] private VyshyvankaApiClient ApiClient { get; set; } = null!;
 
-    [Inject]
-    private ToastService ToastService { get; set; } = null!;
+    [Inject] private ToastService ToastService { get; set; } = null!;
 
     private string configJson = "{}";
     private string nodeName = "";
@@ -167,6 +164,17 @@ public partial class NodeConfigPanel : IDisposable
 
         try
         {
+            // Save the workflow to the API so the execution uses the latest state
+            if (StateService.IsDirty)
+            {
+                var saved = await ApiClient.UpdateWorkflowAsync(StateService.Workflow);
+                if (saved is not null)
+                {
+                    StateService.LoadWorkflow(saved);
+                    StateService.MarkAsSaved();
+                }
+            }
+
             var result = await ApiClient.ExecuteUpToNodeAsync(
                 StateService.Workflow.Id, nodeId);
 

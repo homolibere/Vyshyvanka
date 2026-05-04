@@ -53,83 +53,54 @@ public class LoopNode : BaseLogicNode
 
         if (items.Count == 0)
         {
-            // Empty array - go directly to done output
-            var emptyResult = new LoopOutput
+            // Empty array — emit on the "done" port with summary data
+            context.NodeOutputs.Set(Id, "done", JsonSerializer.SerializeToElement(new
             {
-                Items = [],
-                TotalCount = 0,
-                ProcessedCount = 0,
-                IsComplete = true,
-                OutputPort = "done"
-            };
-            return Task.FromResult(SuccessOutput(emptyResult));
+                items = Array.Empty<object>(),
+                totalCount = 0,
+                processedCount = 0,
+                isComplete = true
+            }));
+
+            return Task.FromResult(SuccessOutput(new
+                { items = Array.Empty<object>(), totalCount = 0, isComplete = true, outputPort = "done" }));
         }
 
-        // Process items and return loop output
-        var loopItems = new List<LoopItem>();
+        // Build per-item metadata
+        var loopItems = new List<object>();
         for (int i = 0; i < items.Count; i++)
         {
-            loopItems.Add(new LoopItem
+            loopItems.Add(new
             {
-                Index = i,
-                Item = JsonSerializer.Deserialize<object>(items[i].GetRawText()),
-                IsFirst = i == 0,
-                IsLast = i == items.Count - 1
+                index = i,
+                item = JsonSerializer.Deserialize<object>(items[i].GetRawText()),
+                isFirst = i == 0,
+                isLast = i == items.Count - 1
             });
         }
 
-        var result = new LoopOutput
+        // Store the full items array on the "done" port for downstream summary use
+        context.NodeOutputs.Set(Id, "done", JsonSerializer.SerializeToElement(new
         {
-            Items = loopItems,
-            TotalCount = items.Count,
-            ProcessedCount = items.Count,
-            BatchSize = batchSize,
-            IsComplete = true,
-            OutputPort = "item"
-        };
+            items = loopItems,
+            totalCount = items.Count,
+            processedCount = items.Count,
+            batchSize,
+            isComplete = true
+        }));
 
-        return Task.FromResult(SuccessOutput(result));
+        // The "item" port carries the first item directly so downstream nodes
+        // connected to it receive usable data in the current single-pass model.
+        // Return the first item as the node output routed to the "item" port.
+        var firstItem = JsonSerializer.Deserialize<object>(items[0].GetRawText());
+        return Task.FromResult(SuccessOutput(new
+        {
+            index = 0,
+            item = firstItem,
+            isFirst = true,
+            isLast = items.Count == 1,
+            totalCount = items.Count,
+            outputPort = "item"
+        }));
     }
-}
-
-/// <summary>
-/// Output from a loop node containing iteration data.
-/// </summary>
-public record LoopOutput
-{
-    /// <summary>Items to iterate over.</summary>
-    public List<LoopItem> Items { get; init; } = [];
-
-    /// <summary>Total number of items.</summary>
-    public int TotalCount { get; init; }
-
-    /// <summary>Number of items processed.</summary>
-    public int ProcessedCount { get; init; }
-
-    /// <summary>Batch size for parallel processing.</summary>
-    public int BatchSize { get; init; } = 1;
-
-    /// <summary>Whether the loop is complete.</summary>
-    public bool IsComplete { get; init; }
-
-    /// <summary>Output port to use.</summary>
-    public string OutputPort { get; init; } = "item";
-}
-
-/// <summary>
-/// Represents a single item in a loop iteration.
-/// </summary>
-public record LoopItem
-{
-    /// <summary>Zero-based index of the item.</summary>
-    public int Index { get; init; }
-
-    /// <summary>The item data.</summary>
-    public object? Item { get; init; }
-
-    /// <summary>Whether this is the first item.</summary>
-    public bool IsFirst { get; init; }
-
-    /// <summary>Whether this is the last item.</summary>
-    public bool IsLast { get; init; }
 }

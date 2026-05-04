@@ -276,6 +276,7 @@ public class WorkflowEngine : IWorkflowEngine
             {
                 NodeId = nodeId,
                 Success = output.Success,
+                InputData = inputData,
                 OutputData = output.Data,
                 ErrorMessage = output.ErrorMessage,
                 Duration = DateTime.UtcNow - startTime

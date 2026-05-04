@@ -14,14 +14,11 @@ namespace Vyshyvanka.Designer.Components;
 /// </summary>
 public partial class NodeEditorModal : ComponentBase, IDisposable
 {
-    [Inject]
-    private WorkflowStateService StateService { get; set; } = null!;
+    [Inject] private WorkflowStateService StateService { get; set; } = null!;
 
-    [Inject]
-    private VyshyvankaApiClient ApiClient { get; set; } = null!;
+    [Inject] private VyshyvankaApiClient ApiClient { get; set; } = null!;
 
-    [Inject]
-    private ToastService ToastService { get; set; } = null!;
+    [Inject] private ToastService ToastService { get; set; } = null!;
 
     /// <summary>
     /// ID of the node to edit. Set this to open the modal.
@@ -97,6 +94,7 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
         {
             SaveConfiguration();
         }
+
         await OnClose.InvokeAsync();
     }
 
@@ -127,7 +125,7 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
         {
             _properties = ConfigurationSchemaParser.Parse(_definition.ConfigurationSchema);
             _configValues = ConfigurationSchemaParser.ExtractValues(
-                _node.Configuration, 
+                _node.Configuration,
                 _properties);
             _isJsonMode = false;
             _hasSchema = true;
@@ -232,6 +230,7 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
         {
             SaveConfiguration();
         }
+
         await OnClose.InvokeAsync();
     }
 
@@ -256,7 +255,7 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
             return;
 
         JsonElement config;
-        
+
         if (!_hasSchema || _isJsonMode)
         {
             // For schema-less nodes or JSON mode, parse the raw JSON from the config panel
@@ -276,7 +275,7 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
             // For schema-based nodes in form mode, build from values
             config = ConfigurationSchemaParser.BuildConfiguration(_configValues);
         }
-        
+
         StateService.UpdateNodeConfiguration(NodeId, config);
         _isDirty = false;
     }
@@ -317,6 +316,17 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
 
         try
         {
+            // Save the workflow to the API so the execution uses the latest state
+            if (StateService.IsDirty)
+            {
+                var saved = await ApiClient.UpdateWorkflowAsync(StateService.Workflow);
+                if (saved is not null)
+                {
+                    StateService.LoadWorkflow(saved);
+                    StateService.MarkAsSaved();
+                }
+            }
+
             var result = await ApiClient.ExecuteUpToNodeAsync(
                 StateService.Workflow.Id, NodeId);
 
