@@ -1,4 +1,5 @@
 using System.Web;
+using Microsoft.Extensions.Logging;
 using Vyshyvanka.Core.Attributes;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
@@ -15,9 +16,11 @@ namespace Vyshyvanka.Plugin.GitLab.Nodes;
 [NodeInput("input", DisplayName = "Input", Type = PortType.Object)]
 [NodeOutput("output", DisplayName = "Output", Type = PortType.Object)]
 [RequiresCredential(CredentialType.ApiKey)]
-[ConfigurationProperty("operation", "string", Description = "Operation: create, get, list, edit, delete", IsRequired = true)]
+[ConfigurationProperty("operation", "string", Description = "Operation: create, get, list, edit, delete",
+    IsRequired = true)]
 [ConfigurationProperty("projectId", "string", Description = "Project ID or URL-encoded path", IsRequired = true)]
-[ConfigurationProperty("filePath", "string", Description = "Path to the file in the repository. Required for create, get, edit, delete.")]
+[ConfigurationProperty("filePath", "string",
+    Description = "Path to the file in the repository. Required for create, get, edit, delete.")]
 [ConfigurationProperty("branch", "string", Description = "Branch name (default: main)")]
 [ConfigurationProperty("content", "string", Description = "File content. Required for create and edit.")]
 [ConfigurationProperty("commitMessage", "string", Description = "Commit message. Required for create, edit, delete.")]
@@ -31,16 +34,25 @@ public class GitLabFileNode : BaseGitLabNode
     public override string Type => "gitlab-file";
     public override NodeCategory Category => NodeCategory.Action;
 
-    public GitLabFileNode() { }
-    internal GitLabFileNode(HttpClient? httpClient) : base(httpClient) { }
+    public GitLabFileNode()
+    {
+    }
+
+    internal GitLabFileNode(HttpClient? httpClient) : base(httpClient)
+    {
+    }
 
     public override async Task<NodeOutput> ExecuteAsync(NodeInput input, IExecutionContext context)
     {
+        var logger = CreateLogger(context);
+
         try
         {
             var operation = GetRequiredConfigValue<string>(input, "operation").ToLowerInvariant();
             var projectId = EncodeProject(GetRequiredConfigValue<string>(input, "projectId"));
             var (apiBase, token) = await ResolveCredentialsAsync(input, context);
+
+            logger.LogInformation("GitLab file operation: {Operation} on project {ProjectId}", operation, projectId);
 
             return operation switch
             {
@@ -54,6 +66,7 @@ public class GitLabFileNode : BaseGitLabNode
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "GitLab file operation failed");
             return FailureOutput($"GitLab File error: {ex.Message}");
         }
     }

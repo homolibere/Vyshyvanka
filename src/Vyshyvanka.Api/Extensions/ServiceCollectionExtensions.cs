@@ -52,7 +52,8 @@ public static class ServiceCollectionExtensions
             var nodeRegistry = sp.GetRequiredService<INodeRegistry>();
             var expressionEvaluator = sp.GetRequiredService<IExpressionEvaluator>();
             var pluginHost = sp.GetService<IPluginHost>();
-            return new WorkflowEngine(nodeRegistry, expressionEvaluator, pluginHost);
+            var logger = sp.GetRequiredService<ILogger<WorkflowEngine>>();
+            return new WorkflowEngine(nodeRegistry, expressionEvaluator, pluginHost, logger);
         });
 
         // Register persistence

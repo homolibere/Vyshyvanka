@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Web;
+using Microsoft.Extensions.Logging;
 using Vyshyvanka.Core.Attributes;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
@@ -16,16 +17,20 @@ namespace Vyshyvanka.Plugin.Jira.Nodes;
 [NodeInput("input", DisplayName = "Input", Type = PortType.Object)]
 [NodeOutput("output", DisplayName = "Output", Type = PortType.Object)]
 [RequiresCredential(CredentialType.BasicAuth)]
-[ConfigurationProperty("operation", "string", Description = "Operation: create, update, delete, get, getAll, transition", IsRequired = true)]
-[ConfigurationProperty("issueIdOrKey", "string", Description = "Issue ID or key (e.g. PROJ-123). Required for get, update, delete, transition.")]
+[ConfigurationProperty("operation", "string",
+    Description = "Operation: create, update, delete, get, getAll, transition", IsRequired = true)]
+[ConfigurationProperty("issueIdOrKey", "string",
+    Description = "Issue ID or key (e.g. PROJ-123). Required for get, update, delete, transition.")]
 [ConfigurationProperty("projectKey", "string", Description = "Project key (e.g. PROJ). Required for create.")]
 [ConfigurationProperty("summary", "string", Description = "Issue summary. Required for create.")]
-[ConfigurationProperty("issueType", "string", Description = "Issue type name (e.g. Task, Bug, Story). Required for create.")]
+[ConfigurationProperty("issueType", "string",
+    Description = "Issue type name (e.g. Task, Bug, Story). Required for create.")]
 [ConfigurationProperty("description", "string", Description = "Issue description (plain text, converted to ADF).")]
 [ConfigurationProperty("assigneeAccountId", "string", Description = "Assignee account ID.")]
 [ConfigurationProperty("labels", "array", Description = "Array of label strings.")]
 [ConfigurationProperty("priority", "string", Description = "Priority name (e.g. High, Medium, Low).")]
-[ConfigurationProperty("additionalFields", "object", Description = "Additional fields as key-value pairs merged into the request.")]
+[ConfigurationProperty("additionalFields", "object",
+    Description = "Additional fields as key-value pairs merged into the request.")]
 [ConfigurationProperty("jql", "string", Description = "JQL query for getAll operation.")]
 [ConfigurationProperty("maxResults", "number", Description = "Max results for getAll (default 50).")]
 [ConfigurationProperty("startAt", "number", Description = "Pagination offset for getAll (default 0).")]
@@ -35,15 +40,24 @@ public class JiraIssueNode : BaseJiraNode
     public override string Type => "jira-issue";
     public override NodeCategory Category => NodeCategory.Action;
 
-    public JiraIssueNode() { }
-    internal JiraIssueNode(HttpClient? httpClient) : base(httpClient) { }
+    public JiraIssueNode()
+    {
+    }
+
+    internal JiraIssueNode(HttpClient? httpClient) : base(httpClient)
+    {
+    }
 
     public override async Task<NodeOutput> ExecuteAsync(NodeInput input, IExecutionContext context)
     {
+        var logger = CreateLogger(context);
+
         try
         {
             var operation = GetRequiredConfigValue<string>(input, "operation").ToLowerInvariant();
             var (baseUrl, auth) = await ResolveCredentialsAsync(input, context);
+
+            logger.LogInformation("Jira issue operation: {Operation}", operation);
 
             return operation switch
             {
@@ -53,11 +67,13 @@ public class JiraIssueNode : BaseJiraNode
                 "get" => await GetAsync(input, baseUrl, auth, context.CancellationToken),
                 "getall" => await GetAllAsync(input, baseUrl, auth, context.CancellationToken),
                 "transition" => await TransitionAsync(input, baseUrl, auth, context.CancellationToken),
-                _ => FailureOutput($"Unsupported operation '{operation}'. Use: create, update, delete, get, getAll, transition.")
+                _ => FailureOutput(
+                    $"Unsupported operation '{operation}'. Use: create, update, delete, get, getAll, transition.")
             };
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "Jira issue operation failed");
             return FailureOutput($"Jira Issue error: {ex.Message}");
         }
     }

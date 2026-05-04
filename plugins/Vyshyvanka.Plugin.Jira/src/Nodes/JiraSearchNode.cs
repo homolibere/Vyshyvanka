@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using Vyshyvanka.Core.Attributes;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
@@ -40,6 +41,8 @@ public class JiraSearchNode : BaseJiraNode
 
     public override async Task<NodeOutput> ExecuteAsync(NodeInput input, IExecutionContext context)
     {
+        var logger = CreateLogger(context);
+
         try
         {
             var jql = GetRequiredConfigValue<string>(input, "jql");
@@ -47,6 +50,8 @@ public class JiraSearchNode : BaseJiraNode
             var expand = GetConfigValue<string>(input, "expand");
             var maxResults = Math.Min(GetConfigValue<int?>(input, "maxResults") ?? 50, 100);
             var returnAll = GetConfigValue<bool?>(input, "returnAll") ?? false;
+
+            logger.LogInformation("Jira search: {Jql} (returnAll={ReturnAll})", jql, returnAll);
 
             var (baseUrl, auth) = await ResolveCredentialsAsync(input, context);
 
@@ -103,10 +108,12 @@ public class JiraSearchNode : BaseJiraNode
         }
         catch (OperationCanceledException)
         {
+            logger.LogWarning("Jira search was cancelled");
             return FailureOutput("Search was cancelled");
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "Jira search failed");
             return FailureOutput($"Jira Search error: {ex.Message}");
         }
     }

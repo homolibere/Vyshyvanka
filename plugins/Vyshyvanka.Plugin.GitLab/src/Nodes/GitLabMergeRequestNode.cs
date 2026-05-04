@@ -1,4 +1,5 @@
 using System.Web;
+using Microsoft.Extensions.Logging;
 using Vyshyvanka.Core.Attributes;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
@@ -15,9 +16,11 @@ namespace Vyshyvanka.Plugin.GitLab.Nodes;
 [NodeInput("input", DisplayName = "Input", Type = PortType.Object)]
 [NodeOutput("output", DisplayName = "Output", Type = PortType.Object)]
 [RequiresCredential(CredentialType.ApiKey)]
-[ConfigurationProperty("operation", "string", Description = "Operation: create, get, getAll, update, merge, approve, comment", IsRequired = true)]
+[ConfigurationProperty("operation", "string",
+    Description = "Operation: create, get, getAll, update, merge, approve, comment", IsRequired = true)]
 [ConfigurationProperty("projectId", "string", Description = "Project ID or URL-encoded path", IsRequired = true)]
-[ConfigurationProperty("mergeRequestIid", "number", Description = "Merge request internal ID. Required for get, update, merge, approve, comment.")]
+[ConfigurationProperty("mergeRequestIid", "number",
+    Description = "Merge request internal ID. Required for get, update, merge, approve, comment.")]
 [ConfigurationProperty("title", "string", Description = "Merge request title. Required for create.")]
 [ConfigurationProperty("sourceBranch", "string", Description = "Source branch. Required for create.")]
 [ConfigurationProperty("targetBranch", "string", Description = "Target branch (default: main).")]
@@ -30,9 +33,11 @@ namespace Vyshyvanka.Plugin.GitLab.Nodes;
 [ConfigurationProperty("removeSourceBranch", "boolean", Description = "Delete source branch after merge.")]
 [ConfigurationProperty("stateEvent", "string", Description = "State event for update: close or reopen.")]
 [ConfigurationProperty("mergeCommitMessage", "string", Description = "Custom merge commit message.")]
-[ConfigurationProperty("mergeWhenPipelineSucceeds", "boolean", Description = "Merge when pipeline succeeds (default: false).")]
+[ConfigurationProperty("mergeWhenPipelineSucceeds", "boolean",
+    Description = "Merge when pipeline succeeds (default: false).")]
 [ConfigurationProperty("body", "string", Description = "Comment body (Markdown). Required for comment operation.")]
-[ConfigurationProperty("state", "string", Description = "Filter for getAll: opened, closed, merged, all (default: all).")]
+[ConfigurationProperty("state", "string",
+    Description = "Filter for getAll: opened, closed, merged, all (default: all).")]
 [ConfigurationProperty("orderBy", "string", Description = "Order by: created_at, updated_at (default: created_at).")]
 [ConfigurationProperty("sort", "string", Description = "Sort direction: asc, desc (default: desc).")]
 [ConfigurationProperty("perPage", "number", Description = "Results per page for getAll (default: 20, max 100).")]
@@ -42,16 +47,26 @@ public class GitLabMergeRequestNode : BaseGitLabNode
     public override string Type => "gitlab-merge-request";
     public override NodeCategory Category => NodeCategory.Action;
 
-    public GitLabMergeRequestNode() { }
-    internal GitLabMergeRequestNode(HttpClient? httpClient) : base(httpClient) { }
+    public GitLabMergeRequestNode()
+    {
+    }
+
+    internal GitLabMergeRequestNode(HttpClient? httpClient) : base(httpClient)
+    {
+    }
 
     public override async Task<NodeOutput> ExecuteAsync(NodeInput input, IExecutionContext context)
     {
+        var logger = CreateLogger(context);
+
         try
         {
             var operation = GetRequiredConfigValue<string>(input, "operation").ToLowerInvariant();
             var projectId = EncodeProject(GetRequiredConfigValue<string>(input, "projectId"));
             var (apiBase, token) = await ResolveCredentialsAsync(input, context);
+
+            logger.LogInformation("GitLab merge request operation: {Operation} on project {ProjectId}", operation,
+                projectId);
 
             return operation switch
             {
@@ -62,11 +77,13 @@ public class GitLabMergeRequestNode : BaseGitLabNode
                 "merge" => await MergeAsync(input, projectId, apiBase, token, context.CancellationToken),
                 "approve" => await ApproveAsync(input, projectId, apiBase, token, context.CancellationToken),
                 "comment" => await CommentAsync(input, projectId, apiBase, token, context.CancellationToken),
-                _ => FailureOutput($"Unsupported operation '{operation}'. Use: create, get, getAll, update, merge, approve, comment.")
+                _ => FailureOutput(
+                    $"Unsupported operation '{operation}'. Use: create, get, getAll, update, merge, approve, comment.")
             };
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "GitLab merge request operation failed");
             return FailureOutput($"GitLab Merge Request error: {ex.Message}");
         }
     }

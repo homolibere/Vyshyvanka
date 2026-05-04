@@ -1,4 +1,5 @@
 using System.Web;
+using Microsoft.Extensions.Logging;
 using Vyshyvanka.Core.Attributes;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
@@ -15,11 +16,15 @@ namespace Vyshyvanka.Plugin.GitLab.Nodes;
 [NodeInput("input", DisplayName = "Input", Type = PortType.Object)]
 [NodeOutput("output", DisplayName = "Output", Type = PortType.Object)]
 [RequiresCredential(CredentialType.ApiKey)]
-[ConfigurationProperty("operation", "string", Description = "Operation: get, getIssues, getUserRepos", IsRequired = true)]
-[ConfigurationProperty("projectId", "string", Description = "Project ID or URL-encoded path. Required for get and getIssues.")]
+[ConfigurationProperty("operation", "string", Description = "Operation: get, getIssues, getUserRepos",
+    IsRequired = true)]
+[ConfigurationProperty("projectId", "string",
+    Description = "Project ID or URL-encoded path. Required for get and getIssues.")]
 [ConfigurationProperty("userId", "string", Description = "User ID or username. Required for getUserRepos.")]
-[ConfigurationProperty("state", "string", Description = "Issue state filter for getIssues: opened, closed, all (default: all).")]
-[ConfigurationProperty("orderBy", "string", Description = "Order by field: created_at, updated_at (default: created_at).")]
+[ConfigurationProperty("state", "string",
+    Description = "Issue state filter for getIssues: opened, closed, all (default: all).")]
+[ConfigurationProperty("orderBy", "string",
+    Description = "Order by field: created_at, updated_at (default: created_at).")]
 [ConfigurationProperty("sort", "string", Description = "Sort direction: asc, desc (default: desc).")]
 [ConfigurationProperty("perPage", "number", Description = "Results per page (default: 20, max 100).")]
 [ConfigurationProperty("page", "number", Description = "Page number (default: 1).")]
@@ -28,15 +33,24 @@ public class GitLabRepositoryNode : BaseGitLabNode
     public override string Type => "gitlab-repository";
     public override NodeCategory Category => NodeCategory.Action;
 
-    public GitLabRepositoryNode() { }
-    internal GitLabRepositoryNode(HttpClient? httpClient) : base(httpClient) { }
+    public GitLabRepositoryNode()
+    {
+    }
+
+    internal GitLabRepositoryNode(HttpClient? httpClient) : base(httpClient)
+    {
+    }
 
     public override async Task<NodeOutput> ExecuteAsync(NodeInput input, IExecutionContext context)
     {
+        var logger = CreateLogger(context);
+
         try
         {
             var operation = GetRequiredConfigValue<string>(input, "operation").ToLowerInvariant();
             var (apiBase, token) = await ResolveCredentialsAsync(input, context);
+
+            logger.LogInformation("GitLab repository operation: {Operation}", operation);
 
             return operation switch
             {
@@ -48,6 +62,7 @@ public class GitLabRepositoryNode : BaseGitLabNode
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "GitLab repository operation failed");
             return FailureOutput($"GitLab Repository error: {ex.Message}");
         }
     }

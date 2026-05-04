@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using Vyshyvanka.Core.Attributes;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
@@ -15,10 +16,12 @@ namespace Vyshyvanka.Plugin.AdvancedHttp.Nodes;
     Icon = "fa-solid fa-layer-group")]
 [NodeInput("input", DisplayName = "Input")]
 [NodeOutput("output", DisplayName = "Results", Type = PortType.Object)]
-[ConfigurationProperty("requests", "array", Description = "Array of request objects with url, method, id, headers, body", IsRequired = true)]
+[ConfigurationProperty("requests", "array",
+    Description = "Array of request objects with url, method, id, headers, body", IsRequired = true)]
 [ConfigurationProperty("mode", "string", Description = "Execution mode: parallel or sequential (default: parallel)")]
 [ConfigurationProperty("maxConcurrency", "number", Description = "Max parallel requests (default: 10)")]
-[ConfigurationProperty("stopOnError", "boolean", Description = "Stop on first error in sequential mode (default: false)")]
+[ConfigurationProperty("stopOnError", "boolean",
+    Description = "Stop on first error in sequential mode (default: false)")]
 [ConfigurationProperty("timeout", "number", Description = "Per-request timeout in seconds (default: 30)")]
 public class HttpBatchNode : BasePluginNode
 {
@@ -38,6 +41,8 @@ public class HttpBatchNode : BasePluginNode
 
     public override async Task<NodeOutput> ExecuteAsync(NodeInput input, IExecutionContext context)
     {
+        var logger = CreateLogger(context);
+
         try
         {
             var requests = GetRequiredConfigValue<List<BatchRequestConfig>>(input, "requests");
@@ -45,6 +50,8 @@ public class HttpBatchNode : BasePluginNode
             var stopOnError = GetConfigValue<bool?>(input, "stopOnError") ?? false;
             var maxConcurrency = GetConfigValue<int?>(input, "maxConcurrency") ?? 10;
             var timeoutSeconds = GetConfigValue<int?>(input, "timeout") ?? 30;
+
+            logger.LogInformation("HTTP batch executing {Count} requests in {Mode} mode", requests.Count, mode);
 
             using var client = _httpClient ?? new HttpClient { Timeout = TimeSpan.FromSeconds(timeoutSeconds) };
 
@@ -54,6 +61,9 @@ public class HttpBatchNode : BasePluginNode
 
             var successCount = results.Count(r => r.Success);
             var failureCount = results.Count - successCount;
+
+            logger.LogInformation("HTTP batch completed: {Success} succeeded, {Failed} failed out of {Total}",
+                successCount, failureCount, results.Count);
 
             return SuccessOutput(new
             {
@@ -69,10 +79,12 @@ public class HttpBatchNode : BasePluginNode
         }
         catch (OperationCanceledException)
         {
+            logger.LogWarning("HTTP batch request was cancelled");
             return FailureOutput("Batch request was cancelled");
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "HTTP batch request error");
             return FailureOutput($"Batch request error: {ex.Message}");
         }
     }

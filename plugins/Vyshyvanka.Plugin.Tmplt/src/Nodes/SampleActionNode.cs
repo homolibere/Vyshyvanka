@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using Vyshyvanka.Core.Attributes;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
@@ -22,11 +23,15 @@ public class SampleActionNode : BasePluginNode
 
     public override Task<NodeOutput> ExecuteAsync(NodeInput input, IExecutionContext context)
     {
+        var logger = CreateLogger(context);
+
         context.CancellationToken.ThrowIfCancellationRequested();
 
         try
         {
             var greeting = GetRequiredConfigValue<string>(input, "greeting");
+
+            logger.LogInformation("SampleActionNode executing with greeting: {Greeting}", greeting);
 
             var result = SuccessOutput(new
             {
@@ -40,6 +45,7 @@ public class SampleActionNode : BasePluginNode
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "SampleActionNode failed");
             return Task.FromResult(FailureOutput(ex.Message));
         }
     }

@@ -1,6 +1,8 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Core.Models;
@@ -17,6 +19,7 @@ public class WorkflowEngine : IWorkflowEngine
     private readonly INodeRegistry _nodeRegistry;
     private readonly IExpressionEvaluator _expressionEvaluator;
     private readonly IPluginHost? _pluginHost;
+    private readonly ILogger<WorkflowEngine> _logger;
     private readonly ConcurrentDictionary<Guid, CancellationTokenSource> _activeExecutions = new();
 
     /// <summary>
@@ -40,11 +43,13 @@ public class WorkflowEngine : IWorkflowEngine
     public WorkflowEngine(
         INodeRegistry nodeRegistry,
         IExpressionEvaluator expressionEvaluator,
-        IPluginHost? pluginHost = null)
+        IPluginHost? pluginHost = null,
+        ILogger<WorkflowEngine>? logger = null)
     {
         _nodeRegistry = nodeRegistry ?? throw new ArgumentNullException(nameof(nodeRegistry));
         _expressionEvaluator = expressionEvaluator ?? throw new ArgumentNullException(nameof(expressionEvaluator));
         _pluginHost = pluginHost;
+        _logger = logger ?? NullLoggerFactory.Instance.CreateLogger<WorkflowEngine>();
     }
 
     /// <inheritdoc />
@@ -64,6 +69,10 @@ public class WorkflowEngine : IWorkflowEngine
 
         try
         {
+            _logger.LogInformation(
+                "Starting execution {ExecutionId} for workflow {WorkflowId} ({NodeCount} nodes)",
+                context.ExecutionId, workflow.Id, workflow.Nodes.Count);
+
             var executionLevels = BuildExecutionLevels(workflow);
             var maxParallelism = GetEffectiveMaxParallelism(workflow.Settings.MaxDegreeOfParallelism);
 
@@ -163,12 +172,19 @@ public class WorkflowEngine : IWorkflowEngine
             }
 
             var allSuccess = nodeResults.All(r => r.Success);
+
+            _logger.LogInformation(
+                "Execution {ExecutionId} completed: success={Success}, duration={Duration}ms",
+                context.ExecutionId, allSuccess, (DateTime.UtcNow - startTime).TotalMilliseconds);
+
             return BuildResult(context.ExecutionId, nodeResults, startTime,
                 success: allSuccess,
                 errorMessage: allSuccess ? null : nodeResults.FirstOrDefault(r => !r.Success)?.ErrorMessage);
         }
         catch (OperationCanceledException)
         {
+            _logger.LogWarning("Execution {ExecutionId} was cancelled", context.ExecutionId);
+
             return BuildResult(context.ExecutionId, nodeResults, startTime,
                 success: false, errorMessage: "Execution was cancelled");
         }
@@ -374,11 +390,24 @@ public class WorkflowEngine : IWorkflowEngine
                 CredentialId = node.CredentialId
             };
 
+            _logger.LogInformation(
+                "Executing node {NodeId} (type={NodeType}) in execution {ExecutionId}",
+                nodeId, node.Type, context.ExecutionId);
+
             var output = await ExecuteNodeInstanceAsync(nodeInstance, input, context, timeout);
 
             if (output.Success)
             {
                 StoreNodeOutput(context, node.Id, output);
+                _logger.LogDebug(
+                    "Node {NodeId} completed successfully in {Duration}ms",
+                    nodeId, (DateTime.UtcNow - startTime).TotalMilliseconds);
+            }
+            else
+            {
+                _logger.LogWarning(
+                    "Node {NodeId} failed: {Error}",
+                    nodeId, output.ErrorMessage);
             }
 
             var result = new NodeExecutionResult

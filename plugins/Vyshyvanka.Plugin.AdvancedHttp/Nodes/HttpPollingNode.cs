@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using Vyshyvanka.Core.Attributes;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
@@ -45,6 +46,8 @@ public class HttpPollingNode : BasePluginNode
 
     public override async Task<NodeOutput> ExecuteAsync(NodeInput input, IExecutionContext context)
     {
+        var logger = CreateLogger(context);
+
         try
         {
             var url = GetRequiredConfigValue<string>(input, "url");
@@ -58,6 +61,9 @@ public class HttpPollingNode : BasePluginNode
             var successValue = GetConfigValue<string>(input, "successValue");
             var failureJsonPath = GetConfigValue<string>(input, "failureJsonPath");
             var failureValue = GetConfigValue<string>(input, "failureValue");
+
+            logger.LogInformation("HTTP polling {Method} {Url} (interval={IntervalMs}ms, maxAttempts={MaxAttempts})",
+                method, url, intervalMs, maxAttempts);
 
             using var client = _httpClient ?? new HttpClient { Timeout = TimeSpan.FromSeconds(timeoutSeconds) };
 
@@ -116,6 +122,9 @@ public class HttpPollingNode : BasePluginNode
                     var failureCheckValue = GetJsonPathValue(parsedBody.Value, failureJsonPath);
                     if (failureCheckValue == failureValue)
                     {
+                        logger.LogWarning(
+                            "HTTP polling {Url} matched failure condition on attempt {Attempt}: {Path}={Value}", url,
+                            attempt, failureJsonPath, failureCheckValue);
                         return SuccessOutput(new
                         {
                             status = "failure_condition_met",
@@ -136,6 +145,8 @@ public class HttpPollingNode : BasePluginNode
                     var successCheckValue = GetJsonPathValue(parsedBody.Value, successJsonPath);
                     if (successCheckValue == successValue)
                     {
+                        logger.LogInformation("HTTP polling {Url} matched success condition on attempt {Attempt}", url,
+                            attempt);
                         return SuccessOutput(new
                         {
                             status = "success",
@@ -178,10 +189,12 @@ public class HttpPollingNode : BasePluginNode
         }
         catch (OperationCanceledException)
         {
+            logger.LogWarning("HTTP polling was cancelled");
             return FailureOutput("Polling was cancelled");
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "HTTP polling error");
             return FailureOutput($"Polling error: {ex.Message}");
         }
     }

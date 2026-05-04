@@ -149,7 +149,8 @@ public class WebhookController : ControllerBase
             credentialProvider,
             cancellationToken,
             HttpContext.RequestServices,
-            userId: null);
+            userId: null,
+            _logger);
 
         // Add webhook data to context
         context.Variables["webhook"] = webhookData;

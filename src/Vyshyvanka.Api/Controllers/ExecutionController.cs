@@ -103,7 +103,8 @@ public class ExecutionController : ControllerBase
             credentialProvider,
             cancellationToken,
             HttpContext.RequestServices,
-            _currentUserService.UserId);
+            _currentUserService.UserId,
+            _logger);
 
         // Add trigger data to context if provided
         if (request.InputData.HasValue)

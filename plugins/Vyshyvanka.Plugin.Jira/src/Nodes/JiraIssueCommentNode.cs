@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using Vyshyvanka.Core.Attributes;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
@@ -15,10 +16,12 @@ namespace Vyshyvanka.Plugin.Jira.Nodes;
 [NodeInput("input", DisplayName = "Input", Type = PortType.Object)]
 [NodeOutput("output", DisplayName = "Output", Type = PortType.Object)]
 [RequiresCredential(CredentialType.BasicAuth)]
-[ConfigurationProperty("operation", "string", Description = "Operation: add, get, getAll, update, remove", IsRequired = true)]
+[ConfigurationProperty("operation", "string", Description = "Operation: add, get, getAll, update, remove",
+    IsRequired = true)]
 [ConfigurationProperty("issueIdOrKey", "string", Description = "Issue ID or key (e.g. PROJ-123)", IsRequired = true)]
 [ConfigurationProperty("commentId", "string", Description = "Comment ID. Required for get, update, remove.")]
-[ConfigurationProperty("body", "string", Description = "Comment body (plain text, converted to ADF). Required for add and update.")]
+[ConfigurationProperty("body", "string",
+    Description = "Comment body (plain text, converted to ADF). Required for add and update.")]
 [ConfigurationProperty("maxResults", "number", Description = "Max results for getAll (default 50).")]
 [ConfigurationProperty("startAt", "number", Description = "Pagination offset for getAll (default 0).")]
 public class JiraIssueCommentNode : BaseJiraNode
@@ -26,16 +29,25 @@ public class JiraIssueCommentNode : BaseJiraNode
     public override string Type => "jira-issue-comment";
     public override NodeCategory Category => NodeCategory.Action;
 
-    public JiraIssueCommentNode() { }
-    internal JiraIssueCommentNode(HttpClient? httpClient) : base(httpClient) { }
+    public JiraIssueCommentNode()
+    {
+    }
+
+    internal JiraIssueCommentNode(HttpClient? httpClient) : base(httpClient)
+    {
+    }
 
     public override async Task<NodeOutput> ExecuteAsync(NodeInput input, IExecutionContext context)
     {
+        var logger = CreateLogger(context);
+
         try
         {
             var operation = GetRequiredConfigValue<string>(input, "operation").ToLowerInvariant();
             var issueKey = GetRequiredConfigValue<string>(input, "issueIdOrKey");
             var (baseUrl, auth) = await ResolveCredentialsAsync(input, context);
+
+            logger.LogInformation("Jira comment operation: {Operation} on {IssueKey}", operation, issueKey);
 
             return operation switch
             {
@@ -49,6 +61,7 @@ public class JiraIssueCommentNode : BaseJiraNode
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "Jira comment operation failed");
             return FailureOutput($"Jira Comment error: {ex.Message}");
         }
     }

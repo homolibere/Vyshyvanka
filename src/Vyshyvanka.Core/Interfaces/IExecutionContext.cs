@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 
 namespace Vyshyvanka.Core.Interfaces;
 
@@ -30,6 +31,9 @@ public interface IExecutionContext
 
     /// <summary>ID of the user who initiated the execution. Used for ownership checks in sub-workflow execution.</summary>
     Guid? UserId { get; }
+
+    /// <summary>Logger for node execution diagnostics. Defaults to NullLogger when no logger is configured.</summary>
+    ILogger Logger { get; }
 }
 
 /// <summary>

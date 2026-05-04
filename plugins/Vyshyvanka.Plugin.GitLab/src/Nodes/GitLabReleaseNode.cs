@@ -1,4 +1,5 @@
 using System.Web;
+using Microsoft.Extensions.Logging;
 using Vyshyvanka.Core.Attributes;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
@@ -15,12 +16,16 @@ namespace Vyshyvanka.Plugin.GitLab.Nodes;
 [NodeInput("input", DisplayName = "Input", Type = PortType.Object)]
 [NodeOutput("output", DisplayName = "Output", Type = PortType.Object)]
 [RequiresCredential(CredentialType.ApiKey)]
-[ConfigurationProperty("operation", "string", Description = "Operation: create, get, getAll, update, delete", IsRequired = true)]
+[ConfigurationProperty("operation", "string", Description = "Operation: create, get, getAll, update, delete",
+    IsRequired = true)]
 [ConfigurationProperty("projectId", "string", Description = "Project ID or URL-encoded path", IsRequired = true)]
-[ConfigurationProperty("tagName", "string", Description = "Tag name for the release. Required for create, get, update, delete.")]
+[ConfigurationProperty("tagName", "string",
+    Description = "Tag name for the release. Required for create, get, update, delete.")]
 [ConfigurationProperty("name", "string", Description = "Release name.")]
-[ConfigurationProperty("description", "string", Description = "Release description (Markdown). Also known as release notes.")]
-[ConfigurationProperty("ref", "string", Description = "Branch or commit SHA to create the tag from. Required for create if tag does not exist.")]
+[ConfigurationProperty("description", "string",
+    Description = "Release description (Markdown). Also known as release notes.")]
+[ConfigurationProperty("ref", "string",
+    Description = "Branch or commit SHA to create the tag from. Required for create if tag does not exist.")]
 [ConfigurationProperty("milestones", "array", Description = "Array of milestone titles to associate.")]
 [ConfigurationProperty("releasedAt", "string", Description = "Release date (ISO 8601).")]
 [ConfigurationProperty("perPage", "number", Description = "Results per page for getAll (default: 20, max 100).")]
@@ -30,16 +35,25 @@ public class GitLabReleaseNode : BaseGitLabNode
     public override string Type => "gitlab-release";
     public override NodeCategory Category => NodeCategory.Action;
 
-    public GitLabReleaseNode() { }
-    internal GitLabReleaseNode(HttpClient? httpClient) : base(httpClient) { }
+    public GitLabReleaseNode()
+    {
+    }
+
+    internal GitLabReleaseNode(HttpClient? httpClient) : base(httpClient)
+    {
+    }
 
     public override async Task<NodeOutput> ExecuteAsync(NodeInput input, IExecutionContext context)
     {
+        var logger = CreateLogger(context);
+
         try
         {
             var operation = GetRequiredConfigValue<string>(input, "operation").ToLowerInvariant();
             var projectId = EncodeProject(GetRequiredConfigValue<string>(input, "projectId"));
             var (apiBase, token) = await ResolveCredentialsAsync(input, context);
+
+            logger.LogInformation("GitLab release operation: {Operation} on project {ProjectId}", operation, projectId);
 
             return operation switch
             {
@@ -53,6 +67,7 @@ public class GitLabReleaseNode : BaseGitLabNode
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "GitLab release operation failed");
             return FailureOutput($"GitLab Release error: {ex.Message}");
         }
     }

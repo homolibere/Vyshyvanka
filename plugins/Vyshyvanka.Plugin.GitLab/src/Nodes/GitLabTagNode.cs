@@ -1,4 +1,5 @@
 using System.Web;
+using Microsoft.Extensions.Logging;
 using Vyshyvanka.Core.Attributes;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
@@ -15,10 +16,12 @@ namespace Vyshyvanka.Plugin.GitLab.Nodes;
 [NodeInput("input", DisplayName = "Input", Type = PortType.Object)]
 [NodeOutput("output", DisplayName = "Output", Type = PortType.Object)]
 [RequiresCredential(CredentialType.ApiKey)]
-[ConfigurationProperty("operation", "string", Description = "Operation: create, get, getAll, delete", IsRequired = true)]
+[ConfigurationProperty("operation", "string", Description = "Operation: create, get, getAll, delete",
+    IsRequired = true)]
 [ConfigurationProperty("projectId", "string", Description = "Project ID or URL-encoded path", IsRequired = true)]
 [ConfigurationProperty("tagName", "string", Description = "Tag name. Required for create, get, delete.")]
-[ConfigurationProperty("ref", "string", Description = "Branch or commit SHA to create the tag from. Required for create.")]
+[ConfigurationProperty("ref", "string",
+    Description = "Branch or commit SHA to create the tag from. Required for create.")]
 [ConfigurationProperty("message", "string", Description = "Annotation message for the tag (creates an annotated tag).")]
 [ConfigurationProperty("releaseDescription", "string", Description = "Release notes for the tag (Markdown).")]
 [ConfigurationProperty("search", "string", Description = "Search tags by name pattern for getAll.")]
@@ -31,16 +34,25 @@ public class GitLabTagNode : BaseGitLabNode
     public override string Type => "gitlab-tag";
     public override NodeCategory Category => NodeCategory.Action;
 
-    public GitLabTagNode() { }
-    internal GitLabTagNode(HttpClient? httpClient) : base(httpClient) { }
+    public GitLabTagNode()
+    {
+    }
+
+    internal GitLabTagNode(HttpClient? httpClient) : base(httpClient)
+    {
+    }
 
     public override async Task<NodeOutput> ExecuteAsync(NodeInput input, IExecutionContext context)
     {
+        var logger = CreateLogger(context);
+
         try
         {
             var operation = GetRequiredConfigValue<string>(input, "operation").ToLowerInvariant();
             var projectId = EncodeProject(GetRequiredConfigValue<string>(input, "projectId"));
             var (apiBase, token) = await ResolveCredentialsAsync(input, context);
+
+            logger.LogInformation("GitLab tag operation: {Operation} on project {ProjectId}", operation, projectId);
 
             return operation switch
             {
@@ -53,6 +65,7 @@ public class GitLabTagNode : BaseGitLabNode
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "GitLab tag operation failed");
             return FailureOutput($"GitLab Tag error: {ex.Message}");
         }
     }

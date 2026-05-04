@@ -1,4 +1,5 @@
 using System.Web;
+using Microsoft.Extensions.Logging;
 using Vyshyvanka.Core.Attributes;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
@@ -25,15 +26,24 @@ public class JiraUserNode : BaseJiraNode
     public override string Type => "jira-user";
     public override NodeCategory Category => NodeCategory.Action;
 
-    public JiraUserNode() { }
-    internal JiraUserNode(HttpClient? httpClient) : base(httpClient) { }
+    public JiraUserNode()
+    {
+    }
+
+    internal JiraUserNode(HttpClient? httpClient) : base(httpClient)
+    {
+    }
 
     public override async Task<NodeOutput> ExecuteAsync(NodeInput input, IExecutionContext context)
     {
+        var logger = CreateLogger(context);
+
         try
         {
             var operation = GetRequiredConfigValue<string>(input, "operation").ToLowerInvariant();
             var (baseUrl, auth) = await ResolveCredentialsAsync(input, context);
+
+            logger.LogInformation("Jira user operation: {Operation}", operation);
 
             return operation switch
             {
@@ -44,6 +54,7 @@ public class JiraUserNode : BaseJiraNode
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "Jira user operation failed");
             return FailureOutput($"Jira User error: {ex.Message}");
         }
     }

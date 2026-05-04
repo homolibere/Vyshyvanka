@@ -1,4 +1,6 @@
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Vyshyvanka.Core.Interfaces;
 
 namespace Vyshyvanka.Engine.Execution;
@@ -32,6 +34,9 @@ public class ExecutionContext : IExecutionContext
     /// <inheritdoc />
     public Guid? UserId { get; }
 
+    /// <inheritdoc />
+    public ILogger Logger { get; }
+
     /// <summary>
     /// Creates a new execution context.
     /// </summary>
@@ -41,7 +46,8 @@ public class ExecutionContext : IExecutionContext
         ICredentialProvider credentialProvider,
         CancellationToken cancellationToken = default,
         IServiceProvider? services = null,
-        Guid? userId = null)
+        Guid? userId = null,
+        ILogger? logger = null)
     {
         ExecutionId = executionId;
         WorkflowId = workflowId;
@@ -50,7 +56,30 @@ public class ExecutionContext : IExecutionContext
         NodeOutputs = new NodeOutputStore();
         Services = services;
         UserId = userId;
+        Logger = logger ?? NullLogger.Instance;
+
+        // Expose a logging delegate that plugins can use across assembly load contexts.
+        // Avoids type identity issues with ILogger/ILoggerFactory in dynamic plugin loading.
+        Variables["__logAction"] = CreateLogAction(Logger);
     }
+
+    /// <summary>
+    /// Creates a logging delegate that bridges the host's ILogger to plugins via primitive types.
+    /// Level: 0=Debug, 1=Info, 2=Warning, 3=Error.
+    /// </summary>
+    private static Action<int, string, string> CreateLogAction(ILogger logger) =>
+        (level, category, message) =>
+        {
+            var logLevel = level switch
+            {
+                0 => LogLevel.Debug,
+                1 => LogLevel.Information,
+                2 => LogLevel.Warning,
+                3 => LogLevel.Error,
+                _ => LogLevel.Information
+            };
+            logger.Log(logLevel, "[{Category}] {Message}", category, message);
+        };
 }
 
 /// <summary>

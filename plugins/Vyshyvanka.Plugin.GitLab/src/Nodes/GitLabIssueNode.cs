@@ -1,4 +1,5 @@
 using System.Web;
+using Microsoft.Extensions.Logging;
 using Vyshyvanka.Core.Attributes;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
@@ -15,8 +16,10 @@ namespace Vyshyvanka.Plugin.GitLab.Nodes;
 [NodeInput("input", DisplayName = "Input", Type = PortType.Object)]
 [NodeOutput("output", DisplayName = "Output", Type = PortType.Object)]
 [RequiresCredential(CredentialType.ApiKey)]
-[ConfigurationProperty("operation", "string", Description = "Operation: create, get, edit, comment, lock", IsRequired = true)]
-[ConfigurationProperty("projectId", "string", Description = "Project ID or URL-encoded path (e.g. namespace/project)", IsRequired = true)]
+[ConfigurationProperty("operation", "string", Description = "Operation: create, get, edit, comment, lock",
+    IsRequired = true)]
+[ConfigurationProperty("projectId", "string", Description = "Project ID or URL-encoded path (e.g. namespace/project)",
+    IsRequired = true)]
 [ConfigurationProperty("issueIid", "number", Description = "Issue internal ID. Required for get, edit, comment, lock.")]
 [ConfigurationProperty("title", "string", Description = "Issue title. Required for create.")]
 [ConfigurationProperty("description", "string", Description = "Issue description (Markdown).")]
@@ -31,16 +34,25 @@ public class GitLabIssueNode : BaseGitLabNode
     public override string Type => "gitlab-issue";
     public override NodeCategory Category => NodeCategory.Action;
 
-    public GitLabIssueNode() { }
-    internal GitLabIssueNode(HttpClient? httpClient) : base(httpClient) { }
+    public GitLabIssueNode()
+    {
+    }
+
+    internal GitLabIssueNode(HttpClient? httpClient) : base(httpClient)
+    {
+    }
 
     public override async Task<NodeOutput> ExecuteAsync(NodeInput input, IExecutionContext context)
     {
+        var logger = CreateLogger(context);
+
         try
         {
             var operation = GetRequiredConfigValue<string>(input, "operation").ToLowerInvariant();
             var projectId = EncodeProject(GetRequiredConfigValue<string>(input, "projectId"));
             var (apiBase, token) = await ResolveCredentialsAsync(input, context);
+
+            logger.LogInformation("GitLab issue operation: {Operation} on project {ProjectId}", operation, projectId);
 
             return operation switch
             {
@@ -54,6 +66,7 @@ public class GitLabIssueNode : BaseGitLabNode
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "GitLab issue operation failed");
             return FailureOutput($"GitLab Issue error: {ex.Message}");
         }
     }

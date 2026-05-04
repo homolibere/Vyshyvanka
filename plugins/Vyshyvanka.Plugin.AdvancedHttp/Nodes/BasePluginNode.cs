@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
 
@@ -16,6 +17,14 @@ public abstract class BasePluginNode : INode
     public abstract NodeCategory Category { get; }
 
     public abstract Task<NodeOutput> ExecuteAsync(NodeInput input, IExecutionContext context);
+
+    /// <summary>
+    /// Creates a logger scoped to the concrete node type from the execution context.
+    /// </summary>
+    protected ILogger CreateLogger(IExecutionContext context) =>
+        context.Services?.GetService(typeof(ILoggerFactory)) is ILoggerFactory factory
+            ? factory.CreateLogger(GetType())
+            : context.Logger;
 
     protected static NodeOutput SuccessOutput(object data)
     {

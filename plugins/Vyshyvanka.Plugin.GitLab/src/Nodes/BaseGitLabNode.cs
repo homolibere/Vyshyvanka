@@ -2,6 +2,8 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Web;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
 
@@ -21,13 +23,67 @@ public abstract class BaseGitLabNode : INode
     private readonly string _id = Guid.NewGuid().ToString();
     private readonly HttpClient? _httpClient;
 
-    protected BaseGitLabNode() : this(null) { }
-    internal BaseGitLabNode(HttpClient? httpClient) { _httpClient = httpClient; }
+    protected BaseGitLabNode() : this(null)
+    {
+    }
+
+    internal BaseGitLabNode(HttpClient? httpClient)
+    {
+        _httpClient = httpClient;
+    }
 
     public string Id => _id;
     public abstract string Type { get; }
     public abstract NodeCategory Category { get; }
     public abstract Task<NodeOutput> ExecuteAsync(NodeInput input, IExecutionContext context);
+
+    // ── Logging ─────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Creates a logger that bridges to the host's logging infrastructure via a delegate
+    /// stored in the execution context. Works across assembly load context boundaries.
+    /// </summary>
+    protected ILogger CreateLogger(IExecutionContext context)
+    {
+        if (context.Variables.TryGetValue("__logAction", out var action) &&
+            action is Action<int, string, string> logAction)
+        {
+            return new DelegateLogger(GetType().FullName ?? GetType().Name, logAction);
+        }
+
+        return NullLogger.Instance;
+    }
+
+    /// <summary>
+    /// Lightweight ILogger implementation that forwards to a host-provided delegate.
+    /// </summary>
+    private sealed class DelegateLogger(string category, Action<int, string, string> logAction) : ILogger
+    {
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+        public bool IsEnabled(LogLevel logLevel) => logLevel >= LogLevel.Debug;
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,
+            Func<TState, Exception?, string> formatter)
+        {
+            if (!IsEnabled(logLevel)) return;
+
+            var level = logLevel switch
+            {
+                LogLevel.Debug => 0,
+                LogLevel.Information => 1,
+                LogLevel.Warning => 2,
+                LogLevel.Error => 3,
+                LogLevel.Critical => 3,
+                _ => 1
+            };
+
+            var message = formatter(state, exception);
+            if (exception is not null)
+                message = $"{message} {exception.Message}";
+
+            logAction(level, category, message);
+        }
+    }
 
     // ── Output helpers ──────────────────────────────────────────────────
 
@@ -73,7 +129,7 @@ public abstract class BaseGitLabNode : INode
                 "GitLab credential is required. Attach an ApiKey credential with accessToken and optional baseUrl.");
 
         var creds = await context.Credentials.GetCredentialAsync(input.CredentialId.Value, context.CancellationToken)
-            ?? throw new InvalidOperationException("Credential not found.");
+                    ?? throw new InvalidOperationException("Credential not found.");
 
         var token = creds.TryGetValue("accessToken", out var t) ? t
             : creds.TryGetValue("apiKey", out var k) ? k
@@ -117,8 +173,14 @@ public abstract class BaseGitLabNode : INode
         JsonElement? parsed = null;
         if (!string.IsNullOrWhiteSpace(responseBody))
         {
-            try { parsed = JsonSerializer.Deserialize<JsonElement>(responseBody); }
-            catch (JsonException) { /* non-JSON response */ }
+            try
+            {
+                parsed = JsonSerializer.Deserialize<JsonElement>(responseBody);
+            }
+            catch (JsonException)
+            {
+                /* non-JSON response */
+            }
         }
 
         return new GitLabApiResponse(

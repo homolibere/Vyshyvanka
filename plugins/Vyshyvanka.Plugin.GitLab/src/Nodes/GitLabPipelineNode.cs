@@ -1,4 +1,5 @@
 using System.Web;
+using Microsoft.Extensions.Logging;
 using Vyshyvanka.Core.Attributes;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
@@ -15,34 +16,51 @@ namespace Vyshyvanka.Plugin.GitLab.Nodes;
 [NodeInput("input", DisplayName = "Input", Type = PortType.Object)]
 [NodeOutput("output", DisplayName = "Output", Type = PortType.Object)]
 [RequiresCredential(CredentialType.ApiKey)]
-[ConfigurationProperty("operation", "string", Description = "Operation: get, getAll, create, retry, cancel, delete, getJobs", IsRequired = true)]
+[ConfigurationProperty("operation", "string",
+    Description = "Operation: get, getAll, create, retry, cancel, delete, getJobs", IsRequired = true)]
 [ConfigurationProperty("projectId", "string", Description = "Project ID or URL-encoded path", IsRequired = true)]
-[ConfigurationProperty("pipelineId", "number", Description = "Pipeline ID. Required for get, retry, cancel, delete, getJobs.")]
+[ConfigurationProperty("pipelineId", "number",
+    Description = "Pipeline ID. Required for get, retry, cancel, delete, getJobs.")]
 [ConfigurationProperty("ref", "string", Description = "Branch or tag to run the pipeline on. Required for create.")]
-[ConfigurationProperty("variables", "array", Description = "Array of {key, value} objects for pipeline variables (create only).")]
-[ConfigurationProperty("status", "string", Description = "Filter for getAll: running, pending, success, failed, canceled, skipped, manual, scheduled.")]
-[ConfigurationProperty("source", "string", Description = "Filter for getAll: push, web, trigger, schedule, api, pipeline, merge_request_event.")]
+[ConfigurationProperty("variables", "array",
+    Description = "Array of {key, value} objects for pipeline variables (create only).")]
+[ConfigurationProperty("status", "string",
+    Description = "Filter for getAll: running, pending, success, failed, canceled, skipped, manual, scheduled.")]
+[ConfigurationProperty("source", "string",
+    Description = "Filter for getAll: push, web, trigger, schedule, api, pipeline, merge_request_event.")]
 [ConfigurationProperty("ref_filter", "string", Description = "Filter getAll by ref name.")]
-[ConfigurationProperty("orderBy", "string", Description = "Order by: id, status, ref, updated_at, user_id (default: id).")]
+[ConfigurationProperty("orderBy", "string",
+    Description = "Order by: id, status, ref, updated_at, user_id (default: id).")]
 [ConfigurationProperty("sort", "string", Description = "Sort direction: asc, desc (default: desc).")]
 [ConfigurationProperty("perPage", "number", Description = "Results per page (default: 20, max 100).")]
 [ConfigurationProperty("page", "number", Description = "Page number (default: 1).")]
-[ConfigurationProperty("jobScope", "string", Description = "Filter jobs by scope: created, pending, running, failed, success, canceled, skipped, manual.")]
+[ConfigurationProperty("jobScope", "string",
+    Description = "Filter jobs by scope: created, pending, running, failed, success, canceled, skipped, manual.")]
 public class GitLabPipelineNode : BaseGitLabNode
 {
     public override string Type => "gitlab-pipeline";
     public override NodeCategory Category => NodeCategory.Action;
 
-    public GitLabPipelineNode() { }
-    internal GitLabPipelineNode(HttpClient? httpClient) : base(httpClient) { }
+    public GitLabPipelineNode()
+    {
+    }
+
+    internal GitLabPipelineNode(HttpClient? httpClient) : base(httpClient)
+    {
+    }
 
     public override async Task<NodeOutput> ExecuteAsync(NodeInput input, IExecutionContext context)
     {
+        var logger = CreateLogger(context);
+
         try
         {
             var operation = GetRequiredConfigValue<string>(input, "operation").ToLowerInvariant();
             var projectId = EncodeProject(GetRequiredConfigValue<string>(input, "projectId"));
             var (apiBase, token) = await ResolveCredentialsAsync(input, context);
+
+            logger.LogInformation("GitLab pipeline operation: {Operation} on project {ProjectId}", operation,
+                projectId);
 
             return operation switch
             {
@@ -53,11 +71,13 @@ public class GitLabPipelineNode : BaseGitLabNode
                 "cancel" => await CancelAsync(input, projectId, apiBase, token, context.CancellationToken),
                 "delete" => await DeleteAsync(input, projectId, apiBase, token, context.CancellationToken),
                 "getjobs" => await GetJobsAsync(input, projectId, apiBase, token, context.CancellationToken),
-                _ => FailureOutput($"Unsupported operation '{operation}'. Use: get, getAll, create, retry, cancel, delete, getJobs.")
+                _ => FailureOutput(
+                    $"Unsupported operation '{operation}'. Use: get, getAll, create, retry, cancel, delete, getJobs.")
             };
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "GitLab pipeline operation failed");
             return FailureOutput($"GitLab Pipeline error: {ex.Message}");
         }
     }

@@ -1,6 +1,7 @@
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using Vyshyvanka.Core.Attributes;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
@@ -40,6 +41,8 @@ public class GraphQLNode : BasePluginNode
 
     public override async Task<NodeOutput> ExecuteAsync(NodeInput input, IExecutionContext context)
     {
+        var logger = CreateLogger(context);
+
         try
         {
             var endpoint = GetRequiredConfigValue<string>(input, "endpoint");
@@ -48,6 +51,9 @@ public class GraphQLNode : BasePluginNode
             var operationName = GetConfigValue<string>(input, "operationName");
             var headers = GetConfigValue<Dictionary<string, string>>(input, "headers");
             var timeoutSeconds = GetConfigValue<int?>(input, "timeout") ?? 30;
+
+            logger.LogInformation("GraphQL request to {Endpoint} (operation={OperationName})", endpoint,
+                operationName ?? "(default)");
 
             using var client = _httpClient ?? new HttpClient { Timeout = TimeSpan.FromSeconds(timeoutSeconds) };
 
@@ -93,6 +99,13 @@ public class GraphQLNode : BasePluginNode
 
             var hasErrors = graphqlResponse?.Errors is { Count: > 0 };
 
+            if (hasErrors)
+                logger.LogWarning("GraphQL response from {Endpoint} contains {ErrorCount} error(s)", endpoint,
+                    graphqlResponse!.Errors!.Count);
+            else
+                logger.LogDebug("GraphQL request to {Endpoint} completed with status {StatusCode}", endpoint,
+                    (int)response.StatusCode);
+
             return SuccessOutput(new
             {
                 statusCode = (int)response.StatusCode,
@@ -106,10 +119,12 @@ public class GraphQLNode : BasePluginNode
         }
         catch (OperationCanceledException)
         {
+            logger.LogWarning("GraphQL request was cancelled");
             return FailureOutput("GraphQL request was cancelled");
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "GraphQL request error");
             return FailureOutput($"GraphQL request error: {ex.Message}");
         }
     }

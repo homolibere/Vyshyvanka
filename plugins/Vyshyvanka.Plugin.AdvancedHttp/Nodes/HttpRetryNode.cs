@@ -1,6 +1,7 @@
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using Vyshyvanka.Core.Attributes;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
@@ -17,14 +18,16 @@ namespace Vyshyvanka.Plugin.AdvancedHttp.Nodes;
 [NodeInput("input", DisplayName = "Input")]
 [NodeOutput("output", DisplayName = "Response", Type = PortType.Object)]
 [ConfigurationProperty("url", "string", Description = "Request URL", IsRequired = true)]
-[ConfigurationProperty("method", "string", Description = "HTTP method (GET, POST, PUT, DELETE, PATCH)", IsRequired = true)]
+[ConfigurationProperty("method", "string", Description = "HTTP method (GET, POST, PUT, DELETE, PATCH)",
+    IsRequired = true)]
 [ConfigurationProperty("headers", "object", Description = "HTTP headers to include")]
 [ConfigurationProperty("body", "object", Description = "Request body (for POST/PUT/PATCH)")]
 [ConfigurationProperty("timeout", "number", Description = "Per-request timeout in seconds (default: 30)")]
 [ConfigurationProperty("maxRetries", "number", Description = "Maximum retry attempts (default: 3)")]
 [ConfigurationProperty("initialDelayMs", "number", Description = "Initial retry delay in ms (default: 1000)")]
 [ConfigurationProperty("maxDelayMs", "number", Description = "Maximum retry delay in ms (default: 30000)")]
-[ConfigurationProperty("retryOnStatusCodes", "array", Description = "HTTP status codes to retry on (default: 408,429,500,502,503,504)")]
+[ConfigurationProperty("retryOnStatusCodes", "array",
+    Description = "HTTP status codes to retry on (default: 408,429,500,502,503,504)")]
 public class HttpRetryNode : BasePluginNode
 {
     private readonly HttpClient? _httpClient;
@@ -43,6 +46,8 @@ public class HttpRetryNode : BasePluginNode
 
     public override async Task<NodeOutput> ExecuteAsync(NodeInput input, IExecutionContext context)
     {
+        var logger = CreateLogger(context);
+
         try
         {
             var url = GetRequiredConfigValue<string>(input, "url");
@@ -55,6 +60,9 @@ public class HttpRetryNode : BasePluginNode
             var maxDelayMs = GetConfigValue<int?>(input, "maxDelayMs") ?? 30000;
             var retryOnStatusCodes =
                 GetConfigValue<int[]>(input, "retryOnStatusCodes") ?? [408, 429, 500, 502, 503, 504];
+
+            logger.LogInformation("HTTP retry request {Method} {Url} (maxRetries={MaxRetries})", method, url,
+                maxRetries);
 
             using var client = _httpClient ?? new HttpClient { Timeout = TimeSpan.FromSeconds(timeoutSeconds) };
 
@@ -83,10 +91,17 @@ public class HttpRetryNode : BasePluginNode
                         (DateTime.UtcNow - attemptStart).TotalMilliseconds));
 
                     if (response.IsSuccessStatusCode || !retryOnStatusCodes.Contains((int)response.StatusCode))
+                    {
+                        logger.LogDebug("HTTP retry request completed on attempt {Attempt} with status {StatusCode}",
+                            attempt, (int)response.StatusCode);
                         break;
+                    }
 
                     if (attempt <= maxRetries)
                     {
+                        logger.LogWarning(
+                            "HTTP retry request attempt {Attempt} returned {StatusCode}, retrying in {Delay}ms",
+                            attempt, (int)response.StatusCode, currentDelay);
                         await Task.Delay(currentDelay, context.CancellationToken);
                         currentDelay = Math.Min(currentDelay * 2, maxDelayMs);
                     }
@@ -97,8 +112,14 @@ public class HttpRetryNode : BasePluginNode
                         (DateTime.UtcNow - attemptStart).TotalMilliseconds));
 
                     if (attempt > maxRetries)
+                    {
+                        logger.LogError("HTTP retry request to {Url} failed after {Attempts} attempts: {Error}", url,
+                            maxRetries + 1, ex.Message);
                         return FailureOutput($"All {maxRetries + 1} attempts failed. Last error: {ex.Message}");
+                    }
 
+                    logger.LogWarning("HTTP retry request attempt {Attempt} failed: {Error}, retrying in {Delay}ms",
+                        attempt, ex.Message, currentDelay);
                     await Task.Delay(currentDelay, context.CancellationToken);
                     currentDelay = Math.Min(currentDelay * 2, maxDelayMs);
                 }
@@ -134,10 +155,12 @@ public class HttpRetryNode : BasePluginNode
         }
         catch (OperationCanceledException)
         {
+            logger.LogWarning("HTTP retry request to {Url} was cancelled", GetConfigValue<string>(input, "url"));
             return FailureOutput("Request was cancelled");
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "HTTP retry request error");
             return FailureOutput($"HTTP request error: {ex.Message}");
         }
     }
