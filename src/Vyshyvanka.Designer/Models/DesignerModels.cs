@@ -169,4 +169,40 @@ public record NodeExecutionState
     public double? DurationMs => CompletedAt.HasValue
         ? (CompletedAt.Value - StartedAt).TotalMilliseconds
         : null;
+
+    /// <summary>All iterations when the node ran multiple times (e.g. inside a loop). Empty for single-execution nodes.</summary>
+    public List<NodeIterationData> Iterations { get; init; } = [];
+
+    /// <summary>Number of times this node was executed. 1 for normal nodes, N for nodes inside loops.</summary>
+    public int IterationCount => Iterations.Count > 0 ? Iterations.Count : 1;
+
+    /// <summary>Whether this node ran multiple times (inside a loop).</summary>
+    public bool HasMultipleIterations => Iterations.Count > 1;
+
+    /// <summary>Routing summary for multi-output nodes (e.g. If). Maps port name to count.</summary>
+    public Dictionary<string, int> RoutingSummary { get; init; } = new();
+}
+
+/// <summary>
+/// Data for a single iteration of a node executed inside a loop.
+/// </summary>
+public record NodeIterationData
+{
+    /// <summary>Zero-based iteration index.</summary>
+    public int Index { get; init; }
+
+    /// <summary>Input data for this iteration.</summary>
+    public JsonElement? InputData { get; init; }
+
+    /// <summary>Output data for this iteration.</summary>
+    public JsonElement? OutputData { get; init; }
+
+    /// <summary>Which output port was activated (e.g. "true" or "false" for If nodes).</summary>
+    public string? OutputPort { get; init; }
+
+    /// <summary>Whether this iteration succeeded.</summary>
+    public bool Success { get; init; }
+
+    /// <summary>Error message if this iteration failed.</summary>
+    public string? ErrorMessage { get; init; }
 }

@@ -154,6 +154,9 @@
     flex: 1;
     overflow: hidden;
     padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
     background: linear-gradient(180deg, rgba(26, 26, 46, 0) 0%, rgba(13, 13, 26, 0.3) 100%);
 }
 
@@ -161,7 +164,8 @@
     display: grid;
     grid-template-columns: 1fr 2fr 1fr;
     gap: 16px;
-    height: 100%;
+    flex: 1;
+    min-height: 0;
 }
 
 .three-panel-layout > * {
@@ -242,4 +246,68 @@
         grid-template-columns: 1fr;
         grid-template-rows: auto 1fr auto;
     }
+}
+
+/* ── Iteration navigation bar ──────────────────────────────────────── */
+
+.iteration-nav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 4px 0;
+    flex-shrink: 0;
+    font-size: 0.8125rem;
+}
+
+.btn-iter {
+    background: var(--bg-hover);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    border-radius: 4px;
+    padding: 3px 10px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    transition: background 0.15s ease;
+}
+
+.btn-iter:hover:not(:disabled) {
+    background: var(--border-hover);
+}
+
+.btn-iter:disabled {
+    opacity: 0.3;
+    cursor: default;
+}
+
+.iter-label {
+    color: var(--text-secondary);
+    min-width: 160px;
+    text-align: center;
+    font-size: 0.8125rem;
+}
+
+.iter-summary {
+    margin-left: auto;
+    display: flex;
+    gap: 6px;
+}
+
+.route-badge {
+    padding: 2px 10px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: var(--bg-hover);
+    color: var(--text-muted);
+}
+
+.route-badge.route-true {
+    background: var(--success-bg);
+    color: var(--success);
+}
+
+.route-badge.route-false {
+    background: var(--danger-bg);
+    color: var(--danger);
 }

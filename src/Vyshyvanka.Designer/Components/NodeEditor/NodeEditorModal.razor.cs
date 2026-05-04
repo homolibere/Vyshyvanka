@@ -47,6 +47,7 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
     private WorkflowNode? _node;
     private NodeDefinition? _definition;
     private NodeExecutionState? _executionState;
+    private int _currentIteration;
     private List<ConfigurationProperty> _properties = [];
     private Dictionary<string, object?> _configValues = new();
     private bool _isJsonMode;
@@ -119,6 +120,9 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
 
         _definition = StateService.GetNodeDefinition(_node.Type);
         _executionState = StateService.GetNodeExecutionState(NodeId);
+        _currentIteration = _executionState?.HasMultipleIterations == true
+            ? _executionState.Iterations.Count - 1
+            : 0;
 
         // Parse configuration schema
         if (_definition?.ConfigurationSchema is not null)
@@ -365,5 +369,48 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
     {
         // Clean up if needed
         GC.SuppressFinalize(this);
+    }
+
+    // ── Iteration navigation ────────────────────────────────────────────
+
+    private bool HasIterations => _executionState?.HasMultipleIterations == true;
+
+    private int TotalIterations => _executionState?.Iterations.Count ?? 0;
+
+    private JsonElement? CurrentInputData => HasIterations
+        ? _executionState!.Iterations[_currentIteration].InputData
+        : _executionState?.InputData;
+
+    private JsonElement? CurrentOutputData => HasIterations
+        ? _executionState!.Iterations[_currentIteration].OutputData
+        : _executionState?.OutputData;
+
+    private void PreviousIteration()
+    {
+        if (_currentIteration > 0)
+            _currentIteration--;
+    }
+
+    private void NextIteration()
+    {
+        if (_currentIteration < TotalIterations - 1)
+            _currentIteration++;
+    }
+
+    private string? CurrentIterationPort => HasIterations
+        ? _executionState!.Iterations[_currentIteration].OutputPort
+        : null;
+
+    private string IterationLabel
+    {
+        get
+        {
+            if (!HasIterations) return "";
+            var iter = _executionState!.Iterations[_currentIteration];
+            var port = iter.OutputPort;
+            return port is not null
+                ? $"Iteration {_currentIteration + 1}/{TotalIterations} → {port}"
+                : $"Iteration {_currentIteration + 1}/{TotalIterations}";
+        }
     }
 }

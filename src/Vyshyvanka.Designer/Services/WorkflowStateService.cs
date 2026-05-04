@@ -854,17 +854,63 @@ public class WorkflowStateService
         if (_currentExecution is null)
             return;
 
-        foreach (var nodeExecution in _currentExecution.NodeExecutions)
+        // Group executions by node ID to detect loop iterations
+        var grouped = _currentExecution.NodeExecutions
+            .GroupBy(ne => ne.NodeId)
+            .ToList();
+
+        foreach (var group in grouped)
         {
-            _nodeExecutionStates[nodeExecution.NodeId] = new NodeExecutionState
+            var executions = group.ToList();
+            var last = executions[^1];
+
+            var iterations = new List<NodeIterationData>();
+            var routingSummary = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+            if (executions.Count > 1)
             {
-                NodeId = nodeExecution.NodeId,
-                Status = nodeExecution.Status,
-                StartedAt = nodeExecution.StartedAt,
-                CompletedAt = nodeExecution.CompletedAt,
-                InputData = nodeExecution.InputData,
-                OutputData = nodeExecution.OutputData,
-                ErrorMessage = nodeExecution.ErrorMessage
+                for (var i = 0; i < executions.Count; i++)
+                {
+                    var ne = executions[i];
+                    string? outputPort = null;
+
+                    if (ne.OutputData.HasValue &&
+                        ne.OutputData.Value.ValueKind == JsonValueKind.Object &&
+                        ne.OutputData.Value.TryGetProperty("outputPort", out var portEl) &&
+                        portEl.ValueKind == JsonValueKind.String)
+                    {
+                        outputPort = portEl.GetString();
+                    }
+
+                    if (outputPort is not null)
+                    {
+                        routingSummary.TryGetValue(outputPort, out var count);
+                        routingSummary[outputPort] = count + 1;
+                    }
+
+                    iterations.Add(new NodeIterationData
+                    {
+                        Index = i,
+                        InputData = ne.InputData,
+                        OutputData = ne.OutputData,
+                        OutputPort = outputPort,
+                        Success = ne.Status == Core.Enums.ExecutionStatus.Completed,
+                        ErrorMessage = ne.ErrorMessage
+                    });
+                }
+            }
+
+            _nodeExecutionStates[group.Key] = new NodeExecutionState
+            {
+                NodeId = last.NodeId,
+                Status = last.Status,
+                StartedAt = executions[0].StartedAt,
+                CompletedAt = last.CompletedAt,
+                InputData = last.InputData,
+                OutputData = last.OutputData,
+                ErrorMessage = last.ErrorMessage,
+                Iterations = iterations,
+                RoutingSummary = routingSummary
             };
         }
     }

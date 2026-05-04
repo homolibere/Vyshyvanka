@@ -66,6 +66,16 @@
         </g>
     }
 
+    <!-- Routing summary for loop iterations (e.g. "true:1 false:4") -->
+    @if (execState?.RoutingSummary.Count > 0)
+    {
+        var summaryY = execState.DurationMs is not null ? ComputedHeight + 28 : ComputedHeight + 14;
+        var summaryText = string.Join("  ", execState.RoutingSummary.Select(kv => $"{kv.Key}:{kv.Value}"));
+        <g class="routing-summary-group" transform="translate(@(ComputedWidth / 2), @summaryY)">
+            @((MarkupString)$"<text class=\"routing-summary\" text-anchor=\"middle\" font-size=\"10\">{summaryText}</text>")
+        </g>
+    }
+
     <!-- Input ports -->
     @if (Definition?.Inputs is not null)
     {

@@ -44,7 +44,7 @@
                 }
 
                 <div class="three-panel-layout">
-                    <NodeEditorInputPanel InputData="@_executionState?.InputData"
+                    <NodeEditorInputPanel InputData="@CurrentInputData"
                                           Ports="@_definition?.Inputs"/>
 
                     <NodeEditorConfigPanel @ref="_configPanel"
@@ -58,9 +58,27 @@
                                            HasSchema="@HasSchema"
                                            InitialRawJson="@_initialRawJson"/>
 
-                    <NodeEditorOutputPanel OutputData="@_executionState?.OutputData"
+                    <NodeEditorOutputPanel OutputData="@CurrentOutputData"
                                            Ports="@_definition?.Outputs"/>
                 </div>
+
+                @if (HasIterations)
+                {
+                    <div class="iteration-nav">
+                        <button class="btn-iter" disabled="@(_currentIteration == 0)" @onclick="PreviousIteration">◀</button>
+                        <span class="iter-label">@IterationLabel</span>
+                        <button class="btn-iter" disabled="@(_currentIteration >= TotalIterations - 1)" @onclick="NextIteration">▶</button>
+                        @if (_executionState?.RoutingSummary.Count > 0)
+                        {
+                            <span class="iter-summary">
+                                @foreach (var kv in _executionState.RoutingSummary)
+                                {
+                                    <span class="route-badge @(kv.Key == "true" ? "route-true" : kv.Key == "false" ? "route-false" : "")">@kv.Key: @kv.Value</span>
+                                }
+                            </span>
+                        }
+                    </div>
+                }
             </div>
 
             <div class="modal-footer">

@@ -166,3 +166,11 @@
         opacity: 0.5;
     }
 }
+
+/* ── Routing summary for loop iterations ───────────────────────────── */
+
+.routing-summary {
+    fill: var(--text-secondary, #aaa);
+    font-family: var(--font-mono, monospace);
+    opacity: 0.8;
+}
