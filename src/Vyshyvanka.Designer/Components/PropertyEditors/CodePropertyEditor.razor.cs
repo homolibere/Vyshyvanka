@@ -7,7 +7,7 @@ namespace Vyshyvanka.Designer.Components;
 /// <summary>
 /// Property editor for code type configuration properties.
 /// Renders a CodeMirror editor with syntax highlighting, line numbers, and bracket matching.
-/// Supports C# and JavaScript modes based on the sibling "language" property.
+/// Supports JavaScript modes based on the sibling "language" property.
 /// </summary>
 public partial class CodePropertyEditor : ComponentBase, IAsyncDisposable
 {
@@ -33,12 +33,6 @@ public partial class CodePropertyEditor : ComponentBase, IAsyncDisposable
     private bool _initialized;
     private string _currentValue = string.Empty;
     private string _currentLanguage = "csharp";
-
-    private string LanguageBadge => Language switch
-    {
-        "javascript" or "js" => "JS",
-        _ => "C#"
-    };
 
     private string Language
     {

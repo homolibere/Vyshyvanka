@@ -412,94 +412,15 @@ Audit logs can be queried by:
 
 ## Code Execution Sandbox
 
-The Code node allows users to execute custom C# or JavaScript code within workflows. To prevent abuse, both runtimes are sandboxed.
-
-### C# Sandbox (Roslyn Scripting)
-
-The C# sandbox uses three layers of defense: restricted assembly references, pre-compilation syntax tree validation, and post-compilation IL allowlist validation.
-
-#### Restricted Assembly Access
-
-C# scripts only have access to a curated set of safe assemblies:
-
-| Allowed | Purpose |
-|---------|---------|
-| `System.Runtime` | Core types (string, int, Guid, DateTime, etc.) |
-| `System.Collections` | Lists, dictionaries, arrays |
-| `System.Linq` | LINQ query operators |
-| `System.Text.Json` | JSON parsing and serialization |
-| `System.Text.RegularExpressions` | Regex pattern matching |
-
-Scripts **cannot** access:
-- `System.IO` — no file system access
-- `System.Net` / `System.Net.Http` — no network access
-- `System.Diagnostics` — no process spawning
-- `System.Reflection.Emit` — no dynamic code generation
-
-#### Gate 1: Syntax Tree Validation
-
-Before any C# script is compiled or executed, the `CodeNodeSyntaxValidator` parses the code into a Roslyn syntax tree and walks it to detect dangerous patterns. This prevents reflection-based sandbox escape where a user could use `typeof(object).Assembly.GetType(...)` to load restricted types at runtime.
-
-The validator rejects:
-
-| Pattern | Reason |
-|---------|--------|
-| `typeof(...)` expressions | Entry point to obtain `Type` objects for reflection |
-| Reflection method calls (`GetType()`, `GetMethod()`, `GetField()`, `Invoke()`, etc.) | Runtime type inspection and invocation |
-| Method group references (`var f = obj.GetType;`) | Delegate capture of reflection methods bypasses invocation checks |
-| References to forbidden types (`Type`, `Assembly`, `File`, `Process`, `Socket`, `Marshal`, `Expression`, etc.) | Direct use of restricted APIs |
-| Forbidden namespace access (`System.Reflection`, `System.IO`, `System.Diagnostics`, `System.Net`, `System.Runtime.InteropServices`, `System.Linq.Expressions`) | Namespace-qualified access to restricted APIs |
-| `using` directives for restricted namespaces | Importing blocked namespaces |
-| Reflection member access (`.Assembly`, `.BaseType`, `.Module`) | Property-based reflection access |
-| LINQ Expression tree types (`Expression`, `LambdaExpression`, `MethodCallExpression`, etc.) | Can dynamically construct reflection calls via string-based APIs |
-
-The `System.Linq.Expressions` assembly is also excluded from the script's assembly references, so even if a reference somehow passes validation, it will fail at runtime.
-
-If any violations are detected, execution is rejected with a descriptive error listing each violation and its line number. The script is never compiled or run.
-
-The validator uses Roslyn's `Identifier.ValueText` (which resolves C# Unicode escape sequences like `\u0047`) rather than raw source text, so obfuscation via Unicode escapes (e.g., `\u0047etType` → `GetType`) does not bypass detection.
-
-Implementation: `Vyshyvanka.Engine/Nodes/Actions/CodeNodeSyntaxValidator.cs`
-
-#### Gate 2: IL Allowlist Validation
-
-After the script passes syntax validation, it is compiled by Roslyn and the emitted IL is inspected using `System.Reflection.Metadata`. Every type reference in the compiled assembly is checked against an **allowlist** of permitted types and namespaces. This is fundamentally immune to source-level obfuscation because it operates on the compiler's resolved output.
-
-| Allowed Category | Examples |
-|-----------------|----------|
-| Safe System types | `String`, `Int32`, `Guid`, `DateTime`, `Math`, `Convert`, `Array`, exceptions, delegates |
-| Collection namespaces | `System.Collections.Generic`, `System.Collections.Immutable` |
-| LINQ | `System.Linq` |
-| JSON | `System.Text.Json`, `System.Text.Json.Nodes` |
-| Regex | `System.Text.RegularExpressions` |
-| Async infrastructure | `System.Threading`, `System.Threading.Tasks` |
-| Compiler infrastructure | Debugger attributes, async state machine types, nullable annotations (auto-emitted by Roslyn) |
-| Script infrastructure | Roslyn internals, globals type, logging |
-
-Explicitly blocked types (rejected even if their namespace is otherwise allowed):
-- `System.Runtime.CompilerServices.Unsafe` — arbitrary memory access, bypasses the type system
-- `System.Runtime.CompilerServices.RuntimeHelpers` — `GetUninitializedObject` and other dangerous methods
-- `System.Threading.Thread`, `System.Threading.ThreadPool` — thread manipulation
-
-Any type reference not on the allowlist causes rejection. This blocks:
-- `System.Type`, `System.Reflection.*` — even if accessed indirectly
-- `System.IO.*`, `System.Net.*`, `System.Diagnostics.*` — regardless of how they're reached
-- `System.Activator`, `System.Environment`, `System.AppDomain` — dangerous System namespace types
-- `System.ComponentModel.TypeDescriptor` — reflection-like capabilities
-
-Compiler-emitted types (assembly attributes, debugger attributes, async infrastructure) are explicitly allowlisted so that legitimate scripts are not rejected.
-
-Validation results are cached per script to avoid repeated compilation overhead.
-
-Implementation: `Vyshyvanka.Engine/Nodes/Actions/CodeNodeIlValidator.cs`
-
-#### Script Caching
-
-Compiled C# scripts are cached by source code to avoid repeated compilation overhead. The cache is process-scoped and cleared on application restart.
+The Code node allows users to execute custom JavaScript code within workflows. JavaScript is the only supported scripting language — C# scripting was removed due to the inherent difficulty of sandboxing code that runs within the .NET process (reflection, type system access, and assembly loading provide too many escape vectors).
 
 ### JavaScript Sandbox (Jint)
 
-JavaScript execution uses the Jint interpreter with the following constraints:
+JavaScript execution uses the Jint interpreter — a pure .NET JavaScript engine that provides security by design:
+
+- **No .NET interop**: Scripts cannot access .NET types, reflection, or the host runtime
+- **No ambient capabilities**: No filesystem, network, process spawning, or OS access
+- **No Node.js APIs**: No `require()`, `fs`, `child_process`, or similar
 
 | Constraint | Limit |
 |-----------|-------|
@@ -508,15 +429,25 @@ JavaScript execution uses the Jint interpreter with the following constraints:
 | Recursion depth | 256 |
 | Timeout | Configurable (default: 30s) |
 
-Jint is a pure .NET JavaScript interpreter — it does not use V8 or any native runtime. Scripts have no access to Node.js APIs, file system, network, or process spawning.
+### Available Globals
 
-### Shared Security Rules
+| Global | Description |
+|--------|-------------|
+| `input` | Parsed input data from upstream nodes |
+| `executionId` | Current execution ID (string) |
+| `workflowId` | Current workflow ID (string) |
+| `log(message)` | Log a message (captured in execution output) |
+| `getItems()` | Returns input as an array (wraps non-array input) |
+| `toJson(value)` | Serializes a value to a JSON string |
+| `currentItem` | Current item in "Run for Each Item" mode |
+| `itemIndex` | Current item index in "Run for Each Item" mode |
 
-- Both runtimes enforce a configurable timeout (default: 30 seconds)
-- No credential data is directly accessible from scripts (use upstream nodes to fetch and pass data)
+### Security Properties
+
+- Scripts run in a pure interpreter — no JIT compilation, no native code execution
 - Script output is serialized to JSON before being stored — no object references leak between executions
 - Compilation/runtime errors are reported to the user without exposing internal engine details
-- Scripts run in the same process as the engine but with restricted capabilities
+- The configurable timeout prevents infinite loops and resource exhaustion
 
 ## Error Handling
 
