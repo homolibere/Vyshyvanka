@@ -87,6 +87,12 @@ public class ConfigurationPropertyAttribute : Attribute
     /// </summary>
     public string? DataSource { get; set; }
 
+    /// <summary>
+    /// Static options for dropdown selection. When set, the Designer renders a select control.
+    /// Use comma-separated values (e.g., "create,get,update,delete").
+    /// </summary>
+    public string? Options { get; set; }
+
     public ConfigurationPropertyAttribute(string name, string propertyType)
     {
         Name = name;

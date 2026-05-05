@@ -17,7 +17,7 @@ namespace Vyshyvanka.Plugin.GitLab.Nodes;
 [NodeOutput("output", DisplayName = "Output", Type = PortType.Object)]
 [RequiresCredential(CredentialType.ApiKey)]
 [ConfigurationProperty("operation", "string", Description = "Operation: get, getIssues, getUserRepos",
-    IsRequired = true)]
+    IsRequired = true, Options = "get,getIssues,getUserRepos")]
 [ConfigurationProperty("projectId", "string",
     Description = "Project ID or URL-encoded path. Required for get and getIssues.")]
 [ConfigurationProperty("userId", "string", Description = "User ID or username. Required for getUserRepos.")]

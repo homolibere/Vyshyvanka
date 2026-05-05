@@ -17,7 +17,7 @@ namespace Vyshyvanka.Plugin.GitLab.Nodes;
 [NodeOutput("output", DisplayName = "Output", Type = PortType.Object)]
 [RequiresCredential(CredentialType.ApiKey)]
 [ConfigurationProperty("operation", "string", Description = "Operation: create, get, edit, comment, lock",
-    IsRequired = true)]
+    IsRequired = true, Options = "create,get,edit,comment,lock")]
 [ConfigurationProperty("projectId", "string", Description = "Project ID or URL-encoded path (e.g. namespace/project)",
     IsRequired = true)]
 [ConfigurationProperty("issueIid", "number", Description = "Issue internal ID. Required for get, edit, comment, lock.")]

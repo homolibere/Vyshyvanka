@@ -27,10 +27,10 @@
 
   <ItemGroup>
     <!-- Vyshyvanka.Core is provided by the host at runtime — do not bundle it -->
-    <PackageReference Include="Vyshyvanka.Core">
+    <ProjectReference Include="../../../src/Vyshyvanka.Core/Vyshyvanka.Core.csproj">
       <Private>false</Private>
       <ExcludeAssets>runtime</ExcludeAssets>
-    </PackageReference>
+    </ProjectReference>
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions">
       <Private>false</Private>
       <ExcludeAssets>runtime</ExcludeAssets>

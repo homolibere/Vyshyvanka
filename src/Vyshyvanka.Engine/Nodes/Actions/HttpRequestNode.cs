@@ -18,7 +18,8 @@ namespace Vyshyvanka.Engine.Nodes.Actions;
 [NodeInput("input", DisplayName = "Input", IsRequired = false)]
 [NodeOutput("output", DisplayName = "Response")]
 [ConfigurationProperty("url", "string", Description = "The URL to send the request to", IsRequired = true)]
-[ConfigurationProperty("method", "string", Description = "HTTP method (GET, POST, PUT, DELETE)", IsRequired = true)]
+[ConfigurationProperty("method", "string", Description = "HTTP method (GET, POST, PUT, DELETE)", IsRequired = true,
+    Options = "GET,POST,PUT,DELETE")]
 [ConfigurationProperty("headers", "object", Description = "HTTP headers to include")]
 [ConfigurationProperty("body", "object", Description = "Request body (for POST/PUT)")]
 [ConfigurationProperty("queryParameters", "object", Description = "Query string parameters")]

@@ -111,7 +111,7 @@ Node classes are decorated with attributes that the `NodeRegistry` reads to buil
 | `NodeDefinitionAttribute` | Name, description, icon |
 | `NodeInputAttribute` | Defines an input port (name, display name, type, required) |
 | `NodeOutputAttribute` | Defines an output port (name, display name, type) |
-| `ConfigurationPropertyAttribute` | Defines a configuration property (name, type, description, required) |
+| `ConfigurationPropertyAttribute` | Defines a configuration property (name, type, description, required, options, data source) |
 | `RequiresCredentialAttribute` | Declares the credential type needed |
 
 ### Node Registry
@@ -194,14 +194,46 @@ When a downstream node has multiple incoming connections, the engine merges all 
 
 Node configuration is stored as a `JsonElement` on each `WorkflowNode`. The schema is defined via `ConfigurationPropertyAttribute` on the node class and exposed as a JSON Schema in the `NodeDefinition`.
 
-The Designer uses this schema to render appropriate property editors:
+### ConfigurationPropertyAttribute Properties
 
-| Schema Type | Editor Component |
-|-------------|-----------------|
-| `string` | StringPropertyEditor |
-| `number` | NumberPropertyEditor |
-| `boolean` | BooleanPropertyEditor |
-| `object` | JsonPropertyEditor |
-| `select` (enum) | SelectPropertyEditor |
+| Property | Type | Description |
+|----------|------|-------------|
+| `Name` | string | Property name (positional, required) |
+| `PropertyType` | string | Type: string, number, boolean, object, array (positional, required) |
+| `Description` | string? | Help text shown in the Designer |
+| `IsRequired` | bool | Whether the property must have a value |
+| `Options` | string? | Comma-separated static options for dropdown (e.g., `"create,get,update,delete"`) |
+| `DataSource` | string? | Dynamic data source identifier (e.g., `"workflows"`) — Designer fetches options from the API |
+
+### Property Editor Mapping
+
+The Designer uses the schema to render appropriate property editors:
+
+| Schema Type | Editor Component | Condition |
+|-------------|-----------------|-----------|
+| `string` | StringPropertyEditor | Default for strings |
+| `string` + `Options` | SelectPropertyEditor | When static options are defined |
+| `string` + `DataSource="workflows"` | WorkflowSelectPropertyEditor | Fetches workflows from API |
+| `number` | NumberPropertyEditor | |
+| `boolean` | BooleanPropertyEditor | |
+| `object` | JsonPropertyEditor | |
+
+### Static Options Example
+
+```csharp
+[ConfigurationProperty("operation", "string",
+    Description = "Operation to perform",
+    IsRequired = true,
+    Options = "create,get,getAll,update,delete")]
+```
+
+### Dynamic Data Source Example
+
+```csharp
+[ConfigurationProperty("workflowId", "string",
+    Description = "ID of the workflow to execute",
+    IsRequired = true,
+    DataSource = "workflows")]
+```
 
 Configuration values can contain expressions (double-brace syntax) that are resolved at execution time before the node runs.

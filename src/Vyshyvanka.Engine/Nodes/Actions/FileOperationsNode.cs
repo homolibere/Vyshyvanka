@@ -16,11 +16,13 @@ namespace Vyshyvanka.Engine.Nodes.Actions;
 [NodeInput("input", DisplayName = "Input", IsRequired = false)]
 [NodeOutput("output", DisplayName = "Result")]
 [ConfigurationProperty("operation", "string",
-    Description = "Operation: read, write, append, delete, exists, copy, move", IsRequired = true)]
+    Description = "Operation: read, write, append, delete, exists, copy, move", IsRequired = true,
+    Options = "read,write,append,delete,exists,copy,move")]
 [ConfigurationProperty("path", "string", Description = "File path for the operation", IsRequired = true)]
 [ConfigurationProperty("content", "string", Description = "Content to write (for write/append operations)")]
 [ConfigurationProperty("destinationPath", "string", Description = "Destination path (for copy/move operations)")]
-[ConfigurationProperty("encoding", "string", Description = "Text encoding (utf-8, ascii, utf-16)")]
+[ConfigurationProperty("encoding", "string", Description = "Text encoding (utf-8, ascii, utf-16)",
+    Options = "utf-8,ascii,utf-16")]
 [ConfigurationProperty("isBinary", "boolean", Description = "Treat file as binary")]
 [ConfigurationProperty("createDirectory", "boolean", Description = "Create parent directories if they don't exist")]
 [ConfigurationProperty("overwrite", "boolean", Description = "Overwrite existing files")]

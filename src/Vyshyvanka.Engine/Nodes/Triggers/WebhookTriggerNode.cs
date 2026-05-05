@@ -14,8 +14,10 @@ namespace Vyshyvanka.Engine.Nodes.Triggers;
     Icon = "fa-solid fa-tower-broadcast")]
 [NodeOutput("output", DisplayName = "Request Data")]
 [ConfigurationProperty("path", "string", Description = "Webhook URL path", IsRequired = true)]
-[ConfigurationProperty("method", "string", Description = "HTTP method to accept (GET, POST, PUT, DELETE, or ANY)")]
-[ConfigurationProperty("responseMode", "string", Description = "When to respond: 'immediate' or 'lastNode'")]
+[ConfigurationProperty("method", "string", Description = "HTTP method to accept (GET, POST, PUT, DELETE, or ANY)",
+    Options = "GET,POST,PUT,DELETE,ANY")]
+[ConfigurationProperty("responseMode", "string", Description = "When to respond: 'immediate' or 'lastNode'",
+    Options = "immediate,lastNode")]
 public class WebhookTriggerNode : BaseTriggerNode
 {
     private string _id = Guid.NewGuid().ToString();

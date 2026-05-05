@@ -17,7 +17,8 @@ namespace Vyshyvanka.Plugin.GitLab.Nodes;
 [NodeOutput("output", DisplayName = "Output", Type = PortType.Object)]
 [RequiresCredential(CredentialType.ApiKey)]
 [ConfigurationProperty("operation", "string",
-    Description = "Operation: create, get, getAll, update, merge, approve, comment", IsRequired = true)]
+    Description = "Operation: create, get, getAll, update, merge, approve, comment", IsRequired = true,
+    Options = "create,get,getAll,update,merge,approve,comment")]
 [ConfigurationProperty("projectId", "string", Description = "Project ID or URL-encoded path", IsRequired = true)]
 [ConfigurationProperty("mergeRequestIid", "number",
     Description = "Merge request internal ID. Required for get, update, merge, approve, comment.")]

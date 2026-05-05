@@ -18,7 +18,8 @@ namespace Vyshyvanka.Plugin.AdvancedHttp.Nodes;
 [NodeInput("input", DisplayName = "Input")]
 [NodeOutput("output", DisplayName = "Response", Type = PortType.Object)]
 [ConfigurationProperty("url", "string", Description = "URL to poll", IsRequired = true)]
-[ConfigurationProperty("method", "string", Description = "HTTP method (default: GET)")]
+[ConfigurationProperty("method", "string", Description = "HTTP method (default: GET)",
+    Options = "GET,POST,PUT,DELETE,PATCH")]
 [ConfigurationProperty("headers", "object", Description = "HTTP headers to include")]
 [ConfigurationProperty("body", "object", Description = "Request body (for POST/PUT/PATCH)")]
 [ConfigurationProperty("intervalMs", "number", Description = "Polling interval in milliseconds (default: 5000)")]

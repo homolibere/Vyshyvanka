@@ -17,7 +17,7 @@ namespace Vyshyvanka.Plugin.GitLab.Nodes;
 [NodeOutput("output", DisplayName = "Output", Type = PortType.Object)]
 [RequiresCredential(CredentialType.ApiKey)]
 [ConfigurationProperty("operation", "string", Description = "Operation: create, get, getAll, delete",
-    IsRequired = true)]
+    IsRequired = true, Options = "create,get,getAll,delete")]
 [ConfigurationProperty("projectId", "string", Description = "Project ID or URL-encoded path", IsRequired = true)]
 [ConfigurationProperty("tagName", "string", Description = "Tag name. Required for create, get, delete.")]
 [ConfigurationProperty("ref", "string",

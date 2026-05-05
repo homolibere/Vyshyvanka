@@ -200,6 +200,10 @@ public class NodeRegistry : INodeRegistry
             if (!string.IsNullOrEmpty(attr.DataSource))
                 propSchema["dataSource"] = attr.DataSource;
 
+            if (!string.IsNullOrEmpty(attr.Options))
+                propSchema["options"] = attr.Options.Split(',',
+                    StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+
             properties[attr.Name] = propSchema;
 
             if (attr.IsRequired)

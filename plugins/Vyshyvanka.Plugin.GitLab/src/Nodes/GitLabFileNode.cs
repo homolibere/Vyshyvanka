@@ -17,14 +17,15 @@ namespace Vyshyvanka.Plugin.GitLab.Nodes;
 [NodeOutput("output", DisplayName = "Output", Type = PortType.Object)]
 [RequiresCredential(CredentialType.ApiKey)]
 [ConfigurationProperty("operation", "string", Description = "Operation: create, get, list, edit, delete",
-    IsRequired = true)]
+    IsRequired = true, Options = "create,get,list,edit,delete")]
 [ConfigurationProperty("projectId", "string", Description = "Project ID or URL-encoded path", IsRequired = true)]
 [ConfigurationProperty("filePath", "string",
     Description = "Path to the file in the repository. Required for create, get, edit, delete.")]
 [ConfigurationProperty("branch", "string", Description = "Branch name (default: main)")]
 [ConfigurationProperty("content", "string", Description = "File content. Required for create and edit.")]
 [ConfigurationProperty("commitMessage", "string", Description = "Commit message. Required for create, edit, delete.")]
-[ConfigurationProperty("encoding", "string", Description = "File encoding: text or base64 (default: text).")]
+[ConfigurationProperty("encoding", "string", Description = "File encoding: text or base64 (default: text).",
+    Options = "text,base64")]
 [ConfigurationProperty("path", "string", Description = "Directory path for list operation (default: root).")]
 [ConfigurationProperty("recursive", "boolean", Description = "List files recursively (default: false).")]
 [ConfigurationProperty("perPage", "number", Description = "Results per page for list (default: 20, max 100).")]

@@ -19,7 +19,7 @@ namespace Vyshyvanka.Plugin.AdvancedHttp.Nodes;
 [NodeOutput("output", DisplayName = "Response", Type = PortType.Object)]
 [ConfigurationProperty("url", "string", Description = "Request URL", IsRequired = true)]
 [ConfigurationProperty("method", "string", Description = "HTTP method (GET, POST, PUT, DELETE, PATCH)",
-    IsRequired = true)]
+    IsRequired = true, Options = "GET,POST,PUT,DELETE,PATCH")]
 [ConfigurationProperty("headers", "object", Description = "HTTP headers to include")]
 [ConfigurationProperty("body", "object", Description = "Request body (for POST/PUT/PATCH)")]
 [ConfigurationProperty("timeout", "number", Description = "Per-request timeout in seconds (default: 30)")]

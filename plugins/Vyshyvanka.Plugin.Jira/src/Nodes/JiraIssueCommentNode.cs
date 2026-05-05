@@ -17,7 +17,7 @@ namespace Vyshyvanka.Plugin.Jira.Nodes;
 [NodeOutput("output", DisplayName = "Output", Type = PortType.Object)]
 [RequiresCredential(CredentialType.BasicAuth)]
 [ConfigurationProperty("operation", "string", Description = "Operation: add, get, getAll, update, remove",
-    IsRequired = true)]
+    IsRequired = true, Options = "add,get,getAll,update,remove")]
 [ConfigurationProperty("issueIdOrKey", "string", Description = "Issue ID or key (e.g. PROJ-123)", IsRequired = true)]
 [ConfigurationProperty("commentId", "string", Description = "Comment ID. Required for get, update, remove.")]
 [ConfigurationProperty("body", "string",

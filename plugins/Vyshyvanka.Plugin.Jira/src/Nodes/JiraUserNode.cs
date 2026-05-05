@@ -16,7 +16,8 @@ namespace Vyshyvanka.Plugin.Jira.Nodes;
 [NodeInput("input", DisplayName = "Input", Type = PortType.Object)]
 [NodeOutput("output", DisplayName = "Output", Type = PortType.Object)]
 [RequiresCredential(CredentialType.BasicAuth)]
-[ConfigurationProperty("operation", "string", Description = "Operation: get, search", IsRequired = true)]
+[ConfigurationProperty("operation", "string", Description = "Operation: get, search", IsRequired = true,
+    Options = "get,search")]
 [ConfigurationProperty("accountId", "string", Description = "User account ID. Required for get.")]
 [ConfigurationProperty("query", "string", Description = "Search query string. Required for search.")]
 [ConfigurationProperty("maxResults", "number", Description = "Max results for search (default 50).")]

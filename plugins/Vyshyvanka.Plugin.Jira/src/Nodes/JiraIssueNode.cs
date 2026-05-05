@@ -18,7 +18,8 @@ namespace Vyshyvanka.Plugin.Jira.Nodes;
 [NodeOutput("output", DisplayName = "Output", Type = PortType.Object)]
 [RequiresCredential(CredentialType.BasicAuth)]
 [ConfigurationProperty("operation", "string",
-    Description = "Operation: create, update, delete, get, getAll, transition", IsRequired = true)]
+    Description = "Operation: create, update, delete, get, getAll, transition", IsRequired = true,
+    Options = "create,update,delete,get,getAll,transition")]
 [ConfigurationProperty("issueIdOrKey", "string",
     Description = "Issue ID or key (e.g. PROJ-123). Required for get, update, delete, transition.")]
 [ConfigurationProperty("projectKey", "string", Description = "Project key (e.g. PROJ). Required for create.")]

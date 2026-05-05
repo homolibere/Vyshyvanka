@@ -188,6 +188,17 @@ Active executions are tracked in a `ConcurrentDictionary<Guid, CancellationToken
 
 Cancelled executions are persisted with status `Cancelled`.
 
+## Workflow Output
+
+The `ExecutionResult.OutputData` represents the final output of a workflow execution. It is determined by identifying **terminal nodes** — nodes with no outgoing connections (i.e., the final step(s) in the graph).
+
+Resolution order:
+1. Find all terminal nodes in the workflow (nodes not appearing as a source in any connection)
+2. Among executed terminal nodes, use the output of the last successful one
+3. If no terminal node produced output, fall back to the last successful node result
+
+This ensures that sub-workflow execution (via the Execute Workflow node) reliably receives the child workflow's meaningful output rather than an arbitrary intermediate node's data.
+
 ## Persistence (Decorator)
 
 The `PersistentWorkflowEngine` wraps the core engine and:
