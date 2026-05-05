@@ -410,6 +410,43 @@ Audit logs can be queried by:
 - Success/failure status
 - Pagination (skip/take)
 
+## Code Execution Sandbox
+
+The Code node allows users to execute custom C# code within workflows using Roslyn scripting. To prevent abuse, execution is sandboxed:
+
+### Restricted Assembly Access
+
+Scripts only have access to a curated set of safe assemblies:
+
+| Allowed | Purpose |
+|---------|---------|
+| `System.Runtime` | Core types (string, int, Guid, DateTime, etc.) |
+| `System.Collections` | Lists, dictionaries, arrays |
+| `System.Linq` | LINQ query operators |
+| `System.Text.Json` | JSON parsing and serialization |
+| `System.Text.RegularExpressions` | Regex pattern matching |
+
+Scripts **cannot** access:
+- `System.IO` — no file system access
+- `System.Net` / `System.Net.Http` — no network access
+- `System.Diagnostics` — no process spawning
+- `System.Reflection.Emit` — no dynamic code generation
+
+### Timeout Enforcement
+
+Each script execution is bounded by a configurable timeout (default: 30 seconds). If the script exceeds the timeout, execution is cancelled and the node returns a failure output.
+
+### Script Caching
+
+Compiled scripts are cached by their source code hash to avoid repeated compilation overhead. The cache is process-scoped and cleared on application restart.
+
+### Security Rules
+
+- Scripts run in the same process as the engine but with restricted assembly references
+- No credential data is directly accessible from scripts (use upstream nodes to fetch and pass data)
+- Script output is serialized to JSON before being stored — no object references leak between executions
+- Compilation errors are reported to the user without exposing internal engine details
+
 ## Error Handling
 
 The `ErrorHandlingMiddleware` catches all unhandled exceptions and maps them to consistent API error responses. This prevents internal implementation details from leaking to clients.

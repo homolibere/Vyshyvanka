@@ -62,6 +62,7 @@ public partial class PropertyEditor : ComponentBase
             "number" or "integer" => EditorType.Number,
             "boolean" => EditorType.Boolean,
             "object" or "array" => EditorType.Json,
+            "code" => EditorType.Code,
             _ => EditorType.String // Default fallback for unknown types
         };
     }
@@ -82,5 +83,6 @@ public enum EditorType
     Boolean,
     Json,
     Select,
-    WorkflowSelect
+    WorkflowSelect,
+    Code
 }

@@ -1,0 +1,112 @@
+.property-editor {
+    margin-bottom: 16px;
+}
+
+.property-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.required-indicator {
+    color: var(--danger);
+    font-weight: bold;
+}
+
+.type-badge {
+    padding: 2px 6px;
+    background: var(--bg-hover);
+    border-radius: 3px;
+    font-size: 0.625rem;
+    font-family: 'Monaco', 'Menlo', monospace;
+    color: var(--accent);
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.code-editor-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    background: var(--bg-hover);
+    border: 1px solid var(--border-color);
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+}
+
+.toolbar-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    color: var(--text-muted);
+    font-size: 0.6875rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.toolbar-button:hover {
+    color: var(--text-primary);
+    border-color: var(--accent);
+    background: var(--bg-surface);
+}
+
+.toolbar-button:active {
+    transform: scale(0.96);
+}
+
+.code-editor-container {
+    border: 1px solid var(--border-color);
+    border-radius: 0 0 4px 4px;
+    overflow: hidden;
+    transition: border-color 0.15s ease;
+}
+
+.code-editor-container:focus-within {
+    border-color: var(--accent);
+}
+
+.code-editor-container.has-error {
+    border-color: var(--danger);
+}
+
+.code-editor-container ::deep .CodeMirror {
+    height: auto;
+    min-height: 150px;
+    max-height: 400px;
+    font-size: 0.8125rem;
+    font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+    line-height: 1.5;
+}
+
+.code-editor-container ::deep .CodeMirror-scroll {
+    min-height: 150px;
+    max-height: 400px;
+}
+
+.property-description {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 6px;
+    line-height: 1.4;
+}
+
+.validation-error {
+    margin-top: 6px;
+    padding: 6px 8px;
+    background: var(--danger-bg);
+    border: 1px solid var(--danger);
+    border-radius: 4px;
+    color: var(--danger);
+    font-size: 0.75rem;
+}

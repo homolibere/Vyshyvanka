@@ -124,7 +124,7 @@ Nodes are the building blocks of workflows. Three categories:
 | Category | Base Class | Description |
 |----------|------------|-------------|
 | Trigger | `BaseTriggerNode` | Entry point — webhooks, schedules, manual triggers |
-| Action | `BaseActionNode` | Operations — HTTP requests, database queries, email |
+| Action | `BaseActionNode` | Operations — HTTP requests, database queries, email, custom code |
 | Logic | `BaseLogicNode` | Flow control — conditionals, switches, loops, merges |
 
 ### Executions

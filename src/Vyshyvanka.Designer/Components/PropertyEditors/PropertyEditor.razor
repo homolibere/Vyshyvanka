@@ -37,6 +37,13 @@
                             ShowValidationError="@ShowValidationError"/>
         break;
 
+    case EditorType.Code:
+        <CodePropertyEditor Property="@Property"
+                            Value="@Value"
+                            ValueChanged="@OnValueChanged"
+                            ShowValidationError="@ShowValidationError"/>
+        break;
+
     case EditorType.String:
     default:
         <StringPropertyEditor Property="@Property"

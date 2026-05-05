@@ -21,7 +21,7 @@ Vyshyvanka is a .NET 10 workflow automation platform. Users build workflows visu
 | Category | Base Class | Input Ports | Examples |
 |----------|------------|-------------|----------|
 | Trigger | `BaseTriggerNode` | None | WebhookTrigger, ScheduleTrigger, ManualTrigger |
-| Action | `BaseActionNode` | Yes | HttpRequest, DatabaseQuery, EmailSend |
+| Action | `BaseActionNode` | Yes | HttpRequest, DatabaseQuery, EmailSend, Code |
 | Logic | `BaseLogicNode` | Yes | If, Switch, Loop, Merge |
 
 When implementing a new node:
