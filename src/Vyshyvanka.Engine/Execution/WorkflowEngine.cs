@@ -88,7 +88,7 @@ public class WorkflowEngine : IWorkflowEngine
                     var failedResult = levelResults.FirstOrDefault(r => !r.Success);
                     if (failedResult is not null)
                     {
-                        return BuildResult(context.ExecutionId, nodeResults, startTime,
+                        return BuildResult(context.ExecutionId, nodeResults, startTime, workflow,
                             success: false, errorMessage: failedResult.ErrorMessage);
                     }
                 }
@@ -148,7 +148,7 @@ public class WorkflowEngine : IWorkflowEngine
                                 var failedSub = subResults.FirstOrDefault(r => !r.Success);
                                 if (failedSub is not null)
                                 {
-                                    return BuildResult(context.ExecutionId, nodeResults, startTime,
+                                    return BuildResult(context.ExecutionId, nodeResults, startTime, workflow,
                                         success: false, errorMessage: failedSub.ErrorMessage);
                                 }
                             }
@@ -177,7 +177,7 @@ public class WorkflowEngine : IWorkflowEngine
                 "Execution {ExecutionId} completed: success={Success}, duration={Duration}ms",
                 context.ExecutionId, allSuccess, (DateTime.UtcNow - startTime).TotalMilliseconds);
 
-            return BuildResult(context.ExecutionId, nodeResults, startTime,
+            return BuildResult(context.ExecutionId, nodeResults, startTime, workflow,
                 success: allSuccess,
                 errorMessage: allSuccess ? null : nodeResults.FirstOrDefault(r => !r.Success)?.ErrorMessage);
         }
@@ -185,7 +185,7 @@ public class WorkflowEngine : IWorkflowEngine
         {
             _logger.LogWarning("Execution {ExecutionId} was cancelled", context.ExecutionId);
 
-            return BuildResult(context.ExecutionId, nodeResults, startTime,
+            return BuildResult(context.ExecutionId, nodeResults, startTime, workflow,
                 success: false, errorMessage: "Execution was cancelled");
         }
         finally
@@ -284,22 +284,47 @@ public class WorkflowEngine : IWorkflowEngine
     }
 
     /// <summary>
-    /// Builds an ExecutionResult with OutputData always populated from the last successful node.
-    /// This ensures partial results are available even when the workflow fails or is cancelled.
+    /// Builds an ExecutionResult with OutputData from the terminal node(s) of the workflow.
+    /// Terminal nodes are those with no outgoing connections — the final step(s) in the graph.
+    /// Falls back to the last node in execution order if no terminal node output is found.
     /// </summary>
     private static ExecutionResult BuildResult(
         Guid executionId,
         ConcurrentBag<NodeExecutionResult> nodeResults,
         DateTime startTime,
+        Workflow workflow,
         bool success,
         string? errorMessage = null)
     {
         var resultList = nodeResults.ToList();
+
+        // Find terminal nodes: nodes that are not the source of any connection
+        var sourceNodeIds = workflow.Connections
+            .Select(c => c.SourceNodeId)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var terminalNodeIds = workflow.Nodes
+            .Where(n => !sourceNodeIds.Contains(n.Id))
+            .Select(n => n.Id)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        // Get output from the last successful terminal node
+        object? outputData = null;
+        if (terminalNodeIds.Count > 0)
+        {
+            outputData = resultList
+                .Where(r => r.Success && terminalNodeIds.Contains(r.NodeId) && r.OutputData is not null)
+                .LastOrDefault()?.OutputData;
+        }
+
+        // Fallback: last successful node result with non-null output
+        outputData ??= resultList.LastOrDefault(r => r.Success && r.OutputData is not null)?.OutputData;
+
         return new ExecutionResult
         {
             ExecutionId = executionId,
             Success = success,
-            OutputData = resultList.LastOrDefault(r => r.Success)?.OutputData,
+            OutputData = outputData,
             ErrorMessage = errorMessage,
             Duration = DateTime.UtcNow - startTime,
             NodeResults = resultList

@@ -6,25 +6,21 @@ namespace Vyshyvanka.Designer.Components;
 
 public partial class WorkflowBrowser
 {
-    [Inject]
-    private VyshyvankaApiClient ApiClient { get; set; } = null!;
+    [Inject] private VyshyvankaApiClient ApiClient { get; set; } = null!;
 
-    [Inject]
-    private NavigationManager Navigation { get; set; } = null!;
+    [Inject] private NavigationManager Navigation { get; set; } = null!;
 
     private List<WorkflowSummary> _workflows = [];
     private string _searchQuery = "";
     private bool _isLoading;
     private string? _error;
+    private bool _wasOpen;
 
-    [Parameter]
-    public bool IsOpen { get; set; }
+    [Parameter] public bool IsOpen { get; set; }
 
-    [Parameter]
-    public Guid? CurrentWorkflowId { get; set; }
+    [Parameter] public Guid? CurrentWorkflowId { get; set; }
 
-    [Parameter]
-    public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
 
     private IEnumerable<WorkflowSummary> FilteredWorkflows =>
         string.IsNullOrWhiteSpace(_searchQuery)
@@ -35,10 +31,12 @@ public partial class WorkflowBrowser
 
     protected override async Task OnParametersSetAsync()
     {
-        if (IsOpen && !_workflows.Any() && !_isLoading)
+        if (IsOpen && !_wasOpen && !_isLoading)
         {
             await LoadWorkflowsAsync();
         }
+
+        _wasOpen = IsOpen;
     }
 
     private async Task LoadWorkflowsAsync()
@@ -109,5 +107,11 @@ public partial class WorkflowBrowser
         return date.ToString("MMM d, yyyy");
     }
 
-    private record WorkflowSummary(Guid Id, string Name, string? Description, int Version, bool IsActive, DateTime UpdatedAt);
+    private record WorkflowSummary(
+        Guid Id,
+        string Name,
+        string? Description,
+        int Version,
+        bool IsActive,
+        DateTime UpdatedAt);
 }

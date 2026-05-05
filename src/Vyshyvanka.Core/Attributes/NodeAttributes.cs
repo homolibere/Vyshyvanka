@@ -81,6 +81,12 @@ public class ConfigurationPropertyAttribute : Attribute
     /// <summary>Whether this property is required.</summary>
     public bool IsRequired { get; set; }
 
+    /// <summary>
+    /// Data source identifier for dynamic options (e.g., "workflows").
+    /// When set, the Designer fetches options from the API instead of using static values.
+    /// </summary>
+    public string? DataSource { get; set; }
+
     public ConfigurationPropertyAttribute(string name, string propertyType)
     {
         Name = name;

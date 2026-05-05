@@ -22,6 +22,12 @@ public record ConfigurationProperty
 
     /// <summary>Predefined options for dropdown (null for free-form input).</summary>
     public List<string>? Options { get; init; }
+
+    /// <summary>
+    /// Data source identifier for dynamic options (e.g., "workflows").
+    /// When set, the editor fetches options from the API at runtime.
+    /// </summary>
+    public string? DataSource { get; init; }
 }
 
 /// <summary>

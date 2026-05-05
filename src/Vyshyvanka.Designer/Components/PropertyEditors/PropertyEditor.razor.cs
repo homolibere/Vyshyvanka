@@ -39,6 +39,16 @@ public partial class PropertyEditor : ComponentBase
     /// </summary>
     internal EditorType GetEditorType()
     {
+        // Dynamic data source -> specialized editor
+        if (!string.IsNullOrEmpty(Property.DataSource))
+        {
+            return Property.DataSource switch
+            {
+                "workflows" => EditorType.WorkflowSelect,
+                _ => EditorType.String
+            };
+        }
+
         // String with options -> Select dropdown
         if (Property.Type.Equals("string", StringComparison.OrdinalIgnoreCase) &&
             Property.Options is { Count: > 0 })
@@ -71,5 +81,6 @@ public enum EditorType
     Number,
     Boolean,
     Json,
-    Select
+    Select,
+    WorkflowSelect
 }

@@ -15,6 +15,19 @@ a, .btn-link {
 }
 
 .btn-primary {
+    --bs-btn-color: var(--btn-primary-text);
+    --bs-btn-bg: var(--btn-primary-bg);
+    --bs-btn-border-color: var(--btn-primary-border);
+    --bs-btn-hover-color: var(--btn-primary-text);
+    --bs-btn-hover-bg: var(--btn-primary-hover);
+    --bs-btn-hover-border-color: var(--btn-primary-hover);
+    --bs-btn-active-color: var(--btn-primary-text);
+    --bs-btn-active-bg: var(--btn-primary-hover);
+    --bs-btn-active-border-color: var(--btn-primary-hover);
+    --bs-btn-disabled-color: var(--btn-primary-text);
+    --bs-btn-disabled-bg: var(--btn-primary-bg);
+    --bs-btn-disabled-border-color: var(--btn-primary-border);
+    --bs-btn-focus-shadow-rgb: 198, 40, 40;
     color: var(--btn-primary-text);
     background-color: var(--btn-primary-bg);
     border-color: var(--btn-primary-border);

@@ -17,7 +17,8 @@ namespace Vyshyvanka.Engine.Nodes.Actions;
     Icon = "fa-solid fa-diagram-project")]
 [NodeInput("input", DisplayName = "Parameters", Type = PortType.Object)]
 [NodeOutput("output", DisplayName = "Result", Type = PortType.Object)]
-[ConfigurationProperty("workflowId", "string", Description = "ID of the workflow to execute", IsRequired = true)]
+[ConfigurationProperty("workflowId", "string", Description = "ID of the workflow to execute", IsRequired = true,
+    DataSource = "workflows")]
 [ConfigurationProperty("waitForCompletion", "boolean",
     Description = "Wait for the child workflow to complete before continuing")]
 [ConfigurationProperty("timeout", "number", Description = "Maximum execution time in seconds (default: 300)")]
@@ -91,10 +92,9 @@ public class ExecuteWorkflowNode : BaseActionNode
 
             var result = await workflowEngine.ExecuteAsync(workflow, childContext, cts.Token);
 
-            // Extract the workflow output — prefer the top-level OutputData (set by the engine),
-            // fall back to the last successful node's output.
-            var workflowOutput = result.OutputData
-                                 ?? result.NodeResults.LastOrDefault(r => r.Success)?.OutputData;
+            // Extract the workflow output from the engine result.
+            // OutputData is set by the engine from terminal node(s) output.
+            var workflowOutput = result.OutputData;
 
             var outputData = new Dictionary<string, object?>
             {

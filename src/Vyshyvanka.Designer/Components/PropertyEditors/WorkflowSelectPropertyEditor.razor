@@ -1,0 +1,48 @@
+@namespace Vyshyvanka.Designer.Components
+
+<div class="property-editor workflow-select-editor">
+    <label class="property-label">
+        @Property.DisplayName
+        @if (Property.IsRequired)
+        {
+            <span class="required-indicator">*</span>
+        }
+    </label>
+
+    <select class="property-select @(ShowValidationError ? "has-error" : "")"
+            value="@CurrentValue"
+            @onchange="OnChange"
+            disabled="@_isLoading">
+        @if (!Property.IsRequired || string.IsNullOrEmpty(CurrentValue))
+        {
+            <option value="">-- Select workflow --</option>
+        }
+        @if (_isLoading)
+        {
+            <option value="" disabled>Loading workflows...</option>
+        }
+        else
+        {
+            @foreach (var workflow in _workflows)
+            {
+                <option value="@workflow.Id" selected="@(workflow.Id.ToString() == CurrentValue)">
+                    @workflow.Name
+                </option>
+            }
+        }
+    </select>
+
+    @if (!string.IsNullOrEmpty(Property.Description))
+    {
+        <div class="property-description">@Property.Description</div>
+    }
+
+    @if (!string.IsNullOrEmpty(_error))
+    {
+        <div class="validation-error">@_error</div>
+    }
+    else if (ShowValidationError)
+    {
+        <div class="validation-error">This field is required</div>
+    }
+</div>

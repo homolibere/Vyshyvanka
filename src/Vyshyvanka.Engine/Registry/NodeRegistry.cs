@@ -191,11 +191,16 @@ public class NodeRegistry : INodeRegistry
 
         foreach (var attr in configAttrs)
         {
-            properties[attr.Name] = new Dictionary<string, object>
+            var propSchema = new Dictionary<string, object>
             {
                 ["type"] = attr.PropertyType.ToLowerInvariant(),
                 ["description"] = attr.Description ?? string.Empty
             };
+
+            if (!string.IsNullOrEmpty(attr.DataSource))
+                propSchema["dataSource"] = attr.DataSource;
+
+            properties[attr.Name] = propSchema;
 
             if (attr.IsRequired)
                 required.Add(attr.Name);

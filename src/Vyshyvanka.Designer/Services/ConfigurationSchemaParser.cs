@@ -83,6 +83,7 @@ public static class ConfigurationSchemaParser
             {
                 values[prop.Name] = null;
             }
+
             return values;
         }
 
@@ -140,6 +141,7 @@ public static class ConfigurationSchemaParser
             {
                 result.Append(' ');
             }
+
             result.Append(i == 0 ? char.ToUpper(c) : c);
         }
 
@@ -150,6 +152,7 @@ public static class ConfigurationSchemaParser
     {
         var type = "string";
         string? description = null;
+        string? dataSource = null;
         List<string>? options = null;
 
         if (propSchema.TryGetProperty("type", out var typeElement) &&
@@ -162,6 +165,12 @@ public static class ConfigurationSchemaParser
             descElement.ValueKind == JsonValueKind.String)
         {
             description = descElement.GetString();
+        }
+
+        if (propSchema.TryGetProperty("dataSource", out var dataSourceElement) &&
+            dataSourceElement.ValueKind == JsonValueKind.String)
+        {
+            dataSource = dataSourceElement.GetString();
         }
 
         // Check for enum/options
@@ -202,7 +211,8 @@ public static class ConfigurationSchemaParser
             Type = type.ToLowerInvariant(),
             Description = description,
             IsRequired = isRequired,
-            Options = options?.Count > 0 ? options : null
+            Options = options?.Count > 0 ? options : null,
+            DataSource = dataSource
         };
     }
 
