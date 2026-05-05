@@ -89,7 +89,7 @@ Action nodes perform operations and produce output data.
 | Database Query | `database-query` | Executes SQL queries against configured databases. | Optional (BasicAuth) |
 | Email Send | `email-send` | Sends emails via SMTP. | Optional (BasicAuth) |
 | File Operations | `file-operations` | Reads, writes, and manipulates files. | None |
-| Code | `code` | Executes custom C# code via Roslyn scripting. Supports "run once" and "run for each item" modes with access to input data, execution context, and logging. | None |
+| Code | `code` | Executes custom C# or JavaScript code. C# uses Roslyn scripting; JavaScript uses the Jint interpreter. Supports "run once" and "run for each item" modes with access to input data, execution context, and logging. | None |
 
 ### Logic Nodes
 

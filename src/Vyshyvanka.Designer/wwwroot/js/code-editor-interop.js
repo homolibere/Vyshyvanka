@@ -8,17 +8,19 @@ window.codeEditorInterop = {
      * @param {string} editorId - Unique identifier for this editor instance.
      * @param {string} initialValue - Initial code content.
      * @param {object} dotNetRef - .NET object reference for callbacks.
+     * @param {string} language - Programming language ('csharp' or 'javascript').
      * @returns {boolean} Whether initialization succeeded.
      */
-    initialize: function (container, editorId, initialValue, dotNetRef) {
+    initialize: function (container, editorId, initialValue, dotNetRef, language) {
         if (!container || !window.CodeMirror) return false;
 
         // Detect current theme
         var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        var mode = this._getMode(language);
 
         var editor = CodeMirror(container, {
             value: initialValue || '',
-            mode: 'text/x-csharp',
+            mode: mode,
             theme: isDark ? 'material-darker' : 'default',
             lineNumbers: true,
             matchBrackets: true,
@@ -97,6 +99,31 @@ window.codeEditorInterop = {
         var entry = this._editors.get(editorId);
         if (entry) {
             entry.editor.refresh();
+        }
+    },
+
+    /**
+     * Change the editor's syntax highlighting language.
+     */
+    setLanguage: function (editorId, language) {
+        var entry = this._editors.get(editorId);
+        if (entry) {
+            entry.editor.setOption('mode', this._getMode(language));
+        }
+    },
+
+    /**
+     * Map language identifier to CodeMirror mode.
+     */
+    _getMode: function (language) {
+        switch ((language || '').toLowerCase()) {
+            case 'javascript':
+            case 'js':
+                return 'text/javascript';
+            case 'csharp':
+            case 'c#':
+            default:
+                return 'text/x-csharp';
         }
     },
 

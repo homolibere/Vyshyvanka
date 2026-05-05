@@ -6,7 +6,8 @@ namespace Vyshyvanka.Designer.Components;
 
 /// <summary>
 /// Property editor for code type configuration properties.
-/// Renders a CodeMirror editor with C# syntax highlighting, line numbers, and bracket matching.
+/// Renders a CodeMirror editor with syntax highlighting, line numbers, and bracket matching.
+/// Supports C# and JavaScript modes based on the sibling "language" property.
 /// </summary>
 public partial class CodePropertyEditor : ComponentBase, IAsyncDisposable
 {
@@ -20,28 +21,66 @@ public partial class CodePropertyEditor : ComponentBase, IAsyncDisposable
 
     [Parameter] public bool ShowValidationError { get; set; }
 
+    /// <summary>
+    /// Sibling configuration values. Used to read the "language" property for syntax mode switching.
+    /// </summary>
+    [Parameter]
+    public Dictionary<string, object?>? SiblingValues { get; set; }
+
     private ElementReference _editorContainer;
     private DotNetObjectReference<CodePropertyEditor>? _dotNetRef;
-    private string _editorId = $"code-editor-{Guid.NewGuid():N}";
+    private readonly string _editorId = $"code-editor-{Guid.NewGuid():N}";
     private bool _initialized;
     private string _currentValue = string.Empty;
+    private string _currentLanguage = "csharp";
+
+    private string LanguageBadge => Language switch
+    {
+        "javascript" or "js" => "JS",
+        _ => "C#"
+    };
+
+    private string Language
+    {
+        get
+        {
+            if (SiblingValues is not null &&
+                SiblingValues.TryGetValue("language", out var lang) &&
+                lang is string langStr &&
+                !string.IsNullOrEmpty(langStr))
+            {
+                return langStr.ToLowerInvariant();
+            }
+
+            return "csharp";
+        }
+    }
 
     protected override void OnParametersSet()
     {
         _currentValue = Value?.ToString() ?? string.Empty;
+
+        var newLanguage = Language;
+        if (_initialized && newLanguage != _currentLanguage)
+        {
+            _currentLanguage = newLanguage;
+            _ = UpdateEditorLanguageAsync(newLanguage);
+        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
+            _currentLanguage = Language;
             _dotNetRef = DotNetObjectReference.Create(this);
             _initialized = await JS.InvokeAsync<bool>(
                 "codeEditorInterop.initialize",
                 _editorContainer,
                 _editorId,
                 _currentValue,
-                _dotNetRef);
+                _dotNetRef,
+                _currentLanguage);
         }
     }
 
@@ -64,6 +103,12 @@ public partial class CodePropertyEditor : ComponentBase, IAsyncDisposable
         await JS.InvokeVoidAsync("codeEditorInterop.autoFormat", _editorId);
     }
 
+    private async Task UpdateEditorLanguageAsync(string language)
+    {
+        if (!_initialized) return;
+        await JS.InvokeVoidAsync("codeEditorInterop.setLanguage", _editorId, language);
+    }
+
     public async ValueTask DisposeAsync()
     {
         if (_initialized)
@@ -79,5 +124,6 @@ public partial class CodePropertyEditor : ComponentBase, IAsyncDisposable
         }
 
         _dotNetRef?.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

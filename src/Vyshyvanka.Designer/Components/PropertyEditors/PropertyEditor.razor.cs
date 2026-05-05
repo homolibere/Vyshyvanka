@@ -35,6 +35,13 @@ public partial class PropertyEditor : ComponentBase
     public bool ShowValidationError { get; set; }
 
     /// <summary>
+    /// All sibling configuration values. Used by editors that need context from other properties
+    /// (e.g., CodePropertyEditor reads the "language" property).
+    /// </summary>
+    [Parameter]
+    public Dictionary<string, object?>? SiblingValues { get; set; }
+
+    /// <summary>
     /// Determines the editor type to render based on property type and options.
     /// </summary>
     internal EditorType GetEditorType()

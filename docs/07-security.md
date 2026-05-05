@@ -412,11 +412,13 @@ Audit logs can be queried by:
 
 ## Code Execution Sandbox
 
-The Code node allows users to execute custom C# code within workflows using Roslyn scripting. To prevent abuse, execution is sandboxed:
+The Code node allows users to execute custom C# or JavaScript code within workflows. To prevent abuse, both runtimes are sandboxed.
 
-### Restricted Assembly Access
+### C# Sandbox (Roslyn Scripting)
 
-Scripts only have access to a curated set of safe assemblies:
+#### Restricted Assembly Access
+
+C# scripts only have access to a curated set of safe assemblies:
 
 | Allowed | Purpose |
 |---------|---------|
@@ -432,20 +434,30 @@ Scripts **cannot** access:
 - `System.Diagnostics` — no process spawning
 - `System.Reflection.Emit` — no dynamic code generation
 
-### Timeout Enforcement
+#### Script Caching
 
-Each script execution is bounded by a configurable timeout (default: 30 seconds). If the script exceeds the timeout, execution is cancelled and the node returns a failure output.
+Compiled C# scripts are cached by source code to avoid repeated compilation overhead. The cache is process-scoped and cleared on application restart.
 
-### Script Caching
+### JavaScript Sandbox (Jint)
 
-Compiled scripts are cached by their source code hash to avoid repeated compilation overhead. The cache is process-scoped and cleared on application restart.
+JavaScript execution uses the Jint interpreter with the following constraints:
 
-### Security Rules
+| Constraint | Limit |
+|-----------|-------|
+| Max statements | 100,000 |
+| Memory | 64 MB |
+| Recursion depth | 256 |
+| Timeout | Configurable (default: 30s) |
 
-- Scripts run in the same process as the engine but with restricted assembly references
+Jint is a pure .NET JavaScript interpreter — it does not use V8 or any native runtime. Scripts have no access to Node.js APIs, file system, network, or process spawning.
+
+### Shared Security Rules
+
+- Both runtimes enforce a configurable timeout (default: 30 seconds)
 - No credential data is directly accessible from scripts (use upstream nodes to fetch and pass data)
 - Script output is serialized to JSON before being stored — no object references leak between executions
-- Compilation errors are reported to the user without exposing internal engine details
+- Compilation/runtime errors are reported to the user without exposing internal engine details
+- Scripts run in the same process as the engine but with restricted capabilities
 
 ## Error Handling
 
