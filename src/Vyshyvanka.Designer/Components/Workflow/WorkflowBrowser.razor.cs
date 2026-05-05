@@ -15,6 +15,7 @@ public partial class WorkflowBrowser
     private bool _isLoading;
     private string? _error;
     private bool _wasOpen;
+    private Guid? _confirmDeleteId;
 
     [Parameter] public bool IsOpen { get; set; }
 
@@ -95,6 +96,31 @@ public partial class WorkflowBrowser
     private async Task HandleOverlayClick()
     {
         await Close();
+    }
+
+    private void ConfirmDelete(Guid workflowId)
+    {
+        _confirmDeleteId = workflowId;
+    }
+
+    private void CancelDelete()
+    {
+        _confirmDeleteId = null;
+    }
+
+    private async Task DeleteWorkflowAsync(Guid workflowId)
+    {
+        _confirmDeleteId = null;
+
+        try
+        {
+            await ApiClient.DeleteWorkflowAsync(workflowId);
+            _workflows.RemoveAll(w => w.Id == workflowId);
+        }
+        catch (Exception ex)
+        {
+            _error = $"Failed to delete: {ex.Message}";
+        }
     }
 
     private static string FormatDate(DateTime date)

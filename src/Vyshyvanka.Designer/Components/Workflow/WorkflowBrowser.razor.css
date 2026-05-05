@@ -241,6 +241,9 @@
 
 .workflow-actions {
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .btn-open {
@@ -258,4 +261,60 @@
 .workflow-item:hover .btn-open {
     border-color: var(--accent);
     color: var(--accent);
+}
+
+.btn-delete {
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    opacity: 0;
+}
+
+.workflow-item:hover .btn-delete {
+    opacity: 1;
+}
+
+.btn-delete:hover {
+    border-color: var(--danger);
+    color: var(--danger);
+    background: var(--danger-bg);
+}
+
+.btn-delete-confirm {
+    padding: 4px 10px;
+    background: var(--danger);
+    border: none;
+    border-radius: 4px;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.btn-delete-confirm:hover {
+    background: #d32f2f;
+}
+
+.btn-delete-cancel {
+    width: 28px;
+    height: 28px;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn-delete-cancel:hover {
+    border-color: var(--text-primary);
+    color: var(--text-primary);
 }

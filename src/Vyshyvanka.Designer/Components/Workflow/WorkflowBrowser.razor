@@ -72,6 +72,30 @@
                             </div>
                         </div>
                         <div class="workflow-actions">
+                            @if (_confirmDeleteId == workflow.Id)
+                            {
+                                <button class="btn-delete-confirm"
+                                        title="Confirm delete"
+                                        @onclick="() => DeleteWorkflowAsync(workflow.Id)"
+                                        @onclick:stopPropagation="true">
+                                    Confirm
+                                </button>
+                                <button class="btn-delete-cancel"
+                                        title="Cancel"
+                                        @onclick="CancelDelete"
+                                        @onclick:stopPropagation="true">
+                                    ✕
+                                </button>
+                            }
+                            else
+                            {
+                                <button class="btn-delete"
+                                        title="Delete workflow"
+                                        @onclick="() => ConfirmDelete(workflow.Id)"
+                                        @onclick:stopPropagation="true">
+                                    🗑
+                                </button>
+                            }
                             <button class="btn-open" title="Open workflow">→</button>
                         </div>
                     </div>

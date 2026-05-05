@@ -1,0 +1,12 @@
+{
+  "name": "Sync Docs on Source Change",
+  "version": "1.0.0",
+  "description": "After the agent finishes all work, reviews what changed and updates relevant documentation in /docs, README.md, or .kiro/steering/ to keep them in sync.",
+  "when": {
+    "type": "agentStop"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Review all source file changes made during this session (*.cs, *.csproj, *.razor, *.slnx, Directory.Packages.props). Determine if any documentation in the /docs folder, README.md, or .kiro/steering/ files needs to be updated to reflect the changes. If changes affect architecture, domain model, API endpoints, node system, plugin system, workflow engine behavior, security, project structure, conventions, or tech stack, update the relevant doc or steering file(s). Keep documentation accurate and concise. If changes are trivial (formatting, minor refactoring with no behavioral change), no doc update is needed."
+  }
+}
