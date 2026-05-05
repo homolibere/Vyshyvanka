@@ -35,6 +35,7 @@ namespace Vyshyvanka.Engine.Nodes.Actions;
 public class CodeNode : BaseActionNode
 {
     private static readonly ConcurrentDictionary<string, Script<object>> CSharpScriptCache = new();
+    private static readonly ConcurrentDictionary<string, IReadOnlyList<string>> IlValidationCache = new();
     private static readonly ScriptOptions DefaultScriptOptions = CreateScriptOptions();
 
     private readonly string _id = Guid.NewGuid().ToString();
@@ -101,6 +102,29 @@ public class CodeNode : BaseActionNode
         IExecutionContext context,
         CancellationToken ct)
     {
+        // Gate 1: Validate the syntax tree for dangerous patterns before compilation
+        var violations = CodeNodeSyntaxValidator.Validate(code);
+        if (violations.Count > 0)
+        {
+            var violationMessages = string.Join(Environment.NewLine, violations.Select(v => $"• {v}"));
+            return FailureOutput(
+                $"Code validation failed — prohibited operations detected:{Environment.NewLine}{violationMessages}");
+        }
+
+        // Gate 2: Validate compiled IL against the type/method allowlist
+        var ilViolations = IlValidationCache.GetOrAdd(code, static c =>
+        {
+            var script = CSharpScript.Create<object>(c, DefaultScriptOptions, typeof(CodeNodeGlobals));
+            return CodeNodeIlValidator.Validate(script.GetCompilation());
+        });
+
+        if (ilViolations.Count > 0)
+        {
+            var violationMessages = string.Join(Environment.NewLine, ilViolations.Select(v => $"• {v}"));
+            return FailureOutput(
+                $"Code validation failed — disallowed type references detected:{Environment.NewLine}{violationMessages}");
+        }
+
         var globals = new CodeNodeGlobals(
             input.Data,
             context.ExecutionId,
@@ -174,8 +198,7 @@ public class CodeNode : BaseActionNode
                 typeof(Regex).Assembly,
                 Assembly.Load("System.Runtime"),
                 Assembly.Load("System.Collections"),
-                Assembly.Load("System.Linq"),
-                Assembly.Load("System.Linq.Expressions"))
+                Assembly.Load("System.Linq"))
             .WithImports(
                 "System",
                 "System.Collections.Generic",

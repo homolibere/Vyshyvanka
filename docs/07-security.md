@@ -416,6 +416,8 @@ The Code node allows users to execute custom C# or JavaScript code within workfl
 
 ### C# Sandbox (Roslyn Scripting)
 
+The C# sandbox uses three layers of defense: restricted assembly references, pre-compilation syntax tree validation, and post-compilation IL allowlist validation.
+
 #### Restricted Assembly Access
 
 C# scripts only have access to a curated set of safe assemblies:
@@ -433,6 +435,63 @@ Scripts **cannot** access:
 - `System.Net` / `System.Net.Http` — no network access
 - `System.Diagnostics` — no process spawning
 - `System.Reflection.Emit` — no dynamic code generation
+
+#### Gate 1: Syntax Tree Validation
+
+Before any C# script is compiled or executed, the `CodeNodeSyntaxValidator` parses the code into a Roslyn syntax tree and walks it to detect dangerous patterns. This prevents reflection-based sandbox escape where a user could use `typeof(object).Assembly.GetType(...)` to load restricted types at runtime.
+
+The validator rejects:
+
+| Pattern | Reason |
+|---------|--------|
+| `typeof(...)` expressions | Entry point to obtain `Type` objects for reflection |
+| Reflection method calls (`GetType()`, `GetMethod()`, `GetField()`, `Invoke()`, etc.) | Runtime type inspection and invocation |
+| Method group references (`var f = obj.GetType;`) | Delegate capture of reflection methods bypasses invocation checks |
+| References to forbidden types (`Type`, `Assembly`, `File`, `Process`, `Socket`, `Marshal`, `Expression`, etc.) | Direct use of restricted APIs |
+| Forbidden namespace access (`System.Reflection`, `System.IO`, `System.Diagnostics`, `System.Net`, `System.Runtime.InteropServices`, `System.Linq.Expressions`) | Namespace-qualified access to restricted APIs |
+| `using` directives for restricted namespaces | Importing blocked namespaces |
+| Reflection member access (`.Assembly`, `.BaseType`, `.Module`) | Property-based reflection access |
+| LINQ Expression tree types (`Expression`, `LambdaExpression`, `MethodCallExpression`, etc.) | Can dynamically construct reflection calls via string-based APIs |
+
+The `System.Linq.Expressions` assembly is also excluded from the script's assembly references, so even if a reference somehow passes validation, it will fail at runtime.
+
+If any violations are detected, execution is rejected with a descriptive error listing each violation and its line number. The script is never compiled or run.
+
+The validator uses Roslyn's `Identifier.ValueText` (which resolves C# Unicode escape sequences like `\u0047`) rather than raw source text, so obfuscation via Unicode escapes (e.g., `\u0047etType` → `GetType`) does not bypass detection.
+
+Implementation: `Vyshyvanka.Engine/Nodes/Actions/CodeNodeSyntaxValidator.cs`
+
+#### Gate 2: IL Allowlist Validation
+
+After the script passes syntax validation, it is compiled by Roslyn and the emitted IL is inspected using `System.Reflection.Metadata`. Every type reference in the compiled assembly is checked against an **allowlist** of permitted types and namespaces. This is fundamentally immune to source-level obfuscation because it operates on the compiler's resolved output.
+
+| Allowed Category | Examples |
+|-----------------|----------|
+| Safe System types | `String`, `Int32`, `Guid`, `DateTime`, `Math`, `Convert`, `Array`, exceptions, delegates |
+| Collection namespaces | `System.Collections.Generic`, `System.Collections.Immutable` |
+| LINQ | `System.Linq` |
+| JSON | `System.Text.Json`, `System.Text.Json.Nodes` |
+| Regex | `System.Text.RegularExpressions` |
+| Async infrastructure | `System.Threading`, `System.Threading.Tasks` |
+| Compiler infrastructure | Debugger attributes, async state machine types, nullable annotations (auto-emitted by Roslyn) |
+| Script infrastructure | Roslyn internals, globals type, logging |
+
+Explicitly blocked types (rejected even if their namespace is otherwise allowed):
+- `System.Runtime.CompilerServices.Unsafe` — arbitrary memory access, bypasses the type system
+- `System.Runtime.CompilerServices.RuntimeHelpers` — `GetUninitializedObject` and other dangerous methods
+- `System.Threading.Thread`, `System.Threading.ThreadPool` — thread manipulation
+
+Any type reference not on the allowlist causes rejection. This blocks:
+- `System.Type`, `System.Reflection.*` — even if accessed indirectly
+- `System.IO.*`, `System.Net.*`, `System.Diagnostics.*` — regardless of how they're reached
+- `System.Activator`, `System.Environment`, `System.AppDomain` — dangerous System namespace types
+- `System.ComponentModel.TypeDescriptor` — reflection-like capabilities
+
+Compiler-emitted types (assembly attributes, debugger attributes, async infrastructure) are explicitly allowlisted so that legitimate scripts are not rejected.
+
+Validation results are cached per script to avoid repeated compilation overhead.
+
+Implementation: `Vyshyvanka.Engine/Nodes/Actions/CodeNodeIlValidator.cs`
 
 #### Script Caching
 
