@@ -8,6 +8,26 @@ using NuGet.Versioning;
 namespace Vyshyvanka.Engine.Packages;
 
 /// <summary>
+/// Result of loading and validating plugins from a package.
+/// </summary>
+/// <param name="NodeTypes">Node type identifiers discovered in the plugin.</param>
+/// <param name="Warnings">Validation warnings.</param>
+/// <param name="Failure">If non-null, the plugin load/validation failed.</param>
+internal record PluginLoadResult(
+    List<string>? NodeTypes = null,
+    List<string>? Warnings = null,
+    PackageInstallResult? Failure = null)
+{
+    public List<string> NodeTypes { get; } = NodeTypes ?? [];
+    public List<string> Warnings { get; } = Warnings ?? [];
+}
+
+/// <summary>
+/// Thrown when a package cannot be found in any configured source during installation.
+/// </summary>
+internal sealed class PackageNotFoundException(string message) : Exception(message);
+
+/// <summary>
 /// Primary implementation of NuGet package operations: search, install, update, uninstall.
 /// Coordinates between the package cache, manifest, dependency resolver, plugin loader, and node registry.
 /// </summary>
@@ -242,73 +262,18 @@ public class NuGetPackageManager : INuGetPackageManager
         _logger?.LogInformation("Installing package {PackageId} v{Version}", packageId,
             version?.ToString() ?? "latest");
 
-        // Check block list
-        if (_options.BlockedPackages.Any(b => string.Equals(b, packageId, StringComparison.OrdinalIgnoreCase)))
-        {
-            return new PackageInstallResult
-            {
-                Success = false,
-                Errors = [$"Package '{packageId}' is in the block list and cannot be installed"]
-            };
-        }
-
-        // Check allow list
-        if (_options.AllowedPackages.Count > 0 &&
-            !_options.AllowedPackages.Any(a => string.Equals(a, packageId, StringComparison.OrdinalIgnoreCase)))
-        {
-            return new PackageInstallResult
-            {
-                Success = false,
-                Errors = [$"Package '{packageId}' is not in the allow list"]
-            };
-        }
+        var listValidation = ValidatePackageLists(packageId);
+        if (listValidation is not null) return listValidation;
 
         try
         {
-            // Resolve version if not specified
-            var resolvedVersion = version ?? await ResolveLatestVersionAsync(packageId, prerelease, cancellationToken);
-            if (resolvedVersion is null)
-            {
-                return new PackageInstallResult
-                {
-                    Success = false,
-                    Errors = [$"Package '{packageId}' was not found in any configured source"]
-                };
-            }
+            var (resolvedVersion, sourceRepository, source) =
+                await ResolveVersionAndSourceAsync(packageId, version, prerelease, cancellationToken);
 
-            // Find the source that has this package
-            var (sourceRepository, source) =
-                await FindPackageSourceAsync(packageId, resolvedVersion, cancellationToken);
-            if (sourceRepository is null || source is null)
-            {
-                return new PackageInstallResult
-                {
-                    Success = false,
-                    Errors = [$"Package '{packageId}' v{resolvedVersion} was not found in any configured source"]
-                };
-            }
+            var sourceConfirmation = await ConfirmUntrustedSourceAsync(packageId, source);
+            if (sourceConfirmation is not null) return sourceConfirmation;
 
-            // Check untrusted source confirmation
-            if (_options.RequireUntrustedSourceConfirmation && !source.IsTrusted)
-            {
-                if (_options.UntrustedSourceConfirmationCallback is not null)
-                {
-                    var confirmed = await _options.UntrustedSourceConfirmationCallback(packageId, source.Name);
-                    if (!confirmed)
-                    {
-                        return new PackageInstallResult
-                        {
-                            Success = false,
-                            Errors = [$"Installation from untrusted source '{source.Name}' was not confirmed"]
-                        };
-                    }
-                }
-            }
-
-            // Resolve dependencies
-            var depResult = await _dependencyResolver.ResolveAsync(
-                packageId, resolvedVersion, _installedPackages.Values, cancellationToken);
-
+            var depResult = await ResolveDependenciesAsync(packageId, resolvedVersion, cancellationToken);
             if (!depResult.Success)
             {
                 return new PackageInstallResult
@@ -320,127 +285,20 @@ public class NuGetPackageManager : INuGetPackageManager
                 };
             }
 
-            // Download and extract the package
-            var nupkgPath = await _packageCache.GetPackagePathAsync(
+            var installPath = await DownloadAndExtractPackageAsync(
                 packageId, resolvedVersion, sourceRepository, cancellationToken);
-            var installPath = await _packageCache.ExtractPackageAsync(
-                nupkgPath, packageId, resolvedVersion, cancellationToken);
 
-            // Load and validate the plugin
-            var nodeTypes = new List<string>();
-            var warnings = new List<string>();
+            UnloadExistingPlugins(packageId, installPath);
 
-            // Ensure any previously loaded plugin from this package is unloaded first
-            // (handles reinstall after failed cleanup during uninstall)
-            _pluginLoader.UnloadPlugin(packageId);
-            foreach (var loadedPlugin in _pluginLoader.GetLoadedPlugins())
-            {
-                if (string.Equals(loadedPlugin.FilePath, installPath, StringComparison.OrdinalIgnoreCase) ||
-                    loadedPlugin.FilePath.StartsWith(installPath, StringComparison.OrdinalIgnoreCase))
-                {
-                    _pluginLoader.UnloadPlugin(loadedPlugin.Id);
-                }
-            }
+            var pluginResult = await LoadAndValidatePluginsAsync(
+                packageId, resolvedVersion, installPath, cancellationToken);
+            if (pluginResult.Failure is not null) return pluginResult.Failure;
 
-            try
-            {
-                var plugins = _pluginLoader.LoadPlugins(installPath);
-                foreach (var plugin in plugins)
-                {
-                    if (plugin.Assembly is not null)
-                    {
-                        var validation = _pluginValidator.ValidatePlugin(plugin.Assembly);
-                        if (!validation.IsValid)
-                        {
-                            await _packageCache.RemovePackageAsync(packageId, resolvedVersion);
-                            return new PackageInstallResult
-                            {
-                                Success = false,
-                                Errors = validation.Errors.Select(e => $"Plugin validation failed: {e.Message}")
-                                    .ToList()
-                            };
-                        }
+            var installedDeps = await InstallDependenciesAsync(
+                depResult, packageId, source.Name, cancellationToken);
 
-                        _nodeRegistry.RegisterFromAssembly(plugin.Assembly);
-
-                        // Track node type identifiers (INode.Type values, not class names)
-                        foreach (var nodeType in plugin.NodeTypes)
-                        {
-                            try
-                            {
-                                if (Activator.CreateInstance(nodeType) is INode nodeInstance)
-                                    nodeTypes.Add(nodeInstance.Type);
-                            }
-                            catch
-                            {
-                                // Skip types that can't be instantiated
-                            }
-                        }
-
-                        warnings.AddRange(validation.Warnings.Select(w => w.Message));
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogDebug(ex, "No plugin assembly found in {PackageId}, treating as library dependency",
-                    packageId);
-            }
-
-            // Install dependencies
-            var installedDeps = new List<InstalledPackage>();
-            foreach (var dep in depResult.Dependencies.Where(d =>
-                         !d.IsAlreadyInstalled &&
-                         !string.Equals(d.PackageId, packageId, StringComparison.OrdinalIgnoreCase)))
-            {
-                try
-                {
-                    var depSource = await FindPackageSourceAsync(dep.PackageId, dep.Version, cancellationToken);
-                    if (depSource.Repository is not null)
-                    {
-                        var depNupkg = await _packageCache.GetPackagePathAsync(
-                            dep.PackageId, dep.Version, depSource.Repository, cancellationToken);
-                        var depPath = await _packageCache.ExtractPackageAsync(
-                            depNupkg, dep.PackageId, dep.Version, cancellationToken);
-
-                        var depPackage = new InstalledPackage
-                        {
-                            PackageId = dep.PackageId,
-                            Version = dep.Version,
-                            SourceName = source.Name,
-                            InstallPath = depPath,
-                            InstalledAt = DateTime.UtcNow,
-                            NodeTypes = [],
-                            Dependencies = [],
-                            IsLoaded = true
-                        };
-
-                        _installedPackages[dep.PackageId] = depPackage;
-                        await _manifestManager.AddPackageAsync(depPackage);
-                        installedDeps.Add(depPackage);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger?.LogWarning(ex, "Failed to install dependency {DepId}", dep.PackageId);
-                }
-            }
-
-            // Create the installed package record
-            var installedPackage = new InstalledPackage
-            {
-                PackageId = packageId,
-                Version = resolvedVersion,
-                SourceName = source.Name,
-                InstallPath = installPath,
-                InstalledAt = DateTime.UtcNow,
-                NodeTypes = nodeTypes,
-                Dependencies = depResult.Dependencies
-                    .Where(d => !string.Equals(d.PackageId, packageId, StringComparison.OrdinalIgnoreCase))
-                    .Select(d => d.PackageId)
-                    .ToList(),
-                IsLoaded = true
-            };
+            var installedPackage = CreateInstalledPackageRecord(
+                packageId, resolvedVersion, source.Name, installPath, pluginResult.NodeTypes, depResult);
 
             _installedPackages[packageId] = installedPackage;
             await _manifestManager.AddPackageAsync(installedPackage);
@@ -452,7 +310,15 @@ public class NuGetPackageManager : INuGetPackageManager
                 Success = true,
                 Package = installedPackage,
                 InstalledDependencies = installedDeps,
-                Warnings = warnings
+                Warnings = pluginResult.Warnings
+            };
+        }
+        catch (PackageNotFoundException ex)
+        {
+            return new PackageInstallResult
+            {
+                Success = false,
+                Errors = [ex.Message]
             };
         }
         catch (Exception ex)
@@ -464,6 +330,238 @@ public class NuGetPackageManager : INuGetPackageManager
                 Errors = [$"Installation failed: {ex.Message}"]
             };
         }
+    }
+
+    private PackageInstallResult? ValidatePackageLists(string packageId)
+    {
+        if (_options.BlockedPackages.Any(b => string.Equals(b, packageId, StringComparison.OrdinalIgnoreCase)))
+        {
+            return new PackageInstallResult
+            {
+                Success = false,
+                Errors = [$"Package '{packageId}' is in the block list and cannot be installed"]
+            };
+        }
+
+        if (_options.AllowedPackages.Count > 0 &&
+            !_options.AllowedPackages.Any(a => string.Equals(a, packageId, StringComparison.OrdinalIgnoreCase)))
+        {
+            return new PackageInstallResult
+            {
+                Success = false,
+                Errors = [$"Package '{packageId}' is not in the allow list"]
+            };
+        }
+
+        return null;
+    }
+
+    private async Task<(NuGetVersion Version, SourceRepository Repository, PackageSource Source)>
+        ResolveVersionAndSourceAsync(
+            string packageId,
+            NuGetVersion? version,
+            bool prerelease,
+            CancellationToken cancellationToken)
+    {
+        var resolvedVersion = version ?? await ResolveLatestVersionAsync(packageId, prerelease, cancellationToken);
+        if (resolvedVersion is null)
+        {
+            throw new PackageNotFoundException(
+                $"Package '{packageId}' was not found in any configured source");
+        }
+
+        var (sourceRepository, source) =
+            await FindPackageSourceAsync(packageId, resolvedVersion, cancellationToken);
+        if (sourceRepository is null || source is null)
+        {
+            throw new PackageNotFoundException(
+                $"Package '{packageId}' v{resolvedVersion} was not found in any configured source");
+        }
+
+        return (resolvedVersion, sourceRepository, source);
+    }
+
+    private async Task<PackageInstallResult?> ConfirmUntrustedSourceAsync(
+        string packageId, PackageSource source)
+    {
+        if (!_options.RequireUntrustedSourceConfirmation || source.IsTrusted)
+            return null;
+
+        if (_options.UntrustedSourceConfirmationCallback is null)
+            return null;
+
+        var confirmed = await _options.UntrustedSourceConfirmationCallback(packageId, source.Name);
+        if (confirmed) return null;
+
+        return new PackageInstallResult
+        {
+            Success = false,
+            Errors = [$"Installation from untrusted source '{source.Name}' was not confirmed"]
+        };
+    }
+
+    private async Task<DependencyResolutionResult> ResolveDependenciesAsync(
+        string packageId, NuGetVersion resolvedVersion, CancellationToken cancellationToken)
+    {
+        return await _dependencyResolver.ResolveAsync(
+            packageId, resolvedVersion, _installedPackages.Values, cancellationToken);
+    }
+
+    private async Task<string> DownloadAndExtractPackageAsync(
+        string packageId,
+        NuGetVersion resolvedVersion,
+        SourceRepository sourceRepository,
+        CancellationToken cancellationToken)
+    {
+        var nupkgPath = await _packageCache.GetPackagePathAsync(
+            packageId, resolvedVersion, sourceRepository, cancellationToken);
+        return await _packageCache.ExtractPackageAsync(
+            nupkgPath, packageId, resolvedVersion, cancellationToken);
+    }
+
+    private void UnloadExistingPlugins(string packageId, string installPath)
+    {
+        _pluginLoader.UnloadPlugin(packageId);
+        foreach (var loadedPlugin in _pluginLoader.GetLoadedPlugins())
+        {
+            if (string.Equals(loadedPlugin.FilePath, installPath, StringComparison.OrdinalIgnoreCase) ||
+                loadedPlugin.FilePath.StartsWith(installPath, StringComparison.OrdinalIgnoreCase))
+            {
+                _pluginLoader.UnloadPlugin(loadedPlugin.Id);
+            }
+        }
+    }
+
+    private async Task<PluginLoadResult> LoadAndValidatePluginsAsync(
+        string packageId,
+        NuGetVersion resolvedVersion,
+        string installPath,
+        CancellationToken cancellationToken)
+    {
+        var nodeTypes = new List<string>();
+        var warnings = new List<string>();
+
+        try
+        {
+            var plugins = _pluginLoader.LoadPlugins(installPath);
+            foreach (var plugin in plugins)
+            {
+                if (plugin.Assembly is null) continue;
+
+                var validation = _pluginValidator.ValidatePlugin(plugin.Assembly);
+                if (!validation.IsValid)
+                {
+                    await _packageCache.RemovePackageAsync(packageId, resolvedVersion);
+                    return new PluginLoadResult(
+                        Failure: new PackageInstallResult
+                        {
+                            Success = false,
+                            Errors = validation.Errors.Select(e => $"Plugin validation failed: {e.Message}").ToList()
+                        });
+                }
+
+                _nodeRegistry.RegisterFromAssembly(plugin.Assembly);
+                nodeTypes.AddRange(ResolveNodeTypeIdentifiers(plugin.NodeTypes));
+                warnings.AddRange(validation.Warnings.Select(w => w.Message));
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogDebug(ex, "No plugin assembly found in {PackageId}, treating as library dependency",
+                packageId);
+        }
+
+        return new PluginLoadResult(NodeTypes: nodeTypes, Warnings: warnings);
+    }
+
+    private static List<string> ResolveNodeTypeIdentifiers(IEnumerable<Type> nodeTypes)
+    {
+        var identifiers = new List<string>();
+        foreach (var nodeType in nodeTypes)
+        {
+            try
+            {
+                if (Activator.CreateInstance(nodeType) is INode nodeInstance)
+                    identifiers.Add(nodeInstance.Type);
+            }
+            catch
+            {
+                // Skip types that can't be instantiated
+            }
+        }
+
+        return identifiers;
+    }
+
+    private async Task<List<InstalledPackage>> InstallDependenciesAsync(
+        DependencyResolutionResult depResult,
+        string packageId,
+        string sourceName,
+        CancellationToken cancellationToken)
+    {
+        var installedDeps = new List<InstalledPackage>();
+
+        foreach (var dep in depResult.Dependencies.Where(d =>
+                     !d.IsAlreadyInstalled &&
+                     !string.Equals(d.PackageId, packageId, StringComparison.OrdinalIgnoreCase)))
+        {
+            try
+            {
+                var depSource = await FindPackageSourceAsync(dep.PackageId, dep.Version, cancellationToken);
+                if (depSource.Repository is null) continue;
+
+                var depNupkg = await _packageCache.GetPackagePathAsync(
+                    dep.PackageId, dep.Version, depSource.Repository, cancellationToken);
+                var depPath = await _packageCache.ExtractPackageAsync(
+                    depNupkg, dep.PackageId, dep.Version, cancellationToken);
+
+                var depPackage = new InstalledPackage
+                {
+                    PackageId = dep.PackageId,
+                    Version = dep.Version,
+                    SourceName = sourceName,
+                    InstallPath = depPath,
+                    InstalledAt = DateTime.UtcNow,
+                    NodeTypes = [],
+                    Dependencies = [],
+                    IsLoaded = true
+                };
+
+                _installedPackages[dep.PackageId] = depPackage;
+                await _manifestManager.AddPackageAsync(depPackage);
+                installedDeps.Add(depPackage);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogWarning(ex, "Failed to install dependency {DepId}", dep.PackageId);
+            }
+        }
+
+        return installedDeps;
+    }
+
+    private static InstalledPackage CreateInstalledPackageRecord(
+        string packageId,
+        NuGetVersion resolvedVersion,
+        string sourceName,
+        string installPath,
+        List<string> nodeTypes,
+        DependencyResolutionResult depResult)
+    {
+        return new InstalledPackage
+        {
+            PackageId = packageId,
+            Version = resolvedVersion,
+            SourceName = sourceName,
+            InstallPath = installPath,
+            InstalledAt = DateTime.UtcNow,
+            NodeTypes = nodeTypes,
+            Dependencies = depResult.Dependencies
+                .Where(d => !string.Equals(d.PackageId, packageId, StringComparison.OrdinalIgnoreCase))
+                .Select(d => d.PackageId)
+                .ToList(),
+            IsLoaded = true
+        };
     }
 
     public async Task<PackageUpdateResult> UpdatePackageAsync(

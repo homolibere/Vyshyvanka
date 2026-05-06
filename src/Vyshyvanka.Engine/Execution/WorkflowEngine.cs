@@ -76,100 +76,11 @@ public class WorkflowEngine : IWorkflowEngine
             var executionLevels = BuildExecutionLevels(workflow);
             var maxParallelism = GetEffectiveMaxParallelism(workflow.Settings.MaxDegreeOfParallelism);
 
-            foreach (var level in executionLevels)
-            {
-                cts.Token.ThrowIfCancellationRequested();
+            var earlyTermination = await ExecuteLevelsAsync(
+                workflow, executionLevels, context, nodeResults, maxParallelism, startTime, cts.Token);
 
-                var levelResults = await ExecuteLevelWithThrottlingAsync(
-                    workflow, level, context, nodeResults, maxParallelism, cts.Token);
-
-                if (workflow.Settings.ErrorHandling == ErrorHandlingMode.StopOnFirstError)
-                {
-                    var failedResult = levelResults.FirstOrDefault(r => !r.Success);
-                    if (failedResult is not null)
-                    {
-                        return BuildResult(context.ExecutionId, nodeResults, startTime, workflow,
-                            success: false, errorMessage: failedResult.ErrorMessage);
-                    }
-                }
-
-                // Handle loop iteration: if any node in this level produced output
-                // with a __loopItems array, re-execute the downstream "item"
-                // subgraph for each item.
-                foreach (var loopNodeId in level)
-                {
-                    var defaultOutput = context.NodeOutputs.Get(loopNodeId);
-                    if (!defaultOutput.HasValue ||
-                        defaultOutput.Value.ValueKind != JsonValueKind.Object ||
-                        !defaultOutput.Value.TryGetProperty("__loopItems", out var loopItemsElement) ||
-                        loopItemsElement.ValueKind != JsonValueKind.Array)
-                    {
-                        continue;
-                    }
-
-                    var items = loopItemsElement.EnumerateArray().Select(e => e.Clone()).ToList();
-                    if (items.Count == 0)
-                        continue;
-
-                    // Find all nodes reachable from this loop's "item" port
-                    var itemSubgraph = GetItemPortSubgraph(workflow, loopNodeId);
-                    if (itemSubgraph.Count == 0)
-                        continue;
-
-                    // Build execution levels for just the subgraph
-                    var subgraphLevels = BuildSubgraphExecutionLevels(workflow, itemSubgraph, loopNodeId);
-
-                    // Execute the subgraph for each item
-                    for (int i = 0; i < items.Count; i++)
-                    {
-                        cts.Token.ThrowIfCancellationRequested();
-
-                        // Set the current item on the loop node's "item" port
-                        var itemData = JsonSerializer.SerializeToElement(new
-                        {
-                            index = i,
-                            item = JsonSerializer.Deserialize<object>(items[i].GetRawText()),
-                            isFirst = i == 0,
-                            isLast = i == items.Count - 1,
-                            totalCount = items.Count,
-                            outputPort = "item"
-                        });
-                        context.NodeOutputs.Set(loopNodeId, "item", itemData);
-                        context.NodeOutputs.Set(loopNodeId, itemData);
-
-                        // Execute each level of the subgraph
-                        foreach (var subLevel in subgraphLevels)
-                        {
-                            var subResults = await ExecuteLevelWithThrottlingAsync(
-                                workflow, subLevel, context, nodeResults, maxParallelism, cts.Token);
-
-                            if (workflow.Settings.ErrorHandling == ErrorHandlingMode.StopOnFirstError)
-                            {
-                                var failedSub = subResults.FirstOrDefault(r => !r.Success);
-                                if (failedSub is not null)
-                                {
-                                    return BuildResult(context.ExecutionId, nodeResults, startTime, workflow,
-                                        success: false, errorMessage: failedSub.ErrorMessage);
-                                }
-                            }
-                        }
-                    }
-
-                    // After all iterations, set the "done" port
-                    context.NodeOutputs.Set(loopNodeId, "done", JsonSerializer.SerializeToElement(new
-                    {
-                        totalCount = items.Count,
-                        processedCount = items.Count,
-                        isComplete = true
-                    }));
-
-                    // Mark subgraph nodes as processed so they're skipped in later levels
-                    foreach (var subNodeId in itemSubgraph)
-                    {
-                        context.Variables[$"__loop_processed_{subNodeId}"] = true;
-                    }
-                }
-            }
+            if (earlyTermination is not null)
+                return earlyTermination;
 
             var allSuccess = nodeResults.All(r => r.Success);
 
@@ -191,6 +102,196 @@ public class WorkflowEngine : IWorkflowEngine
         finally
         {
             _activeExecutions.TryRemove(context.ExecutionId, out _);
+        }
+    }
+
+    /// <summary>
+    /// Iterates through execution levels, running nodes and processing loop iterations.
+    /// Returns an <see cref="ExecutionResult"/> for early termination (StopOnFirstError), or null if all levels complete.
+    /// </summary>
+    private async Task<ExecutionResult?> ExecuteLevelsAsync(
+        Workflow workflow,
+        List<List<string>> executionLevels,
+        IExecutionContext context,
+        ConcurrentBag<NodeExecutionResult> nodeResults,
+        int maxParallelism,
+        DateTime startTime,
+        CancellationToken cancellationToken)
+    {
+        foreach (var level in executionLevels)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var levelResults = await ExecuteLevelWithThrottlingAsync(
+                workflow, level, context, nodeResults, maxParallelism, cancellationToken);
+
+            var earlyFailure = CheckStopOnFirstError(
+                workflow, levelResults, context.ExecutionId, nodeResults, startTime);
+            if (earlyFailure is not null)
+                return earlyFailure;
+
+            var loopFailure = await ProcessLoopNodesInLevelAsync(
+                workflow, level, context, nodeResults, maxParallelism, startTime, cancellationToken);
+            if (loopFailure is not null)
+                return loopFailure;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Checks if StopOnFirstError is enabled and a node in the level failed.
+    /// Returns an <see cref="ExecutionResult"/> if execution should stop, null otherwise.
+    /// </summary>
+    private static ExecutionResult? CheckStopOnFirstError(
+        Workflow workflow,
+        NodeExecutionResult[] levelResults,
+        Guid executionId,
+        ConcurrentBag<NodeExecutionResult> nodeResults,
+        DateTime startTime)
+    {
+        if (workflow.Settings.ErrorHandling != ErrorHandlingMode.StopOnFirstError)
+            return null;
+
+        var failedResult = levelResults.FirstOrDefault(r => !r.Success);
+        if (failedResult is null)
+            return null;
+
+        return BuildResult(executionId, nodeResults, startTime, workflow,
+            success: false, errorMessage: failedResult.ErrorMessage);
+    }
+
+    /// <summary>
+    /// Processes loop nodes within a level: detects __loopItems output and executes
+    /// the downstream subgraph for each item.
+    /// </summary>
+    private async Task<ExecutionResult?> ProcessLoopNodesInLevelAsync(
+        Workflow workflow,
+        List<string> level,
+        IExecutionContext context,
+        ConcurrentBag<NodeExecutionResult> nodeResults,
+        int maxParallelism,
+        DateTime startTime,
+        CancellationToken cancellationToken)
+    {
+        foreach (var loopNodeId in level)
+        {
+            var loopItems = GetLoopItems(context, loopNodeId);
+            if (loopItems is null || loopItems.Count == 0)
+                continue;
+
+            var itemSubgraph = GetItemPortSubgraph(workflow, loopNodeId);
+            if (itemSubgraph.Count == 0)
+                continue;
+
+            var subgraphLevels = BuildSubgraphExecutionLevels(workflow, itemSubgraph, loopNodeId);
+
+            var loopFailure = await ExecuteLoopSubgraphAsync(
+                workflow, loopNodeId, loopItems, subgraphLevels, context,
+                nodeResults, maxParallelism, startTime, cancellationToken);
+            if (loopFailure is not null)
+                return loopFailure;
+
+            SetLoopDoneOutput(context, loopNodeId, loopItems.Count);
+            MarkSubgraphAsProcessed(context, itemSubgraph);
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Extracts the __loopItems array from a node's output, if present.
+    /// </summary>
+    private static List<JsonElement>? GetLoopItems(IExecutionContext context, string loopNodeId)
+    {
+        var defaultOutput = context.NodeOutputs.Get(loopNodeId);
+        if (!defaultOutput.HasValue ||
+            defaultOutput.Value.ValueKind != JsonValueKind.Object ||
+            !defaultOutput.Value.TryGetProperty("__loopItems", out var loopItemsElement) ||
+            loopItemsElement.ValueKind != JsonValueKind.Array)
+        {
+            return null;
+        }
+
+        return loopItemsElement.EnumerateArray().Select(e => e.Clone()).ToList();
+    }
+
+    /// <summary>
+    /// Executes the loop subgraph for each item, setting per-iteration context.
+    /// Returns an <see cref="ExecutionResult"/> for early termination, or null if all iterations complete.
+    /// </summary>
+    private async Task<ExecutionResult?> ExecuteLoopSubgraphAsync(
+        Workflow workflow,
+        string loopNodeId,
+        List<JsonElement> items,
+        List<List<string>> subgraphLevels,
+        IExecutionContext context,
+        ConcurrentBag<NodeExecutionResult> nodeResults,
+        int maxParallelism,
+        DateTime startTime,
+        CancellationToken cancellationToken)
+    {
+        for (int i = 0; i < items.Count; i++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            SetLoopIterationContext(context, loopNodeId, items, i);
+
+            foreach (var subLevel in subgraphLevels)
+            {
+                var subResults = await ExecuteLevelWithThrottlingAsync(
+                    workflow, subLevel, context, nodeResults, maxParallelism, cancellationToken);
+
+                var earlyFailure = CheckStopOnFirstError(
+                    workflow, subResults, context.ExecutionId, nodeResults, startTime);
+                if (earlyFailure is not null)
+                    return earlyFailure;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Sets the execution context for a single loop iteration.
+    /// </summary>
+    private static void SetLoopIterationContext(
+        IExecutionContext context, string loopNodeId, List<JsonElement> items, int index)
+    {
+        var itemData = JsonSerializer.SerializeToElement(new
+        {
+            index,
+            item = JsonSerializer.Deserialize<object>(items[index].GetRawText()),
+            isFirst = index == 0,
+            isLast = index == items.Count - 1,
+            totalCount = items.Count,
+            outputPort = "item"
+        });
+        context.NodeOutputs.Set(loopNodeId, "item", itemData);
+        context.NodeOutputs.Set(loopNodeId, itemData);
+    }
+
+    /// <summary>
+    /// Sets the "done" port output after all loop iterations complete.
+    /// </summary>
+    private static void SetLoopDoneOutput(IExecutionContext context, string loopNodeId, int totalCount)
+    {
+        context.NodeOutputs.Set(loopNodeId, "done", JsonSerializer.SerializeToElement(new
+        {
+            totalCount,
+            processedCount = totalCount,
+            isComplete = true
+        }));
+    }
+
+    /// <summary>
+    /// Marks subgraph nodes as processed so they are skipped in later levels.
+    /// </summary>
+    private static void MarkSubgraphAsProcessed(IExecutionContext context, HashSet<string> subgraphNodes)
+    {
+        foreach (var subNodeId in subgraphNodes)
+        {
+            context.Variables[$"__loop_processed_{subNodeId}"] = true;
         }
     }
 
