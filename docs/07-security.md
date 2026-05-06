@@ -412,7 +412,7 @@ Audit logs can be queried by:
 
 ## Code Execution Sandbox
 
-The Code node allows users to execute custom JavaScript code within workflows. JavaScript is the only supported scripting language — C# scripting was removed due to the inherent difficulty of sandboxing code that runs within the .NET process (reflection, type system access, and assembly loading provide too many escape vectors).
+The Code node allows users to execute custom code within workflows using two languages: JavaScript and JSONata. Both runtimes are inherently safe with no access to the host system.
 
 ### JavaScript Sandbox (Jint)
 
@@ -429,7 +429,18 @@ JavaScript execution uses the Jint interpreter — a pure .NET JavaScript engine
 | Recursion depth | 256 |
 | Timeout | Configurable (default: 30s) |
 
-### Available Globals
+### JSONata (Expression Language)
+
+JSONata is a declarative query and transformation language purpose-built for JSON data. It is secure by design — it has no concept of I/O, system access, or side effects. Expressions can only read and transform the input data.
+
+- **Pure expressions**: No statements, no assignments, no loops (only declarative mappings)
+- **No side effects**: Cannot modify external state, make network calls, or access the filesystem
+- **No code execution**: Not a general-purpose language — only JSON transformation
+- **Deterministic**: Same input always produces the same output
+
+Implementation: [Jsonata.Net.Native](https://github.com/mikhail-barg/jsonata.net.native) v3.0.0
+
+### Available Globals (JavaScript)
 
 | Global | Description |
 |--------|-------------|
@@ -442,12 +453,17 @@ JavaScript execution uses the Jint interpreter — a pure .NET JavaScript engine
 | `currentItem` | Current item in "Run for Each Item" mode |
 | `itemIndex` | Current item index in "Run for Each Item" mode |
 
+### JSONata Input
+
+JSONata expressions receive the full input data as the root context (`$`). No additional globals are needed — the expression language operates directly on the JSON structure.
+
 ### Security Properties
 
-- Scripts run in a pure interpreter — no JIT compilation, no native code execution
+- Both runtimes are pure interpreters — no JIT compilation, no native code execution
 - Script output is serialized to JSON before being stored — no object references leak between executions
 - Compilation/runtime errors are reported to the user without exposing internal engine details
-- The configurable timeout prevents infinite loops and resource exhaustion
+- The configurable timeout prevents infinite loops and resource exhaustion (JavaScript)
+- JSONata expressions are inherently terminating (no unbounded loops)
 
 ## Error Handling
 

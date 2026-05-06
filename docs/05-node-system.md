@@ -89,7 +89,7 @@ Action nodes perform operations and produce output data.
 | Database Query | `database-query` | Executes SQL queries against configured databases. | Optional (BasicAuth) |
 | Email Send | `email-send` | Sends emails via SMTP. | Optional (BasicAuth) |
 | File Operations | `file-operations` | Reads, writes, and manipulates files. | None |
-| Code | `code` | Executes custom JavaScript code using the Jint interpreter. Supports "run once" and "run for each item" modes with access to input data, execution context, and logging. | None |
+| Code | `code` | Executes custom JavaScript or JSONata code. JavaScript uses the Jint interpreter for general-purpose scripting; JSONata provides declarative JSON transformation. Supports "run once" and "run for each item" modes (JavaScript). | None |
 
 ### Logic Nodes
 

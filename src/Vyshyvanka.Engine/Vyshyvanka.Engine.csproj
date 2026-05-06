@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="Jint" />
+    <PackageReference Include="Jsonata.Net.Native" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />

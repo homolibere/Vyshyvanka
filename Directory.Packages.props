@@ -37,6 +37,9 @@
     <!-- JavaScript Engine -->
     <PackageVersion Include="Jint" Version="4.8.0" />
 
+    <!-- JSONata Expression Language -->
+    <PackageVersion Include="Jsonata.Net.Native" Version="3.0.0" />
+
     <!-- NuGet -->
     <PackageVersion Include="NuGet.Packaging" Version="7.3.1" />
     <PackageVersion Include="NuGet.Protocol" Version="7.3.1" />

@@ -8,7 +8,7 @@ window.codeEditorInterop = {
      * @param {string} editorId - Unique identifier for this editor instance.
      * @param {string} initialValue - Initial code content.
      * @param {object} dotNetRef - .NET object reference for callbacks.
-     * @param {string} language - Programming language ('csharp' or 'javascript').
+     * @param {string} language - Programming language ('javascript' or 'jsonata').
      * @returns {boolean} Whether initialization succeeded.
      */
     initialize: function (container, editorId, initialValue, dotNetRef, language) {
@@ -117,13 +117,12 @@ window.codeEditorInterop = {
      */
     _getMode: function (language) {
         switch ((language || '').toLowerCase()) {
+            case 'jsonata':
+                return 'text/x-jsonata';
             case 'javascript':
             case 'js':
-                return 'text/javascript';
-            case 'csharp':
-            case 'c#':
             default:
-                return 'text/x-csharp';
+                return 'text/javascript';
         }
     },
 
