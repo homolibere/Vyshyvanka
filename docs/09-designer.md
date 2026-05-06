@@ -104,6 +104,7 @@ flowchart LR
         ApiClientPkg["VyshyvankaApiClient.Packages<br/>Package operations"]
         AuthService["AuthService<br/>Login, Register, Logout"]
         AuthState["AuthStateService<br/>Token storage, auth state"]
+        TokenRefresh["TokenRefreshService<br/>Proactive token renewal"]
         WorkflowState["WorkflowStateService<br/>Canvas state management"]
         PluginState["PluginStateService<br/>Package state"]
         ToastService["ToastService<br/>Notification management"]
@@ -115,6 +116,8 @@ flowchart LR
 
     AuthService --> AuthState
     AuthState --> Storage
+    TokenRefresh --> AuthService
+    TokenRefresh --> AuthState
     ApiClient --> AuthHandler
     AuthHandler --> AuthState
     ApiClient --> UrlResolver
@@ -150,9 +153,18 @@ Typed HTTP client for all API communication:
 Manages authentication state in the browser:
 
 - Stores JWT access and refresh tokens in `localStorage`
-- Tracks current user information
+- Tracks current user information and token expiration
 - Provides authentication state to components
-- Handles token refresh on expiry
+- Exposes `ExpiresAt` for proactive refresh scheduling
+
+#### TokenRefreshService
+
+Proactively refreshes the access token before it expires, preventing session interruption while the Designer is open:
+
+- Subscribes to `AuthStateService.OnAuthStateChanged`
+- Schedules a refresh at 80% of the token's lifetime or 1 minute before expiry (whichever is sooner)
+- On successful refresh, automatically reschedules for the new token's lifetime
+- On failure, the user is logged out (refresh token expired or revoked)
 
 #### ConfigurationSchemaParser
 

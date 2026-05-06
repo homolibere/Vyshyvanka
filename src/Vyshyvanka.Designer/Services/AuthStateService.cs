@@ -10,7 +10,7 @@ namespace Vyshyvanka.Designer.Services;
 public class AuthStateService
 {
     private const string StorageKey = "vyshyvanka_auth";
-    
+
     private BrowserStorageService? _storage;
     private string? _accessToken;
     private string? _refreshToken;
@@ -29,6 +29,9 @@ public class AuthStateService
 
     /// <summary>Gets the current refresh token.</summary>
     public string? RefreshToken => _refreshToken;
+
+    /// <summary>Gets the token expiration time (UTC).</summary>
+    public DateTime? ExpiresAt => _expiresAt;
 
     /// <summary>Event raised when authentication state changes.</summary>
     public event Action? OnAuthStateChanged;

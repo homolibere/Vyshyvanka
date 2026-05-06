@@ -39,6 +39,7 @@ builder.Services.AddScoped<WorkflowStateService>();
 builder.Services.AddScoped<PluginStateService>();
 builder.Services.AddScoped<ToastService>();
 builder.Services.AddScoped<ThemeService>();
+builder.Services.AddScoped<TokenRefreshService>();
 
 var host = builder.Build();
 
@@ -53,6 +54,10 @@ using (var scope = host.Services.CreateScope())
     // Initialize theme from browser storage
     var themeService = scope.ServiceProvider.GetRequiredService<ThemeService>();
     await themeService.InitializeAsync();
+
+    // Start proactive token refresh (subscribes to auth state changes)
+    var tokenRefresh = scope.ServiceProvider.GetRequiredService<TokenRefreshService>();
+    tokenRefresh.Start();
 }
 
 await host.RunAsync();
