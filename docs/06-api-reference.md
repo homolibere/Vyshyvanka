@@ -64,6 +64,7 @@ Accounts are locked after 5 consecutive failed login attempts for 15 minutes. Se
 | Method | Path | Auth Policy | Description |
 |--------|------|------------|------------|
 | POST | `/api/execution` | CanExecuteWorkflows | Trigger a workflow execution. Accepts workflow ID, input data, execution mode, optional `targetNodeId` for partial execution, and `includeTargetNode` (default true; when false, executes predecessors only and returns computed input for the target node). Requires workflow ownership or Admin role. |
+| POST | `/api/execution/node` | CanExecuteWorkflows | Execute a single node with provided input data (no full workflow run). Used for quick iteration when the node config has no expression references. |
 | GET | `/api/execution` | CanViewWorkflows | Query execution history with filters (workflow ID, status, mode, date range). |
 | GET | `/api/execution/{id}` | CanViewWorkflows | Get execution details including node-level results. |
 | GET | `/api/execution/workflow/{workflowId}` | CanViewWorkflows | Get executions for a specific workflow. |

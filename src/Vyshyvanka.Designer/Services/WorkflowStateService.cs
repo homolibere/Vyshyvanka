@@ -918,5 +918,23 @@ public class WorkflowStateService
     /// <summary>Gets all node execution states.</summary>
     public IReadOnlyDictionary<string, NodeExecutionState> GetAllNodeExecutionStates() => _nodeExecutionStates;
 
+    /// <summary>Updates a single node's execution state from a single-node execution result.</summary>
+    public void SetNodeExecutionResult(string nodeId, NodeExecutionResponse result)
+    {
+        _nodeExecutionStates[nodeId] = new NodeExecutionState
+        {
+            NodeId = nodeId,
+            Status = result.Status,
+            StartedAt = result.StartedAt,
+            CompletedAt = result.CompletedAt,
+            InputData = result.InputData,
+            OutputData = result.OutputData,
+            ErrorMessage = result.ErrorMessage,
+            Iterations = [],
+            RoutingSummary = new Dictionary<string, int>()
+        };
+        NotifyStateChanged();
+    }
+
     #endregion
 }

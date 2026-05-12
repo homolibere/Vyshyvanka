@@ -377,25 +377,55 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
         {
             await SaveWorkflowIfDirtyAsync();
 
-            // Always execute up to and including this node
-            var result = await ApiClient.ExecuteUpToNodeAsync(
-                StateService.Workflow.Id, NodeId, includeTargetNode: true);
+            // If input data exists and config has no expressions, execute just this node
+            var canRunSingle = CurrentInputData.HasValue &&
+                               CurrentInputData.Value.ValueKind != JsonValueKind.Undefined &&
+                               !NodeConfigHasExpressions();
 
-            if (result is not null)
+            if (canRunSingle)
             {
-                StateService.SetCurrentExecution(result);
-                _executionState = StateService.GetNodeExecutionState(NodeId);
-                _currentIteration = _executionState?.HasMultipleIterations == true
-                    ? _executionState.Iterations.Count - 1
-                    : 0;
+                var nodeResult = await ApiClient.ExecuteSingleNodeAsync(
+                    StateService.Workflow.Id, NodeId, CurrentInputData!.Value);
 
-                if (result.Status == Core.Enums.ExecutionStatus.Failed)
+                if (nodeResult is not null)
                 {
-                    ToastService.ShowError(result.ErrorMessage ?? "Execution failed");
+                    // Update the execution state for this node with the single-node result
+                    StateService.SetNodeExecutionResult(NodeId, nodeResult);
+                    _executionState = StateService.GetNodeExecutionState(NodeId);
+                    _currentIteration = 0;
+
+                    if (nodeResult.Status == Core.Enums.ExecutionStatus.Failed)
+                    {
+                        ToastService.ShowError(nodeResult.ErrorMessage ?? "Node execution failed");
+                    }
+                    else
+                    {
+                        ToastService.ShowSuccess("Executed node (single)");
+                    }
                 }
-                else
+            }
+            else
+            {
+                // Full workflow execution up to and including this node
+                var result = await ApiClient.ExecuteUpToNodeAsync(
+                    StateService.Workflow.Id, NodeId, includeTargetNode: true);
+
+                if (result is not null)
                 {
-                    ToastService.ShowSuccess($"Executed node — {result.NodeExecutions.Count} node(s) ran");
+                    StateService.SetCurrentExecution(result);
+                    _executionState = StateService.GetNodeExecutionState(NodeId);
+                    _currentIteration = _executionState?.HasMultipleIterations == true
+                        ? _executionState.Iterations.Count - 1
+                        : 0;
+
+                    if (result.Status == Core.Enums.ExecutionStatus.Failed)
+                    {
+                        ToastService.ShowError(result.ErrorMessage ?? "Execution failed");
+                    }
+                    else
+                    {
+                        ToastService.ShowSuccess($"Executed node — {result.NodeExecutions.Count} node(s) ran");
+                    }
                 }
             }
         }
@@ -412,6 +442,18 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
             _isRunningThisNode = false;
             StateHasChanged();
         }
+    }
+
+    /// <summary>
+    /// Checks if the current node's configuration contains expression references ({{...}}).
+    /// </summary>
+    private bool NodeConfigHasExpressions()
+    {
+        if (_node?.Configuration is not { ValueKind: not JsonValueKind.Undefined } config)
+            return false;
+
+        var configJson = config.GetRawText();
+        return configJson.Contains("{{");
     }
 
     private async Task SaveWorkflowIfDirtyAsync()

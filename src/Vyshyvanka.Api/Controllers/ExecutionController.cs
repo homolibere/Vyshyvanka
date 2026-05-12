@@ -170,6 +170,96 @@ public class ExecutionController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Executes a single node with provided input data (no full workflow execution).
+    /// Used for quick iteration when the node's configuration has no expression references.
+    /// </summary>
+    [HttpPost("node")]
+    [Authorize(Policy = Policies.CanExecuteWorkflows)]
+    [ProducesResponseType(typeof(NodeExecutionResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiError), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiError), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<NodeExecutionResponse>> ExecuteSingleNode(
+        [FromBody] ExecuteNodeRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        _logger.LogDebug("Executing single node {NodeId} in workflow {WorkflowId}",
+            request.NodeId, request.WorkflowId);
+
+        var workflow = await _workflowRepository.GetByIdAsync(request.WorkflowId, cancellationToken);
+        if (workflow is null)
+        {
+            return NotFound(new ApiError
+            {
+                Code = "WORKFLOW_NOT_FOUND",
+                Message = $"Workflow with ID '{request.WorkflowId}' was not found"
+            });
+        }
+
+        if (!IsOwnerOrAdmin(workflow))
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new ApiError
+            {
+                Code = "FORBIDDEN",
+                Message = "You do not have permission to execute this workflow"
+            });
+        }
+
+        var node = workflow.Nodes.FirstOrDefault(n => n.Id == request.NodeId);
+        if (node is null)
+        {
+            return BadRequest(new ApiError
+            {
+                Code = "NODE_NOT_FOUND",
+                Message = $"Node '{request.NodeId}' does not exist in the workflow"
+            });
+        }
+
+        // Create credential provider
+        ICredentialProvider credentialProvider = _credentialService is not null
+            ? new CredentialProvider(_credentialService)
+            : NullCredentialProvider.Instance;
+
+        var executionId = Guid.NewGuid();
+        var context = new ExecutionContext(
+            executionId,
+            workflow.Id,
+            credentialProvider,
+            cancellationToken,
+            HttpContext.RequestServices,
+            _currentUserService.UserId,
+            _logger);
+
+        try
+        {
+            var result = await _workflowEngine.ExecuteNodeWithInputAsync(
+                node, request.InputData, context, cancellationToken);
+
+            var nodeResult = result.NodeResults.FirstOrDefault();
+
+            return Ok(new NodeExecutionResponse
+            {
+                NodeId = request.NodeId,
+                Status = result.Success ? ExecutionStatus.Completed : ExecutionStatus.Failed,
+                StartedAt = DateTime.UtcNow - result.Duration,
+                CompletedAt = DateTime.UtcNow,
+                Duration = result.Duration,
+                InputData = request.InputData,
+                OutputData = nodeResult?.OutputData is JsonElement el ? el : null,
+                ErrorMessage = result.ErrorMessage
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error executing node {NodeId}", request.NodeId);
+            return BadRequest(new ApiError
+            {
+                Code = "NODE_EXECUTION_FAILED",
+                Message = $"Node execution failed: {ex.Message}"
+            });
+        }
+    }
+
 
     /// <summary>
     /// Gets an execution by ID.

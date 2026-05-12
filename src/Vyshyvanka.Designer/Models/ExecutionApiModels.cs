@@ -16,6 +16,16 @@ public record TriggerExecutionRequest
 }
 
 /// <summary>
+/// Request to execute a single node with provided input data.
+/// </summary>
+public record ExecuteNodeRequest
+{
+    public Guid WorkflowId { get; init; }
+    public string NodeId { get; init; } = string.Empty;
+    public JsonElement InputData { get; init; }
+}
+
+/// <summary>
 /// Execution response DTO.
 /// </summary>
 public record ExecutionResponse

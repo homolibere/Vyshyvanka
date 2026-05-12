@@ -34,6 +34,24 @@ public record TriggerExecutionRequest
 }
 
 /// <summary>
+/// Request to execute a single node with provided input data.
+/// </summary>
+public record ExecuteNodeRequest
+{
+    /// <summary>ID of the workflow containing the node.</summary>
+    [Required(ErrorMessage = "WorkflowId is required")]
+    public Guid WorkflowId { get; init; }
+
+    /// <summary>ID of the node to execute.</summary>
+    [Required(ErrorMessage = "NodeId is required")]
+    public string NodeId { get; init; } = string.Empty;
+
+    /// <summary>Input data to pass to the node.</summary>
+    [Required(ErrorMessage = "InputData is required")]
+    public JsonElement InputData { get; init; }
+}
+
+/// <summary>
 /// Query parameters for filtering executions.
 /// </summary>
 public record ExecutionQueryRequest

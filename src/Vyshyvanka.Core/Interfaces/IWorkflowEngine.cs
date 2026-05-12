@@ -20,6 +20,13 @@ public interface IWorkflowEngine
         IExecutionContext context,
         CancellationToken cancellationToken = default);
 
+    /// <summary>Executes a single node with provided input data (no workflow context needed).</summary>
+    Task<ExecutionResult> ExecuteNodeWithInputAsync(
+        WorkflowNode node,
+        JsonElement inputData,
+        IExecutionContext context,
+        CancellationToken cancellationToken = default);
+
     /// <summary>Cancels an in-progress execution.</summary>
     Task CancelExecutionAsync(Guid executionId);
 }

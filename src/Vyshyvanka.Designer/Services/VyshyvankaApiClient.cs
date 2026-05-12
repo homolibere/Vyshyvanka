@@ -234,6 +234,21 @@ public partial class VyshyvankaApiClient
         return await response.Content.ReadFromJsonAsync<ExecutionResponse>(cancellationToken);
     }
 
+    /// <summary>Executes a single node with provided input data (no full workflow run).</summary>
+    public async Task<NodeExecutionResponse?> ExecuteSingleNodeAsync(Guid workflowId, string nodeId,
+        JsonElement inputData, CancellationToken cancellationToken = default)
+    {
+        var request = new ExecuteNodeRequest
+        {
+            WorkflowId = workflowId,
+            NodeId = nodeId,
+            InputData = inputData
+        };
+        var response = await _httpClient.PostAsJsonAsync("api/execution/node", request, cancellationToken);
+        await EnsureSuccessAsync(response, cancellationToken);
+        return await response.Content.ReadFromJsonAsync<NodeExecutionResponse>(cancellationToken);
+    }
+
     /// <summary>Gets execution status.</summary>
     public async Task<ExecutionResponse?> GetExecutionAsync(Guid executionId,
         CancellationToken cancellationToken = default)

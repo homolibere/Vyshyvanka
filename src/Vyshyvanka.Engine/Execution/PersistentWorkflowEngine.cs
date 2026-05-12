@@ -167,6 +167,17 @@ public class PersistentWorkflowEngine : IWorkflowEngine
         return _innerEngine.CancelExecutionAsync(executionId);
     }
 
+    /// <inheritdoc />
+    public Task<ExecutionResult> ExecuteNodeWithInputAsync(
+        WorkflowNode node,
+        JsonElement inputData,
+        IExecutionContext context,
+        CancellationToken cancellationToken = default)
+    {
+        // Single-node execution with input doesn't need persistence — it's a quick debug tool
+        return _innerEngine.ExecuteNodeWithInputAsync(node, inputData, context, cancellationToken);
+    }
+
     private async Task PersistNodeExecutionsAsync(
         Guid executionId,
         IEnumerable<NodeExecutionResult> nodeResults,

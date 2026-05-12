@@ -369,6 +369,89 @@ public class WorkflowEngine : IWorkflowEngine
     }
 
     /// <inheritdoc />
+    public async Task<ExecutionResult> ExecuteNodeWithInputAsync(
+        WorkflowNode node,
+        JsonElement inputData,
+        IExecutionContext context,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(node);
+        ArgumentNullException.ThrowIfNull(context);
+
+        var startTime = DateTime.UtcNow;
+
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            context.Variables["__currentInput"] = inputData;
+            var evaluatedConfig = EvaluateConfiguration(node.Configuration, context, node.Id);
+            context.Variables.Remove("__currentInput");
+
+            var nodeInstance = _nodeRegistry.CreateNode(node.Type, evaluatedConfig);
+
+            var input = new NodeInput
+            {
+                Data = inputData,
+                Configuration = evaluatedConfig,
+                CredentialId = node.CredentialId
+            };
+
+            var output = await ExecuteNodeInstanceAsync(nodeInstance, input, context, DefaultPluginTimeout);
+
+            var nodeResult = new NodeExecutionResult
+            {
+                NodeId = node.Id,
+                Success = output.Success,
+                InputData = inputData,
+                OutputData = output.Data,
+                ErrorMessage = output.ErrorMessage,
+                Duration = DateTime.UtcNow - startTime
+            };
+
+            return new ExecutionResult
+            {
+                ExecutionId = context.ExecutionId,
+                Success = output.Success,
+                OutputData = output.Data,
+                ErrorMessage = output.ErrorMessage,
+                Duration = DateTime.UtcNow - startTime,
+                NodeResults = [nodeResult]
+            };
+        }
+        catch (ExpressionEvaluationException ex)
+        {
+            return new ExecutionResult
+            {
+                ExecutionId = context.ExecutionId,
+                Success = false,
+                ErrorMessage = $"Expression evaluation failed in node '{node.Id}': {ex.Message}",
+                Duration = DateTime.UtcNow - startTime
+            };
+        }
+        catch (OperationCanceledException)
+        {
+            return new ExecutionResult
+            {
+                ExecutionId = context.ExecutionId,
+                Success = false,
+                ErrorMessage = "Node execution was cancelled",
+                Duration = DateTime.UtcNow - startTime
+            };
+        }
+        catch (Exception ex)
+        {
+            return new ExecutionResult
+            {
+                ExecutionId = context.ExecutionId,
+                Success = false,
+                ErrorMessage = ex.Message,
+                Duration = DateTime.UtcNow - startTime
+            };
+        }
+    }
+
+    /// <inheritdoc />
     public Task CancelExecutionAsync(Guid executionId)
     {
         if (_activeExecutions.TryGetValue(executionId, out var cts))
