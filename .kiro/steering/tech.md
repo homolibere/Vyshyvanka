@@ -78,9 +78,12 @@ Domain errors use typed exceptions inheriting `VyshyvankaException` (defined in 
 
 - DbContext lives at `Vyshyvanka.Engine/Persistence/VyshyvankaDbContext.cs`.
 - Entity classes in `Vyshyvanka.Engine/Persistence/Entities/`.
+- Migrations in `Vyshyvanka.Engine/Persistence/Migrations/`.
 - Repository interfaces in `Vyshyvanka.Core/Interfaces/`, implementations in `Vyshyvanka.Engine/Persistence/`.
 - Always use `async` query methods with `CancellationToken`.
-- Use `EnsureCreatedAsync()` for dev; migrations for production schema changes.
+- Use EF Core migrations for ALL schema changes. Never use `EnsureCreatedAsync()`.
+- At startup, `MigrateAsync()` applies pending migrations automatically.
+- To add a migration: `dotnet ef migrations add <Name> --project src/Vyshyvanka.Engine --startup-project src/Vyshyvanka.Api --output-dir Persistence/Migrations`
 
 ## Dependency Injection
 
@@ -171,4 +174,6 @@ dotnet test --filter "FullyQualifiedName~Unit"  # Run unit tests only
 dotnet run --project src/Vyshyvanka.Api        # Start API
 dotnet run --project src/Vyshyvanka.Designer   # Start Blazor UI
 dotnet run --project src/Vyshyvanka.AppHost    # Start via Aspire (all services)
+dotnet ef migrations add <Name> --project src/Vyshyvanka.Engine --startup-project src/Vyshyvanka.Api --output-dir Persistence/Migrations  # Add migration
+dotnet ef migrations remove --project src/Vyshyvanka.Engine --startup-project src/Vyshyvanka.Api  # Remove last migration
 ```

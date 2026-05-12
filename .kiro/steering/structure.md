@@ -64,6 +64,7 @@ Place new files according to these tables. Namespace MUST match the folder path 
 | EF Core DbContext | `Persistence/VyshyvankaDbContext.cs` |
 | Repository implementations | `Persistence/` |
 | Entity classes | `Persistence/Entities/` |
+| EF Core migrations | `Persistence/Migrations/` |
 | Plugin system | `Plugins/` |
 | Package management | `Packages/` |
 | Node registry | `Registry/` |
@@ -145,7 +146,7 @@ When modifying code, ALWAYS check for downstream impact:
 | Node base class | Every node that inherits from it |
 | API DTO | Matching model in `Designer/Models/` |
 | Controller endpoint | Integration tests in `Tests/Integration/` |
-| DbContext or Entity | EF migrations may be needed |
+| DbContext or Entity | Add a new EF migration |
 | Node implementation | Registration in `NodeRegistry` |
 | Authentication provider setting | `ServiceCollectionExtensions`, `AuthController`, `DevelopmentUserSeeder` |
 | Credential storage provider setting | `ServiceCollectionExtensions`, `CredentialService` or `VaultCredentialService` |

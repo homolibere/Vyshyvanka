@@ -2,6 +2,7 @@ using Vyshyvanka.Api.Extensions;
 using Vyshyvanka.Api.Middleware;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.ServiceDefaults;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,11 +49,11 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Ensure database is created with current schema
+// Apply pending database migrations
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<Vyshyvanka.Engine.Persistence.VyshyvankaDbContext>();
-    await dbContext.Database.EnsureCreatedAsync();
+    await dbContext.Database.MigrateAsync();
 }
 
 // Initialize NuGet package manager on startup
