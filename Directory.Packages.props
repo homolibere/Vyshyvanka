@@ -5,8 +5,8 @@
 
   <ItemGroup>
     <!-- Aspire -->
-    <PackageVersion Include="Aspire.Hosting.AppHost" Version="13.2.4" />
-    <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="13.2.4" />
+    <PackageVersion Include="Aspire.Hosting.AppHost" Version="13.3.0" />
+    <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="13.3.0" />
     <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="10.5.0" />
     <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="10.5.0" />
     <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.3" />
@@ -28,14 +28,14 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.7" />
 
     <!-- Identity & Security -->
-    <PackageVersion Include="System.DirectoryServices.Protocols" Version="9.0.5" />
-    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.17.0" />
+    <PackageVersion Include="System.DirectoryServices.Protocols" Version="10.0.7" />
+    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.18.0" />
 
     <!-- Logging -->
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.7" />
 
     <!-- JavaScript Engine -->
-    <PackageVersion Include="Jint" Version="4.8.0" />
+    <PackageVersion Include="Jint" Version="4.9.0" />
 
     <!-- JSONata Expression Language -->
     <PackageVersion Include="Jsonata.Net.Native" Version="3.0.0" />
@@ -50,7 +50,7 @@
     <PackageVersion Include="bunit" Version="2.7.2" />
     <PackageVersion Include="coverlet.collector" Version="10.0.0" />
     <PackageVersion Include="CsCheck" Version="4.6.2" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.4.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.5.1" />
     <PackageVersion Include="NSubstitute" Version="5.3.0" />
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
