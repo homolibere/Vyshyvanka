@@ -60,7 +60,7 @@ public class CodeNode : BaseActionNode
 
             var result = language.ToLowerInvariant() switch
             {
-                "jsonata" => ExecuteJsonata(code, input),
+                "jsonata" => ExecuteJsonata(code, mode, input),
                 _ => ExecuteJavaScript(code, mode, input, context, timeoutCts.Token)
             };
 
@@ -90,7 +90,17 @@ public class CodeNode : BaseActionNode
 
     #region JSONata Execution
 
-    private static NodeOutput ExecuteJsonata(string expression, NodeInput input)
+    private static NodeOutput ExecuteJsonata(string expression, string mode, NodeInput input)
+    {
+        if (mode == "runForEachItem")
+        {
+            return ExecuteJsonataForEachItem(expression, input);
+        }
+
+        return ExecuteJsonataOnce(expression, input);
+    }
+
+    private static NodeOutput ExecuteJsonataOnce(string expression, NodeInput input)
     {
         var query = new JsonataQuery(expression);
 
@@ -100,7 +110,6 @@ public class CodeNode : BaseActionNode
 
         var resultJson = query.Eval(inputJson);
 
-        // Parse the result back to a .NET object for consistent output format
         object? result = resultJson != "undefined"
             ? JsonSerializer.Deserialize<object>(resultJson)
             : null;
@@ -108,6 +117,46 @@ public class CodeNode : BaseActionNode
         var outputData = new Dictionary<string, object?>
         {
             ["result"] = result
+        };
+
+        return SuccessOutput(outputData);
+    }
+
+    private static NodeOutput ExecuteJsonataForEachItem(string expression, NodeInput input)
+    {
+        var query = new JsonataQuery(expression);
+
+        var inputJson = input.Data.ValueKind != JsonValueKind.Undefined
+            ? input.Data.GetRawText()
+            : "null";
+
+        // Parse input to check if it's an array
+        using var doc = JsonDocument.Parse(inputJson);
+        var results = new List<object?>();
+
+        if (doc.RootElement.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in doc.RootElement.EnumerateArray())
+            {
+                var itemJson = item.GetRawText();
+                var resultJson = query.Eval(itemJson);
+                results.Add(resultJson != "undefined"
+                    ? JsonSerializer.Deserialize<object>(resultJson)
+                    : null);
+            }
+        }
+        else
+        {
+            // Single item — evaluate once
+            var resultJson = query.Eval(inputJson);
+            results.Add(resultJson != "undefined"
+                ? JsonSerializer.Deserialize<object>(resultJson)
+                : null);
+        }
+
+        var outputData = new Dictionary<string, object?>
+        {
+            ["result"] = results
         };
 
         return SuccessOutput(outputData);
