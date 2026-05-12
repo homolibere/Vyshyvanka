@@ -17,9 +17,9 @@
                 </div>
                 <div class="header-actions">
                     <button class="btn-run"
-                            title="Run workflow up to this node"
-                            disabled="@_isRunningToNode"
-                            @onclick="RunUpToNode">
+                            title="Run all nodes before this one (populate input)"
+                            disabled="@(_isRunningToNode || _isRunningThisNode)"
+                            @onclick="RunBeforeNode">
                         @if (_isRunningToNode)
                         {
                             <span class="run-icon spinning">⟳</span>
@@ -29,6 +29,20 @@
                             <span class="run-icon">▶</span>
                         }
                         <span>Run to here</span>
+                    </button>
+                    <button class="btn-run btn-run-this"
+                            title="Run this node (uses existing input, or runs all if no input)"
+                            disabled="@(_isRunningToNode || _isRunningThisNode)"
+                            @onclick="RunThisNode">
+                        @if (_isRunningThisNode)
+                        {
+                            <span class="run-icon spinning">⟳</span>
+                        }
+                        else
+                        {
+                            <span class="run-icon">▶▶</span>
+                        }
+                        <span>Run this</span>
                     </button>
                     <button class="btn-close" @onclick="HandleClose" title="Close (Esc)">×</button>
                 </div>

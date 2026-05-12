@@ -16,7 +16,9 @@ namespace Vyshyvanka.Engine.Nodes.Logic;
 [NodeOutput("true", DisplayName = "True")]
 [NodeOutput("false", DisplayName = "False")]
 [ConfigurationProperty("field", "string", Description = "Field path to evaluate", IsRequired = true)]
-[ConfigurationProperty("operator", "string", Description = "Comparison operator", IsRequired = true)]
+[ConfigurationProperty("operator", "string", Description = "Comparison operator", IsRequired = true,
+    Options =
+        "equals,notEquals,greaterThan,lessThan,greaterThanOrEqual,lessThanOrEqual,contains,startsWith,endsWith,isEmpty,isNotEmpty,isTrue,isFalse,isNull,isNotNull")]
 [ConfigurationProperty("value", "string", Description = "Value to compare against")]
 public class IfNode : BaseLogicNode
 {

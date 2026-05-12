@@ -219,14 +219,15 @@ public partial class VyshyvankaApiClient
 
     /// <summary>Executes a workflow from the trigger up to and including the specified node.</summary>
     public async Task<ExecutionResponse?> ExecuteUpToNodeAsync(Guid workflowId, string targetNodeId,
-        JsonElement? triggerData = null, CancellationToken cancellationToken = default)
+        JsonElement? triggerData = null, bool includeTargetNode = true, CancellationToken cancellationToken = default)
     {
         var request = new TriggerExecutionRequest
         {
             WorkflowId = workflowId,
             InputData = triggerData,
             Mode = ExecutionMode.Api,
-            TargetNodeId = targetNodeId
+            TargetNodeId = targetNodeId,
+            IncludeTargetNode = includeTargetNode
         };
         var response = await _httpClient.PostAsJsonAsync("api/execution", request, cancellationToken);
         await EnsureSuccessAsync(response, cancellationToken);

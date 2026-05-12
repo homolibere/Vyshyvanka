@@ -13,10 +13,10 @@ public record TriggerExecutionRequest
     /// <summary>ID of the workflow to execute.</summary>
     [Required(ErrorMessage = "WorkflowId is required")]
     public Guid WorkflowId { get; init; }
-    
+
     /// <summary>Input data for the execution.</summary>
     public JsonElement? InputData { get; init; }
-    
+
     /// <summary>Execution mode.</summary>
     public ExecutionMode Mode { get; init; } = ExecutionMode.Api;
 
@@ -25,6 +25,12 @@ public record TriggerExecutionRequest
     /// and including this node will be executed (partial execution for debugging).
     /// </summary>
     public string? TargetNodeId { get; init; }
+
+    /// <summary>
+    /// Whether to include the target node in execution. Default is true.
+    /// When false, only predecessors of the target node are executed (useful for populating input).
+    /// </summary>
+    public bool IncludeTargetNode { get; init; } = true;
 }
 
 /// <summary>
@@ -34,23 +40,23 @@ public record ExecutionQueryRequest
 {
     /// <summary>Filter by workflow ID.</summary>
     public Guid? WorkflowId { get; init; }
-    
+
     /// <summary>Filter by status.</summary>
     public ExecutionStatus? Status { get; init; }
-    
+
     /// <summary>Filter by mode.</summary>
     public ExecutionMode? Mode { get; init; }
-    
+
     /// <summary>Filter by start date (from).</summary>
     public DateTime? StartDateFrom { get; init; }
-    
+
     /// <summary>Filter by start date (to).</summary>
     public DateTime? StartDateTo { get; init; }
-    
+
     /// <summary>Number of records to skip.</summary>
     [Range(0, int.MaxValue)]
     public int Skip { get; init; }
-    
+
     /// <summary>Number of records to take.</summary>
     [Range(1, 100)]
     public int Take { get; init; } = 50;
@@ -73,7 +79,7 @@ public record ExecutionResponse
     public JsonElement? OutputData { get; init; }
     public string? ErrorMessage { get; init; }
     public List<NodeExecutionResponse> NodeExecutions { get; init; } = [];
-    
+
     /// <summary>Creates a response from an execution model.</summary>
     public static ExecutionResponse FromModel(Execution execution)
     {
@@ -86,8 +92,8 @@ public record ExecutionResponse
             Mode = execution.Mode,
             StartedAt = execution.StartedAt,
             CompletedAt = execution.CompletedAt,
-            Duration = execution.CompletedAt.HasValue 
-                ? execution.CompletedAt.Value - execution.StartedAt 
+            Duration = execution.CompletedAt.HasValue
+                ? execution.CompletedAt.Value - execution.StartedAt
                 : null,
             TriggerData = execution.TriggerData,
             OutputData = execution.OutputData,
@@ -98,7 +104,6 @@ public record ExecutionResponse
         };
     }
 }
-
 
 /// <summary>
 /// Node execution response DTO.
@@ -113,7 +118,7 @@ public record NodeExecutionResponse
     public JsonElement? InputData { get; init; }
     public JsonElement? OutputData { get; init; }
     public string? ErrorMessage { get; init; }
-    
+
     /// <summary>Creates a response from a node execution model.</summary>
     public static NodeExecutionResponse FromModel(NodeExecution nodeExecution)
     {
@@ -123,8 +128,8 @@ public record NodeExecutionResponse
             Status = nodeExecution.Status,
             StartedAt = nodeExecution.StartedAt,
             CompletedAt = nodeExecution.CompletedAt,
-            Duration = nodeExecution.CompletedAt.HasValue 
-                ? nodeExecution.CompletedAt.Value - nodeExecution.StartedAt 
+            Duration = nodeExecution.CompletedAt.HasValue
+                ? nodeExecution.CompletedAt.Value - nodeExecution.StartedAt
                 : null,
             InputData = nodeExecution.InputData,
             OutputData = nodeExecution.OutputData,
@@ -147,7 +152,7 @@ public record ExecutionSummaryResponse
     public DateTime? CompletedAt { get; init; }
     public TimeSpan? Duration { get; init; }
     public string? ErrorMessage { get; init; }
-    
+
     /// <summary>Creates a summary response from an execution model.</summary>
     public static ExecutionSummaryResponse FromModel(Execution execution)
     {
@@ -160,8 +165,8 @@ public record ExecutionSummaryResponse
             Mode = execution.Mode,
             StartedAt = execution.StartedAt,
             CompletedAt = execution.CompletedAt,
-            Duration = execution.CompletedAt.HasValue 
-                ? execution.CompletedAt.Value - execution.StartedAt 
+            Duration = execution.CompletedAt.HasValue
+                ? execution.CompletedAt.Value - execution.StartedAt
                 : null,
             ErrorMessage = execution.ErrorMessage
         };

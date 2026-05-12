@@ -501,6 +501,23 @@ public class WorkflowEngine : IWorkflowEngine
 
             // Gather input data first so expressions in config can reference it via "input."
             var inputData = GatherInputData(workflow, nodeId, context);
+
+            // If this node is marked as "gather input only", record input and stop without executing
+            if (context.Variables.TryGetValue("__gatherInputOnlyNodeId", out var stopNodeObj) &&
+                stopNodeObj is string stopNodeId &&
+                string.Equals(stopNodeId, nodeId, StringComparison.OrdinalIgnoreCase))
+            {
+                var inputOnlyResult = new NodeExecutionResult
+                {
+                    NodeId = nodeId,
+                    Success = true,
+                    InputData = inputData,
+                    Duration = TimeSpan.Zero
+                };
+                nodeResults.Add(inputOnlyResult);
+                return inputOnlyResult;
+            }
+
             context.Variables["__currentInput"] = inputData;
 
             var evaluatedConfig = EvaluateConfiguration(node.Configuration, context, nodeId);

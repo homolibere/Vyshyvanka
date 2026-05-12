@@ -58,6 +58,7 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
     private string? _initialRawJson;
     private NodeEditorConfigPanel? _configPanel;
     private bool _isRunningToNode;
+    private bool _isRunningThisNode;
 
     /// <summary>
     /// Indicates whether the node has a configuration schema.
@@ -305,7 +306,7 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
         return false;
     }
 
-    private async Task RunUpToNode()
+    private async Task RunBeforeNode()
     {
         if (string.IsNullOrEmpty(NodeId) || _isRunningToNode) return;
 
@@ -320,24 +321,17 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
 
         try
         {
-            // Save the workflow to the API so the execution uses the latest state
-            if (StateService.IsDirty)
-            {
-                var saved = await ApiClient.UpdateWorkflowAsync(StateService.Workflow);
-                if (saved is not null)
-                {
-                    StateService.LoadWorkflow(saved);
-                    StateService.MarkAsSaved();
-                }
-            }
+            await SaveWorkflowIfDirtyAsync();
 
+            // Execute predecessors only — API computes and returns the target node's expected input
             var result = await ApiClient.ExecuteUpToNodeAsync(
-                StateService.Workflow.Id, NodeId);
+                StateService.Workflow.Id, NodeId, includeTargetNode: false);
 
             if (result is not null)
             {
                 StateService.SetCurrentExecution(result);
                 _executionState = StateService.GetNodeExecutionState(NodeId);
+                _currentIteration = 0;
 
                 if (result.Status == Core.Enums.ExecutionStatus.Failed)
                 {
@@ -345,7 +339,9 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
                 }
                 else
                 {
-                    ToastService.ShowSuccess($"Executed up to node — {result.NodeExecutions.Count} node(s) ran");
+                    var predecessorCount =
+                        result.NodeExecutions.Count(ne => ne.Status != Core.Enums.ExecutionStatus.Pending);
+                    ToastService.ShowSuccess($"Executed predecessors — {predecessorCount} node(s) ran");
                 }
             }
         }
@@ -361,6 +357,73 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
         {
             _isRunningToNode = false;
             StateHasChanged();
+        }
+    }
+
+    private async Task RunThisNode()
+    {
+        if (string.IsNullOrEmpty(NodeId) || _isRunningThisNode) return;
+
+        // Save pending config changes before running
+        if (_isDirty)
+        {
+            SaveConfiguration();
+        }
+
+        _isRunningThisNode = true;
+        StateHasChanged();
+
+        try
+        {
+            await SaveWorkflowIfDirtyAsync();
+
+            // Always execute up to and including this node
+            var result = await ApiClient.ExecuteUpToNodeAsync(
+                StateService.Workflow.Id, NodeId, includeTargetNode: true);
+
+            if (result is not null)
+            {
+                StateService.SetCurrentExecution(result);
+                _executionState = StateService.GetNodeExecutionState(NodeId);
+                _currentIteration = _executionState?.HasMultipleIterations == true
+                    ? _executionState.Iterations.Count - 1
+                    : 0;
+
+                if (result.Status == Core.Enums.ExecutionStatus.Failed)
+                {
+                    ToastService.ShowError(result.ErrorMessage ?? "Execution failed");
+                }
+                else
+                {
+                    ToastService.ShowSuccess($"Executed node — {result.NodeExecutions.Count} node(s) ran");
+                }
+            }
+        }
+        catch (ApiException ex)
+        {
+            ToastService.ShowError(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Execution failed: {ex.Message}");
+        }
+        finally
+        {
+            _isRunningThisNode = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task SaveWorkflowIfDirtyAsync()
+    {
+        if (StateService.IsDirty)
+        {
+            var saved = await ApiClient.UpdateWorkflowAsync(StateService.Workflow);
+            if (saved is not null)
+            {
+                StateService.LoadWorkflow(saved);
+                StateService.MarkAsSaved();
+            }
         }
     }
 

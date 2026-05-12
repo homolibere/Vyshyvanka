@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Vyshyvanka.Api.Authorization;
 using Vyshyvanka.Api.Models;
 using Vyshyvanka.Core.Enums;
@@ -120,6 +121,12 @@ public class ExecutionController : ControllerBase
         if (request.InputData.HasValue)
         {
             context.Variables["input"] = request.InputData.Value;
+        }
+
+        // When excluding the target node, tell the engine to gather input only (don't execute it)
+        if (!request.IncludeTargetNode && !string.IsNullOrWhiteSpace(request.TargetNodeId))
+        {
+            context.Variables["__gatherInputOnlyNodeId"] = request.TargetNodeId;
         }
 
         try

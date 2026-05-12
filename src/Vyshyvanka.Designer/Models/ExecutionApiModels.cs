@@ -12,6 +12,7 @@ public record TriggerExecutionRequest
     public JsonElement? InputData { get; init; }
     public ExecutionMode Mode { get; init; } = ExecutionMode.Api;
     public string? TargetNodeId { get; init; }
+    public bool IncludeTargetNode { get; init; } = true;
 }
 
 /// <summary>
