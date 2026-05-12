@@ -27,6 +27,8 @@ erDiagram
         bool IsActive
         DateTime CreatedAt
         DateTime LastLoginAt
+        int FailedLoginAttempts
+        DateTime LockoutEnd
         string ExternalId UK
         AuthenticationProvider AuthenticationProvider
     }

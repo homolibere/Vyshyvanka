@@ -16,9 +16,18 @@ public record User
     public DateTime CreatedAt { get; init; }
     public DateTime? LastLoginAt { get; init; }
 
+    /// <summary>Number of consecutive failed login attempts.</summary>
+    public int FailedLoginAttempts { get; init; }
+
+    /// <summary>UTC time when the account lockout expires. Null means not locked.</summary>
+    public DateTime? LockoutEnd { get; init; }
+
     /// <summary>External subject identifier from an OIDC provider (null for built-in users).</summary>
     public string? ExternalId { get; init; }
 
     /// <summary>Which authentication provider owns this user.</summary>
     public AuthenticationProvider AuthenticationProvider { get; init; } = AuthenticationProvider.BuiltIn;
+
+    /// <summary>Returns true if the account is currently locked out.</summary>
+    public bool IsLockedOut => LockoutEnd.HasValue && LockoutEnd.Value > DateTime.UtcNow;
 }

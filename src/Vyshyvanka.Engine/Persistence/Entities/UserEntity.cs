@@ -40,8 +40,14 @@ public class UserEntity
     /// <summary>External subject identifier from an OIDC provider (null for built-in users).</summary>
     public string? ExternalId { get; set; }
 
+    /// <summary>Number of consecutive failed login attempts.</summary>
+    public int FailedLoginAttempts { get; set; }
+
+    /// <summary>UTC time when the account lockout expires. Null means not locked.</summary>
+    public DateTime? LockoutEnd { get; set; }
+
     /// <summary>Which authentication provider owns this user.</summary>
-    public Vyshyvanka.Core.Enums.AuthenticationProvider AuthenticationProvider { get; set; }
+    public AuthenticationProvider AuthenticationProvider { get; set; }
 
     /// <summary>API keys owned by this user.</summary>
     public List<ApiKeyEntity> ApiKeys { get; set; } = [];

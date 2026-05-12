@@ -66,6 +66,16 @@ public class ExecutionController : ControllerBase
             });
         }
 
+        // Verify ownership: only the workflow owner or an Admin can execute it
+        if (!IsOwnerOrAdmin(workflow))
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new ApiError
+            {
+                Code = "FORBIDDEN",
+                Message = "You do not have permission to execute this workflow"
+            });
+        }
+
         if (!workflow.IsActive)
         {
             return BadRequest(new ApiError
@@ -230,6 +240,7 @@ public class ExecutionController : ControllerBase
         [FromQuery] int take = 50,
         CancellationToken cancellationToken = default)
     {
+        take = Math.Clamp(take, 1, 100);
         _logger.LogDebug("Getting executions for workflow {WorkflowId}", workflowId);
 
         var executions = await _executionRepository.GetByWorkflowIdAsync(workflowId, skip, take, cancellationToken);
@@ -257,6 +268,7 @@ public class ExecutionController : ControllerBase
         [FromQuery] int take = 50,
         CancellationToken cancellationToken = default)
     {
+        take = Math.Clamp(take, 1, 100);
         _logger.LogDebug("Getting executions with status {Status}", status);
 
         var executions = await _executionRepository.GetByStatusAsync(status, skip, take, cancellationToken);
@@ -343,5 +355,14 @@ public class ExecutionController : ControllerBase
                 requiredNodeIds.Contains(c.SourceNodeId) &&
                 requiredNodeIds.Contains(c.TargetNodeId)).ToList()
         };
+    }
+
+    private bool IsOwnerOrAdmin(Workflow workflow)
+    {
+        if (User.IsInRole(Roles.Admin))
+            return true;
+
+        var userId = _currentUserService.UserId;
+        return userId is not null && workflow.CreatedBy == userId;
     }
 }

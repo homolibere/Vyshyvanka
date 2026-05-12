@@ -17,15 +17,15 @@ public class WorkflowValidator
     public ValidationResult Validate(Workflow workflow)
     {
         ArgumentNullException.ThrowIfNull(workflow);
-        
+
         var errors = new List<ValidationError>();
-        
+
         ValidateWorkflowFields(workflow, errors);
         ValidateNodes(workflow, errors);
         ValidateConnections(workflow, errors);
-        
-        return errors.Count == 0 
-            ? ValidationResult.Success() 
+
+        return errors.Count == 0
+            ? ValidationResult.Success()
             : ValidationResult.Failure([.. errors]);
     }
 
@@ -74,26 +74,26 @@ public class WorkflowValidator
     private static void ValidateNodes(Workflow workflow, List<ValidationError> errors)
     {
         var nodeIds = new HashSet<string>();
-        
+
         for (int i = 0; i < workflow.Nodes.Count; i++)
         {
             var node = workflow.Nodes[i];
             var nodePath = $"nodes[{i}]";
-            
+
             ValidateNodeFields(node, nodePath, errors);
             ValidateDuplicateNodeId(node, nodeIds, nodePath, errors);
         }
-        
+
         ValidateTriggerNodes(workflow, errors);
     }
 
     private static void ValidateTriggerNodes(Workflow workflow, List<ValidationError> errors)
     {
         var triggerNodes = workflow.Nodes
-            .Where(n => !string.IsNullOrWhiteSpace(n.Type) && 
+            .Where(n => !string.IsNullOrWhiteSpace(n.Type) &&
                         n.Type.EndsWith("-trigger", StringComparison.OrdinalIgnoreCase))
             .ToList();
-        
+
         if (triggerNodes.Count == 0)
         {
             errors.Add(new ValidationError
@@ -156,7 +156,8 @@ public class WorkflowValidator
         }
     }
 
-    private static void ValidateDuplicateNodeId(WorkflowNode node, HashSet<string> nodeIds, string nodePath, List<ValidationError> errors)
+    private static void ValidateDuplicateNodeId(WorkflowNode node, HashSet<string> nodeIds, string nodePath,
+        List<ValidationError> errors)
     {
         if (!string.IsNullOrWhiteSpace(node.Id))
         {
@@ -178,19 +179,121 @@ public class WorkflowValidator
             .Where(n => !string.IsNullOrWhiteSpace(n.Id))
             .Select(n => n.Id)
             .ToHashSet();
-        
+
         for (int i = 0; i < workflow.Connections.Count; i++)
         {
             var connection = workflow.Connections[i];
             var connectionPath = $"connections[{i}]";
-            
+
             ValidateConnectionFields(connection, connectionPath, errors);
             ValidateConnectionReferences(connection, nodeIds, connectionPath, errors);
             ValidateSelfLoop(connection, connectionPath, errors);
         }
+
+        // Only run cycle detection if basic connection validation passed
+        if (errors.All(e => e.ErrorCode is not ("CONNECTION_SOURCE_NOT_FOUND" or "CONNECTION_TARGET_NOT_FOUND")))
+        {
+            ValidateCycles(workflow, errors);
+        }
     }
 
-    private static void ValidateConnectionFields(Connection connection, string connectionPath, List<ValidationError> errors)
+    /// <summary>
+    /// Detects cycles in the workflow graph using DFS with three-color marking.
+    /// </summary>
+    private static void ValidateCycles(Workflow workflow, List<ValidationError> errors)
+    {
+        // Build adjacency list
+        var adjacency = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var node in workflow.Nodes)
+        {
+            if (!string.IsNullOrWhiteSpace(node.Id))
+            {
+                adjacency[node.Id] = [];
+            }
+        }
+
+        foreach (var connection in workflow.Connections)
+        {
+            if (!string.IsNullOrWhiteSpace(connection.SourceNodeId) &&
+                !string.IsNullOrWhiteSpace(connection.TargetNodeId) &&
+                connection.SourceNodeId != connection.TargetNodeId &&
+                adjacency.ContainsKey(connection.SourceNodeId))
+            {
+                adjacency[connection.SourceNodeId].Add(connection.TargetNodeId);
+            }
+        }
+
+        // DFS cycle detection with three states
+        var white = new HashSet<string>(adjacency.Keys, StringComparer.OrdinalIgnoreCase); // unvisited
+        var gray = new HashSet<string>(StringComparer.OrdinalIgnoreCase); // in current path
+        var black = new HashSet<string>(StringComparer.OrdinalIgnoreCase); // fully explored
+        var path = new List<string>(); // current DFS path for error reporting
+
+        foreach (var nodeId in adjacency.Keys)
+        {
+            if (white.Contains(nodeId))
+            {
+                if (DfsHasCycle(nodeId, adjacency, white, gray, black, path, errors))
+                {
+                    return; // Report first cycle found
+                }
+            }
+        }
+    }
+
+    private static bool DfsHasCycle(
+        string nodeId,
+        Dictionary<string, List<string>> adjacency,
+        HashSet<string> white,
+        HashSet<string> gray,
+        HashSet<string> black,
+        List<string> path,
+        List<ValidationError> errors)
+    {
+        white.Remove(nodeId);
+        gray.Add(nodeId);
+        path.Add(nodeId);
+
+        if (adjacency.TryGetValue(nodeId, out var neighbors))
+        {
+            foreach (var neighbor in neighbors)
+            {
+                if (gray.Contains(neighbor))
+                {
+                    // Found a cycle — extract the cycle from the path
+                    var cycleStart = path.IndexOf(neighbor);
+                    var cycleNodes = path.Skip(cycleStart).ToList();
+                    cycleNodes.Add(neighbor); // close the cycle
+
+                    errors.Add(new ValidationError
+                    {
+                        Path = "connections",
+                        Message = $"Circular dependency detected: {string.Join(" → ", cycleNodes)}",
+                        ErrorCode = "WORKFLOW_CYCLE_DETECTED"
+                    });
+                    path.RemoveAt(path.Count - 1);
+                    return true;
+                }
+
+                if (white.Contains(neighbor))
+                {
+                    if (DfsHasCycle(neighbor, adjacency, white, gray, black, path, errors))
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        path.RemoveAt(path.Count - 1);
+        gray.Remove(nodeId);
+        black.Add(nodeId);
+        return false;
+    }
+
+    private static void ValidateConnectionFields(Connection connection, string connectionPath,
+        List<ValidationError> errors)
     {
         if (string.IsNullOrWhiteSpace(connection.SourceNodeId))
         {
@@ -233,7 +336,8 @@ public class WorkflowValidator
         }
     }
 
-    private static void ValidateConnectionReferences(Connection connection, HashSet<string> nodeIds, string connectionPath, List<ValidationError> errors)
+    private static void ValidateConnectionReferences(Connection connection, HashSet<string> nodeIds,
+        string connectionPath, List<ValidationError> errors)
     {
         if (!string.IsNullOrWhiteSpace(connection.SourceNodeId) && !nodeIds.Contains(connection.SourceNodeId))
         {
@@ -258,7 +362,7 @@ public class WorkflowValidator
 
     private static void ValidateSelfLoop(Connection connection, string connectionPath, List<ValidationError> errors)
     {
-        if (!string.IsNullOrWhiteSpace(connection.SourceNodeId) && 
+        if (!string.IsNullOrWhiteSpace(connection.SourceNodeId) &&
             !string.IsNullOrWhiteSpace(connection.TargetNodeId) &&
             connection.SourceNodeId == connection.TargetNodeId)
         {

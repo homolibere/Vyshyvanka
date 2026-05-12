@@ -8,11 +8,19 @@ namespace Vyshyvanka.Core.Interfaces;
 public interface IAuthService
 {
     Task<AuthResult> LoginAsync(string email, string password, CancellationToken cancellationToken = default);
-    Task<AuthResult> RegisterAsync(string email, string password, string? displayName = null, CancellationToken cancellationToken = default);
+
+    Task<AuthResult> RegisterAsync(string email, string password, string? displayName = null,
+        CancellationToken cancellationToken = default);
+
     Task<AuthResult> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default);
     Task<bool> ValidateTokenAsync(string token, CancellationToken cancellationToken = default);
     string HashPassword(string password);
     bool VerifyPassword(string password, string passwordHash);
+
+    /// <summary>
+    /// Unlocks a user account by resetting failed login attempts and lockout end time.
+    /// </summary>
+    Task UnlockAccountAsync(Guid userId, CancellationToken cancellationToken = default);
 }
 
 /// <summary>

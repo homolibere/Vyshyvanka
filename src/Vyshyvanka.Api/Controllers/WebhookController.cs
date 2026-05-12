@@ -1,10 +1,14 @@
 using System.Text.Json;
+using Vyshyvanka.Api.Extensions;
 using Vyshyvanka.Api.Models;
+using Vyshyvanka.Api.Services;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
+using Vyshyvanka.Core.Models;
 using Vyshyvanka.Engine.Credentials;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using ExecutionContext = Vyshyvanka.Engine.Execution.ExecutionContext;
 
 namespace Vyshyvanka.Api.Controllers;
@@ -12,10 +16,13 @@ namespace Vyshyvanka.Api.Controllers;
 /// <summary>
 /// API controller for webhook trigger endpoints.
 /// Webhooks are anonymous to allow external systems to trigger workflows.
+/// Security is enforced per-workflow via optional HMAC signature verification and IP allowlisting.
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [AllowAnonymous]
+[EnableRateLimiting(RateLimitingExtensions.WebhookPolicy)]
+[RequestSizeLimit(1_048_576)] // 1 MB max request body
 public class WebhookController : ControllerBase
 {
     private readonly IWorkflowEngine _workflowEngine;
@@ -50,6 +57,8 @@ public class WebhookController : ControllerBase
     [ProducesResponseType(typeof(WebhookResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiError), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiError), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiError), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiError), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> TriggerByWorkflowId(
         Guid workflowId,
         CancellationToken cancellationToken = default)
@@ -69,6 +78,8 @@ public class WebhookController : ControllerBase
     [ProducesResponseType(typeof(WebhookResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiError), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiError), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiError), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiError), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> TriggerByPath(
         string webhookPath,
         CancellationToken cancellationToken = default)
@@ -120,17 +131,50 @@ public class WebhookController : ControllerBase
             });
         }
 
-        // Verify the workflow has a webhook trigger configured
-        var hasWebhookTrigger = workflow.Nodes.Any(n =>
+        // Find the webhook trigger node
+        var webhookTrigger = workflow.Nodes.FirstOrDefault(n =>
             n.Type.Equals("webhook-trigger", StringComparison.OrdinalIgnoreCase));
 
-        if (!hasWebhookTrigger)
+        if (webhookTrigger is null)
         {
             return NotFound(new ApiError
             {
                 Code = "WEBHOOK_NOT_CONFIGURED",
                 Message = "This workflow does not have a webhook trigger configured"
             });
+        }
+
+        // Enable buffering so we can read the body multiple times (for signature + data)
+        Request.EnableBuffering();
+
+        // Security: Verify HMAC signature if secret is configured
+        var secret = WebhookSecurityService.GetWebhookSecret(webhookTrigger);
+        if (secret is not null)
+        {
+            var signatureValidation = await ValidateSignatureAsync(secret, cancellationToken);
+            if (signatureValidation is not null)
+            {
+                return signatureValidation;
+            }
+        }
+
+        // Security: Verify IP allowlist if configured
+        var allowedIps = WebhookSecurityService.GetAllowedIps(webhookTrigger);
+        if (allowedIps is not null)
+        {
+            var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+            if (!WebhookSecurityService.IsIpAllowed(clientIp, allowedIps))
+            {
+                _logger.LogWarning(
+                    "Webhook request from IP {ClientIp} rejected for workflow {WorkflowId} — not in allowlist",
+                    clientIp, workflowId);
+
+                return StatusCode(StatusCodes.Status403Forbidden, new ApiError
+                {
+                    Code = "WEBHOOK_IP_DENIED",
+                    Message = "Request origin is not in the allowed IP list for this webhook"
+                });
+            }
         }
 
         // Build webhook data from request
@@ -197,6 +241,40 @@ public class WebhookController : ControllerBase
         }
     }
 
+    private async Task<IActionResult?> ValidateSignatureAsync(string secret, CancellationToken cancellationToken)
+    {
+        var signatureHeader = Request.Headers[WebhookSecurityService.SignatureHeader].FirstOrDefault();
+
+        if (string.IsNullOrWhiteSpace(signatureHeader))
+        {
+            _logger.LogWarning("Webhook request missing {Header} header", WebhookSecurityService.SignatureHeader);
+            return Unauthorized(new ApiError
+            {
+                Code = "WEBHOOK_SIGNATURE_MISSING",
+                Message = $"The {WebhookSecurityService.SignatureHeader} header is required for this webhook"
+            });
+        }
+
+        // Read the raw body for signature verification
+        using var memoryStream = new MemoryStream();
+        Request.Body.Position = 0;
+        await Request.Body.CopyToAsync(memoryStream, cancellationToken);
+        var bodyBytes = memoryStream.ToArray();
+        Request.Body.Position = 0;
+
+        if (!WebhookSecurityService.ValidateSignature(bodyBytes, signatureHeader, secret))
+        {
+            _logger.LogWarning("Webhook request has invalid HMAC signature");
+            return Unauthorized(new ApiError
+            {
+                Code = "WEBHOOK_SIGNATURE_INVALID",
+                Message = "The webhook signature is invalid"
+            });
+        }
+
+        return null; // Signature is valid
+    }
+
     private async Task<JsonElement> BuildWebhookDataAsync(CancellationToken cancellationToken)
     {
         var webhookData = new Dictionary<string, object?>
@@ -250,7 +328,7 @@ public class WebhookController : ControllerBase
     {
         try
         {
-            Request.EnableBuffering();
+            Request.Body.Position = 0;
             using var reader = new StreamReader(Request.Body, leaveOpen: true);
             var bodyString = await reader.ReadToEndAsync(cancellationToken);
             Request.Body.Position = 0;
@@ -282,7 +360,7 @@ public class WebhookController : ControllerBase
         }
     }
 
-    private static bool HasWebhookTriggerWithPath(Core.Models.Workflow workflow, string path)
+    private static bool HasWebhookTriggerWithPath(Workflow workflow, string path)
     {
         // Check if any node is a webhook trigger with matching path
         return workflow.Nodes.Any(n =>

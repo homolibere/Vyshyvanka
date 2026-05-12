@@ -11,22 +11,31 @@ namespace Vyshyvanka.Engine.Auth;
 /// </summary>
 public class AuthService : IAuthService
 {
+    /// <summary>Maximum consecutive failed login attempts before lockout.</summary>
+    private const int MaxFailedAttempts = 5;
+
+    /// <summary>Duration of account lockout after exceeding max failed attempts.</summary>
+    private static readonly TimeSpan LockoutDuration = TimeSpan.FromMinutes(15);
+
     private readonly IUserRepository _userRepository;
     private readonly UserRepository _userRepositoryInternal;
     private readonly IJwtTokenService _jwtTokenService;
     private readonly JwtSettings _jwtSettings;
+    private readonly AuthenticationSettings _authSettings;
     private readonly IAuditLogService? _auditLogService;
 
     public AuthService(
         IUserRepository userRepository,
         IJwtTokenService jwtTokenService,
         JwtSettings jwtSettings,
+        AuthenticationSettings authSettings,
         IAuditLogService? auditLogService = null)
     {
         _userRepository = userRepository;
         _userRepositoryInternal = (UserRepository)userRepository;
         _jwtTokenService = jwtTokenService;
         _jwtSettings = jwtSettings;
+        _authSettings = authSettings;
         _auditLogService = auditLogService;
     }
 
@@ -50,10 +59,30 @@ public class AuthService : IAuthService
             return new AuthResult { Success = false, ErrorMessage = "Account is disabled" };
         }
 
+        if (user.IsLockedOut)
+        {
+            var remainingSeconds = (int)(user.LockoutEnd!.Value - DateTime.UtcNow).TotalSeconds;
+            await LogAuthenticationAsync(email, false, "Account is locked", cancellationToken);
+            return new AuthResult
+            {
+                Success = false,
+                ErrorMessage =
+                    $"Account is locked due to too many failed login attempts. Try again in {remainingSeconds} seconds."
+            };
+        }
+
         if (!VerifyPassword(password, user.PasswordHash))
         {
+            await RecordFailedLoginAttemptAsync(user, cancellationToken);
             await LogAuthenticationAsync(email, false, "Invalid email or password", cancellationToken);
             return new AuthResult { Success = false, ErrorMessage = "Invalid email or password" };
+        }
+
+        // Successful login — reset lockout state
+        if (user.FailedLoginAttempts > 0)
+        {
+            user = user with { FailedLoginAttempts = 0, LockoutEnd = null };
+            await _userRepository.UpdateAsync(user, cancellationToken);
         }
 
         var accessToken = _jwtTokenService.GenerateAccessToken(user);
@@ -84,6 +113,13 @@ public class AuthService : IAuthService
         ArgumentNullException.ThrowIfNull(email);
         ArgumentNullException.ThrowIfNull(password);
 
+        // Validate password complexity
+        var passwordValidation = PasswordValidator.Validate(password, _authSettings.MinPasswordLength);
+        if (!passwordValidation.IsValid)
+        {
+            return new AuthResult { Success = false, ErrorMessage = passwordValidation.ErrorMessage };
+        }
+
         var existingUser = await _userRepository.GetByEmailAsync(email, cancellationToken);
         if (existingUser is not null)
         {
@@ -91,6 +127,8 @@ public class AuthService : IAuthService
         }
 
         var passwordHash = HashPassword(password);
+        var isActive = !_authSettings.RequireAdminApproval;
+
         var user = new User
         {
             Id = Guid.NewGuid(),
@@ -98,11 +136,22 @@ public class AuthService : IAuthService
             DisplayName = displayName,
             PasswordHash = passwordHash,
             Role = UserRole.Viewer,
-            IsActive = true,
+            IsActive = isActive,
             CreatedAt = DateTime.UtcNow
         };
 
         var createdUser = await _userRepository.CreateAsync(user, cancellationToken);
+
+        // If admin approval is required, don't issue tokens — account is inactive
+        if (!isActive)
+        {
+            return new AuthResult
+            {
+                Success = true,
+                ErrorMessage = "Account created but requires admin approval before you can log in",
+                User = createdUser
+            };
+        }
 
         var accessToken = _jwtTokenService.GenerateAccessToken(createdUser);
         var refreshToken = _jwtTokenService.GenerateRefreshToken();
@@ -203,5 +252,25 @@ public class AuthService : IAuthService
             await _auditLogService.LogAuthenticationAttemptAsync(email, success, null, null, errorMessage,
                 cancellationToken);
         }
+    }
+
+    public async Task UnlockAccountAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var user = await _userRepository.GetByIdAsync(userId, cancellationToken)
+                   ?? throw new InvalidOperationException($"User {userId} not found");
+
+        var unlockedUser = user with { FailedLoginAttempts = 0, LockoutEnd = null };
+        await _userRepository.UpdateAsync(unlockedUser, cancellationToken);
+    }
+
+    private async Task RecordFailedLoginAttemptAsync(User user, CancellationToken cancellationToken)
+    {
+        var attempts = user.FailedLoginAttempts + 1;
+        DateTime? lockoutEnd = attempts >= MaxFailedAttempts
+            ? DateTime.UtcNow.Add(LockoutDuration)
+            : null;
+
+        var updatedUser = user with { FailedLoginAttempts = attempts, LockoutEnd = lockoutEnd };
+        await _userRepository.UpdateAsync(updatedUser, cancellationToken);
     }
 }

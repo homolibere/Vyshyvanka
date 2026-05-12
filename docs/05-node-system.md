@@ -75,7 +75,7 @@ Trigger nodes initiate workflow execution. They have no input ports and produce 
 
 | Node | Type Identifier | Description |
 |------|----------------|------------|
-| Webhook Trigger | `webhook-trigger` | Fires when an HTTP request hits the webhook endpoint. Passes method, headers, query params, and body as output. |
+| Webhook Trigger | `webhook-trigger` | Fires when an HTTP request hits the webhook endpoint. Passes method, headers, query params, and body as output. Optional security: `secret` (HMAC-SHA256 verification), `allowedIps` (IP allowlist). |
 | Schedule Trigger | `schedule-trigger` | Fires on a cron schedule. Passes the scheduled time as output. |
 | Manual Trigger | `manual-trigger` | Fires when a user manually executes the workflow. Passes any provided input data. |
 

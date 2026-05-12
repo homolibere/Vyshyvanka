@@ -6,6 +6,10 @@ The Vyshyvanka API is an ASP.NET Core REST API that serves as the backend for th
 
 Base URL: `/api`
 
+## Pagination
+
+All list endpoints support `skip` and `take` query parameters. The maximum page size is **100** — values above 100 are clamped server-side. Default page size varies by endpoint (typically 50).
+
 ## Authentication
 
 The API supports two authentication schemes, evaluated in order:
@@ -35,19 +39,22 @@ The `ErrorHandlingMiddleware` maps all unhandled exceptions to appropriate HTTP 
 | Method | Path | Auth | Description |
 |--------|------|------|------------|
 | GET | `/api/auth/config` | Anonymous | Returns the active authentication provider and OIDC settings (authority, client ID). Used by the Designer to configure its auth flow. |
-| POST | `/api/auth/login` | Anonymous | Login with email/username and password. Returns JWT access token, refresh token, and user info. **Built-in and LDAP providers only.** |
-| POST | `/api/auth/register` | Anonymous | Register a new user account. Returns tokens and user info. **Built-in provider only.** |
-| POST | `/api/auth/refresh` | Anonymous | Exchange a refresh token for a new access token. **Built-in and LDAP providers only.** |
+| POST | `/api/auth/login` | Anonymous | Login with email/username and password. Returns JWT access token, refresh token, and user info. **Built-in and LDAP providers only.** Rate limited: 5 req/min per IP. |
+| POST | `/api/auth/register` | Anonymous | Register a new user account. **Built-in provider only.** Requires `AllowRegistration: true` in settings. Enforces password complexity. Rate limited: 5 req/min per IP. |
+| POST | `/api/auth/refresh` | Anonymous | Exchange a refresh token for a new access token. **Built-in and LDAP providers only.** Rate limited: 5 req/min per IP. |
+| POST | `/api/auth/unlock/{userId}` | CanManageUsers | Unlock a user account locked due to failed login attempts. Resets failed attempt counter and lockout timer. |
 
 When the active provider is Keycloak or Authentik, the login, register, and refresh endpoints return HTTP 400 with code `UNSUPPORTED`. When the provider is LDAP, only the register endpoint is disabled.
+
+Accounts are locked after 5 consecutive failed login attempts for 15 minutes. See [Security — Account Lockout](07-security.md#account-lockout) for details.
 
 ### Workflows
 
 | Method | Path | Auth Policy | Description |
 |--------|------|------------|------------|
-| GET | `/api/workflow` | CanViewWorkflows | List workflows with pagination. Supports `skip`, `take`, `search` query params. |
-| GET | `/api/workflow/active` | CanViewWorkflows | List only active workflows. |
-| GET | `/api/workflow/{id}` | CanViewWorkflows | Get a single workflow by ID. |
+| GET | `/api/workflow` | CanViewWorkflows | List workflows with pagination. Supports `skip`, `take`, `search` query params. Non-Admin users see only their own workflows. |
+| GET | `/api/workflow/active` | CanViewWorkflows | List only active workflows. Non-Admin users see only their own. |
+| GET | `/api/workflow/{id}` | CanViewWorkflows | Get a single workflow by ID. Requires ownership or Admin role. |
 | POST | `/api/workflow` | CanManageWorkflows | Create a new workflow. Validates before saving. |
 | PUT | `/api/workflow/{id}` | CanManageWorkflows | Update a workflow. Requires version for optimistic concurrency. |
 | DELETE | `/api/workflow/{id}` | CanManageWorkflows | Delete a workflow. |
@@ -56,7 +63,7 @@ When the active provider is Keycloak or Authentik, the login, register, and refr
 
 | Method | Path | Auth Policy | Description |
 |--------|------|------------|------------|
-| POST | `/api/execution` | CanExecuteWorkflows | Trigger a workflow execution. Accepts workflow ID, input data, and execution mode. |
+| POST | `/api/execution` | CanExecuteWorkflows | Trigger a workflow execution. Accepts workflow ID, input data, and execution mode. Requires workflow ownership or Admin role. |
 | GET | `/api/execution` | CanViewWorkflows | Query execution history with filters (workflow ID, status, mode, date range). |
 | GET | `/api/execution/{id}` | CanViewWorkflows | Get execution details including node-level results. |
 | GET | `/api/execution/workflow/{workflowId}` | CanViewWorkflows | Get executions for a specific workflow. |
@@ -70,7 +77,14 @@ When the active provider is Keycloak or Authentik, the login, register, and refr
 | GET/POST/PUT/DELETE/PATCH | `/api/webhook/{workflowId}` | Anonymous | Trigger a workflow by ID. Passes HTTP method, headers, query, and body as trigger data. |
 | GET/POST/PUT/DELETE/PATCH | `/api/webhook/path/{*path}` | Anonymous | Trigger a workflow by matching webhook path configuration. |
 
-Webhook endpoints are anonymous to allow external systems to trigger workflows. The webhook controller builds a structured payload containing the HTTP method, path, query string, headers (excluding Authorization and Cookie), and body.
+Webhook endpoints are anonymous to allow external systems to trigger workflows. The webhook controller builds a structured payload containing the HTTP method, path, query string, headers (excluding Authorization and Cookie), and body. Rate limited: 30 req/min per IP.
+
+**Security controls (optional, per-workflow):**
+- **Request body size limit**: 1 MB maximum enforced on all webhook requests
+- **HMAC-SHA256 signature verification**: Configure a `secret` in the webhook trigger node. Callers must include `X-Webhook-Signature: sha256=<hex-hmac>` header.
+- **IP allowlisting**: Configure `allowedIps` array in the webhook trigger node. Only listed IPs can trigger the workflow.
+
+See [Security — Webhook Security](07-security.md#webhook-security) for configuration details.
 
 ### Nodes
 

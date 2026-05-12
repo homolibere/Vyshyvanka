@@ -68,6 +68,37 @@ Used for interactive sessions from the Designer when no external identity provid
 
 The `IJwtTokenService` handles token generation and validation. The `IAuthService` orchestrates login, registration, and refresh flows.
 
+#### Registration Controls
+
+Open registration is disabled by default. Configure via `appsettings.json`:
+
+```json
+{
+  "Authentication": {
+    "AllowRegistration": true,
+    "RequireAdminApproval": false,
+    "MinPasswordLength": 8
+  }
+}
+```
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `AllowRegistration` | `false` | Whether the register endpoint accepts new accounts |
+| `RequireAdminApproval` | `false` | When true, new accounts are created inactive until an admin activates them |
+| `MinPasswordLength` | `8` | Minimum password length |
+
+#### Password Complexity
+
+All passwords (registration) must satisfy:
+- Minimum length (configurable, default 8)
+- At least one uppercase letter
+- At least one lowercase letter
+- At least one digit
+- At least one special character (non-alphanumeric)
+
+The `GET /api/auth/config` endpoint returns `allowRegistration` so the Designer can conditionally show or hide the registration form.
+
 ### OIDC Authentication (Keycloak / Authentik)
 
 When an external provider is configured, the API validates access tokens issued by that provider using its OIDC discovery document. The login, register, and refresh endpoints are disabled — the Designer handles the OIDC flow directly with the identity provider.
@@ -263,6 +294,20 @@ graph TD
 | CanViewWorkflows | ✅ | ✅ | ✅ |
 
 Policies are registered in `AuthorizationExtensions.AddVyshyvankaPolicies()` and applied to controllers via `[Authorize(Policy = ...)]` attributes.
+
+### Resource Ownership
+
+In addition to role-based policies, mutating operations enforce resource ownership. Only the resource owner or an Admin can perform the action:
+
+| Operation | Ownership Check |
+|-----------|----------------|
+| List/search workflows | Non-Admin users see only own workflows |
+| View workflow by ID | `workflow.CreatedBy == currentUser` or Admin |
+| Update/Delete workflow | `workflow.CreatedBy == currentUser` or Admin |
+| Execute workflow | `workflow.CreatedBy == currentUser` or Admin |
+| Manage credentials | `credential.OwnerId == currentUser` or Admin |
+
+This prevents Editors from executing or modifying workflows belonging to other users (which could access those users' credentials).
 
 ## Credential Management
 
@@ -464,6 +509,128 @@ JSONata expressions receive the full input data as the root context (`$`). No ad
 - Compilation/runtime errors are reported to the user without exposing internal engine details
 - The configurable timeout prevents infinite loops and resource exhaustion (JavaScript)
 - JSONata expressions are inherently terminating (no unbounded loops)
+
+## Rate Limiting
+
+The API uses ASP.NET Core's built-in rate limiting middleware (`Microsoft.AspNetCore.RateLimiting`) to protect against brute-force attacks, webhook abuse, and general resource exhaustion. All limits are partitioned by client IP address.
+
+### Policies
+
+| Policy | Applied To | Limit | Window | Purpose |
+|--------|-----------|-------|--------|---------|
+| `auth` | Login, register, refresh endpoints | 5 requests | 1 minute | Prevent brute-force credential attacks |
+| `webhook` | All webhook trigger endpoints | 30 requests | 1 minute | Prevent DoS via webhook abuse |
+| Global | All other endpoints (fallback) | 100 requests | 1 minute | General resource protection |
+
+### Response on Limit Exceeded
+
+When a client exceeds the rate limit, the API returns:
+
+- **HTTP 429 Too Many Requests**
+- `Retry-After` header with seconds until the window resets
+- JSON body: `{ "code": "RATE_LIMITED", "message": "Too many requests. Please try again later.", "retryAfterSeconds": <int> }`
+
+### Configuration
+
+Rate limiting is configured in `Vyshyvanka.Api/Extensions/RateLimitingExtensions.cs`. The middleware is placed in the pipeline after CORS and before authentication, so rate-limited requests are rejected early without consuming auth processing resources.
+
+Policies are applied via `[EnableRateLimiting]` attributes on controllers and actions:
+- `AuthController`: `login`, `register`, `refresh` actions use the `auth` policy
+- `WebhookController`: entire controller uses the `webhook` policy
+- All other endpoints: covered by the global partitioned limiter
+
+## Account Lockout
+
+To prevent brute-force password attacks, accounts are locked after repeated failed login attempts.
+
+### Behavior
+
+| Parameter | Value |
+|-----------|-------|
+| Max failed attempts | 5 consecutive failures |
+| Lockout duration | 15 minutes |
+| Reset trigger | Successful login or admin unlock |
+| Applies to | Built-in and LDAP authentication providers |
+
+### Flow
+
+1. User submits invalid credentials
+2. `FailedLoginAttempts` counter increments on the user record
+3. After 5 consecutive failures, `LockoutEnd` is set to 15 minutes in the future
+4. While locked, login attempts are rejected immediately with a message indicating remaining lockout time
+5. On successful login, `FailedLoginAttempts` resets to 0 and `LockoutEnd` is cleared
+
+### Admin Unlock
+
+Administrators can unlock any account via:
+
+```
+POST /api/auth/unlock/{userId}
+Authorization: Bearer <admin-token>
+```
+
+Requires the `CanManageUsers` policy (Admin role only). Resets both `FailedLoginAttempts` and `LockoutEnd`.
+
+### Security Properties
+
+- Lockout state is stored on the `User` entity (`FailedLoginAttempts`, `LockoutEnd`)
+- The lockout check occurs before password verification (no wasted computation)
+- For LDAP, lockout is checked before the LDAP bind attempt (protects the directory from excessive binds)
+- Failed attempts are logged via the audit system
+- The error message does not reveal whether the email exists (same "Invalid email or password" message)
+
+## Webhook Security
+
+Webhook endpoints are anonymous by design (external systems need to trigger workflows without Vyshyvanka credentials). Security is enforced per-workflow through optional controls configured in the webhook trigger node's `Configuration` JSON.
+
+### Request Body Size Limit
+
+All webhook requests are limited to **1 MB** via `[RequestSizeLimit(1_048_576)]`. Requests exceeding this limit receive HTTP 413.
+
+### HMAC-SHA256 Signature Verification
+
+When a webhook trigger node has a `secret` property configured, callers must include a signature header:
+
+```
+X-Webhook-Signature: sha256=<hex-encoded-hmac-sha256>
+```
+
+The signature is computed as `HMAC-SHA256(secret, raw-request-body)`. The server uses constant-time comparison to prevent timing attacks.
+
+**Webhook trigger node configuration example:**
+```json
+{
+  "path": "deploy",
+  "secret": "whsec_a1b2c3d4e5f6..."
+}
+```
+
+**Error responses:**
+- Missing header → HTTP 401, code `WEBHOOK_SIGNATURE_MISSING`
+- Invalid signature → HTTP 401, code `WEBHOOK_SIGNATURE_INVALID`
+
+### IP Allowlisting
+
+When a webhook trigger node has an `allowedIps` array configured, only requests from listed IP addresses are accepted.
+
+**Configuration example:**
+```json
+{
+  "path": "deploy",
+  "secret": "whsec_a1b2c3d4e5f6...",
+  "allowedIps": ["203.0.113.10", "198.51.100.0"]
+}
+```
+
+**Error response:** HTTP 403, code `WEBHOOK_IP_DENIED`
+
+### Security Properties
+
+- All controls are optional — workflows without `secret` or `allowedIps` remain open (backward-compatible)
+- Signature verification uses `CryptographicOperations.FixedTimeEquals` to prevent timing side-channels
+- Body is buffered once and reused for both signature verification and payload construction
+- IP check uses the connection's `RemoteIpAddress` (respects reverse proxy headers if configured)
+- Rejected requests are logged at Warning level with the client IP and workflow ID
 
 ## Error Handling
 

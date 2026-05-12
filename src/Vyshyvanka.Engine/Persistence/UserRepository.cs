@@ -63,6 +63,8 @@ public class UserRepository : IUserRepository
         entity.Role = user.Role;
         entity.IsActive = user.IsActive;
         entity.LastLoginAt = user.LastLoginAt;
+        entity.FailedLoginAttempts = user.FailedLoginAttempts;
+        entity.LockoutEnd = user.LockoutEnd;
 
         await _context.SaveChangesAsync(cancellationToken);
         return ToModel(entity);
@@ -128,6 +130,8 @@ public class UserRepository : IUserRepository
         IsActive = entity.IsActive,
         CreatedAt = entity.CreatedAt,
         LastLoginAt = entity.LastLoginAt,
+        FailedLoginAttempts = entity.FailedLoginAttempts,
+        LockoutEnd = entity.LockoutEnd,
         ExternalId = entity.ExternalId,
         AuthenticationProvider = entity.AuthenticationProvider
     };
@@ -142,6 +146,8 @@ public class UserRepository : IUserRepository
         IsActive = model.IsActive,
         CreatedAt = model.CreatedAt,
         LastLoginAt = model.LastLoginAt,
+        FailedLoginAttempts = model.FailedLoginAttempts,
+        LockoutEnd = model.LockoutEnd,
         ExternalId = model.ExternalId,
         AuthenticationProvider = model.AuthenticationProvider
     };

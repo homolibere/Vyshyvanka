@@ -11,6 +11,9 @@ builder.AddServiceDefaults();
 // Add Vyshyvanka services
 builder.Services.AddVyshyvankaServices(builder.Configuration);
 
+// Add rate limiting
+builder.Services.AddVyshyvankaRateLimiting();
+
 // Add API services
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -38,8 +41,8 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
     {
         policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
+            .AllowAnyMethod()
+            .AllowAnyHeader();
     });
 });
 
@@ -72,6 +75,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

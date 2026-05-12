@@ -15,20 +15,64 @@ public class LdapAuthService(
     IUserRepository userRepository,
     IAuditLogService? auditLogService = null) : IAuthService
 {
-    public async Task<AuthResult> LoginAsync(string email, string password, CancellationToken cancellationToken = default)
+    /// <summary>Maximum consecutive failed login attempts before lockout.</summary>
+    private const int MaxFailedAttempts = 5;
+
+    /// <summary>Duration of account lockout after exceeding max failed attempts.</summary>
+    private static readonly TimeSpan LockoutDuration = TimeSpan.FromMinutes(15);
+
+    public async Task<AuthResult> LoginAsync(string email, string password,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(email);
         ArgumentNullException.ThrowIfNull(password);
+
+        // Check lockout state before attempting LDAP bind
+        var existingUser = await userRepository.GetByEmailAsync(email, cancellationToken);
+        if (existingUser is not null)
+        {
+            if (!existingUser.IsActive)
+            {
+                await LogAuthAsync(email, false, "Account is disabled", cancellationToken);
+                return new AuthResult { Success = false, ErrorMessage = "Account is disabled" };
+            }
+
+            if (existingUser.IsLockedOut)
+            {
+                var remainingSeconds = (int)(existingUser.LockoutEnd!.Value - DateTime.UtcNow).TotalSeconds;
+                await LogAuthAsync(email, false, "Account is locked", cancellationToken);
+                return new AuthResult
+                {
+                    Success = false,
+                    ErrorMessage =
+                        $"Account is locked due to too many failed login attempts. Try again in {remainingSeconds} seconds."
+                };
+            }
+        }
 
         var ldapResult = await ldapService.AuthenticateAsync(email, password, cancellationToken);
 
         if (!ldapResult.Success || ldapResult.User is null)
         {
+            // Record failed attempt if user exists locally
+            if (existingUser is not null)
+            {
+                await RecordFailedLoginAttemptAsync(existingUser, cancellationToken);
+            }
+
             await LogAuthAsync(email, false, ldapResult.ErrorMessage, cancellationToken);
             return new AuthResult { Success = false, ErrorMessage = ldapResult.ErrorMessage ?? "Invalid credentials" };
         }
 
         var user = ldapResult.User;
+
+        // Reset lockout state on successful login
+        if (user.FailedLoginAttempts > 0)
+        {
+            user = user with { FailedLoginAttempts = 0, LockoutEnd = null };
+            await userRepository.UpdateAsync(user, cancellationToken);
+        }
+
         var accessToken = jwtTokenService.GenerateAccessToken(user);
         var refreshToken = jwtTokenService.GenerateRefreshToken();
         var refreshExpiry = DateTime.UtcNow.AddDays(jwtSettings.RefreshTokenExpirationDays);
@@ -51,7 +95,8 @@ public class LdapAuthService(
         };
     }
 
-    public Task<AuthResult> RegisterAsync(string email, string password, string? displayName = null, CancellationToken cancellationToken = default)
+    public Task<AuthResult> RegisterAsync(string email, string password, string? displayName = null,
+        CancellationToken cancellationToken = default)
     {
         // Self-registration is not supported with LDAP — users are provisioned on first login
         return Task.FromResult(new AuthResult
@@ -114,6 +159,26 @@ public class LdapAuthService(
 
     public bool VerifyPassword(string password, string passwordHash) =>
         throw new NotSupportedException("Password verification is not used with LDAP authentication");
+
+    public async Task UnlockAccountAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var user = await userRepository.GetByIdAsync(userId, cancellationToken)
+                   ?? throw new InvalidOperationException($"User {userId} not found");
+
+        var unlockedUser = user with { FailedLoginAttempts = 0, LockoutEnd = null };
+        await userRepository.UpdateAsync(unlockedUser, cancellationToken);
+    }
+
+    private async Task RecordFailedLoginAttemptAsync(User user, CancellationToken cancellationToken)
+    {
+        var attempts = user.FailedLoginAttempts + 1;
+        DateTime? lockoutEnd = attempts >= MaxFailedAttempts
+            ? DateTime.UtcNow.Add(LockoutDuration)
+            : null;
+
+        var updatedUser = user with { FailedLoginAttempts = attempts, LockoutEnd = lockoutEnd };
+        await userRepository.UpdateAsync(updatedUser, cancellationToken);
+    }
 
     private async Task LogAuthAsync(string email, bool success, string? error, CancellationToken ct)
     {

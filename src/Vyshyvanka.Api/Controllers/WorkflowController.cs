@@ -35,6 +35,7 @@ public class WorkflowController : ControllerBase
 
     /// <summary>
     /// Gets all workflows with pagination.
+    /// Non-Admin users only see their own workflows.
     /// </summary>
     [HttpGet]
     [Authorize(Policy = Policies.CanViewWorkflows)]
@@ -45,11 +46,35 @@ public class WorkflowController : ControllerBase
         [FromQuery] string? search = null,
         CancellationToken cancellationToken = default)
     {
+        take = Math.Clamp(take, 1, 100);
         _logger.LogDebug("Getting workflows: skip={Skip}, take={Take}, search={Search}", skip, take, search);
 
-        var workflows = string.IsNullOrWhiteSpace(search)
-            ? await _repository.GetAllAsync(skip, take, cancellationToken)
-            : await _repository.SearchAsync(search, skip, take, cancellationToken);
+        IReadOnlyList<Workflow> workflows;
+
+        if (User.IsInRole(Roles.Admin))
+        {
+            workflows = string.IsNullOrWhiteSpace(search)
+                ? await _repository.GetAllAsync(skip, take, cancellationToken)
+                : await _repository.SearchAsync(search, skip, take, cancellationToken);
+        }
+        else
+        {
+            var userId = _currentUserService.UserId;
+            if (userId is null)
+            {
+                workflows = [];
+            }
+            else if (string.IsNullOrWhiteSpace(search))
+            {
+                workflows = await _repository.GetByCreatorAsync(userId.Value, skip, take, cancellationToken);
+            }
+            else
+            {
+                // Search then filter by owner — pagination is approximate for non-Admin users
+                var allResults = await _repository.SearchAsync(search, skip, take, cancellationToken);
+                workflows = allResults.Where(w => w.CreatedBy == userId.Value).ToList();
+            }
+        }
 
         var response = new PagedResponse<WorkflowResponse>
         {
@@ -218,6 +243,7 @@ public class WorkflowController : ControllerBase
 
     /// <summary>
     /// Gets active workflows.
+    /// Non-Admin users only see their own active workflows.
     /// </summary>
     [HttpGet("active")]
     [Authorize(Policy = Policies.CanViewWorkflows)]
@@ -227,9 +253,23 @@ public class WorkflowController : ControllerBase
         [FromQuery] int take = 50,
         CancellationToken cancellationToken = default)
     {
+        take = Math.Clamp(take, 1, 100);
         _logger.LogDebug("Getting active workflows: skip={Skip}, take={Take}", skip, take);
 
-        var workflows = await _repository.GetActiveAsync(skip, take, cancellationToken);
+        var allActive = await _repository.GetActiveAsync(skip, take, cancellationToken);
+
+        IReadOnlyList<Workflow> workflows;
+        if (User.IsInRole(Roles.Admin))
+        {
+            workflows = allActive;
+        }
+        else
+        {
+            var userId = _currentUserService.UserId;
+            workflows = userId is null
+                ? []
+                : allActive.Where(w => w.CreatedBy == userId.Value).ToList();
+        }
 
         var response = new PagedResponse<WorkflowResponse>
         {

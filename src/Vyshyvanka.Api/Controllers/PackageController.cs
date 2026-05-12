@@ -44,6 +44,7 @@ public class PackageController : ControllerBase
         [FromQuery] bool includePrerelease = false,
         CancellationToken cancellationToken = default)
     {
+        take = Math.Clamp(take, 1, 100);
         _logger.LogDebug("Searching packages: query={Query}, skip={Skip}, take={Take}", query, skip, take);
 
         var options = new PackageSearchOptions

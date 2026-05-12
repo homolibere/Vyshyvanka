@@ -44,6 +44,21 @@ public record AuthenticationSettings
 
     /// <summary>LDAP-specific settings (required when Provider is Ldap).</summary>
     public LdapSettings? Ldap { get; init; }
+
+    /// <summary>
+    /// Whether open user registration is allowed (built-in provider only).
+    /// When false, only admins can create new accounts. Default: false.
+    /// </summary>
+    public bool AllowRegistration { get; init; }
+
+    /// <summary>
+    /// When true, newly registered accounts are created inactive and require admin approval.
+    /// Only applies when <see cref="AllowRegistration"/> is true. Default: false.
+    /// </summary>
+    public bool RequireAdminApproval { get; init; }
+
+    /// <summary>Minimum password length for built-in authentication. Default: 8.</summary>
+    public int MinPasswordLength { get; init; } = 8;
 }
 
 /// <summary>

@@ -1,8 +1,11 @@
+using Vyshyvanka.Api.Authorization;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Core.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using Vyshyvanka.Api.Extensions;
 
 namespace Vyshyvanka.Api.Controllers;
 
@@ -29,7 +32,9 @@ public class AuthController(
         {
             Provider = authSettings.Provider.ToString(),
             Authority = isOidc ? authSettings.Authority : null,
-            ClientId = isOidc ? authSettings.ClientId : null
+            ClientId = isOidc ? authSettings.ClientId : null,
+            AllowRegistration = authSettings.Provider is AuthenticationProvider.BuiltIn &&
+                                authSettings.AllowRegistration
         });
     }
 
@@ -38,6 +43,7 @@ public class AuthController(
     /// </summary>
     [HttpPost("login")]
     [AllowAnonymous]
+    [EnableRateLimiting(RateLimitingExtensions.AuthPolicy)]
     public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
     {
         if (authSettings.Provider is AuthenticationProvider.Keycloak or AuthenticationProvider.Authentik)
@@ -70,6 +76,7 @@ public class AuthController(
     /// </summary>
     [HttpPost("register")]
     [AllowAnonymous]
+    [EnableRateLimiting(RateLimitingExtensions.AuthPolicy)]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request, CancellationToken cancellationToken)
     {
         if (authSettings.Provider is not AuthenticationProvider.BuiltIn)
@@ -78,6 +85,15 @@ public class AuthController(
             {
                 code = "UNSUPPORTED",
                 message = $"Registration is not available when using {authSettings.Provider} authentication"
+            });
+        }
+
+        if (!authSettings.AllowRegistration)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new
+            {
+                code = "REGISTRATION_DISABLED",
+                message = "Open registration is disabled. Contact an administrator to create an account."
             });
         }
 
@@ -95,6 +111,12 @@ public class AuthController(
             return BadRequest(new { error = result.ErrorMessage });
         }
 
+        // If admin approval is required, tokens won't be present
+        if (result.AccessToken is null)
+        {
+            return Ok(new { message = result.ErrorMessage, userId = result.User?.Id });
+        }
+
         return Ok(ToLoginResponse(result));
     }
 
@@ -103,6 +125,7 @@ public class AuthController(
     /// </summary>
     [HttpPost("refresh")]
     [AllowAnonymous]
+    [EnableRateLimiting(RateLimitingExtensions.AuthPolicy)]
     public async Task<IActionResult> Refresh([FromBody] RefreshRequest request, CancellationToken cancellationToken)
     {
         if (authSettings.Provider is AuthenticationProvider.Keycloak or AuthenticationProvider.Authentik)
@@ -143,6 +166,27 @@ public class AuthController(
             Role = result.User.Role.ToString()
         }
     };
+
+    /// <summary>
+    /// Unlock a user account that has been locked due to too many failed login attempts.
+    /// Requires Admin role.
+    /// </summary>
+    [HttpPost("unlock/{userId:guid}")]
+    [Authorize(Policy = Policies.CanManageUsers)]
+    public async Task<IActionResult> UnlockAccount(Guid userId, CancellationToken cancellationToken)
+    {
+        var authService = serviceProvider.GetRequiredService<IAuthService>();
+
+        try
+        {
+            await authService.UnlockAccountAsync(userId, cancellationToken);
+            return Ok(new { message = "Account unlocked successfully" });
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
+        {
+            return NotFound(new { code = "USER_NOT_FOUND", message = ex.Message });
+        }
+    }
 }
 
 public record AuthConfigResponse
@@ -150,6 +194,7 @@ public record AuthConfigResponse
     public string Provider { get; init; } = string.Empty;
     public string? Authority { get; init; }
     public string? ClientId { get; init; }
+    public bool AllowRegistration { get; init; }
 }
 
 public record LoginRequest
