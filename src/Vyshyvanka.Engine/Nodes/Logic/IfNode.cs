@@ -7,6 +7,16 @@ namespace Vyshyvanka.Engine.Nodes.Logic;
 
 /// <summary>
 /// A logic node that evaluates a condition and routes data to different outputs.
+/// <para>
+/// <b>Execution flow:</b> Reads a value from the input at the configured field path,
+/// compares it against a target value using the specified operator (equals, contains,
+/// greaterThan, isNull, etc.), then routes the full input data to either the <c>true</c>
+/// or <c>false</c> output port based on the result.
+/// </para>
+/// <para>
+/// <b>Ports:</b> <c>true</c> — condition matched; <c>false</c> — condition did not match.
+/// Downstream nodes on inactive branches are skipped entirely.
+/// </para>
 /// </summary>
 [NodeDefinition(
     Name = "If",

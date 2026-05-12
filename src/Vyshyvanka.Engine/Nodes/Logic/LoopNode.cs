@@ -7,6 +7,16 @@ namespace Vyshyvanka.Engine.Nodes.Logic;
 
 /// <summary>
 /// A logic node that iterates over an array and executes downstream nodes for each item.
+/// <para>
+/// <b>Execution flow:</b> Reads an array from the input (optionally at a nested field path),
+/// then executes all nodes connected to the <c>item</c> port once per array element.
+/// Each iteration receives the current item, its index, and metadata (isFirst, isLast, totalCount).
+/// After all iterations complete, the <c>done</c> port fires with the collected outputs
+/// from terminal nodes in the subgraph as an <c>items</c> array, along with totalCount and processedCount.
+/// </para>
+/// <para>
+/// <b>Ports:</b> <c>item</c> — emits per iteration; <c>done</c> — emits once after all iterations with aggregated results.
+/// </para>
 /// </summary>
 [NodeDefinition(
     Name = "Loop",

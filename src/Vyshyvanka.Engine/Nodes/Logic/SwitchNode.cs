@@ -7,6 +7,15 @@ namespace Vyshyvanka.Engine.Nodes.Logic;
 
 /// <summary>
 /// A logic node that routes data to different outputs based on matching cases.
+/// <para>
+/// <b>Execution flow:</b> Reads a value from the input at the configured field path,
+/// then compares it against each case definition in order. The first matching case
+/// determines the output port. If no case matches, data routes to the <c>default</c> port.
+/// </para>
+/// <para>
+/// <b>Ports:</b> Dynamic — one per case value, plus <c>default</c>.
+/// Downstream nodes on inactive branches are skipped entirely.
+/// </para>
 /// </summary>
 [NodeDefinition(
     Name = "Switch",

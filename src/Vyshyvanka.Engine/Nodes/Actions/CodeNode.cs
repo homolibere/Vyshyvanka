@@ -12,10 +12,24 @@ namespace Vyshyvanka.Engine.Nodes.Actions;
 
 /// <summary>
 /// An action node that executes user-provided code to transform data.
-/// Supports two languages:
-/// - JavaScript (Jint) — general-purpose scripting in a secure sandbox
-/// - JSONata — a declarative expression language purpose-built for JSON transformation
-/// Both runtimes are inherently safe with no access to the host system.
+/// <para>
+/// <b>Languages:</b>
+/// <list type="bullet">
+///   <item><c>JavaScript</c> (Jint) — general-purpose scripting in a secure sandbox.
+///     Globals: <c>input</c>, <c>executionId</c>, <c>workflowId</c>, <c>log()</c>, <c>getItems()</c>, <c>toJson()</c>.
+///     In <c>runForEachItem</c> mode: <c>currentItem</c> and <c>itemIndex</c> are also available.</item>
+///   <item><c>JSONata</c> — a declarative expression language for JSON transformation.
+///     The full input data is the root context (<c>$</c>).</item>
+/// </list>
+/// </para>
+/// <para>
+/// <b>Modes (both languages):</b>
+/// <list type="bullet">
+///   <item><c>runOnce</c> — executes the code/expression once against the full input.</item>
+///   <item><c>runForEachItem</c> — if input is an array, executes once per element and collects results.</item>
+/// </list>
+/// </para>
+/// <para>Both runtimes are inherently safe with no access to the host system.</para>
 /// </summary>
 [NodeDefinition(
     Name = "Code",

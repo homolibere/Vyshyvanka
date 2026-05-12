@@ -7,6 +7,16 @@ namespace Vyshyvanka.Engine.Nodes.Logic;
 
 /// <summary>
 /// A logic node that merges data from multiple input branches.
+/// <para>
+/// <b>Execution flow:</b> Receives data from multiple input ports and combines them
+/// according to the configured mode:
+/// <list type="bullet">
+///   <item><c>passThrough</c> — forwards each input as-is (no waiting).</item>
+///   <item><c>waitAll</c> — waits for all expected inputs before emitting a combined result.</item>
+///   <item><c>combine</c> — accumulates inputs and emits the combined result on each arrival.</item>
+/// </list>
+/// Combine modes: <c>array</c> (collect into array), <c>object</c> (merge properties), <c>append</c> (flatten arrays).
+/// </para>
 /// </summary>
 [NodeDefinition(
     Name = "Merge",
@@ -15,8 +25,8 @@ namespace Vyshyvanka.Engine.Nodes.Logic;
 [NodeInput("input1", DisplayName = "Input 1")]
 [NodeInput("input2", DisplayName = "Input 2")]
 [NodeOutput("output", DisplayName = "Merged Output")]
-[ConfigurationProperty("mode", "string", Description = "Merge mode: 'waitAll', 'passThrough', or 'combine'")]
-[ConfigurationProperty("combineMode", "string", Description = "How to combine: 'array', 'object', or 'append'")]
+[ConfigurationProperty("mode", "string", Description = "Merge mode", Options = "passThrough,waitAll,combine")]
+[ConfigurationProperty("combineMode", "string", Description = "How to combine inputs", Options = "array,object,append")]
 public class MergeNode : BaseLogicNode
 {
     private string _id = Guid.NewGuid().ToString();
