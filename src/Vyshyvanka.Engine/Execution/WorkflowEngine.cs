@@ -186,13 +186,18 @@ public class WorkflowEngine : IWorkflowEngine
 
             var subgraphLevels = BuildSubgraphExecutionLevels(workflow, itemSubgraph, loopNodeId);
 
+            // Find terminal nodes in the subgraph (nodes with no outgoing connections within the subgraph)
+            var terminalNodeIds = GetTerminalNodesInSubgraph(workflow, itemSubgraph);
+
+            var collectedOutputs = new List<JsonElement>();
+
             var loopFailure = await ExecuteLoopSubgraphAsync(
                 workflow, loopNodeId, loopItems, subgraphLevels, context,
-                nodeResults, maxParallelism, startTime, cancellationToken);
+                nodeResults, maxParallelism, startTime, collectedOutputs, terminalNodeIds, cancellationToken);
             if (loopFailure is not null)
                 return loopFailure;
 
-            SetLoopDoneOutput(context, loopNodeId, loopItems.Count);
+            SetLoopDoneOutput(context, loopNodeId, loopItems.Count, collectedOutputs);
             MarkSubgraphAsProcessed(context, itemSubgraph);
         }
 
@@ -229,6 +234,8 @@ public class WorkflowEngine : IWorkflowEngine
         ConcurrentBag<NodeExecutionResult> nodeResults,
         int maxParallelism,
         DateTime startTime,
+        List<JsonElement> collectedOutputs,
+        HashSet<string> terminalNodeIds,
         CancellationToken cancellationToken)
     {
         for (int i = 0; i < items.Count; i++)
@@ -246,6 +253,16 @@ public class WorkflowEngine : IWorkflowEngine
                     workflow, subResults, context.ExecutionId, nodeResults, startTime);
                 if (earlyFailure is not null)
                     return earlyFailure;
+            }
+
+            // Collect outputs from terminal nodes after each iteration
+            foreach (var terminalId in terminalNodeIds)
+            {
+                var output = context.NodeOutputs.Get(terminalId);
+                if (output.HasValue)
+                {
+                    collectedOutputs.Add(output.Value);
+                }
             }
         }
 
@@ -274,10 +291,12 @@ public class WorkflowEngine : IWorkflowEngine
     /// <summary>
     /// Sets the "done" port output after all loop iterations complete.
     /// </summary>
-    private static void SetLoopDoneOutput(IExecutionContext context, string loopNodeId, int totalCount)
+    private static void SetLoopDoneOutput(IExecutionContext context, string loopNodeId, int totalCount,
+        List<JsonElement> collectedOutputs)
     {
         context.NodeOutputs.Set(loopNodeId, "done", JsonSerializer.SerializeToElement(new
         {
+            items = collectedOutputs,
             totalCount,
             processedCount = totalCount,
             isComplete = true
@@ -869,6 +888,32 @@ public class WorkflowEngine : IWorkflowEngine
         }
 
         return reachable;
+    }
+
+    /// <summary>
+    /// Finds terminal nodes in a subgraph — nodes that have no outgoing connections to other subgraph nodes.
+    /// These are the "leaf" nodes whose outputs should be collected by the loop.
+    /// </summary>
+    private static HashSet<string> GetTerminalNodesInSubgraph(Workflow workflow, HashSet<string> subgraph)
+    {
+        var nonTerminal = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var conn in workflow.Connections)
+        {
+            if (subgraph.Contains(conn.SourceNodeId) && subgraph.Contains(conn.TargetNodeId))
+            {
+                nonTerminal.Add(conn.SourceNodeId);
+            }
+        }
+
+        var terminals = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var nodeId in subgraph)
+        {
+            if (!nonTerminal.Contains(nodeId))
+                terminals.Add(nodeId);
+        }
+
+        return terminals;
     }
 
     /// <summary>

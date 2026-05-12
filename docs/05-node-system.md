@@ -99,7 +99,7 @@ Logic nodes control the flow of execution through the workflow.
 |------|----------------|------------|-------------|
 | If | `if-condition` | Evaluates a condition and routes data to the `true` or `false` output port. | `true`, `false` |
 | Switch | `switch` | Evaluates an expression and routes to one of multiple named output ports based on matching cases. | Dynamic (one per case + `default`) |
-| Loop | `loop` | Iterates over an array, executing downstream nodes for each element. | `item`, `completed` |
+| Loop | `loop` | Iterates over an array, executing downstream nodes for each element. The `done` port fires after all iterations and carries collected outputs from terminal subgraph nodes in an `items` array. | `item`, `done` |
 | Merge | `merge` | Waits for all incoming connections and merges their data into a single output. | `output` |
 
 ## Node Definition and Registration
