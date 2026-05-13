@@ -49,11 +49,14 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Apply pending database migrations
+// Apply pending database migrations (skip for non-relational providers like InMemory)
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<Vyshyvanka.Engine.Persistence.VyshyvankaDbContext>();
-    await dbContext.Database.MigrateAsync();
+    if (dbContext.Database.IsRelational())
+    {
+        await dbContext.Database.MigrateAsync();
+    }
 }
 
 // Initialize NuGet package manager on startup
