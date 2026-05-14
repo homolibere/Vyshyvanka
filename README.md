@@ -6,6 +6,9 @@
   A workflow automation platform built on .NET 10. Users create automated workflows through a visual node-based designer, connect nodes to define data flow, and execute workflows triggered by webhooks, schedules, or manual actions.
 </p>
 
+> [!WARNING]
+> This project is under heavy development and is not suitable for production use. APIs, data formats, and features may change without notice.
+
 ## Why "Vyshyvanka"?
 
 **Vyshyvanka** (Вишиванка) is a traditional Ukrainian embroidered shirt. Each pattern is crafted by weaving threads through fabric — every stitch deliberate, every connection meaningful. The same idea drives this project: workflows are patterns woven from nodes and connections, each one carrying data from one point to the next. The name reflects both the craft of building something intricate from simple elements and the Ukrainian roots of the team behind it.
