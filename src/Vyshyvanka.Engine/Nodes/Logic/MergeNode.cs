@@ -63,11 +63,13 @@ public class MergeNode : BaseLogicNode
     {
         lock (_lock)
         {
-            _pendingInputs.Add(input.Data);
+            // The workflow engine's GatherInputData already merges all incoming
+            // connection outputs into a single object with keys like
+            // "{sourceNodeId}_{sourcePort}". Decompose that merged object into
+            // individual inputs so waitAll can count them correctly.
+            var individualInputs = DecomposeEngineInput(input.Data);
+            _pendingInputs.AddRange(individualInputs);
 
-            // For waitAll, we need to wait for all inputs
-            // This is a simplified implementation - in production, 
-            // the workflow engine would handle multi-input coordination
             var expectedInputs = GetConfigValue<int?>(input, "expectedInputs") ?? 2;
 
             if (_pendingInputs.Count >= expectedInputs)
@@ -84,6 +86,28 @@ public class MergeNode : BaseLogicNode
             Data = JsonSerializer.SerializeToElement(new { status = "waiting", received = _pendingInputs.Count }),
             Success = true
         });
+    }
+
+    /// <summary>
+    /// When the workflow engine gathers input for a multi-input node, it produces
+    /// a single object whose keys are "{sourceNodeId}_{sourcePort}". This method
+    /// splits that object into individual JsonElement values so that waitAll can
+    /// count each source as a separate input. If the input is not a multi-source
+    /// merged object, it is returned as a single-element list.
+    /// </summary>
+    private static List<JsonElement> DecomposeEngineInput(JsonElement data)
+    {
+        if (data.ValueKind == JsonValueKind.Object)
+        {
+            var properties = data.EnumerateObject().ToList();
+            if (properties.Count > 1)
+            {
+                // Multiple properties indicate the engine merged multiple sources
+                return properties.Select(p => p.Value.Clone()).ToList();
+            }
+        }
+
+        return [data];
     }
 
     private Task<NodeOutput> ExecuteCombineAsync(NodeInput input, string combineMode)
