@@ -3,6 +3,8 @@
     overflow: hidden;
     cursor: default;
     background: var(--bg-input);
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 .canvas-container:active {

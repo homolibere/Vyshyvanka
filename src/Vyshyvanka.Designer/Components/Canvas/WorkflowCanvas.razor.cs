@@ -162,7 +162,14 @@ public partial class WorkflowCanvas : IAsyncDisposable
 
     private void OnCanvasWheel(WheelEventArgs e)
     {
-        var delta = e.DeltaY > 0 ? -0.1 : 0.1;
+        // Use a smaller factor for smoother zooming; scale by actual delta magnitude
+        // Typical deltaY is ~100 for a single wheel tick, trackpads produce smaller values
+        var zoomSensitivity = 0.001;
+        var delta = -e.DeltaY * zoomSensitivity;
+
+        // Clamp individual zoom step to avoid jumps from high-velocity scroll
+        delta = Math.Clamp(delta, -0.05, 0.05);
+
         StateService.Zoom(StateService.CanvasState.Zoom + delta);
     }
 
