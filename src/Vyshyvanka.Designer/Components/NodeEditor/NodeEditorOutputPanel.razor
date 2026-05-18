@@ -28,7 +28,7 @@
     <div class="panel-content">
         @if (HasOutputData)
         {
-            <pre class="json-viewer">@FormattedJson</pre>
+            <CollapsibleJsonViewer Data="CurrentPortData"/>
         }
         else
         {

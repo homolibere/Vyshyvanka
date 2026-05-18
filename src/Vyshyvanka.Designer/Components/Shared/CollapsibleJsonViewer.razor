@@ -1,0 +1,126 @@
+@using System.Text.Json
+@namespace Vyshyvanka.Designer.Components
+
+<div class="collapsible-json-viewer">
+    @if (Data.HasValue && Data.Value.ValueKind != JsonValueKind.Undefined)
+    {
+        <div class="json-toolbar">
+            <button class="btn-toggle-all" @onclick="ExpandAll" title="Expand all">⊞</button>
+            <button class="btn-toggle-all" @onclick="CollapseAll" title="Collapse all">⊟</button>
+        </div>
+        <div class="json-tree">
+            @RenderElement(Data.Value, "", 0)
+        </div>
+    }
+</div>
+
+@code
+{
+    private RenderFragment RenderElement(JsonElement element, string path, int indent) => __builder =>
+    {
+        switch (element.ValueKind)
+        {
+            case JsonValueKind.Object:
+                RenderObject(element, path, indent)(__builder);
+                break;
+            case JsonValueKind.Array:
+                RenderArray(element, path, indent)(__builder);
+                break;
+            case JsonValueKind.String:
+                <span class="json-string">"@element.GetString()"</span>
+                break;
+            case JsonValueKind.Number:
+                <span class="json-number">@element.GetRawText()</span>
+                break;
+            case JsonValueKind.True:
+            case JsonValueKind.False:
+                <span class="json-boolean">@element.GetRawText()</span>
+                break;
+            case JsonValueKind.Null:
+                <span class="json-null">null</span>
+                break;
+        }
+    };
+
+    private RenderFragment RenderObject(JsonElement element, string path, int indent) => __builder =>
+    {
+        var properties = element.EnumerateObject().ToList();
+        var isCollapsed = IsCollapsed(path);
+
+        if (properties.Count == 0)
+        {
+            <span class="json-brace">{}</span>
+            return;
+        }
+
+        <span class="json-toggle @(isCollapsed ? "collapsed" : "expanded")" @onclick="() => Toggle(path)">@(isCollapsed ? "▶" : "▼")</span>
+        <span class="json-brace">{</span>
+
+        if (isCollapsed)
+        {
+            <span class="json-collapsed-preview" @onclick="() => Toggle(path)">@properties.Count @(properties.Count == 1 ? "property" : "properties")</span>
+            <span class="json-brace">}</span>
+        }
+        else
+        {
+            <div class="json-indent">
+                @for (var i = 0; i < properties.Count; i++)
+                {
+                    var prop = properties[i];
+                    var childPath = string.IsNullOrEmpty(path) ? prop.Name : $"{path}.{prop.Name}";
+                    var isLast = i == properties.Count - 1;
+
+                    <div class="json-line">
+                        <span class="json-key">"@prop.Name"</span><span class="json-colon">: </span>@RenderElement(prop.Value, childPath, indent + 1)
+                        @if (!isLast)
+                        {
+                            <span class="json-comma">,</span>
+                        }
+                    </div>
+                }
+            </div>
+            <span class="json-brace">}</span>
+        }
+    };
+
+    private RenderFragment RenderArray(JsonElement element, string path, int indent) => __builder =>
+    {
+        var items = element.EnumerateArray().ToList();
+        var isCollapsed = IsCollapsed(path);
+
+        if (items.Count == 0)
+        {
+            <span class="json-bracket">[]</span>
+            return;
+        }
+
+        <span class="json-toggle @(isCollapsed ? "collapsed" : "expanded")" @onclick="() => Toggle(path)">@(isCollapsed ? "▶" : "▼")</span>
+        <span class="json-bracket">[</span>
+
+        if (isCollapsed)
+        {
+            <span class="json-collapsed-preview" @onclick="() => Toggle(path)">@items.Count @(items.Count == 1 ? "item" : "items")</span>
+            <span class="json-bracket">]</span>
+        }
+        else
+        {
+            <div class="json-indent">
+                @for (var i = 0; i < items.Count; i++)
+                {
+                    var item = items[i];
+                    var childPath = $"{path}[{i}]";
+                    var isLast = i == items.Count - 1;
+
+                    <div class="json-line">
+                        @RenderElement(item, childPath, indent + 1)
+                        @if (!isLast)
+                        {
+                            <span class="json-comma">,</span>
+                        }
+                    </div>
+                }
+            </div>
+            <span class="json-bracket">]</span>
+        }
+    };
+}
