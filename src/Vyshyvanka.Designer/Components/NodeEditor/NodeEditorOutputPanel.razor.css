@@ -23,6 +23,30 @@
     white-space: nowrap;
 }
 
+.btn-copy {
+    margin-left: auto;
+    padding: 4px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    line-height: 1;
+}
+
+.btn-copy:hover {
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    border-color: var(--text-secondary);
+}
+
+.btn-copy.copied {
+    color: var(--success, #4caf50);
+    border-color: var(--success, #4caf50);
+}
+
 .port-tabs {
     display: flex;
     gap: 4px;

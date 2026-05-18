@@ -15,6 +15,14 @@
                 }
             </div>
         }
+        @if (HasOutputData)
+        {
+            <button class="btn-copy @(_copied ? "copied" : "")"
+                    @onclick="CopyToClipboardAsync"
+                    title="Copy to clipboard">
+                @(_copied ? "✓" : "📋")
+            </button>
+        }
     </div>
 
     <div class="panel-content">

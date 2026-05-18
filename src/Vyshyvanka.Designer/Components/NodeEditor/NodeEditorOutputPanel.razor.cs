@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Vyshyvanka.Core.Interfaces;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 
 namespace Vyshyvanka.Designer.Components;
 
@@ -11,6 +12,10 @@ namespace Vyshyvanka.Designer.Components;
 public partial class NodeEditorOutputPanel : ComponentBase
 {
     private static readonly JsonSerializerOptions IndentedOptions = new() { WriteIndented = true };
+
+    [Inject] private IJSRuntime Js { get; set; } = default!;
+
+    private bool _copied;
 
     /// <summary>
     /// Output data from the last execution. Null if no execution data exists.
@@ -115,6 +120,23 @@ public partial class NodeEditorOutputPanel : ComponentBase
             {
                 return CurrentPortData!.Value.GetRawText();
             }
+        }
+    }
+
+    private async Task CopyToClipboardAsync()
+    {
+        try
+        {
+            await Js.InvokeVoidAsync("navigator.clipboard.writeText", FormattedJson);
+            _copied = true;
+            StateHasChanged();
+            await Task.Delay(2000);
+            _copied = false;
+            StateHasChanged();
+        }
+        catch
+        {
+            // Clipboard API may not be available in all contexts
         }
     }
 }
