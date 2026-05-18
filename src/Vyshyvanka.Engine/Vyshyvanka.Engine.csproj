@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Vyshyvanka.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Jint" />
     <PackageReference Include="Jsonata.Net.Native" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
