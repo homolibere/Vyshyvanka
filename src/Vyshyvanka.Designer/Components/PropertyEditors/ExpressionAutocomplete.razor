@@ -1,0 +1,32 @@
+@namespace Vyshyvanka.Designer.Components
+
+@if (IsVisible && Suggestions.Count > 0)
+{
+    <div class="expression-autocomplete" @onmousedown:preventDefault>
+        <div class="autocomplete-list" role="listbox">
+            @for (var i = 0; i < Suggestions.Count; i++)
+            {
+                var suggestion = Suggestions[i];
+                var index = i;
+                <div class="autocomplete-item @(index == SelectedIndex ? "selected" : "")"
+                     role="option"
+                     aria-selected="@(index == SelectedIndex)"
+                     @onclick="() => SelectSuggestion(suggestion)"
+                     @onmouseover="() => SelectedIndex = index">
+                    <span class="suggestion-icon">@GetIcon(suggestion.Kind)</span>
+                    <div class="suggestion-content">
+                        <span class="suggestion-label">@suggestion.Label</span>
+                        @if (!string.IsNullOrEmpty(suggestion.Description))
+                        {
+                            <span class="suggestion-description">@suggestion.Description</span>
+                        }
+                    </div>
+                    @if (!string.IsNullOrEmpty(suggestion.Detail))
+                    {
+                        <span class="suggestion-detail">@suggestion.Detail</span>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+}

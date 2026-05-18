@@ -68,6 +68,12 @@ public partial class NodeEditorConfigPanel : ComponentBase
     [Parameter]
     public string? InitialRawJson { get; set; }
 
+    /// <summary>
+    /// The ID of the node being edited. Passed to property editors for expression autocomplete.
+    /// </summary>
+    [Parameter]
+    public string? CurrentNodeId { get; set; }
+
     private string _rawJson = "{}";
     private string? _jsonError;
 
@@ -202,6 +208,7 @@ public partial class NodeEditorConfigPanel : ComponentBase
             {
                 values[prop.Name] = null;
             }
+
             return true;
         }
 

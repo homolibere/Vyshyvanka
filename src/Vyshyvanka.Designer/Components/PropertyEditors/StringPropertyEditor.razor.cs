@@ -1,29 +1,43 @@
 using Vyshyvanka.Designer.Models;
+using Vyshyvanka.Designer.Services;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using System.Text.RegularExpressions;
 
 namespace Vyshyvanka.Designer.Components;
 
 /// <summary>
 /// Property editor for string type configuration properties.
-/// Supports expression syntax detection and visual indication.
+/// Supports expression syntax detection, visual indication, and autocomplete
+/// for {{ }} expressions with node references, variables, and functions.
 /// </summary>
 public partial class StringPropertyEditor : ComponentBase
 {
-    private static readonly Regex ExpressionPattern = 
+    private static readonly Regex ExpressionPattern =
         new(@"\{\{.*?\}\}", RegexOptions.Compiled);
 
-    [Parameter, EditorRequired]
-    public ConfigurationProperty Property { get; set; } = null!;
+    [Parameter, EditorRequired] public ConfigurationProperty Property { get; set; } = null!;
 
-    [Parameter]
-    public object? Value { get; set; }
+    [Parameter] public object? Value { get; set; }
 
-    [Parameter]
-    public EventCallback<object?> ValueChanged { get; set; }
+    [Parameter] public EventCallback<object?> ValueChanged { get; set; }
 
+    [Parameter] public bool ShowValidationError { get; set; }
+
+    /// <summary>
+    /// The ID of the node currently being edited. Used to exclude self from autocomplete suggestions.
+    /// </summary>
     [Parameter]
-    public bool ShowValidationError { get; set; }
+    public string? CurrentNodeId { get; set; }
+
+    [Inject] private ExpressionAutocompleteService AutocompleteService { get; set; } = null!;
+    [Inject] private WorkflowStateService WorkflowState { get; set; } = null!;
+
+    private ElementReference _inputRef;
+    private ExpressionAutocomplete? _autocomplete;
+    private bool _showAutocomplete;
+    private List<ExpressionSuggestion> _suggestions = [];
+    private string? _currentExpressionFragment;
 
     private string CurrentValue => Value?.ToString() ?? string.Empty;
 
@@ -32,8 +46,6 @@ public partial class StringPropertyEditor : ComponentBase
     /// <summary>
     /// Checks if the given value contains expression syntax ({{ ... }}).
     /// </summary>
-    /// <param name="value">The string value to check.</param>
-    /// <returns>True if the value contains expression syntax, false otherwise.</returns>
     public static bool ContainsExpression(string? value)
     {
         return !string.IsNullOrEmpty(value) && ExpressionPattern.IsMatch(value);
@@ -48,13 +60,107 @@ public partial class StringPropertyEditor : ComponentBase
 
     private async Task OnInput(ChangeEventArgs e)
     {
-        var newValue = e.Value?.ToString();
+        var newValue = e.Value?.ToString() ?? "";
         await ValueChanged.InvokeAsync(newValue);
+
+        // Check if we're inside an open expression {{ ... (no closing }})
+        UpdateAutocomplete(newValue);
     }
 
-    private async Task OnBlur()
+    private void OnBlur()
     {
-        // Trigger validation on blur by re-emitting the current value
-        await ValueChanged.InvokeAsync(Value);
+        // Delay hiding to allow click on suggestion
+        _ = HideAutocompleteDelayed();
+    }
+
+    private async Task HideAutocompleteDelayed()
+    {
+        await Task.Delay(200);
+        _showAutocomplete = false;
+        StateHasChanged();
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        if (!_showAutocomplete || _autocomplete is null) return;
+
+        switch (e.Key)
+        {
+            case "ArrowDown":
+                _autocomplete.MoveDown();
+                break;
+            case "ArrowUp":
+                _autocomplete.MoveUp();
+                break;
+            case "Enter" or "Tab":
+                await _autocomplete.ConfirmSelection();
+                break;
+            case "Escape":
+                _showAutocomplete = false;
+                break;
+        }
+    }
+
+    private void UpdateAutocomplete(string value)
+    {
+        // Find the last unclosed {{ in the string
+        var lastOpen = value.LastIndexOf("{{", StringComparison.Ordinal);
+        if (lastOpen < 0)
+        {
+            _showAutocomplete = false;
+            _suggestions = [];
+            return;
+        }
+
+        // Check if this {{ has a matching }} after it
+        var afterOpen = value[(lastOpen + 2)..];
+        if (afterOpen.Contains("}}", StringComparison.Ordinal))
+        {
+            // The last {{ is already closed — no autocomplete needed
+            _showAutocomplete = false;
+            _suggestions = [];
+            return;
+        }
+
+        // We're inside an open expression — extract the fragment after {{
+        _currentExpressionFragment = afterOpen.TrimStart();
+        var nodeId = CurrentNodeId ?? WorkflowState.SelectedNodeId;
+        _suggestions = AutocompleteService.GetSuggestions(_currentExpressionFragment, nodeId);
+        _showAutocomplete = _suggestions.Count > 0;
+        _autocomplete?.ResetSelection();
+    }
+
+    private async Task OnSuggestionSelected(ExpressionSuggestion suggestion)
+    {
+        var currentText = CurrentValue;
+
+        // Find the last unclosed {{ to know where to insert
+        var lastOpen = currentText.LastIndexOf("{{", StringComparison.Ordinal);
+        if (lastOpen < 0)
+        {
+            _showAutocomplete = false;
+            return;
+        }
+
+        var beforeExpression = currentText[..lastOpen];
+        var insertText = suggestion.InsertText;
+
+        // If the suggestion doesn't end with a dot or open paren, close the expression
+        var needsClosing = !insertText.EndsWith('.') && !insertText.EndsWith('(');
+        var newValue = needsClosing
+            ? $"{beforeExpression}{{{{ {insertText} }}}}"
+            : $"{beforeExpression}{{{{ {insertText}";
+
+        await ValueChanged.InvokeAsync(newValue);
+
+        // If suggestion ends with dot, keep autocomplete open for next level
+        if (insertText.EndsWith('.'))
+        {
+            UpdateAutocomplete(newValue);
+        }
+        else
+        {
+            _showAutocomplete = false;
+        }
     }
 }

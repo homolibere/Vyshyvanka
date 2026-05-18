@@ -25,6 +25,10 @@
     cursor: help;
 }
 
+.input-wrapper {
+    position: relative;
+}
+
 .property-input {
     width: 100%;
     padding: 8px 12px;

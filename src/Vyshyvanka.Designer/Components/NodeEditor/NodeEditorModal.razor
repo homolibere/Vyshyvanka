@@ -70,7 +70,8 @@
                                            IsJsonModeChanged="@HandleJsonModeChanged"
                                            ShowValidationErrors="@_showValidationErrors"
                                            HasSchema="@HasSchema"
-                                           InitialRawJson="@_initialRawJson"/>
+                                           InitialRawJson="@_initialRawJson"
+                                           CurrentNodeId="@NodeId"/>
 
                     <NodeEditorOutputPanel OutputData="@CurrentOutputData"
                                            Ports="@_definition?.Outputs"/>

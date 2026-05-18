@@ -42,6 +42,12 @@ public partial class PropertyEditor : ComponentBase
     public Dictionary<string, object?>? SiblingValues { get; set; }
 
     /// <summary>
+    /// The ID of the node being edited. Passed to string editors for expression autocomplete.
+    /// </summary>
+    [Parameter]
+    public string? CurrentNodeId { get; set; }
+
+    /// <summary>
     /// Determines the editor type to render based on property type and options.
     /// </summary>
     internal EditorType GetEditorType()

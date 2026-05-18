@@ -1,12 +1,21 @@
 using Bunit;
 using Bunit.TestDoubles;
+using Microsoft.Extensions.DependencyInjection;
 using Vyshyvanka.Designer.Components;
 using Vyshyvanka.Designer.Models;
+using Vyshyvanka.Designer.Services;
 
 namespace Vyshyvanka.Tests.Unit.Components;
 
 public class StringPropertyEditorTests : BunitContext
 {
+    public StringPropertyEditorTests()
+    {
+        var workflowState = new WorkflowStateService();
+        Services.AddSingleton(workflowState);
+        Services.AddSingleton(new ExpressionAutocompleteService(workflowState));
+    }
+
     private static ConfigurationProperty CreateProperty(
         string name = "url",
         string displayName = "URL",

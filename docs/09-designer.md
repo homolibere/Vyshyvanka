@@ -46,6 +46,7 @@ flowchart TD
         BooleanEditor["BooleanPropertyEditor"]
         JsonEditor["JsonPropertyEditor"]
         SelectEditor["SelectPropertyEditor"]
+        ExprAutocomplete["ExpressionAutocomplete<br/>{{ }} suggestions"]
         PropertyEditor["PropertyEditor<br/>Type dispatcher"]
     end
 
@@ -83,6 +84,7 @@ flowchart TD
     PropertyEditor --> BooleanEditor
     PropertyEditor --> JsonEditor
     PropertyEditor --> SelectEditor
+    StringEditor --> ExprAutocomplete
 ```
 
 ## Component Pattern
@@ -106,6 +108,7 @@ flowchart LR
         AuthState["AuthStateService<br/>Token storage, auth state"]
         TokenRefresh["TokenRefreshService<br/>Proactive token renewal"]
         WorkflowState["WorkflowStateService<br/>Canvas state management"]
+        ExprAutocomplete["ExpressionAutocompleteService<br/>{{ }} suggestions"]
         PluginState["PluginStateService<br/>Package state"]
         ToastService["ToastService<br/>Notification management"]
         Storage["BrowserStorageService<br/>localStorage wrapper"]
@@ -121,6 +124,7 @@ flowchart LR
     ApiClient --> AuthHandler
     AuthHandler --> AuthState
     ApiClient --> UrlResolver
+    ExprAutocomplete --> WorkflowState
 ```
 
 ### Key Services
@@ -177,6 +181,20 @@ Parses JSON Schema from node definitions and maps property types to appropriate 
 | `boolean` | BooleanPropertyEditor |
 | `object` | JsonPropertyEditor |
 | `string` with `enum` | SelectPropertyEditor |
+
+#### ExpressionAutocompleteService
+
+Provides contextual autocomplete suggestions when users type `{{ }}` expressions in string property fields. Reads the current workflow state to suggest:
+
+| Context | Suggestions |
+|---------|-------------|
+| Root (empty) | `nodes.`, `input.`, `variables.`, built-in functions |
+| After `nodes.` | All other nodes in the workflow (by name, inserts ID) |
+| After `nodes.<id>.` | Output port definitions + actual output fields from last execution |
+| After `variables.` | `executionId`, `workflowId` |
+| Function names | `toUpper(`, `toLower(`, `now(`, etc. |
+
+The `StringPropertyEditor` integrates the `ExpressionAutocomplete` dropdown component which supports keyboard navigation (↑/↓/Enter/Escape) and mouse selection.
 
 ## Canvas Interaction
 

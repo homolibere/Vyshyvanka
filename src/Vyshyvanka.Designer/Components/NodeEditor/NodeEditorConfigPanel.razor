@@ -60,7 +60,8 @@
                                         Value="@GetValue(property.Name)"
                                         ValueChanged="@(value => OnPropertyChanged(property.Name, value))"
                                         ShowValidationError="@ShouldShowValidationError(property)"
-                                        SiblingValues="@Values"/>
+                                        SiblingValues="@Values"
+                                        CurrentNodeId="@CurrentNodeId"/>
                     }
                 </div>
             }
