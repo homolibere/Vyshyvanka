@@ -190,7 +190,7 @@ sequenceDiagram
     Downstream->>Store: Set(nodeId, portName, result)
 ```
 
-When a downstream node has multiple incoming connections, the engine merges all upstream outputs into a single JSON object keyed by `{sourceNodeId}_{sourcePort}`.
+When a downstream node has multiple incoming connections, the engine merges all upstream outputs into a single JSON object keyed by the target port name (e.g., `input1`, `input2`).
 
 ## Configuration Schema
 

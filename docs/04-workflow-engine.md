@@ -130,7 +130,7 @@ Data flows through connections via the `NodeOutputStore`:
 1. When a node completes, its output is stored keyed by `(nodeId, portName)`
 2. Before executing a downstream node, the engine gathers input data from all incoming connections
 3. If a node has a single incoming connection, the upstream output is passed directly
-4. If a node has multiple incoming connections, outputs are merged into a JSON object keyed by `{sourceNodeId}_{sourcePort}`
+4. If a node has multiple incoming connections, outputs are merged into a JSON object keyed by the target port name (e.g., `input1`, `input2`)
 
 The store supports port-specific outputs for nodes with multiple output ports (e.g., the If node outputs to `true` or `false` ports).
 

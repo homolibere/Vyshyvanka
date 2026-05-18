@@ -64,8 +64,8 @@ public class MergeNode : BaseLogicNode
         lock (_lock)
         {
             // The workflow engine's GatherInputData already merges all incoming
-            // connection outputs into a single object with keys like
-            // "{sourceNodeId}_{sourcePort}". Decompose that merged object into
+            // connection outputs into a single object keyed by target port name
+            // (e.g., "input1", "input2"). Decompose that merged object into
             // individual inputs so waitAll can count them correctly.
             var individualInputs = DecomposeEngineInput(input.Data);
             _pendingInputs.AddRange(individualInputs);
@@ -90,9 +90,9 @@ public class MergeNode : BaseLogicNode
 
     /// <summary>
     /// When the workflow engine gathers input for a multi-input node, it produces
-    /// a single object whose keys are "{sourceNodeId}_{sourcePort}". This method
-    /// splits that object into individual JsonElement values so that waitAll can
-    /// count each source as a separate input. If the input is not a multi-source
+    /// a single object whose keys are the target port names (e.g., "input1", "input2").
+    /// This method splits that object into individual JsonElement values so that waitAll
+    /// can count each source as a separate input. If the input is not a multi-source
     /// merged object, it is returned as a single-element list.
     /// </summary>
     private static List<JsonElement> DecomposeEngineInput(JsonElement data)

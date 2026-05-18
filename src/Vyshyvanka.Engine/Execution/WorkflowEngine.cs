@@ -786,7 +786,9 @@ public class WorkflowEngine : IWorkflowEngine
             var output = context.NodeOutputs.Get(connection.SourceNodeId, connection.SourcePort);
             if (output.HasValue)
             {
-                var key = $"{connection.SourceNodeId}_{connection.SourcePort}";
+                // Use the target port name as key so downstream nodes (and the Designer UI)
+                // can identify which data arrived on which input port.
+                var key = connection.TargetPort;
                 var valueNode = JsonNode.Parse(output.Value.GetRawText());
                 mergedNode[key] = valueNode;
             }
