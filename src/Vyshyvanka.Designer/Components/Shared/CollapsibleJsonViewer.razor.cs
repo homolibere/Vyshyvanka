@@ -1,15 +1,20 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.Components;
+using Vyshyvanka.Designer.Services;
 
 namespace Vyshyvanka.Designer.Components;
 
 /// <summary>
 /// Renders a JSON element as a collapsible tree with syntax highlighting.
 /// Objects and arrays can be expanded/collapsed individually.
+/// JSON keys are draggable — dropping them on expression-aware fields inserts
+/// the corresponding expression (e.g., {{ input.item.projectId }}).
 /// </summary>
 public partial class CollapsibleJsonViewer : ComponentBase
 {
     private readonly HashSet<string> _collapsedPaths = [];
+
+    [Inject] private ExpressionDragService DragService { get; set; } = default!;
 
     /// <summary>
     /// The JSON data to display.
@@ -24,6 +29,15 @@ public partial class CollapsibleJsonViewer : ComponentBase
     [Parameter]
     public int AutoExpandDepth { get; set; } = 3;
 
+    /// <summary>
+    /// The expression prefix used when dragging keys (e.g., "input" produces "{{ input.path }}").
+    /// When null, drag-and-drop is disabled.
+    /// </summary>
+    [Parameter]
+    public string? ExpressionPrefix { get; set; }
+
+    private bool IsDraggable => ExpressionPrefix is not null;
+
     private JsonElement? _previousData;
 
     protected override void OnParametersSet()
@@ -36,6 +50,7 @@ public partial class CollapsibleJsonViewer : ComponentBase
             {
                 InitializeCollapsedState(Data.Value, "", 0);
             }
+
             _previousData = Data;
         }
     }
@@ -48,6 +63,7 @@ public partial class CollapsibleJsonViewer : ComponentBase
             {
                 _collapsedPaths.Add(path);
             }
+
             return;
         }
 
@@ -59,6 +75,7 @@ public partial class CollapsibleJsonViewer : ComponentBase
                     var childPath = string.IsNullOrEmpty(path) ? prop.Name : $"{path}.{prop.Name}";
                     InitializeCollapsedState(prop.Value, childPath, depth + 1);
                 }
+
                 break;
             case JsonValueKind.Array:
                 var index = 0;
@@ -68,6 +85,7 @@ public partial class CollapsibleJsonViewer : ComponentBase
                     InitializeCollapsedState(item, childPath, depth + 1);
                     index++;
                 }
+
                 break;
         }
     }
@@ -105,11 +123,13 @@ public partial class CollapsibleJsonViewer : ComponentBase
                 {
                     _collapsedPaths.Add(path);
                 }
+
                 foreach (var prop in properties)
                 {
                     var childPath = string.IsNullOrEmpty(path) ? prop.Name : $"{path}.{prop.Name}";
                     CollapseAllRecursive(prop.Value, childPath);
                 }
+
                 break;
             case JsonValueKind.Array:
                 var items = element.EnumerateArray().ToList();
@@ -117,13 +137,31 @@ public partial class CollapsibleJsonViewer : ComponentBase
                 {
                     _collapsedPaths.Add(path);
                 }
+
                 for (var i = 0; i < items.Count; i++)
                 {
                     var childPath = $"{path}[{i}]";
                     CollapseAllRecursive(items[i], childPath);
                 }
+
                 break;
         }
+    }
+
+    private string BuildExpression(string path)
+    {
+        return $"{{{{ {ExpressionPrefix}.{path} }}}}";
+    }
+
+    private void OnDragStart(string path)
+    {
+        if (ExpressionPrefix is null) return;
+        DragService.StartDrag(BuildExpression(path));
+    }
+
+    private void OnDragEnd()
+    {
+        DragService.EndDrag();
     }
 
     private static bool JsonElementEquals(JsonElement? a, JsonElement? b)

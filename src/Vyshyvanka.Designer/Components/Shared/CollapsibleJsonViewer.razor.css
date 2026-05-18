@@ -68,6 +68,23 @@
     color: #9cdcfe;
 }
 
+.json-key.draggable {
+    cursor: grab;
+    border-radius: 3px;
+    padding: 0 2px;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.json-key.draggable:hover {
+    background: rgba(79, 195, 247, 0.15);
+    color: #b8e4fc;
+}
+
+.json-key.draggable:active {
+    cursor: grabbing;
+    background: rgba(79, 195, 247, 0.25);
+}
+
 .json-colon {
     color: var(--text-secondary);
 }

@@ -41,6 +41,7 @@ builder.Services.AddScoped<PluginStateService>();
 builder.Services.AddScoped<ToastService>();
 builder.Services.AddScoped<ThemeService>();
 builder.Services.AddScoped<TokenRefreshService>();
+builder.Services.AddScoped<ExpressionDragService>();
 
 var host = builder.Build();
 

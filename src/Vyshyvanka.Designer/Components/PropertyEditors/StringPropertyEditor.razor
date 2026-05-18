@@ -15,12 +15,17 @@
 
     <div class="input-wrapper">
         <input type="text"
-               class="property-input @(HasExpression ? "has-expression" : "") @(ShowValidationError ? "has-error" : "")"
+               class="property-input @(HasExpression ? "has-expression" : "") @(ShowValidationError ? "has-error" : "") @(_isDragOver ? "drag-over" : "")"
                value="@CurrentValue"
                placeholder="@GetPlaceholder()"
                @oninput="OnInput"
                @onblur="OnBlur"
                @onkeydown="OnKeyDown"
+               @ondragover="OnDragOver"
+               @ondragover:preventDefault="true"
+               @ondragleave="OnDragLeave"
+               @ondrop="OnDropAsync"
+               @ondrop:preventDefault="true"
                @ref="_inputRef"/>
 
         <ExpressionAutocomplete @ref="_autocomplete"

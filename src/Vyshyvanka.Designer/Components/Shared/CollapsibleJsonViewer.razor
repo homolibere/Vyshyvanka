@@ -71,7 +71,21 @@
                     var isLast = i == properties.Count - 1;
 
                     <div class="json-line">
-                        <span class="json-key">"@prop.Name"</span><span class="json-colon">: </span>@RenderElement(prop.Value, childPath, indent + 1)
+                        @if (IsDraggable)
+                        {
+                            <span class="json-key draggable"
+                                  draggable="true"
+                                  @ondragstart="() => OnDragStart(childPath)"
+                                  @ondragend="OnDragEnd"
+                                  title="Drag to insert {{ @ExpressionPrefix.@childPath }}">
+                                "@prop.Name"
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="json-key">"@prop.Name"</span>
+                        }
+                        <span class="json-colon">: </span>@RenderElement(prop.Value, childPath, indent + 1)
                         @if (!isLast)
                         {
                             <span class="json-comma">,</span>

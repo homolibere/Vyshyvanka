@@ -8,8 +8,9 @@ namespace Vyshyvanka.Designer.Components;
 
 /// <summary>
 /// Property editor for string type configuration properties.
-/// Supports expression syntax detection, visual indication, and autocomplete
-/// for {{ }} expressions with node references, variables, and functions.
+/// Supports expression syntax detection, visual indication, autocomplete
+/// for {{ }} expressions with node references, variables, and functions,
+/// and drag-and-drop of expressions from the JSON input viewer.
 /// </summary>
 public partial class StringPropertyEditor : ComponentBase
 {
@@ -30,14 +31,16 @@ public partial class StringPropertyEditor : ComponentBase
     [Parameter]
     public string? CurrentNodeId { get; set; }
 
-    [Inject] private ExpressionAutocompleteService AutocompleteService { get; set; } = null!;
-    [Inject] private WorkflowStateService WorkflowState { get; set; } = null!;
+    [Inject] private ExpressionAutocompleteService AutocompleteService { get; set; } = default!;
+    [Inject] private WorkflowStateService WorkflowState { get; set; } = default!;
+    [Inject] private ExpressionDragService DragService { get; set; } = default!;
 
     private ElementReference _inputRef;
     private ExpressionAutocomplete? _autocomplete;
     private bool _showAutocomplete;
     private List<ExpressionSuggestion> _suggestions = [];
     private string? _currentExpressionFragment;
+    private bool _isDragOver;
 
     private string CurrentValue => Value?.ToString() ?? string.Empty;
 
@@ -99,6 +102,38 @@ public partial class StringPropertyEditor : ComponentBase
                 _showAutocomplete = false;
                 break;
         }
+    }
+
+    private void OnDragOver(DragEventArgs e)
+    {
+        if (DragService.IsDragging)
+        {
+            _isDragOver = true;
+        }
+    }
+
+    private void OnDragLeave(DragEventArgs e)
+    {
+        _isDragOver = false;
+    }
+
+    private async Task OnDropAsync(DragEventArgs e)
+    {
+        _isDragOver = false;
+
+        if (!DragService.IsDragging || DragService.CurrentExpression is null)
+            return;
+
+        var expression = DragService.CurrentExpression;
+        DragService.EndDrag();
+
+        // Append the expression to the current value (or replace if empty)
+        var currentText = CurrentValue;
+        var newValue = string.IsNullOrEmpty(currentText)
+            ? expression
+            : $"{currentText}{expression}";
+
+        await ValueChanged.InvokeAsync(newValue);
     }
 
     private void UpdateAutocomplete(string value)
