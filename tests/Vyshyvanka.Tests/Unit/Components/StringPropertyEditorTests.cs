@@ -14,6 +14,7 @@ public class StringPropertyEditorTests : BunitContext
         var workflowState = new WorkflowStateService();
         Services.AddSingleton(workflowState);
         Services.AddSingleton(new ExpressionAutocompleteService(workflowState));
+        Services.AddSingleton(new ExpressionDragService());
     }
 
     private static ConfigurationProperty CreateProperty(
