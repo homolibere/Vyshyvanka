@@ -95,9 +95,9 @@ Route based on event type:
 ## Expression Examples
 
 ```
-{{$node.Switch.data.data}}           // The original input
-{{$node.Switch.data.matchedCase}}    // Which case matched
-{{$node.Switch.data.outputPort}}     // Active output port
+{{ nodes.Switch.data }}               // The original input
+{{ nodes.Switch.matchedCase }}        // Which case matched
+{{ nodes.Switch.outputPort }}         // Active output port
 ```
 
 ## Notes

@@ -54,6 +54,6 @@ Use the Manual Trigger when you want to:
 ## Expression Examples
 
 ```
-{{$node.ManualTrigger.data}}           // Full trigger output
-{{$node.ManualTrigger.data.timestamp}} // Trigger timestamp
+{{ nodes.ManualTrigger.data }}           // Full trigger output
+{{ nodes.ManualTrigger.timestamp }}      // Trigger timestamp
 ```

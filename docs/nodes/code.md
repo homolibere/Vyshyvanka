@@ -109,9 +109,9 @@ Use the Code node when you want to:
 ## Expression Examples
 
 ```
-{{$node.Code.data.result}}        // The code return value
-{{$node.Code.data.result[0]}}     // First item (runForEachItem mode)
-{{$node.Code.data.logs}}          // Execution logs
+{{ nodes.Code.result }}            // The code return value
+{{ nodes.Code.result[0] }}         // First item (runForEachItem mode)
+{{ nodes.Code.logs }}              // Execution logs
 ```
 
 ## Notes

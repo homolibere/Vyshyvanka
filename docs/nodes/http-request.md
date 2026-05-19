@@ -69,10 +69,10 @@ Use the HTTP Request node when you want to:
 ## Expression Examples
 
 ```
-{{$node.HttpRequest.data.body}}              // Response body
-{{$node.HttpRequest.data.statusCode}}        // Status code
-{{$node.HttpRequest.data.headers.content-type}} // Response header
-{{$node.HttpRequest.data.isSuccess}}         // Whether request succeeded
+{{ nodes.HttpRequest.body }}                  // Response body
+{{ nodes.HttpRequest.statusCode }}            // Status code
+{{ nodes.HttpRequest.headers.content-type }}  // Response header
+{{ nodes.HttpRequest.isSuccess }}             // Whether request succeeded
 ```
 
 ## Notes

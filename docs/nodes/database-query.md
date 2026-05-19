@@ -85,9 +85,9 @@ Use the Database Query node when you want to:
 ## Expression Examples
 
 ```
-{{$node.DatabaseQuery.data.data}}           // All result rows
-{{$node.DatabaseQuery.data.data[0].name}}   // First row's name column
-{{$node.DatabaseQuery.data.rowsAffected}}   // Rows affected by execute
+{{ nodes.DatabaseQuery.data }}             // All result rows
+{{ nodes.DatabaseQuery.data[0].name }}     // First row's name column
+{{ nodes.DatabaseQuery.rowsAffected }}     // Rows affected by execute
 ```
 
 ## Notes

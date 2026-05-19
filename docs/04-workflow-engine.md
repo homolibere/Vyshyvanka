@@ -140,13 +140,15 @@ Node configurations can contain expressions using double-brace syntax. Before a 
 
 ### Syntax
 
+Nodes are referenced by their ID (GUID). The Designer's autocomplete shows human-readable node names but inserts the node's ID.
+
 | Pattern | Description |
 |---------|------------|
-| `{{ nodes.NodeId.field }}` | Access output data from a named node |
-| `{{ nodes.NodeId.field.nested }}` | Access nested properties |
-| `{{ nodes.NodeId.field[0] }}` | Access array elements by index |
+| `{{ nodes.<nodeId>.field }}` | Access output data from a node by its ID |
+| `{{ nodes.<nodeId>.field.nested }}` | Access nested properties |
+| `{{ nodes.<nodeId>.field[0] }}` | Access array elements by index |
 | `{{ variables.name }}` | Access execution context variables |
-| `{{ toUpper(nodes.NodeId.field) }}` | Call a built-in function |
+| `{{ toUpper(nodes.<nodeId>.field) }}` | Call a built-in function |
 
 ### Built-in Functions
 

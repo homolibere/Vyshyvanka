@@ -153,10 +153,10 @@ Use the File Operations node when you want to:
 ## Expression Examples
 
 ```
-{{$node.FileOps.data.content}}       // File content (read)
-{{$node.FileOps.data.exists}}        // Whether file exists
-{{$node.FileOps.data.size}}          // File size in bytes
-{{$node.FileOps.data.lastModified}}  // Last modification time
+{{ nodes.FileOps.content }}         // File content (read)
+{{ nodes.FileOps.exists }}          // Whether file exists
+{{ nodes.FileOps.size }}            // File size in bytes
+{{ nodes.FileOps.lastModified }}    // Last modification time
 ```
 
 ## Notes

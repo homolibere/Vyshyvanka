@@ -96,9 +96,9 @@ Use the Merge node when you want to:
 ## Expression Examples
 
 ```
-{{$node.Merge.data}}           // Merged output
-{{$node.Merge.data[0]}}        // First input (array mode)
-{{$node.Merge.data.fieldName}} // Merged field (object mode)
+{{ nodes.Merge.data }}             // Merged output
+{{ nodes.Merge.data[0] }}          // First input (array mode)
+{{ nodes.Merge.fieldName }}        // Merged field (object mode)
 ```
 
 ## Notes

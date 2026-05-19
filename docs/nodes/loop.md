@@ -84,12 +84,12 @@ Iterate over the entire input (when input is already an array):
 
 ```
 // Inside the loop (connected to 'item' port):
-{{$node.Loop.data}}                  // Current item
-{{$node.Loop.data.itemIndex}}        // Current index
+{{ nodes.Loop.data }}                    // Current item
+{{ nodes.Loop.itemIndex }}               // Current index
 
 // After the loop (connected to 'done' port):
-{{$node.Loop.data.items}}            // All collected results
-{{$node.Loop.data.totalCount}}       // Number of items processed
+{{ nodes.Loop.items }}                   // All collected results
+{{ nodes.Loop.totalCount }}              // Number of items processed
 ```
 
 ## Notes

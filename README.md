@@ -136,13 +136,16 @@ When a trigger fires, an execution is created and moves through: `Pending` → `
 
 ### Expressions
 
-Reference data from previous nodes using double-brace syntax:
+Reference data from previous nodes using double-brace syntax. Nodes are referenced by their ID (GUID):
 
 ```
-{{$node.NodeName.data.propertyName}}
-{{$execution.id}}
-{{$workflow.id}}
+{{ nodes.<nodeId>.propertyName }}
+{{ nodes.<nodeId>.response.body.users[0].email }}
+{{ variables.executionId }}
+{{ variables.workflowId }}
 ```
+
+The Designer's autocomplete shows node names but inserts their IDs automatically.
 
 ### Plugins
 

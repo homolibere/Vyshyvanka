@@ -73,10 +73,10 @@ Use the Execute Workflow node when you want to:
 ## Expression Examples
 
 ```
-{{$node.ExecuteWorkflow.data.data}}          // Child workflow output
-{{$node.ExecuteWorkflow.data.success}}       // Whether child succeeded
-{{$node.ExecuteWorkflow.data.duration}}      // Execution time in ms
-{{$node.ExecuteWorkflow.data.executionId}}   // Child execution ID
+{{ nodes.ExecuteWorkflow.data }}            // Child workflow output
+{{ nodes.ExecuteWorkflow.success }}         // Whether child succeeded
+{{ nodes.ExecuteWorkflow.duration }}        // Execution time in ms
+{{ nodes.ExecuteWorkflow.executionId }}     // Child execution ID
 ```
 
 ## Notes

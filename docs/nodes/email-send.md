@@ -74,9 +74,9 @@ Use the Send Email node when you want to:
 ## Expression Examples
 
 ```
-{{$node.EmailSend.data.success}}     // Whether email was sent
-{{$node.EmailSend.data.sentAt}}      // When it was sent
-{{$node.EmailSend.data.messageId}}   // Message ID for tracking
+{{ nodes.EmailSend.success }}       // Whether email was sent
+{{ nodes.EmailSend.sentAt }}        // When it was sent
+{{ nodes.EmailSend.messageId }}     // Message ID for tracking
 ```
 
 ## Notes

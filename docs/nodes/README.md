@@ -2,6 +2,8 @@
 
 This folder contains documentation for every built-in node available in Vyshyvanka.
 
+> **Note on expression examples:** In the node docs below, expressions use short names like `{{ nodes.HttpRequest.body }}` for readability. In practice, nodes are referenced by their ID (GUID), e.g. `{{ nodes.a3f1b2c4-d5e6-7890-abcd-ef1234567890.body }}`. The Designer's autocomplete shows human-readable node names but inserts the actual node ID.
+
 ## Triggers
 
 Trigger nodes start a workflow execution. Every workflow must have exactly one trigger node.

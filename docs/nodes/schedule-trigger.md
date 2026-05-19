@@ -73,7 +73,7 @@ Use the Schedule Trigger when you want to:
 ## Expression Examples
 
 ```
-{{$node.ScheduleTrigger.data.triggeredAt}}      // When the schedule fired
-{{$node.ScheduleTrigger.data.cronExpression}}    // The cron expression
-{{$node.ScheduleTrigger.data.executionId}}       // Current execution ID
+{{ nodes.ScheduleTrigger.triggeredAt }}        // When the schedule fired
+{{ nodes.ScheduleTrigger.cronExpression }}     // The cron expression
+{{ nodes.ScheduleTrigger.executionId }}        // Current execution ID
 ```

@@ -66,11 +66,11 @@ Double-brace expressions reference data from earlier nodes or execution metadata
 
 | Pattern | Resolves To |
 |---------|-------------|
-| `{{$node.NodeName.data}}` | Full output of the named node |
-| `{{$node.NodeName.data.prop}}` | Nested property access |
-| `{{$node.NodeName.data[0]}}` | Array index access |
-| `{{$execution.id}}` | Current execution ID |
-| `{{$workflow.id}}` | Current workflow ID |
+| `{{ nodes.<nodeId>.data }}` | Full output of the node (referenced by GUID) |
+| `{{ nodes.<nodeId>.data.prop }}` | Nested property access |
+| `{{ nodes.<nodeId>.data[0] }}` | Array index access |
+| `{{ variables.executionId }}` | Current execution ID |
+| `{{ variables.workflowId }}` | Current workflow ID |
 
 Always sanitize user-supplied values before embedding them in expressions.
 

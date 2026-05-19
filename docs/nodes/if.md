@@ -70,9 +70,9 @@ Use the If node when you want to:
 ## Expression Examples
 
 ```
-{{$node.If.data.data}}              // The original input (passed through)
-{{$node.If.data.conditionResult}}   // true or false
-{{$node.If.data.outputPort}}        // "true" or "false"
+{{ nodes.If.data }}                  // The original input (passed through)
+{{ nodes.If.conditionResult }}       // true or false
+{{ nodes.If.outputPort }}            // "true" or "false"
 ```
 
 ## Example Configuration

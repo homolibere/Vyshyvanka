@@ -51,10 +51,10 @@ Use the Webhook Trigger when you want to:
 ## Expression Examples
 
 ```
-{{$node.WebhookTrigger.data.body}}              // Full request body
-{{$node.WebhookTrigger.data.headers.Authorization}} // Auth header
-{{$node.WebhookTrigger.data.query.id}}          // Query parameter
-{{$node.WebhookTrigger.data.method}}            // HTTP method
+{{ nodes.WebhookTrigger.body }}                  // Full request body
+{{ nodes.WebhookTrigger.headers.Authorization }} // Auth header
+{{ nodes.WebhookTrigger.query.id }}              // Query parameter
+{{ nodes.WebhookTrigger.method }}                // HTTP method
 ```
 
 ## Notes
