@@ -44,13 +44,15 @@ public class PackageSourceController : ControllerBase
     /// Adds a new package source.
     /// </summary>
     /// <param name="request">Source configuration.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     [HttpPost]
     [Authorize(Policy = Policies.CanManagePackages)]
     [ProducesResponseType(typeof(PackageSourceResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ApiError), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiError), StatusCodes.Status409Conflict)]
     public async Task<ActionResult<PackageSourceResponse>> AddSource(
-        [FromBody] PackageSourceRequest request)
+        [FromBody] PackageSourceRequest request,
+        CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Adding package source: {SourceName}, url={Url}", request.Name, request.Url);
 
@@ -69,7 +71,7 @@ public class PackageSourceController : ControllerBase
 
         try
         {
-            var source = await _sourceService.AddSourceAsync(request.ToConfig());
+            var source = await _sourceService.AddSourceAsync(request.ToConfig(), cancellationToken);
             _logger.LogInformation("Package source added: {SourceName}", source.Name);
 
             return CreatedAtAction(
@@ -92,6 +94,7 @@ public class PackageSourceController : ControllerBase
     /// </summary>
     /// <param name="name">Name of the source to update.</param>
     /// <param name="request">Updated source configuration.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     [HttpPut("{name}")]
     [Authorize(Policy = Policies.CanManagePackages)]
     [ProducesResponseType(typeof(PackageSourceResponse), StatusCodes.Status200OK)]
@@ -99,7 +102,8 @@ public class PackageSourceController : ControllerBase
     [ProducesResponseType(typeof(ApiError), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<PackageSourceResponse>> UpdateSource(
         string name,
-        [FromBody] PackageSourceRequest request)
+        [FromBody] PackageSourceRequest request,
+        CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Updating package source: {SourceName}", name);
 
@@ -118,7 +122,7 @@ public class PackageSourceController : ControllerBase
 
         try
         {
-            await _sourceService.UpdateSourceAsync(name, request.ToConfig());
+            await _sourceService.UpdateSourceAsync(name, request.ToConfig(), cancellationToken);
 
             // Get the updated source
             var updated = _sourceService.GetSources()
@@ -141,11 +145,12 @@ public class PackageSourceController : ControllerBase
     /// Removes a package source.
     /// </summary>
     /// <param name="name">Name of the source to remove.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     [HttpDelete("{name}")]
     [Authorize(Policy = Policies.CanManagePackages)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ApiError), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> RemoveSource(string name)
+    public async Task<IActionResult> RemoveSource(string name, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Removing package source: {SourceName}", name);
 
@@ -162,7 +167,7 @@ public class PackageSourceController : ControllerBase
             });
         }
 
-        await _sourceService.RemoveSourceAsync(name);
+        await _sourceService.RemoveSourceAsync(name, cancellationToken);
         _logger.LogInformation("Package source removed: {SourceName}", name);
         return NoContent();
     }
@@ -195,7 +200,7 @@ public class PackageSourceController : ControllerBase
             });
         }
 
-        var result = await _sourceService.TestSourceAsync(name);
+        var result = await _sourceService.TestSourceAsync(name, cancellationToken);
         return Ok(SourceTestResponse.FromResult(result));
     }
 }

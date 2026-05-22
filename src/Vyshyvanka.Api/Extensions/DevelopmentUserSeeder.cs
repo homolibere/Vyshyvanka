@@ -13,7 +13,7 @@ public static class DevelopmentUserSeeder
     /// Seeds default development users if they don't exist.
     /// Only runs when the built-in authentication provider is active.
     /// </summary>
-    public static async Task SeedDevelopmentUsersAsync(IServiceProvider services)
+    public static async Task SeedDevelopmentUsersAsync(IServiceProvider services, CancellationToken cancellationToken = default)
     {
         var logger = services.GetService<ILogger<Program>>();
 
@@ -39,21 +39,23 @@ public static class DevelopmentUserSeeder
 
         foreach (var (email, password, displayName, role) in devUsers)
         {
-            var existingUser = await userRepository.GetByEmailAsync(email);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var existingUser = await userRepository.GetByEmailAsync(email, cancellationToken);
             if (existingUser is not null)
             {
                 logger?.LogDebug("Development user {Email} already exists", email);
                 continue;
             }
 
-            var result = await authService.RegisterAsync(email, password, displayName);
+            var result = await authService.RegisterAsync(email, password, displayName, cancellationToken);
             if (result.Success && result.User is not null)
             {
                 // Update role if not Admin (RegisterAsync creates Editor by default)
                 if (role != UserRole.Editor)
                 {
                     var user = result.User with { Role = role };
-                    await userRepository.UpdateAsync(user);
+                    await userRepository.UpdateAsync(user, cancellationToken);
                 }
 
                 logger?.LogInformation("Created development user: {Email} ({Role})", email, role);

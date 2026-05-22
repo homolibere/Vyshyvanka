@@ -44,7 +44,7 @@ public class PackageSourceService : IPackageSourceService
 
     public IReadOnlyList<PackageSource> GetSources() => _sources.AsReadOnly();
 
-    public async Task<PackageSource> AddSourceAsync(PackageSourceConfig config)
+    public async Task<PackageSource> AddSourceAsync(PackageSourceConfig config, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(config);
         ArgumentException.ThrowIfNullOrWhiteSpace(config.Name);
@@ -72,7 +72,7 @@ public class PackageSourceService : IPackageSourceService
         return source;
     }
 
-    public async Task RemoveSourceAsync(string sourceName)
+    public async Task RemoveSourceAsync(string sourceName, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(sourceName);
 
@@ -84,7 +84,7 @@ public class PackageSourceService : IPackageSourceService
         }
     }
 
-    public async Task UpdateSourceAsync(string sourceName, PackageSourceConfig config)
+    public async Task UpdateSourceAsync(string sourceName, PackageSourceConfig config, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(sourceName);
         ArgumentNullException.ThrowIfNull(config);
@@ -109,7 +109,7 @@ public class PackageSourceService : IPackageSourceService
         _logger?.LogInformation("Updated package source: {Name}", config.Name);
     }
 
-    public async Task<SourceTestResult> TestSourceAsync(string sourceName)
+    public async Task<SourceTestResult> TestSourceAsync(string sourceName, CancellationToken cancellationToken = default)
     {
         var source = _sources.FirstOrDefault(s => string.Equals(s.Name, sourceName, StringComparison.OrdinalIgnoreCase));
         if (source is null)
@@ -126,7 +126,7 @@ public class PackageSourceService : IPackageSourceService
         try
         {
             var repository = GetRepository(source);
-            var resource = await repository.GetResourceAsync<ServiceIndexResourceV3>(CancellationToken.None);
+            var resource = await repository.GetResourceAsync<ServiceIndexResourceV3>(cancellationToken);
             sw.Stop();
 
             return new SourceTestResult

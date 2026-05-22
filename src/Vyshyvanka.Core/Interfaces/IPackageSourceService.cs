@@ -17,28 +17,32 @@ public interface IPackageSourceService
     /// Adds a new package source.
     /// </summary>
     /// <param name="config">Configuration for the new source.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The created package source.</returns>
-    Task<PackageSource> AddSourceAsync(PackageSourceConfig config);
+    Task<PackageSource> AddSourceAsync(PackageSourceConfig config, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Removes a package source.
     /// </summary>
     /// <param name="sourceName">Name of the source to remove.</param>
-    Task RemoveSourceAsync(string sourceName);
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task RemoveSourceAsync(string sourceName, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Updates a package source configuration.
     /// </summary>
     /// <param name="sourceName">Name of the source to update.</param>
     /// <param name="config">New configuration values.</param>
-    Task UpdateSourceAsync(string sourceName, PackageSourceConfig config);
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task UpdateSourceAsync(string sourceName, PackageSourceConfig config, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Tests connectivity to a package source.
     /// </summary>
     /// <param name="sourceName">Name of the source to test.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Test result with connectivity status.</returns>
-    Task<SourceTestResult> TestSourceAsync(string sourceName);
+    Task<SourceTestResult> TestSourceAsync(string sourceName, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the NuGet source repository for a package source.
