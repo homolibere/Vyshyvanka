@@ -4,14 +4,14 @@ using Vyshyvanka.Designer.Models;
 namespace Vyshyvanka.Designer.Services;
 
 /// <summary>
-/// API key management methods for the Vyshyvanka API client.
+/// API client for API key management operations.
 /// </summary>
-public partial class VyshyvankaApiClient
+public class ApiKeyApiClient(HttpClient httpClient) : ApiClientBase(httpClient)
 {
     /// <summary>Lists all API keys for the current user.</summary>
     public async Task<List<ApiKeyModel>> GetApiKeysAsync(CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.GetAsync("api/apikeys", cancellationToken);
+        var response = await Http.GetAsync("api/apikeys", cancellationToken);
         if (!response.IsSuccessStatusCode)
             return [];
 
@@ -22,7 +22,7 @@ public partial class VyshyvankaApiClient
     public async Task<CreateApiKeyResponseModel?> CreateApiKeyAsync(
         CreateApiKeyModel model, CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.PostAsJsonAsync("api/apikeys", model, JsonOptions, cancellationToken);
+        var response = await Http.PostAsJsonAsync("api/apikeys", model, JsonOptions, cancellationToken);
         await EnsureSuccessAsync(response, cancellationToken);
         return await response.Content.ReadFromJsonAsync<CreateApiKeyResponseModel>(JsonOptions, cancellationToken);
     }
@@ -30,14 +30,14 @@ public partial class VyshyvankaApiClient
     /// <summary>Revokes an API key (deactivates without deleting).</summary>
     public async Task RevokeApiKeyAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.PostAsync($"api/apikeys/{id}/revoke", null, cancellationToken);
+        var response = await Http.PostAsync($"api/apikeys/{id}/revoke", null, cancellationToken);
         await EnsureSuccessAsync(response, cancellationToken);
     }
 
     /// <summary>Permanently deletes an API key.</summary>
     public async Task DeleteApiKeyAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.DeleteAsync($"api/apikeys/{id}", cancellationToken);
+        var response = await Http.DeleteAsync($"api/apikeys/{id}", cancellationToken);
         await EnsureSuccessAsync(response, cancellationToken);
     }
 }

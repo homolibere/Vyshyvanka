@@ -4,19 +4,15 @@ using Vyshyvanka.Designer.Models;
 namespace Vyshyvanka.Designer.Services;
 
 /// <summary>
-/// Package management methods for the Vyshyvanka API client.
+/// API client for package management: install, update, uninstall, search, and source management.
 /// </summary>
-public partial class VyshyvankaApiClient
+public class PackageApiClient(HttpClient httpClient) : ApiClientBase(httpClient)
 {
-    /// <summary>
-    /// Gets all installed packages.
-    /// </summary>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>List of installed packages.</returns>
+    /// <summary>Gets all installed packages.</summary>
     public async Task<List<InstalledPackageModel>> GetInstalledPackagesAsync(
         CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.GetAsync("api/packages", cancellationToken);
+        var response = await Http.GetAsync("api/packages", cancellationToken);
 
         if (!response.IsSuccessStatusCode || !IsJsonResponse(response))
         {
@@ -27,23 +23,7 @@ public partial class VyshyvankaApiClient
         return result?.Select(r => r.ToModel()).ToList() ?? [];
     }
 
-    private static bool IsJsonResponse(HttpResponseMessage response)
-    {
-        var contentType = response.Content.Headers.ContentType?.MediaType;
-        return contentType is not null &&
-               (contentType.Contains("application/json", StringComparison.OrdinalIgnoreCase) ||
-                contentType.Contains("text/json", StringComparison.OrdinalIgnoreCase));
-    }
-
-    /// <summary>
-    /// Searches for packages across configured sources.
-    /// </summary>
-    /// <param name="query">Search query string.</param>
-    /// <param name="skip">Number of results to skip for pagination.</param>
-    /// <param name="take">Maximum number of results to return.</param>
-    /// <param name="includePrerelease">Whether to include prerelease packages.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Search results with matching packages.</returns>
+    /// <summary>Searches for packages across configured sources.</summary>
     public async Task<PackageSearchResultModel> SearchPackagesAsync(
         string query,
         int skip = 0,
@@ -53,18 +33,12 @@ public partial class VyshyvankaApiClient
     {
         var url =
             $"api/packages/search?query={Uri.EscapeDataString(query)}&skip={skip}&take={take}&includePrerelease={includePrerelease}";
-        var response = await _httpClient.GetFromJsonAsync<PackageSearchApiResponse>(url, cancellationToken);
+        var response = await Http.GetFromJsonAsync<PackageSearchApiResponse>(url, cancellationToken);
 
         return response?.ToModel() ?? new PackageSearchResultModel();
     }
 
-    /// <summary>
-    /// Gets detailed information about a specific package.
-    /// </summary>
-    /// <param name="packageId">Package identifier.</param>
-    /// <param name="version">Optional specific version.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Package details or null if not found.</returns>
+    /// <summary>Gets detailed information about a specific package.</summary>
     public async Task<PackageDetailsModel?> GetPackageDetailsAsync(
         string packageId,
         string? version = null,
@@ -74,7 +48,7 @@ public partial class VyshyvankaApiClient
             ? $"api/packages/{Uri.EscapeDataString(packageId)}"
             : $"api/packages/{Uri.EscapeDataString(packageId)}?version={Uri.EscapeDataString(version)}";
 
-        var response = await _httpClient.GetAsync(url, cancellationToken);
+        var response = await Http.GetAsync(url, cancellationToken);
 
         if (!response.IsSuccessStatusCode)
         {
@@ -85,14 +59,7 @@ public partial class VyshyvankaApiClient
         return apiResponse?.ToModel();
     }
 
-    /// <summary>
-    /// Installs a package and its dependencies.
-    /// </summary>
-    /// <param name="packageId">Package identifier to install.</param>
-    /// <param name="version">Optional specific version to install.</param>
-    /// <param name="prerelease">Whether to allow prerelease versions.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Installation result.</returns>
+    /// <summary>Installs a package and its dependencies.</summary>
     public async Task<PackageInstallResultModel> InstallPackageAsync(
         string packageId,
         string? version = null,
@@ -105,7 +72,7 @@ public partial class VyshyvankaApiClient
             Prerelease = prerelease
         };
 
-        var response = await _httpClient.PostAsJsonAsync(
+        var response = await Http.PostAsJsonAsync(
             $"api/packages/{Uri.EscapeDataString(packageId)}/install",
             request,
             cancellationToken);
@@ -125,13 +92,7 @@ public partial class VyshyvankaApiClient
             { Success = false, Errors = ["Invalid response"] };
     }
 
-    /// <summary>
-    /// Updates an installed package to a newer version.
-    /// </summary>
-    /// <param name="packageId">Package identifier to update.</param>
-    /// <param name="targetVersion">Optional target version to update to.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Update result.</returns>
+    /// <summary>Updates an installed package to a newer version.</summary>
     public async Task<PackageUpdateResultModel> UpdatePackageAsync(
         string packageId,
         string? targetVersion = null,
@@ -142,7 +103,7 @@ public partial class VyshyvankaApiClient
             TargetVersion = targetVersion
         };
 
-        var response = await _httpClient.PostAsJsonAsync(
+        var response = await Http.PostAsJsonAsync(
             $"api/packages/{Uri.EscapeDataString(packageId)}/update",
             request,
             cancellationToken);
@@ -162,20 +123,14 @@ public partial class VyshyvankaApiClient
             { Success = false, Errors = ["Invalid response"] };
     }
 
-    /// <summary>
-    /// Uninstalls a package.
-    /// </summary>
-    /// <param name="packageId">Package identifier to uninstall.</param>
-    /// <param name="force">Force uninstall even if workflows reference the package.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Uninstall result.</returns>
+    /// <summary>Uninstalls a package.</summary>
     public async Task<PackageUninstallResultModel> UninstallPackageAsync(
         string packageId,
         bool force = false,
         CancellationToken cancellationToken = default)
     {
         var url = $"api/packages/{Uri.EscapeDataString(packageId)}?force={force}";
-        var response = await _httpClient.DeleteAsync(url, cancellationToken);
+        var response = await Http.DeleteAsync(url, cancellationToken);
 
         if (!response.IsSuccessStatusCode)
         {
@@ -193,27 +148,17 @@ public partial class VyshyvankaApiClient
             { Success = false, Errors = ["Invalid response"] };
     }
 
-    /// <summary>
-    /// Checks for available updates to installed packages.
-    /// </summary>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>List of available updates.</returns>
+    /// <summary>Checks for available updates to installed packages.</summary>
     public async Task<List<PackageUpdateInfoModel>> CheckForUpdatesAsync(CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.GetFromJsonAsync<List<PackageUpdateInfoApiResponse>>(
+        var response = await Http.GetFromJsonAsync<List<PackageUpdateInfoApiResponse>>(
             "api/packages/updates",
             cancellationToken);
 
         return response?.Select(r => r.ToModel()).ToList() ?? [];
     }
 
-    /// <summary>
-    /// Uploads and installs a .nupkg file from the local machine.
-    /// </summary>
-    /// <param name="fileName">File name.</param>
-    /// <param name="fileStream">Stream containing the .nupkg file.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Installation result.</returns>
+    /// <summary>Uploads and installs a .nupkg file from the local machine.</summary>
     public async Task<PackageInstallResultModel> UploadPackageAsync(
         string fileName,
         Stream fileStream,
@@ -224,7 +169,7 @@ public partial class VyshyvankaApiClient
         streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
         content.Add(streamContent, "file", fileName);
 
-        var response = await _httpClient.PostAsync("api/packages/upload", content, cancellationToken);
+        var response = await Http.PostAsync("api/packages/upload", content, cancellationToken);
 
         if (!response.IsSuccessStatusCode)
         {
@@ -240,20 +185,11 @@ public partial class VyshyvankaApiClient
         return apiResponse?.ToModel() ?? new PackageInstallResultModel
             { Success = false, Errors = ["Invalid response"] };
     }
-}
 
-// Package Source Management Methods
-
-public partial class VyshyvankaApiClient
-{
-    /// <summary>
-    /// Gets all configured package sources.
-    /// </summary>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>List of package sources.</returns>
+    /// <summary>Gets all configured package sources.</summary>
     public async Task<List<PackageSourceModel>> GetPackageSourcesAsync(CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.GetAsync("api/packages/sources", cancellationToken);
+        var response = await Http.GetAsync("api/packages/sources", cancellationToken);
 
         if (!response.IsSuccessStatusCode || !IsJsonResponse(response))
         {
@@ -264,18 +200,13 @@ public partial class VyshyvankaApiClient
         return result?.Select(r => r.ToModel()).ToList() ?? [];
     }
 
-    /// <summary>
-    /// Adds a new package source.
-    /// </summary>
-    /// <param name="source">Source configuration.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The created package source, or null if creation failed.</returns>
+    /// <summary>Adds a new package source.</summary>
     public async Task<PackageSourceModel?> AddPackageSourceAsync(
         PackageSourceModel source,
         CancellationToken cancellationToken = default)
     {
         var request = PackageSourceApiRequest.FromModel(source);
-        var response = await _httpClient.PostAsJsonAsync("api/packages/sources", request, cancellationToken);
+        var response = await Http.PostAsJsonAsync("api/packages/sources", request, cancellationToken);
 
         if (!response.IsSuccessStatusCode)
         {
@@ -286,20 +217,14 @@ public partial class VyshyvankaApiClient
         return apiResponse?.ToModel();
     }
 
-    /// <summary>
-    /// Updates an existing package source.
-    /// </summary>
-    /// <param name="name">Name of the source to update.</param>
-    /// <param name="source">Updated source configuration.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>True if update succeeded, false otherwise.</returns>
+    /// <summary>Updates an existing package source.</summary>
     public async Task<bool> UpdatePackageSourceAsync(
         string name,
         PackageSourceModel source,
         CancellationToken cancellationToken = default)
     {
         var request = PackageSourceApiRequest.FromModel(source);
-        var response = await _httpClient.PutAsJsonAsync(
+        var response = await Http.PutAsJsonAsync(
             $"api/packages/sources/{Uri.EscapeDataString(name)}",
             request,
             cancellationToken);
@@ -307,34 +232,24 @@ public partial class VyshyvankaApiClient
         return response.IsSuccessStatusCode;
     }
 
-    /// <summary>
-    /// Removes a package source.
-    /// </summary>
-    /// <param name="name">Name of the source to remove.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>True if removal succeeded, false otherwise.</returns>
+    /// <summary>Removes a package source.</summary>
     public async Task<bool> RemovePackageSourceAsync(
         string name,
         CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.DeleteAsync(
+        var response = await Http.DeleteAsync(
             $"api/packages/sources/{Uri.EscapeDataString(name)}",
             cancellationToken);
 
         return response.IsSuccessStatusCode;
     }
 
-    /// <summary>
-    /// Tests connectivity to a package source.
-    /// </summary>
-    /// <param name="name">Name of the source to test.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Test result with success status and response time.</returns>
+    /// <summary>Tests connectivity to a package source.</summary>
     public async Task<SourceTestResultModel> TestPackageSourceAsync(
         string name,
         CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.PostAsync(
+        var response = await Http.PostAsync(
             $"api/packages/sources/{Uri.EscapeDataString(name)}/test",
             null,
             cancellationToken);

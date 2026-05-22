@@ -8,7 +8,8 @@ namespace Vyshyvanka.Designer.Services;
 /// </summary>
 public class PluginStateService : IDisposable
 {
-    private readonly VyshyvankaApiClient _apiClient;
+    private readonly PackageApiClient _packageApi;
+    private readonly WorkflowApiClient _workflowApi;
     private readonly WorkflowStore _workflowStore;
 
     private List<InstalledPackageModel> _installedPackages = [];
@@ -37,11 +38,13 @@ public class PluginStateService : IDisposable
     /// <summary>
     /// Creates a new instance of the PluginStateService.
     /// </summary>
-    /// <param name="apiClient">The API client for communicating with the Vyshyvanka API.</param>
+    /// <param name="packageApi">The package API client for package operations.</param>
+    /// <param name="workflowApi">The workflow API client for node definition refresh.</param>
     /// <param name="workflowStore">The workflow store for node definition refresh.</param>
-    public PluginStateService(VyshyvankaApiClient apiClient, WorkflowStore workflowStore)
+    public PluginStateService(PackageApiClient packageApi, WorkflowApiClient workflowApi, WorkflowStore workflowStore)
     {
-        _apiClient = apiClient;
+        _packageApi = packageApi;
+        _workflowApi = workflowApi;
         _workflowStore = workflowStore;
     }
 
@@ -128,7 +131,7 @@ public class PluginStateService : IDisposable
 
         try
         {
-            _installedPackages = await _apiClient.GetInstalledPackagesAsync(cancellationToken);
+            _installedPackages = await _packageApi.GetInstalledPackagesAsync(cancellationToken);
             NotifyStateChanged();
         }
         catch (HttpRequestException ex)
@@ -216,7 +219,7 @@ public class PluginStateService : IDisposable
 
         try
         {
-            _searchResults = await _apiClient.SearchPackagesAsync(query, skip, take, false, linkedToken);
+            _searchResults = await _packageApi.SearchPackagesAsync(query, skip, take, false, linkedToken);
 
             // Mark installed packages in search results
             if (_searchResults is not null)
@@ -289,7 +292,7 @@ public class PluginStateService : IDisposable
 
         try
         {
-            var details = await _apiClient.GetPackageDetailsAsync(packageId, version, cancellationToken);
+            var details = await _packageApi.GetPackageDetailsAsync(packageId, version, cancellationToken);
 
             // Enrich with installation status
             if (details is not null)
@@ -351,7 +354,7 @@ public class PluginStateService : IDisposable
 
         try
         {
-            var result = await _apiClient.InstallPackageAsync(packageId, version, false, cancellationToken);
+            var result = await _packageApi.InstallPackageAsync(packageId, version, false, cancellationToken);
 
             if (result.Success && result.Package is not null)
             {
@@ -412,7 +415,7 @@ public class PluginStateService : IDisposable
 
         try
         {
-            var result = await _apiClient.UpdatePackageAsync(packageId, targetVersion, cancellationToken);
+            var result = await _packageApi.UpdatePackageAsync(packageId, targetVersion, cancellationToken);
 
             if (result.Success && result.Package is not null)
             {
@@ -485,7 +488,7 @@ public class PluginStateService : IDisposable
 
         try
         {
-            var result = await _apiClient.UninstallPackageAsync(packageId, force, cancellationToken);
+            var result = await _packageApi.UninstallPackageAsync(packageId, force, cancellationToken);
 
             if (result.Success)
             {
@@ -560,7 +563,7 @@ public class PluginStateService : IDisposable
 
         try
         {
-            _availableUpdates = await _apiClient.CheckForUpdatesAsync(cancellationToken);
+            _availableUpdates = await _packageApi.CheckForUpdatesAsync(cancellationToken);
 
             // Update HasUpdate flag on installed packages
             var updateLookup = _availableUpdates.ToDictionary(u => u.PackageId);
@@ -606,7 +609,7 @@ public class PluginStateService : IDisposable
     {
         try
         {
-            var definitions = await _apiClient.GetNodeDefinitionsAsync(cancellationToken);
+            var definitions = await _workflowApi.GetNodeDefinitionsAsync(cancellationToken);
             _workflowStore.SetNodeDefinitions(definitions);
         }
         catch (HttpRequestException)
@@ -627,7 +630,7 @@ public class PluginStateService : IDisposable
 
         try
         {
-            _sources = await _apiClient.GetPackageSourcesAsync(cancellationToken);
+            _sources = await _packageApi.GetPackageSourcesAsync(cancellationToken);
             NotifyStateChanged();
         }
         catch (HttpRequestException ex)
@@ -686,7 +689,7 @@ public class PluginStateService : IDisposable
 
         try
         {
-            var result = await _apiClient.AddPackageSourceAsync(source, cancellationToken);
+            var result = await _packageApi.AddPackageSourceAsync(source, cancellationToken);
 
             if (result is not null)
             {
@@ -748,7 +751,7 @@ public class PluginStateService : IDisposable
 
         try
         {
-            var success = await _apiClient.UpdatePackageSourceAsync(name, source, cancellationToken);
+            var success = await _packageApi.UpdatePackageSourceAsync(name, source, cancellationToken);
 
             if (success)
             {
@@ -795,7 +798,7 @@ public class PluginStateService : IDisposable
 
         try
         {
-            var success = await _apiClient.RemovePackageSourceAsync(name, cancellationToken);
+            var success = await _packageApi.RemovePackageSourceAsync(name, cancellationToken);
 
             if (success)
             {
@@ -852,7 +855,7 @@ public class PluginStateService : IDisposable
 
         try
         {
-            var result = await _apiClient.TestPackageSourceAsync(name, cancellationToken);
+            var result = await _packageApi.TestPackageSourceAsync(name, cancellationToken);
 
             if (result.Success)
             {

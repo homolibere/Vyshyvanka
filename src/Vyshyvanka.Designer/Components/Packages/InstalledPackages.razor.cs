@@ -11,7 +11,7 @@ public partial class InstalledPackages : IDisposable
     private PluginStateService PluginState { get; set; } = null!;
 
     [Inject]
-    private VyshyvankaApiClient ApiClient { get; set; } = null!;
+    private PackageApiClient ApiClient { get; set; } = null!;
 
     [Inject]
     private ToastService ToastService { get; set; } = null!;

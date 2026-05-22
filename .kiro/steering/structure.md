@@ -164,9 +164,20 @@ The Designer's workflow state is decomposed into focused services:
 | `CanvasStateService` | Pan, zoom, selection, undo/redo, pending connections, drag state |
 | `ExecutionStateService` | Execution visualization and node execution states |
 
+API clients are split by domain:
+
+| Client | Responsibility |
+|--------|---------------|
+| `WorkflowApiClient` | Workflow CRUD, execution, node definitions |
+| `PackageApiClient` | Package install/update/uninstall, search, sources |
+| `CredentialApiClient` | Credential CRUD |
+| `ApiKeyApiClient` | API key CRUD |
+
+All API clients inherit from `ApiClientBase` (shared HttpClient, JSON options, error handling).
+
 Dependency flow: `WorkflowEditService` → `WorkflowStore`, `CanvasStateService`, `WorkflowValidationService`, `ExecutionStateService`. No circular dependencies.
 
-Components inject only the specific services they need. There is no facade or god-object.
+Components inject only the specific services and API clients they need. There is no facade or god-object.
 
 ## Key Patterns
 

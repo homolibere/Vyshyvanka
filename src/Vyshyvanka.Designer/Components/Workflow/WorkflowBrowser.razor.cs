@@ -6,7 +6,7 @@ namespace Vyshyvanka.Designer.Components;
 
 public partial class WorkflowBrowser
 {
-    [Inject] private VyshyvankaApiClient ApiClient { get; set; } = null!;
+    [Inject] private WorkflowApiClient ApiClient { get; set; } = null!;
 
     [Inject] private NavigationManager Navigation { get; set; } = null!;
 

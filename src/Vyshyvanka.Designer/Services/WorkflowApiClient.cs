@@ -8,63 +8,21 @@ using Vyshyvanka.Designer.Models;
 namespace Vyshyvanka.Designer.Services;
 
 /// <summary>
-/// HTTP client for communicating with the Vyshyvanka API.
+/// API client for workflow CRUD, execution, and node definitions.
 /// </summary>
-public partial class VyshyvankaApiClient
+public class WorkflowApiClient(HttpClient httpClient) : ApiClientBase(httpClient)
 {
-    private readonly HttpClient _httpClient;
-
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-    };
-
-    public VyshyvankaApiClient(HttpClient httpClient)
-    {
-        _httpClient = httpClient;
-    }
-
-    /// <summary>
-    /// Ensures the response is successful, throwing ApiException with parsed error details if not.
-    /// </summary>
-    private static async Task EnsureSuccessAsync(HttpResponseMessage response,
-        CancellationToken cancellationToken = default)
-    {
-        if (response.IsSuccessStatusCode)
-            return;
-
-        ApiError? error = null;
-        try
-        {
-            error = await response.Content.ReadFromJsonAsync<ApiError>(cancellationToken);
-        }
-        catch
-        {
-            // Failed to parse error response, will use status code message
-        }
-
-        if (error is not null && !string.IsNullOrEmpty(error.Message))
-        {
-            throw new ApiException(error, (int)response.StatusCode);
-        }
-
-        throw new ApiException(
-            $"Request failed with status {(int)response.StatusCode}: {response.ReasonPhrase}",
-            (int)response.StatusCode);
-    }
-
     /// <summary>Gets all workflows.</summary>
     public async Task<List<Workflow>> GetWorkflowsAsync(CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.GetFromJsonAsync<PagedWorkflowResponse>("api/workflow", cancellationToken);
+        var response = await Http.GetFromJsonAsync<PagedWorkflowResponse>("api/workflow", cancellationToken);
         return response?.Items.Select(MapToWorkflow).ToList() ?? [];
     }
 
     /// <summary>Gets a workflow by ID.</summary>
     public async Task<Workflow?> GetWorkflowAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.GetFromJsonAsync<WorkflowResponse>($"api/workflow/{id}", cancellationToken);
+        var response = await Http.GetFromJsonAsync<WorkflowResponse>($"api/workflow/{id}", cancellationToken);
         return response is null ? null : MapToWorkflow(response);
     }
 
@@ -72,7 +30,7 @@ public partial class VyshyvankaApiClient
     public async Task<Workflow?> CreateWorkflowAsync(Workflow workflow, CancellationToken cancellationToken = default)
     {
         var request = MapToCreateRequest(workflow);
-        var response = await _httpClient.PostAsJsonAsync("api/workflow", request, cancellationToken);
+        var response = await Http.PostAsJsonAsync("api/workflow", request, cancellationToken);
         await EnsureSuccessAsync(response, cancellationToken);
         var result = await response.Content.ReadFromJsonAsync<WorkflowResponse>(cancellationToken);
         return result is null ? null : MapToWorkflow(result);
@@ -82,7 +40,7 @@ public partial class VyshyvankaApiClient
     public async Task<Workflow?> UpdateWorkflowAsync(Workflow workflow, CancellationToken cancellationToken = default)
     {
         var request = MapToUpdateRequest(workflow);
-        var response = await _httpClient.PutAsJsonAsync($"api/workflow/{workflow.Id}", request, cancellationToken);
+        var response = await Http.PutAsJsonAsync($"api/workflow/{workflow.Id}", request, cancellationToken);
         await EnsureSuccessAsync(response, cancellationToken);
         var result = await response.Content.ReadFromJsonAsync<WorkflowResponse>(cancellationToken);
         return result is null ? null : MapToWorkflow(result);
@@ -91,8 +49,70 @@ public partial class VyshyvankaApiClient
     /// <summary>Deletes a workflow.</summary>
     public async Task DeleteWorkflowAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.DeleteAsync($"api/workflow/{id}", cancellationToken);
+        var response = await Http.DeleteAsync($"api/workflow/{id}", cancellationToken);
         await EnsureSuccessAsync(response, cancellationToken);
+    }
+
+    /// <summary>Gets all node definitions from the registry.</summary>
+    public async Task<List<NodeDefinition>> GetNodeDefinitionsAsync(CancellationToken cancellationToken = default)
+    {
+        var response =
+            await Http.GetFromJsonAsync<List<NodeDefinition>>("api/nodes", JsonOptions, cancellationToken);
+        return response ?? [];
+    }
+
+    /// <summary>Triggers a workflow execution.</summary>
+    public async Task<ExecutionResponse?> ExecuteWorkflowAsync(Guid workflowId, JsonElement? triggerData = null,
+        CancellationToken cancellationToken = default)
+    {
+        var request = new TriggerExecutionRequest
+        {
+            WorkflowId = workflowId,
+            InputData = triggerData,
+            Mode = ExecutionMode.Api
+        };
+        var response = await Http.PostAsJsonAsync("api/execution", request, cancellationToken);
+        await EnsureSuccessAsync(response, cancellationToken);
+        return await response.Content.ReadFromJsonAsync<ExecutionResponse>(cancellationToken);
+    }
+
+    /// <summary>Executes a workflow from the trigger up to and including the specified node.</summary>
+    public async Task<ExecutionResponse?> ExecuteUpToNodeAsync(Guid workflowId, string targetNodeId,
+        JsonElement? triggerData = null, bool includeTargetNode = true, CancellationToken cancellationToken = default)
+    {
+        var request = new TriggerExecutionRequest
+        {
+            WorkflowId = workflowId,
+            InputData = triggerData,
+            Mode = ExecutionMode.Api,
+            TargetNodeId = targetNodeId,
+            IncludeTargetNode = includeTargetNode
+        };
+        var response = await Http.PostAsJsonAsync("api/execution", request, cancellationToken);
+        await EnsureSuccessAsync(response, cancellationToken);
+        return await response.Content.ReadFromJsonAsync<ExecutionResponse>(cancellationToken);
+    }
+
+    /// <summary>Executes a single node with provided input data (no full workflow run).</summary>
+    public async Task<NodeExecutionResponse?> ExecuteSingleNodeAsync(Guid workflowId, string nodeId,
+        JsonElement inputData, CancellationToken cancellationToken = default)
+    {
+        var request = new ExecuteNodeRequest
+        {
+            WorkflowId = workflowId,
+            NodeId = nodeId,
+            InputData = inputData
+        };
+        var response = await Http.PostAsJsonAsync("api/execution/node", request, cancellationToken);
+        await EnsureSuccessAsync(response, cancellationToken);
+        return await response.Content.ReadFromJsonAsync<NodeExecutionResponse>(cancellationToken);
+    }
+
+    /// <summary>Gets execution status.</summary>
+    public async Task<ExecutionResponse?> GetExecutionAsync(Guid executionId,
+        CancellationToken cancellationToken = default)
+    {
+        return await Http.GetFromJsonAsync<ExecutionResponse>($"api/execution/{executionId}", cancellationToken);
     }
 
     private static CreateWorkflowRequest MapToCreateRequest(Workflow workflow) => new()
@@ -130,7 +150,6 @@ public partial class VyshyvankaApiClient
 
     private static bool IsValidJsonElement(JsonElement element)
     {
-        // A default JsonElement has ValueKind of Undefined and cannot be serialized
         return element.ValueKind != JsonValueKind.Undefined;
     }
 
@@ -192,67 +211,4 @@ public partial class VyshyvankaApiClient
         UpdatedAt = response.UpdatedAt,
         CreatedBy = response.CreatedBy
     };
-
-
-    /// <summary>Gets all node definitions from the registry.</summary>
-    public async Task<List<NodeDefinition>> GetNodeDefinitionsAsync(CancellationToken cancellationToken = default)
-    {
-        var response =
-            await _httpClient.GetFromJsonAsync<List<NodeDefinition>>("api/nodes", JsonOptions, cancellationToken);
-        return response ?? [];
-    }
-
-    /// <summary>Triggers a workflow execution.</summary>
-    public async Task<ExecutionResponse?> ExecuteWorkflowAsync(Guid workflowId, JsonElement? triggerData = null,
-        CancellationToken cancellationToken = default)
-    {
-        var request = new TriggerExecutionRequest
-        {
-            WorkflowId = workflowId,
-            InputData = triggerData,
-            Mode = ExecutionMode.Api
-        };
-        var response = await _httpClient.PostAsJsonAsync("api/execution", request, cancellationToken);
-        await EnsureSuccessAsync(response, cancellationToken);
-        return await response.Content.ReadFromJsonAsync<ExecutionResponse>(cancellationToken);
-    }
-
-    /// <summary>Executes a workflow from the trigger up to and including the specified node.</summary>
-    public async Task<ExecutionResponse?> ExecuteUpToNodeAsync(Guid workflowId, string targetNodeId,
-        JsonElement? triggerData = null, bool includeTargetNode = true, CancellationToken cancellationToken = default)
-    {
-        var request = new TriggerExecutionRequest
-        {
-            WorkflowId = workflowId,
-            InputData = triggerData,
-            Mode = ExecutionMode.Api,
-            TargetNodeId = targetNodeId,
-            IncludeTargetNode = includeTargetNode
-        };
-        var response = await _httpClient.PostAsJsonAsync("api/execution", request, cancellationToken);
-        await EnsureSuccessAsync(response, cancellationToken);
-        return await response.Content.ReadFromJsonAsync<ExecutionResponse>(cancellationToken);
-    }
-
-    /// <summary>Executes a single node with provided input data (no full workflow run).</summary>
-    public async Task<NodeExecutionResponse?> ExecuteSingleNodeAsync(Guid workflowId, string nodeId,
-        JsonElement inputData, CancellationToken cancellationToken = default)
-    {
-        var request = new ExecuteNodeRequest
-        {
-            WorkflowId = workflowId,
-            NodeId = nodeId,
-            InputData = inputData
-        };
-        var response = await _httpClient.PostAsJsonAsync("api/execution/node", request, cancellationToken);
-        await EnsureSuccessAsync(response, cancellationToken);
-        return await response.Content.ReadFromJsonAsync<NodeExecutionResponse>(cancellationToken);
-    }
-
-    /// <summary>Gets execution status.</summary>
-    public async Task<ExecutionResponse?> GetExecutionAsync(Guid executionId,
-        CancellationToken cancellationToken = default)
-    {
-        return await _httpClient.GetFromJsonAsync<ExecutionResponse>($"api/execution/{executionId}", cancellationToken);
-    }
 }

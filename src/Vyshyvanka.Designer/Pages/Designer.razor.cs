@@ -20,7 +20,7 @@ public partial class Designer : IDisposable
 
     [Inject] private ExecutionStateService ExecutionState { get; set; } = null!;
 
-    [Inject] private VyshyvankaApiClient ApiClient { get; set; } = null!;
+    [Inject] private WorkflowApiClient ApiClient { get; set; } = null!;
 
     [Inject] private NavigationManager Navigation { get; set; } = null!;
 

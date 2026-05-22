@@ -10,7 +10,7 @@ namespace Vyshyvanka.Designer.Components;
 /// </summary>
 public partial class WorkflowSelectPropertyEditor : ComponentBase
 {
-    [Inject] private VyshyvankaApiClient ApiClient { get; set; } = null!;
+    [Inject] private WorkflowApiClient ApiClient { get; set; } = null!;
 
     [Parameter, EditorRequired] public ConfigurationProperty Property { get; set; } = null!;
 

@@ -34,7 +34,10 @@ builder.Services.AddScoped(sp =>
 builder.Services.AddScoped<AuthService>();
 
 // Register Vyshyvanka services
-builder.Services.AddScoped<VyshyvankaApiClient>();
+builder.Services.AddScoped<WorkflowApiClient>(sp => new WorkflowApiClient(sp.GetRequiredService<HttpClient>()));
+builder.Services.AddScoped<PackageApiClient>(sp => new PackageApiClient(sp.GetRequiredService<HttpClient>()));
+builder.Services.AddScoped<CredentialApiClient>(sp => new CredentialApiClient(sp.GetRequiredService<HttpClient>()));
+builder.Services.AddScoped<ApiKeyApiClient>(sp => new ApiKeyApiClient(sp.GetRequiredService<HttpClient>()));
 builder.Services.AddScoped<WorkflowStore>();
 builder.Services.AddScoped<CanvasStateService>();
 builder.Services.AddScoped<WorkflowValidationService>();

@@ -8,7 +8,7 @@ namespace Vyshyvanka.Designer.Components;
 public partial class CredentialManager
 {
     [Inject]
-    private VyshyvankaApiClient ApiClient { get; set; } = null!;
+    private CredentialApiClient ApiClient { get; set; } = null!;
 
     [Inject]
     private ToastService ToastService { get; set; } = null!;

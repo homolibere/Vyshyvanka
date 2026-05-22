@@ -15,7 +15,7 @@ public partial class NodeConfigPanel : IDisposable
 
     [Inject] private ExecutionStateService ExecutionState { get; set; } = null!;
 
-    [Inject] private VyshyvankaApiClient ApiClient { get; set; } = null!;
+    [Inject] private WorkflowApiClient ApiClient { get; set; } = null!;
 
     [Inject] private ToastService ToastService { get; set; } = null!;
 

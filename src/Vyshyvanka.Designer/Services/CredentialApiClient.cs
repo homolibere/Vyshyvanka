@@ -4,14 +4,14 @@ using Vyshyvanka.Designer.Models;
 namespace Vyshyvanka.Designer.Services;
 
 /// <summary>
-/// Credential management methods for the Vyshyvanka API client.
+/// API client for credential CRUD operations.
 /// </summary>
-public partial class VyshyvankaApiClient
+public class CredentialApiClient(HttpClient httpClient) : ApiClientBase(httpClient)
 {
     /// <summary>Lists all credentials for the current user.</summary>
     public async Task<List<CredentialModel>> GetCredentialsAsync(CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.GetAsync("api/credentials", cancellationToken);
+        var response = await Http.GetAsync("api/credentials", cancellationToken);
         if (!response.IsSuccessStatusCode)
             return [];
 
@@ -21,7 +21,7 @@ public partial class VyshyvankaApiClient
     /// <summary>Gets a credential by ID.</summary>
     public async Task<CredentialModel?> GetCredentialAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.GetAsync($"api/credentials/{id}", cancellationToken);
+        var response = await Http.GetAsync($"api/credentials/{id}", cancellationToken);
         if (!response.IsSuccessStatusCode)
             return null;
 
@@ -32,7 +32,7 @@ public partial class VyshyvankaApiClient
     public async Task<CredentialModel?> CreateCredentialAsync(
         CreateCredentialModel model, CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.PostAsJsonAsync("api/credentials", model, JsonOptions, cancellationToken);
+        var response = await Http.PostAsJsonAsync("api/credentials", model, JsonOptions, cancellationToken);
         await EnsureSuccessAsync(response, cancellationToken);
         return await response.Content.ReadFromJsonAsync<CredentialModel>(JsonOptions, cancellationToken);
     }
@@ -41,7 +41,7 @@ public partial class VyshyvankaApiClient
     public async Task<CredentialModel?> UpdateCredentialAsync(
         Guid id, UpdateCredentialModel model, CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.PutAsJsonAsync($"api/credentials/{id}", model, JsonOptions, cancellationToken);
+        var response = await Http.PutAsJsonAsync($"api/credentials/{id}", model, JsonOptions, cancellationToken);
         await EnsureSuccessAsync(response, cancellationToken);
         return await response.Content.ReadFromJsonAsync<CredentialModel>(JsonOptions, cancellationToken);
     }
@@ -49,7 +49,7 @@ public partial class VyshyvankaApiClient
     /// <summary>Deletes a credential.</summary>
     public async Task DeleteCredentialAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.DeleteAsync($"api/credentials/{id}", cancellationToken);
+        var response = await Http.DeleteAsync($"api/credentials/{id}", cancellationToken);
         await EnsureSuccessAsync(response, cancellationToken);
     }
 }
