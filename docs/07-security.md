@@ -92,10 +92,15 @@ Open registration is disabled by default. Configure via `appsettings.json`:
 
 All passwords (registration) must satisfy:
 - Minimum length (configurable, default 8)
+- Maximum length of 128 characters (prevents CPU-bound DoS via expensive hashing)
 - At least one uppercase letter
 - At least one lowercase letter
 - At least one digit
 - At least one special character (non-alphanumeric)
+
+#### Email Validation
+
+The registration endpoint validates email format using `System.Net.Mail.MailAddress.TryCreate`. Malformed emails are rejected before any further processing.
 
 The `GET /api/auth/config` endpoint returns `allowRegistration` so the Designer can conditionally show or hide the registration form.
 
@@ -327,13 +332,13 @@ Vyshyvanka supports three credential storage backends, selected via the `Credent
 flowchart LR
     subgraph "Create Credential"
         PlainText["Plain-text<br/>Key-Value Pairs"] -->|Serialize to JSON| JSON["JSON String"]
-        JSON -->|AES-256 Encrypt| Encrypted["Encrypted Bytes<br/>(IV + Ciphertext)"]
+        JSON -->|AES-256-GCM Encrypt| Encrypted["Encrypted Bytes<br/>(Nonce + Tag + Ciphertext)"]
         Encrypted -->|Store| DB[(Database)]
     end
 
     subgraph "Use at Execution"
         DB2[(Database)] -->|Load| Encrypted2["Encrypted Bytes"]
-        Encrypted2 -->|AES-256 Decrypt| JSON2["JSON String"]
+        Encrypted2 -->|AES-256-GCM Decrypt<br/>(verify tag)| JSON2["JSON String"]
         JSON2 -->|Deserialize| Memory["DecryptedCredential<br/>(in-memory only)"]
         Memory -->|Provide to Node| Node["Node Execution"]
     end
@@ -341,10 +346,12 @@ flowchart LR
 
 | Aspect | Detail |
 |--------|--------|
-| Algorithm | AES-256 (symmetric, CBC mode, PKCS7 padding) |
-| IV | Unique per encryption, prepended to ciphertext |
-| Storage | `EncryptedData` field on `Credential` entity |
+| Algorithm | AES-256-GCM (authenticated encryption) |
+| Nonce | Unique 12-byte nonce per encryption |
+| Authentication Tag | 128-bit tag ensures integrity and detects tampering |
+| Storage Format | `[version 0x02] [nonce: 12B] [tag: 16B] [ciphertext]` in `EncryptedData` field |
 | Key | Configurable via `Vyshyvanka:EncryptionKey` (Base64-encoded 256-bit key) |
+| Legacy Support | Decryption of older AES-CBC data is supported for migration |
 
 ### Vault / OpenBao Storage
 

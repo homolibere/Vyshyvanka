@@ -113,6 +113,12 @@ public class AuthService : IAuthService
         ArgumentNullException.ThrowIfNull(email);
         ArgumentNullException.ThrowIfNull(password);
 
+        // Validate email format
+        if (!System.Net.Mail.MailAddress.TryCreate(email, out _))
+        {
+            return new AuthResult { Success = false, ErrorMessage = "Invalid email format" };
+        }
+
         // Validate password complexity
         var passwordValidation = PasswordValidator.Validate(password, _authSettings.MinPasswordLength);
         if (!passwordValidation.IsValid)

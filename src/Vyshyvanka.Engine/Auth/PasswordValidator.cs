@@ -8,6 +8,9 @@ public static class PasswordValidator
     /// <summary>Default minimum password length.</summary>
     public const int DefaultMinLength = 8;
 
+    /// <summary>Maximum allowed password length to prevent CPU-bound DoS via expensive hashing.</summary>
+    public const int MaxLength = 128;
+
     /// <summary>
     /// Validates that a password meets complexity requirements:
     /// minimum length, at least one uppercase, one lowercase, one digit, and one special character.
@@ -26,6 +29,12 @@ public static class PasswordValidator
         {
             return PasswordValidationResult.Failure(
                 $"Password must be at least {minLength} characters long");
+        }
+
+        if (password.Length > MaxLength)
+        {
+            return PasswordValidationResult.Failure(
+                $"Password must not exceed {MaxLength} characters");
         }
 
         if (!password.Any(char.IsUpper))

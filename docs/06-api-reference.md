@@ -40,7 +40,7 @@ The `ErrorHandlingMiddleware` maps all unhandled exceptions to appropriate HTTP 
 |--------|------|------|------------|
 | GET | `/api/auth/config` | Anonymous | Returns the active authentication provider and OIDC settings (authority, client ID). Used by the Designer to configure its auth flow. |
 | POST | `/api/auth/login` | Anonymous | Login with email/username and password. Returns JWT access token, refresh token, and user info. **Built-in and LDAP providers only.** Rate limited: 5 req/min per IP. |
-| POST | `/api/auth/register` | Anonymous | Register a new user account. **Built-in provider only.** Requires `AllowRegistration: true` in settings. Enforces password complexity. Rate limited: 5 req/min per IP. |
+| POST | `/api/auth/register` | Anonymous | Register a new user account. **Built-in provider only.** Requires `AllowRegistration: true` in settings. Validates email format and enforces password complexity. Rate limited: 5 req/min per IP. |
 | POST | `/api/auth/refresh` | Anonymous | Exchange a refresh token for a new access token. **Built-in and LDAP providers only.** Rate limited: 5 req/min per IP. |
 | POST | `/api/auth/unlock/{userId}` | CanManageUsers | Unlock a user account locked due to failed login attempts. Resets failed attempt counter and lockout timer. |
 
