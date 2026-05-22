@@ -11,9 +11,13 @@ public class StringPropertyEditorTests : BunitContext
 {
     public StringPropertyEditorTests()
     {
-        var workflowState = new WorkflowStateService();
-        Services.AddSingleton(workflowState);
-        Services.AddSingleton(new ExpressionAutocompleteService(workflowState));
+        var store = new WorkflowStore();
+        var canvasState = new CanvasStateService(store);
+        var executionState = new ExecutionStateService(store);
+        Services.AddSingleton(store);
+        Services.AddSingleton(canvasState);
+        Services.AddSingleton(executionState);
+        Services.AddSingleton(new ExpressionAutocompleteService(store, executionState));
         Services.AddSingleton(new ExpressionDragService());
     }
 

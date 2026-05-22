@@ -35,7 +35,11 @@ builder.Services.AddScoped<AuthService>();
 
 // Register Vyshyvanka services
 builder.Services.AddScoped<VyshyvankaApiClient>();
-builder.Services.AddScoped<WorkflowStateService>();
+builder.Services.AddScoped<WorkflowStore>();
+builder.Services.AddScoped<CanvasStateService>();
+builder.Services.AddScoped<WorkflowValidationService>();
+builder.Services.AddScoped<ExecutionStateService>();
+builder.Services.AddScoped<WorkflowEditService>();
 builder.Services.AddScoped<ExpressionAutocompleteService>();
 builder.Services.AddScoped<PluginStateService>();
 builder.Services.AddScoped<ToastService>();

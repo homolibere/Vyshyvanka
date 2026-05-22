@@ -14,7 +14,11 @@ namespace Vyshyvanka.Designer.Components;
 /// </summary>
 public partial class NodeEditorModal : ComponentBase, IDisposable
 {
-    [Inject] private WorkflowStateService StateService { get; set; } = null!;
+    [Inject] private WorkflowStore Store { get; set; } = null!;
+
+    [Inject] private WorkflowEditService EditService { get; set; } = null!;
+
+    [Inject] private ExecutionStateService ExecutionState { get; set; } = null!;
 
     [Inject] private VyshyvankaApiClient ApiClient { get; set; } = null!;
 
@@ -112,15 +116,15 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
             return;
         }
 
-        _node = StateService.GetNode(NodeId);
+        _node = Store.GetNode(NodeId);
         if (_node is null)
         {
             _errorMessage = $"Node '{NodeId}' not found";
             return;
         }
 
-        _definition = StateService.GetNodeDefinition(_node.Type);
-        _executionState = StateService.GetNodeExecutionState(NodeId);
+        _definition = Store.GetNodeDefinition(_node.Type);
+        _executionState = ExecutionState.GetNodeExecutionState(NodeId);
         _currentIteration = _executionState?.HasMultipleIterations == true
             ? _executionState.Iterations.Count - 1
             : 0;
@@ -198,8 +202,8 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
     private void HandleCredentialChanged(Guid? credentialId)
     {
         if (_node is null || string.IsNullOrEmpty(NodeId)) return;
-        StateService.UpdateNodeCredential(NodeId, credentialId);
-        _node = StateService.GetNode(NodeId);
+        EditService.UpdateNodeCredential(NodeId, credentialId);
+        _node = Store.GetNode(NodeId);
         _isDirty = true;
     }
 
@@ -281,7 +285,7 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
             config = ConfigurationSchemaParser.BuildConfiguration(_configValues);
         }
 
-        StateService.UpdateNodeConfiguration(NodeId, config);
+        EditService.UpdateNodeConfiguration(NodeId, config);
         _isDirty = false;
     }
 
@@ -325,12 +329,12 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
 
             // Execute predecessors only — API computes and returns the target node's expected input
             var result = await ApiClient.ExecuteUpToNodeAsync(
-                StateService.Workflow.Id, NodeId, includeTargetNode: false);
+                Store.Workflow.Id, NodeId, includeTargetNode: false);
 
             if (result is not null)
             {
-                StateService.SetCurrentExecution(result);
-                _executionState = StateService.GetNodeExecutionState(NodeId);
+                ExecutionState.SetCurrentExecution(result);
+                _executionState = ExecutionState.GetNodeExecutionState(NodeId);
                 _currentIteration = 0;
 
                 if (result.Status == Core.Enums.ExecutionStatus.Failed)
@@ -385,13 +389,13 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
             if (canRunSingle)
             {
                 var nodeResult = await ApiClient.ExecuteSingleNodeAsync(
-                    StateService.Workflow.Id, NodeId, CurrentInputData!.Value);
+                    Store.Workflow.Id, NodeId, CurrentInputData!.Value);
 
                 if (nodeResult is not null)
                 {
                     // Update the execution state for this node with the single-node result
-                    StateService.SetNodeExecutionResult(NodeId, nodeResult);
-                    _executionState = StateService.GetNodeExecutionState(NodeId);
+                    ExecutionState.SetNodeExecutionResult(NodeId, nodeResult);
+                    _executionState = ExecutionState.GetNodeExecutionState(NodeId);
                     _currentIteration = 0;
 
                     if (nodeResult.Status == Core.Enums.ExecutionStatus.Failed)
@@ -408,12 +412,12 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
             {
                 // Full workflow execution up to and including this node
                 var result = await ApiClient.ExecuteUpToNodeAsync(
-                    StateService.Workflow.Id, NodeId, includeTargetNode: true);
+                    Store.Workflow.Id, NodeId, includeTargetNode: true);
 
                 if (result is not null)
                 {
-                    StateService.SetCurrentExecution(result);
-                    _executionState = StateService.GetNodeExecutionState(NodeId);
+                    ExecutionState.SetCurrentExecution(result);
+                    _executionState = ExecutionState.GetNodeExecutionState(NodeId);
                     _currentIteration = _executionState?.HasMultipleIterations == true
                         ? _executionState.Iterations.Count - 1
                         : 0;
@@ -458,13 +462,13 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
 
     private async Task SaveWorkflowIfDirtyAsync()
     {
-        if (StateService.IsDirty)
+        if (Store.IsDirty)
         {
-            var saved = await ApiClient.UpdateWorkflowAsync(StateService.Workflow);
+            var saved = await ApiClient.UpdateWorkflowAsync(Store.Workflow);
             if (saved is not null)
             {
-                StateService.LoadWorkflow(saved);
-                StateService.MarkAsSaved();
+                EditService.LoadWorkflow(saved);
+                Store.MarkAsSaved();
             }
         }
     }

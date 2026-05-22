@@ -10,7 +10,15 @@ namespace Vyshyvanka.Designer.Pages;
 
 public partial class Designer : IDisposable
 {
-    [Inject] private WorkflowStateService StateService { get; set; } = null!;
+    [Inject] private WorkflowStore Store { get; set; } = null!;
+
+    [Inject] private WorkflowEditService EditService { get; set; } = null!;
+
+    [Inject] private CanvasStateService CanvasState { get; set; } = null!;
+
+    [Inject] private WorkflowValidationService ValidationService { get; set; } = null!;
+
+    [Inject] private ExecutionStateService ExecutionState { get; set; } = null!;
 
     [Inject] private VyshyvankaApiClient ApiClient { get; set; } = null!;
 
@@ -43,8 +51,8 @@ public partial class Designer : IDisposable
         // Undo
         builder.OpenElement(seq++, "button");
         builder.AddAttribute(seq++, "class", "toolbar-btn");
-        builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, StateService.Undo));
-        builder.AddAttribute(seq++, "disabled", !StateService.CanUndo);
+        builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, CanvasState.Undo));
+        builder.AddAttribute(seq++, "disabled", !CanvasState.CanUndo);
         builder.AddAttribute(seq++, "title", "Undo");
         builder.AddContent(seq++, "↶");
         builder.CloseElement();
@@ -52,8 +60,8 @@ public partial class Designer : IDisposable
         // Redo
         builder.OpenElement(seq++, "button");
         builder.AddAttribute(seq++, "class", "toolbar-btn");
-        builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, StateService.Redo));
-        builder.AddAttribute(seq++, "disabled", !StateService.CanRedo);
+        builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, CanvasState.Redo));
+        builder.AddAttribute(seq++, "disabled", !CanvasState.CanRedo);
         builder.AddAttribute(seq++, "title", "Redo");
         builder.AddContent(seq++, "↷");
         builder.CloseElement();
@@ -74,7 +82,7 @@ public partial class Designer : IDisposable
         // Zoom level
         builder.OpenElement(seq++, "span");
         builder.AddAttribute(seq++, "class", "zoom-level");
-        builder.AddContent(seq++, $"{(StateService.CanvasState.Zoom * 100):0}%");
+        builder.AddContent(seq++, $"{(CanvasState.CanvasState.Zoom * 100):0}%");
         builder.CloseElement();
 
         // Zoom Out
@@ -88,7 +96,7 @@ public partial class Designer : IDisposable
         // Reset View
         builder.OpenElement(seq++, "button");
         builder.AddAttribute(seq++, "class", "toolbar-btn");
-        builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, StateService.ResetView));
+        builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, CanvasState.ResetView));
         builder.AddAttribute(seq++, "title", "Reset View");
         builder.AddContent(seq++, "⟲");
         builder.CloseElement();
@@ -99,7 +107,7 @@ public partial class Designer : IDisposable
         builder.CloseElement();
 
         // Dirty indicator
-        if (StateService.IsDirty)
+        if (Store.IsDirty)
         {
             builder.OpenElement(seq++, "span");
             builder.AddAttribute(seq++, "class", "dirty-indicator");
@@ -112,7 +120,7 @@ public partial class Designer : IDisposable
         builder.OpenElement(seq++, "button");
         builder.AddAttribute(seq++, "class", "toolbar-btn primary");
         builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, SaveWorkflow));
-        builder.AddAttribute(seq++, "disabled", !StateService.ValidationResult.IsValid);
+        builder.AddAttribute(seq++, "disabled", !ValidationService.ValidationResult.IsValid);
         builder.AddAttribute(seq++, "title", GetSaveButtonTitle());
         builder.AddContent(seq++, "💾 Save");
         builder.CloseElement();
@@ -127,13 +135,13 @@ public partial class Designer : IDisposable
 
         // Active toggle
         builder.OpenElement(seq++, "button");
-        builder.AddAttribute(seq++, "class", $"toolbar-btn {(StateService.Workflow.IsActive ? "active" : "")}");
+        builder.AddAttribute(seq++, "class", $"toolbar-btn {(Store.Workflow.IsActive ? "active" : "")}");
         builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, ToggleWorkflowActive));
         builder.AddAttribute(seq++, "title",
-            StateService.Workflow.IsActive
+            Store.Workflow.IsActive
                 ? "Workflow is active (click to deactivate)"
                 : "Workflow is inactive (click to activate)");
-        builder.AddContent(seq++, StateService.Workflow.IsActive ? "🟢 Active" : "⚪ Inactive");
+        builder.AddContent(seq++, Store.Workflow.IsActive ? "🟢 Active" : "⚪ Inactive");
         builder.CloseElement();
 
         // Run
@@ -141,14 +149,14 @@ public partial class Designer : IDisposable
         builder.AddAttribute(seq++, "class", "toolbar-btn");
         builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, ExecuteWorkflow));
         builder.AddAttribute(seq++, "disabled",
-            !StateService.ValidationResult.IsValid || StateService.IsExecutionActive ||
-            !StateService.Workflow.IsActive);
+            !ValidationService.ValidationResult.IsValid || ExecutionState.IsExecutionActive ||
+            !Store.Workflow.IsActive);
         builder.AddAttribute(seq++, "title", GetRunButtonTitle());
         builder.AddContent(seq++, "▶ Run");
         builder.CloseElement();
 
         // Stop (conditional)
-        if (StateService.IsExecutionActive)
+        if (ExecutionState.IsExecutionActive)
         {
             builder.OpenElement(seq++, "button");
             builder.AddAttribute(seq++, "class", "toolbar-btn");
@@ -193,19 +201,19 @@ public partial class Designer : IDisposable
 
     protected override async Task OnInitializedAsync()
     {
-        StateService.OnStateChanged += StateHasChanged;
-        StateService.OnExecutionChanged += OnExecutionChanged;
+        Store.OnStateChanged += StateHasChanged;
+        ExecutionState.OnExecutionChanged += OnExecutionChanged;
 
         // Load node definitions
         try
         {
             var definitions = await ApiClient.GetNodeDefinitionsAsync();
-            StateService.SetNodeDefinitions(definitions);
+            Store.SetNodeDefinitions(definitions);
         }
         catch
         {
             // Use default definitions if API is not available
-            StateService.SetNodeDefinitions(GetDefaultNodeDefinitions());
+            Store.SetNodeDefinitions(GetDefaultNodeDefinitions());
         }
     }
 
@@ -223,24 +231,24 @@ public partial class Designer : IDisposable
                     var workflow = await ApiClient.GetWorkflowAsync(WorkflowId.Value);
                     if (workflow is not null)
                     {
-                        StateService.LoadWorkflow(workflow);
+                        EditService.LoadWorkflow(workflow);
                     }
                 }
                 catch
                 {
                     // Start with new workflow if load fails
-                    StateService.NewWorkflow();
+                    EditService.NewWorkflow();
                 }
             }
             else
             {
-                StateService.NewWorkflow();
+                EditService.NewWorkflow();
             }
         }
     }
 
-    private void ZoomIn() => StateService.Zoom(StateService.CanvasState.Zoom + 0.1);
-    private void ZoomOut() => StateService.Zoom(StateService.CanvasState.Zoom - 0.1);
+    private void ZoomIn() => CanvasState.Zoom(CanvasState.CanvasState.Zoom + 0.1);
+    private void ZoomOut() => CanvasState.Zoom(CanvasState.CanvasState.Zoom - 0.1);
 
     private void OpenPluginManager() => _isPluginManagerOpen = true;
     private void ClosePluginManager() => _isPluginManagerOpen = false;
@@ -269,27 +277,27 @@ public partial class Designer : IDisposable
 
     private void ToggleConfig() => _isConfigCollapsed = !_isConfigCollapsed;
 
-    private string GetSaveButtonTitle() => StateService.ValidationResult.IsValid
+    private string GetSaveButtonTitle() => ValidationService.ValidationResult.IsValid
         ? "Save workflow"
         : "Fix validation errors before saving";
 
     private string GetRunButtonTitle()
     {
-        if (!StateService.ValidationResult.IsValid)
+        if (!ValidationService.ValidationResult.IsValid)
             return "Fix validation errors before running";
-        if (!StateService.Workflow.IsActive)
+        if (!Store.Workflow.IsActive)
             return "Activate workflow before running";
         return "Execute workflow";
     }
 
     private void ToggleWorkflowActive()
     {
-        StateService.ToggleWorkflowActive();
+        EditService.ToggleWorkflowActive();
     }
 
     private async Task SaveWorkflow()
     {
-        if (!StateService.ValidationResult.IsValid)
+        if (!ValidationService.ValidationResult.IsValid)
             return;
 
         try
@@ -299,18 +307,18 @@ public partial class Designer : IDisposable
 
             if (WorkflowId.HasValue)
             {
-                saved = await ApiClient.UpdateWorkflowAsync(StateService.Workflow);
+                saved = await ApiClient.UpdateWorkflowAsync(Store.Workflow);
             }
             else
             {
-                saved = await ApiClient.CreateWorkflowAsync(StateService.Workflow);
+                saved = await ApiClient.CreateWorkflowAsync(Store.Workflow);
             }
 
             if (saved is not null)
             {
                 // Update state with the saved workflow (has correct ID and version)
-                StateService.LoadWorkflow(saved);
-                StateService.MarkAsSaved();
+                EditService.LoadWorkflow(saved);
+                Store.MarkAsSaved();
 
                 Toast.ShowSuccess(
                     isNew
@@ -340,7 +348,7 @@ public partial class Designer : IDisposable
     {
         try
         {
-            var workflow = StateService.Workflow;
+            var workflow = Store.Workflow;
             var json = System.Text.Json.JsonSerializer.Serialize(workflow, new System.Text.Json.JsonSerializerOptions
             {
                 WriteIndented = true,
@@ -361,15 +369,15 @@ public partial class Designer : IDisposable
 
     private async Task ExecuteWorkflow()
     {
-        if (!StateService.ValidationResult.IsValid)
+        if (!ValidationService.ValidationResult.IsValid)
             return;
 
         try
         {
-            var execution = await ApiClient.ExecuteWorkflowAsync(StateService.Workflow.Id);
+            var execution = await ApiClient.ExecuteWorkflowAsync(Store.Workflow.Id);
             if (execution is not null)
             {
-                StateService.SetCurrentExecution(execution);
+                ExecutionState.SetCurrentExecution(execution);
                 StartExecutionPolling(execution.Id);
                 Toast.ShowInfo($"Execution started (ID: {execution.Id.ToString()[..8]}...)", "Running");
             }
@@ -387,7 +395,7 @@ public partial class Designer : IDisposable
     private void StopExecution()
     {
         StopExecutionPolling();
-        StateService.ClearExecutionState();
+        ExecutionState.ClearExecutionState();
         Toast.ShowInfo("Execution stopped", "Stopped");
     }
 
@@ -438,7 +446,7 @@ public partial class Designer : IDisposable
             var execution = await ApiClient.GetExecutionAsync(executionId);
             if (execution is not null)
             {
-                StateService.UpdateExecution(execution);
+                ExecutionState.UpdateExecution(execution);
             }
         }
         catch
@@ -545,8 +553,8 @@ public partial class Designer : IDisposable
 
     public void Dispose()
     {
-        StateService.OnStateChanged -= StateHasChanged;
-        StateService.OnExecutionChanged -= OnExecutionChanged;
+        Store.OnStateChanged -= StateHasChanged;
+        ExecutionState.OnExecutionChanged -= OnExecutionChanged;
         StopExecutionPolling();
     }
 }

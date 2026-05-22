@@ -9,7 +9,7 @@ namespace Vyshyvanka.Designer.Services;
 public class PluginStateService : IDisposable
 {
     private readonly VyshyvankaApiClient _apiClient;
-    private readonly WorkflowStateService _workflowStateService;
+    private readonly WorkflowStore _workflowStore;
 
     private List<InstalledPackageModel> _installedPackages = [];
     private List<PackageUpdateInfoModel> _availableUpdates = [];
@@ -38,11 +38,11 @@ public class PluginStateService : IDisposable
     /// Creates a new instance of the PluginStateService.
     /// </summary>
     /// <param name="apiClient">The API client for communicating with the Vyshyvanka API.</param>
-    /// <param name="workflowStateService">The workflow state service for node refresh.</param>
-    public PluginStateService(VyshyvankaApiClient apiClient, WorkflowStateService workflowStateService)
+    /// <param name="workflowStore">The workflow store for node definition refresh.</param>
+    public PluginStateService(VyshyvankaApiClient apiClient, WorkflowStore workflowStore)
     {
         _apiClient = apiClient;
-        _workflowStateService = workflowStateService;
+        _workflowStore = workflowStore;
     }
 
     /// <summary>Currently installed packages.</summary>
@@ -607,7 +607,7 @@ public class PluginStateService : IDisposable
         try
         {
             var definitions = await _apiClient.GetNodeDefinitionsAsync(cancellationToken);
-            _workflowStateService.SetNodeDefinitions(definitions);
+            _workflowStore.SetNodeDefinitions(definitions);
         }
         catch (HttpRequestException)
         {

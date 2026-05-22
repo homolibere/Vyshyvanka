@@ -2,7 +2,7 @@
 @page "/designer/{WorkflowId:guid}"
 @layout DesignerLayout
 
-<PageTitle>@(StateService.Workflow.Name) - Vyshyvanka Designer</PageTitle>
+<PageTitle>@(Store.Workflow.Name) - Vyshyvanka Designer</PageTitle>
 
 @{
     Layout?.SetToolbar(ToolbarContent);
@@ -24,18 +24,18 @@
     </aside>
 
     <div class="canvas-area">
-        @if (!StateService.ValidationResult.IsValid)
+        @if (!ValidationService.ValidationResult.IsValid)
         {
             <div class="validation-panel">
                 <div class="validation-header" @onclick="ToggleValidationPanel">
                     <span class="validation-icon">⚠️</span>
-                    <span>@StateService.ValidationResult.Errors.Count validation error(s)</span>
+                    <span>@ValidationService.ValidationResult.Errors.Count validation error(s)</span>
                     <span class="validation-toggle">@(_isValidationPanelExpanded ? "▼" : "▶")</span>
                 </div>
                 @if (_isValidationPanelExpanded)
                 {
                     <div class="validation-errors">
-                        @foreach (var error in StateService.ValidationResult.Errors)
+                        @foreach (var error in ValidationService.ValidationResult.Errors)
                         {
                             <div class="validation-error">
                                 <span class="error-path">@error.Path</span>

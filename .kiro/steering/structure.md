@@ -152,9 +152,26 @@ When modifying code, ALWAYS check for downstream impact:
 | Credential storage provider setting | `ServiceCollectionExtensions`, `CredentialService` or `VaultCredentialService` |
 | `ICredentialService` interface | Both `CredentialService` and `VaultCredentialService` |
 
+## Designer Service Architecture
+
+The Designer's workflow state is decomposed into focused services:
+
+| Service | Responsibility |
+|---------|---------------|
+| `WorkflowStore` | Shared state container (workflow, node definitions, dirty flag, serialization) |
+| `WorkflowEditService` | Workflow mutations (add/remove/move nodes, connections, metadata) |
+| `WorkflowValidationService` | Validation logic and port compatibility checks |
+| `CanvasStateService` | Pan, zoom, selection, undo/redo, pending connections, drag state |
+| `ExecutionStateService` | Execution visualization and node execution states |
+
+Dependency flow: `WorkflowEditService` → `WorkflowStore`, `CanvasStateService`, `WorkflowValidationService`, `ExecutionStateService`. No circular dependencies.
+
+Components inject only the specific services they need. There is no facade or god-object.
+
 ## Key Patterns
 
 - Records for DTOs and immutable domain objects
 - Repository pattern: interfaces in Core, implementations in Engine
 - Node inheritance: `BaseTriggerNode`, `BaseActionNode`, `BaseLogicNode` in `Engine/Nodes/Base/`
 - Dependency injection throughout all projects
+- Store + decomposed services pattern in Designer (see above)

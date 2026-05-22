@@ -16,7 +16,7 @@
 
     <!-- Execution status indicator -->
     @{
-        var execState = StateService.GetNodeExecutionState(Node.Id);
+        var execState = ExecutionState.GetNodeExecutionState(Node.Id);
     }
     @if (execState is not null)
     {

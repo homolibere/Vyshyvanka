@@ -90,7 +90,7 @@
 
         <!-- Connections layer -->
         <g class="connections-layer">
-            @foreach (var connection in StateService.Workflow.Connections)
+            @foreach (var connection in Store.Workflow.Connections)
             {
                 var coords = GetConnectionCoordinates(connection);
                 <ConnectionLine
@@ -99,14 +99,14 @@
                     StartY="@coords.StartY"
                     EndX="@coords.EndX"
                     EndY="@coords.EndY"
-                    IsSelected="@(StateService.SelectedConnection == connection)"
-                    OnSelect="@(() => StateService.SelectConnection(connection))"
-                    OnDelete="@(() => StateService.RemoveConnection(connection))"/>
+                    IsSelected="@(CanvasState.SelectedConnection == connection)"
+                    OnSelect="@(() => CanvasState.SelectConnection(connection))"
+                    OnDelete="@(() => EditService.RemoveConnection(connection))"/>
             }
 
-            @if (StateService.PendingConnection is not null)
+            @if (CanvasState.PendingConnection is not null)
             {
-                var pending = StateService.PendingConnection;
+                var pending = CanvasState.PendingConnection;
                 var startCoords = GetPortPosition(pending.SourceNodeId, pending.SourcePort, isOutput: true);
                 <path class="pending-connection"
                       d="@GetBezierPath(startCoords.X, startCoords.Y, pending.CurrentX, pending.CurrentY)"/>
@@ -115,18 +115,18 @@
 
         <!-- Nodes layer -->
         <g class="nodes-layer">
-            @foreach (var node in StateService.Workflow.Nodes)
+            @foreach (var node in Store.Workflow.Nodes)
             {
                 <CanvasNodeComponent
                     Node="@node"
-                    Definition="@StateService.GetNodeDefinition(node.Type)"
-                    IsSelected="@(StateService.SelectedNodeId == node.Id)"
-                    OnSelect="@(() => StateService.SelectNode(node.Id))"
+                    Definition="@Store.GetNodeDefinition(node.Type)"
+                    IsSelected="@(CanvasState.SelectedNodeId == node.Id)"
+                    OnSelect="@(() => CanvasState.SelectNode(node.Id))"
                     OnStartDrag="@((e) => StartNodeDrag(node.Id, e))"
                     OnStartConnection="@((port) => StartConnection(node.Id, port))"
                     OnEndConnection="@((port) => EndConnection(node.Id, port))"
-                    OnMove="@((pos) => StateService.MoveNode(node.Id, pos.X, pos.Y))"
-                    OnDelete="@(() => StateService.RemoveNode(node.Id))"
+                    OnMove="@((pos) => EditService.MoveNode(node.Id, pos.X, pos.Y))"
+                    OnDelete="@(() => EditService.RemoveNode(node.Id))"
                     OnDoubleClick="@(() => HandleNodeDoubleClick(node.Id))"/>
             }
         </g>

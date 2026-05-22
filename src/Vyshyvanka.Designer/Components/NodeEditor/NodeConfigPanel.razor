@@ -1,10 +1,10 @@
 @namespace Vyshyvanka.Designer.Components
 <div class="config-container">
-    @if (StateService.SelectedNodeId is not null)
+    @if (CanvasState.SelectedNodeId is not null)
     {
-        var node = StateService.GetSelectedNode();
-        var definition = node is not null ? StateService.GetNodeDefinition(node.Type) : null;
-        var execState = node is not null ? StateService.GetNodeExecutionState(node.Id) : null;
+        var node = CanvasState.GetSelectedNode();
+        var definition = node is not null ? Store.GetNodeDefinition(node.Type) : null;
+        var execState = node is not null ? ExecutionState.GetNodeExecutionState(node.Id) : null;
 
         @if (node is not null)
         {
@@ -192,26 +192,26 @@
             <div class="config-section">
                 <label class="config-label">Status</label>
                 <div class="config-value">
-                    <span class="status-indicator @(StateService.Workflow.IsActive ? "active" : "inactive")">
-                        @(StateService.Workflow.IsActive ? "🟢 Active" : "⚪ Inactive")
+                    <span class="status-indicator @(Store.Workflow.IsActive ? "active" : "inactive")">
+                        @(Store.Workflow.IsActive ? "🟢 Active" : "⚪ Inactive")
                     </span>
                 </div>
             </div>
 
             <div class="config-section">
                 <label class="config-label">Version</label>
-                <div class="config-value">v@(StateService.Workflow.Version)</div>
+                <div class="config-value">v@(Store.Workflow.Version)</div>
             </div>
 
             <div class="config-section">
                 <label class="config-label">Statistics</label>
                 <div class="stats-grid">
                     <div class="stat-item">
-                        <span class="stat-value">@StateService.Workflow.Nodes.Count</span>
+                        <span class="stat-value">@Store.Workflow.Nodes.Count</span>
                         <span class="stat-label">Nodes</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-value">@StateService.Workflow.Connections.Count</span>
+                        <span class="stat-value">@Store.Workflow.Connections.Count</span>
                         <span class="stat-label">Connections</span>
                     </div>
                 </div>

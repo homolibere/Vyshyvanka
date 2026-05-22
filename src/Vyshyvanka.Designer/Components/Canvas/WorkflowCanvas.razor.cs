@@ -8,7 +8,11 @@ namespace Vyshyvanka.Designer.Components;
 
 public partial class WorkflowCanvas : IAsyncDisposable
 {
-    [Inject] private WorkflowStateService StateService { get; set; } = null!;
+    [Inject] private WorkflowStore Store { get; set; } = null!;
+
+    [Inject] private CanvasStateService CanvasState { get; set; } = null!;
+
+    [Inject] private WorkflowEditService EditService { get; set; } = null!;
 
     [Inject] private IJSRuntime JS { get; set; } = null!;
 
@@ -34,7 +38,7 @@ public partial class WorkflowCanvas : IAsyncDisposable
 
     protected override void OnInitialized()
     {
-        StateService.OnStateChanged += StateHasChanged;
+        Store.OnStateChanged += StateHasChanged;
         ThemeService.OnThemeChanged += StateHasChanged;
     }
 
@@ -47,7 +51,7 @@ public partial class WorkflowCanvas : IAsyncDisposable
             // Get initial dimensions
             var dimensions =
                 await JS.InvokeAsync<CanvasDimensions>("canvasInterop.getElementDimensions", _canvasContainer);
-            StateService.SetCanvasSize(dimensions.Width, dimensions.Height);
+            CanvasState.SetCanvasSize(dimensions.Width, dimensions.Height);
 
             // Set up resize observer
             _resizeObserver =
@@ -59,12 +63,12 @@ public partial class WorkflowCanvas : IAsyncDisposable
     [JSInvokable]
     public void OnCanvasResized(double width, double height)
     {
-        StateService.SetCanvasSize(width, height);
+        CanvasState.SetCanvasSize(width, height);
     }
 
     private string GetViewBox()
     {
-        var state = StateService.CanvasState;
+        var state = CanvasState.CanvasState;
         var width = state.Width / state.Zoom;
         var height = state.Height / state.Zoom;
         var x = -state.PanX / state.Zoom;
@@ -76,7 +80,7 @@ public partial class WorkflowCanvas : IAsyncDisposable
     private void OnCanvasMouseDown(MouseEventArgs e)
     {
         // Don't start canvas drag if we're drawing a connection
-        if (StateService.PendingConnection is not null)
+        if (CanvasState.PendingConnection is not null)
             return;
 
         if (e.Button == 1 || (e.Button == 0 && e.ShiftKey)) // Middle click or Shift+Left click - immediate pan
@@ -99,18 +103,18 @@ public partial class WorkflowCanvas : IAsyncDisposable
     private void OnCanvasMouseMove(MouseEventArgs e)
     {
         // Pending connection takes priority - update the line following cursor
-        if (StateService.PendingConnection is not null)
+        if (CanvasState.PendingConnection is not null)
         {
-            var state = StateService.CanvasState;
+            var state = CanvasState.CanvasState;
             var x = (e.OffsetX - state.PanX) / state.Zoom;
             var y = (e.OffsetY - state.PanY) / state.Zoom;
-            StateService.UpdatePendingConnection(x, y);
+            CanvasState.UpdatePendingConnection(x, y);
         }
         else if (isPanning)
         {
             var deltaX = e.ClientX - lastMouseX;
             var deltaY = e.ClientY - lastMouseY;
-            StateService.Pan(deltaX, deltaY);
+            CanvasState.Pan(deltaX, deltaY);
             lastMouseX = e.ClientX;
             lastMouseY = e.ClientY;
         }
@@ -128,14 +132,14 @@ public partial class WorkflowCanvas : IAsyncDisposable
         else if (draggingNodeId is not null)
         {
             // Move the dragged node
-            var state = StateService.CanvasState;
+            var state = CanvasState.CanvasState;
             var deltaX = (e.ClientX - lastMouseX) / state.Zoom;
             var deltaY = (e.ClientY - lastMouseY) / state.Zoom;
 
-            var node = StateService.GetNode(draggingNodeId);
+            var node = Store.GetNode(draggingNodeId);
             if (node is not null)
             {
-                StateService.MoveNode(draggingNodeId, node.Position.X + deltaX, node.Position.Y + deltaY);
+                EditService.MoveNode(draggingNodeId, node.Position.X + deltaX, node.Position.Y + deltaY);
             }
 
             lastMouseX = e.ClientX;
@@ -148,15 +152,15 @@ public partial class WorkflowCanvas : IAsyncDisposable
         // If we started a canvas drag but didn't pan, it was a click - clear selection
         if (isCanvasDragStarted && !isPanning)
         {
-            StateService.ClearSelection();
+            CanvasState.ClearSelection();
         }
 
         isPanning = false;
         isCanvasDragStarted = false;
         draggingNodeId = null;
-        if (StateService.PendingConnection is not null)
+        if (CanvasState.PendingConnection is not null)
         {
-            StateService.EndConnection();
+            EditService.EndConnection();
         }
     }
 
@@ -170,7 +174,7 @@ public partial class WorkflowCanvas : IAsyncDisposable
         // Clamp individual zoom step to avoid jumps from high-velocity scroll
         delta = Math.Clamp(delta, -0.05, 0.05);
 
-        StateService.Zoom(StateService.CanvasState.Zoom + delta);
+        CanvasState.Zoom(CanvasState.CanvasState.Zoom + delta);
     }
 
     private static void OnDragOver(DragEventArgs e)
@@ -180,13 +184,13 @@ public partial class WorkflowCanvas : IAsyncDisposable
 
     private void OnDrop(DragEventArgs e)
     {
-        if (StateService.DraggedNodeType is null) return;
+        if (CanvasState.DraggedNodeType is null) return;
 
-        var state = StateService.CanvasState;
+        var state = CanvasState.CanvasState;
         var x = (e.OffsetX - state.PanX) / state.Zoom;
         var y = (e.OffsetY - state.PanY) / state.Zoom;
 
-        StateService.DropNodeFromPalette(x, y);
+        EditService.DropNodeFromPalette(x, y);
     }
 
     private void StartNodeDrag(string nodeId, MouseEventArgs e)
@@ -194,7 +198,7 @@ public partial class WorkflowCanvas : IAsyncDisposable
         draggingNodeId = nodeId;
         lastMouseX = e.ClientX;
         lastMouseY = e.ClientY;
-        StateService.SelectNode(nodeId);
+        CanvasState.SelectNode(nodeId);
     }
 
     private async Task HandleNodeDoubleClick(string nodeId)
@@ -205,20 +209,20 @@ public partial class WorkflowCanvas : IAsyncDisposable
     private void StartConnection(string nodeId, string port)
     {
         var pos = GetPortPosition(nodeId, port, isOutput: true);
-        StateService.StartConnection(nodeId, port, pos.X, pos.Y);
+        CanvasState.StartConnection(nodeId, port, pos.X, pos.Y);
     }
 
     private void EndConnection(string nodeId, string port)
     {
-        StateService.EndConnection(nodeId, port);
+        EditService.EndConnection(nodeId, port);
     }
 
     private (double X, double Y) GetPortPosition(string nodeId, string portName, bool isOutput)
     {
-        var node = StateService.GetNode(nodeId);
+        var node = Store.GetNode(nodeId);
         if (node is null) return (0, 0);
 
-        var definition = StateService.GetNodeDefinition(node.Type);
+        var definition = Store.GetNodeDefinition(node.Type);
         var nodeWidth = NodeLayout.GetWidth(node.Name);
         var nodeHeight = NodeLayout.GetHeight(definition);
 
@@ -260,7 +264,7 @@ public partial class WorkflowCanvas : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
-        StateService.OnStateChanged -= StateHasChanged;
+        Store.OnStateChanged -= StateHasChanged;
         ThemeService.OnThemeChanged -= StateHasChanged;
 
         if (_resizeObserver is not null)

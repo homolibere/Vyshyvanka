@@ -20,11 +20,13 @@ public class ExpressionAutocompleteService
         "coalesce", "ifNull", "iif"
     ];
 
-    private readonly WorkflowStateService _workflowState;
+    private readonly WorkflowStore _store;
+    private readonly ExecutionStateService _executionState;
 
-    public ExpressionAutocompleteService(WorkflowStateService workflowState)
+    public ExpressionAutocompleteService(WorkflowStore store, ExecutionStateService executionState)
     {
-        _workflowState = workflowState;
+        _store = store;
+        _executionState = executionState;
     }
 
     /// <summary>
@@ -131,14 +133,14 @@ public class ExpressionAutocompleteService
         if (parts.Length >= 3)
         {
             var nodeId = parts[1];
-            var node = _workflowState.GetNode(nodeId);
+            var node = _store.GetNode(nodeId);
             if (node is null) return [];
 
-            var definition = _workflowState.GetNodeDefinition(node.Type);
+            var definition = _store.GetNodeDefinition(node.Type);
             var suggestions = new List<ExpressionSuggestion>();
 
             // Get the node's output data for deep navigation
-            var executionState = _workflowState.GetNodeExecutionState(nodeId);
+            var executionState = _executionState.GetNodeExecutionState(nodeId);
             var outputData = executionState?.OutputData;
 
             // For deep paths (nodes.id.field.subfield...), navigate into the JSON
@@ -456,7 +458,7 @@ public class ExpressionAutocompleteService
     {
         if (string.IsNullOrEmpty(currentNodeId)) return null;
 
-        var executionState = _workflowState.GetNodeExecutionState(currentNodeId);
+        var executionState = _executionState.GetNodeExecutionState(currentNodeId);
         if (executionState is null) return null;
 
         // Try top-level InputData first
@@ -492,19 +494,19 @@ public class ExpressionAutocompleteService
         var seenFields = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         // Find all connections targeting the current node
-        var incomingConnections = _workflowState.Workflow.Connections
+        var incomingConnections = _store.Workflow.Connections
             .Where(c => c.TargetNodeId == currentNodeId)
             .ToList();
 
         foreach (var connection in incomingConnections)
         {
-            var sourceNode = _workflowState.GetNode(connection.SourceNodeId);
+            var sourceNode = _store.GetNode(connection.SourceNodeId);
             if (sourceNode is null) continue;
 
             var sourceName = sourceNode.Name;
 
             // Try to get actual output data from execution state
-            var executionState = _workflowState.GetNodeExecutionState(connection.SourceNodeId);
+            var executionState = _executionState.GetNodeExecutionState(connection.SourceNodeId);
             if (executionState?.OutputData is { } outputData &&
                 outputData.ValueKind == System.Text.Json.JsonValueKind.Object)
             {
@@ -525,7 +527,7 @@ public class ExpressionAutocompleteService
             else
             {
                 // Fall back to output port definitions from the source node's schema
-                var definition = _workflowState.GetNodeDefinition(sourceNode.Type);
+                var definition = _store.GetNodeDefinition(sourceNode.Type);
                 if (definition is not null)
                 {
                     foreach (var output in definition.Outputs)
@@ -558,7 +560,7 @@ public class ExpressionAutocompleteService
 
     private IEnumerable<WorkflowNode> GetAvailableNodes(string? currentNodeId)
     {
-        return _workflowState.Workflow.Nodes
+        return _store.Workflow.Nodes
             .Where(n => n.Id != currentNodeId)
             .OrderBy(n => n.Name);
     }

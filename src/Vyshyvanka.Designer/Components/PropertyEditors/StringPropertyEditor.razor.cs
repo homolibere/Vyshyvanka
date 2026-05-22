@@ -32,7 +32,7 @@ public partial class StringPropertyEditor : ComponentBase
     public string? CurrentNodeId { get; set; }
 
     [Inject] private ExpressionAutocompleteService AutocompleteService { get; set; } = default!;
-    [Inject] private WorkflowStateService WorkflowState { get; set; } = default!;
+    [Inject] private CanvasStateService CanvasState { get; set; } = default!;
     [Inject] private ExpressionDragService DragService { get; set; } = default!;
 
     private ElementReference _inputRef;
@@ -159,7 +159,7 @@ public partial class StringPropertyEditor : ComponentBase
 
         // We're inside an open expression — extract the fragment after {{
         _currentExpressionFragment = afterOpen.TrimStart();
-        var nodeId = CurrentNodeId ?? WorkflowState.SelectedNodeId;
+        var nodeId = CurrentNodeId ?? CanvasState.SelectedNodeId;
         _suggestions = AutocompleteService.GetSuggestions(_currentExpressionFragment, nodeId);
         _showAutocomplete = _suggestions.Count > 0;
         _autocomplete?.ResetSelection();

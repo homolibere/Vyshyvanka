@@ -10,7 +10,7 @@ namespace Vyshyvanka.Designer.Components;
 
 public partial class CanvasNodeComponent
 {
-    [Inject] private WorkflowStateService StateService { get; set; } = null!;
+    [Inject] private ExecutionStateService ExecutionState { get; set; } = null!;
 
     [Parameter, EditorRequired] public WorkflowNode Node { get; set; } = null!;
 
@@ -60,7 +60,7 @@ public partial class CanvasNodeComponent
 
     private string GetExecutionStatusClass()
     {
-        var execState = StateService.GetNodeExecutionState(Node.Id);
+        var execState = ExecutionState.GetNodeExecutionState(Node.Id);
         return execState?.Status switch
         {
             ExecutionStatus.Running => "executing",

@@ -7,7 +7,13 @@ namespace Vyshyvanka.Designer.Components;
 
 public partial class NodeConfigPanel : IDisposable
 {
-    [Inject] private WorkflowStateService StateService { get; set; } = null!;
+    [Inject] private WorkflowStore Store { get; set; } = null!;
+
+    [Inject] private WorkflowEditService EditService { get; set; } = null!;
+
+    [Inject] private CanvasStateService CanvasState { get; set; } = null!;
+
+    [Inject] private ExecutionStateService ExecutionState { get; set; } = null!;
 
     [Inject] private VyshyvankaApiClient ApiClient { get; set; } = null!;
 
@@ -22,14 +28,14 @@ public partial class NodeConfigPanel : IDisposable
 
     protected override void OnInitialized()
     {
-        StateService.OnStateChanged += OnStateChanged;
-        _workflowName = StateService.Workflow.Name;
-        _workflowDescription = StateService.Workflow.Description ?? "";
+        Store.OnStateChanged += OnStateChanged;
+        _workflowName = Store.Workflow.Name;
+        _workflowDescription = Store.Workflow.Description ?? "";
     }
 
     private void OnStateChanged()
     {
-        var node = StateService.GetSelectedNode();
+        var node = CanvasState.GetSelectedNode();
         if (node is not null)
         {
             nodeName = node.Name;
@@ -45,8 +51,8 @@ public partial class NodeConfigPanel : IDisposable
         else
         {
             // Update workflow properties when no node selected
-            _workflowName = StateService.Workflow.Name;
-            _workflowDescription = StateService.Workflow.Description ?? "";
+            _workflowName = Store.Workflow.Name;
+            _workflowDescription = Store.Workflow.Description ?? "";
         }
 
         configError = null;
@@ -56,36 +62,36 @@ public partial class NodeConfigPanel : IDisposable
     private void UpdateWorkflowName()
     {
         if (string.IsNullOrWhiteSpace(_workflowName)) return;
-        if (_workflowName != StateService.Workflow.Name)
+        if (_workflowName != Store.Workflow.Name)
         {
-            StateService.UpdateWorkflowMetadata(_workflowName, StateService.Workflow.Description);
+            EditService.UpdateWorkflowMetadata(_workflowName, Store.Workflow.Description);
         }
     }
 
     private void UpdateWorkflowDescription()
     {
         var desc = string.IsNullOrWhiteSpace(_workflowDescription) ? null : _workflowDescription;
-        if (desc != StateService.Workflow.Description)
+        if (desc != Store.Workflow.Description)
         {
-            StateService.UpdateWorkflowMetadata(StateService.Workflow.Name, desc);
+            EditService.UpdateWorkflowMetadata(Store.Workflow.Name, desc);
         }
     }
 
     private void UpdateNodeName(string nodeId)
     {
         if (string.IsNullOrWhiteSpace(nodeName)) return;
-        StateService.UpdateNodeName(nodeId, nodeName);
+        EditService.UpdateNodeName(nodeId, nodeName);
     }
 
     private void ApplyConfiguration()
     {
-        var node = StateService.GetSelectedNode();
+        var node = CanvasState.GetSelectedNode();
         if (node is null) return;
 
         try
         {
             var config = System.Text.Json.JsonDocument.Parse(configJson).RootElement;
-            StateService.UpdateNodeConfiguration(node.Id, config);
+            EditService.UpdateNodeConfiguration(node.Id, config);
             configError = null;
         }
         catch (System.Text.Json.JsonException ex)
@@ -96,9 +102,9 @@ public partial class NodeConfigPanel : IDisposable
 
     private void DeleteNode()
     {
-        if (StateService.SelectedNodeId is not null)
+        if (CanvasState.SelectedNodeId is not null)
         {
-            StateService.RemoveNode(StateService.SelectedNodeId);
+            EditService.RemoveNode(CanvasState.SelectedNodeId);
         }
     }
 
@@ -156,7 +162,7 @@ public partial class NodeConfigPanel : IDisposable
 
     private async Task RunUpToNode()
     {
-        var nodeId = StateService.SelectedNodeId;
+        var nodeId = CanvasState.SelectedNodeId;
         if (nodeId is null || _isRunningToNode) return;
 
         _isRunningToNode = true;
@@ -165,22 +171,22 @@ public partial class NodeConfigPanel : IDisposable
         try
         {
             // Save the workflow to the API so the execution uses the latest state
-            if (StateService.IsDirty)
+            if (Store.IsDirty)
             {
-                var saved = await ApiClient.UpdateWorkflowAsync(StateService.Workflow);
+                var saved = await ApiClient.UpdateWorkflowAsync(Store.Workflow);
                 if (saved is not null)
                 {
-                    StateService.LoadWorkflow(saved);
-                    StateService.MarkAsSaved();
+                    EditService.LoadWorkflow(saved);
+                    Store.MarkAsSaved();
                 }
             }
 
             var result = await ApiClient.ExecuteUpToNodeAsync(
-                StateService.Workflow.Id, nodeId);
+                Store.Workflow.Id, nodeId);
 
             if (result is not null)
             {
-                StateService.SetCurrentExecution(result);
+                ExecutionState.SetCurrentExecution(result);
 
                 if (result.Status == ExecutionStatus.Failed)
                 {
@@ -209,6 +215,6 @@ public partial class NodeConfigPanel : IDisposable
 
     public void Dispose()
     {
-        StateService.OnStateChanged -= OnStateChanged;
+        Store.OnStateChanged -= OnStateChanged;
     }
 }

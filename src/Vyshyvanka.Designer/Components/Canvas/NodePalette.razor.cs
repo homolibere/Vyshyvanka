@@ -9,24 +9,27 @@ namespace Vyshyvanka.Designer.Components;
 public partial class NodePalette : IDisposable
 {
     [Inject]
-    private WorkflowStateService StateService { get; set; } = null!;
+    private WorkflowStore Store { get; set; } = null!;
+
+    [Inject]
+    private CanvasStateService CanvasState { get; set; } = null!;
 
     private string searchText = string.Empty;
     private HashSet<NodeCategory> expandedCategories = [NodeCategory.Trigger, NodeCategory.Logic];
 
     protected override void OnInitialized()
     {
-        StateService.OnStateChanged += StateHasChanged;
+        Store.OnStateChanged += StateHasChanged;
     }
 
     public void Dispose()
     {
-        StateService.OnStateChanged -= StateHasChanged;
+        Store.OnStateChanged -= StateHasChanged;
     }
 
     private IEnumerable<IGrouping<NodeCategory, NodeDefinition>> GetGroupedNodes()
     {
-        var nodes = StateService.NodeDefinitions.AsEnumerable();
+        var nodes = Store.NodeDefinitions.AsEnumerable();
 
         if (!string.IsNullOrWhiteSpace(searchText))
         {
@@ -69,11 +72,11 @@ public partial class NodePalette : IDisposable
 
     private void OnDragStart(NodeDefinition node)
     {
-        StateService.StartDragFromPalette(node.Type);
+        CanvasState.StartDragFromPalette(node.Type);
     }
 
     private void OnDragEnd()
     {
-        StateService.EndDragFromPalette();
+        CanvasState.EndDragFromPalette();
     }
 }
