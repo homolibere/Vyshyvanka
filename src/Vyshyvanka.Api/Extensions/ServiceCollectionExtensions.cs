@@ -465,27 +465,42 @@ public static class ServiceCollectionExtensions
             return new PluginHost(pluginLoader, logger);
         });
 
-        // Register NuGetPackageManager
-        services.AddSingleton<INuGetPackageManager>(sp =>
+        // Register PackageSearchService
+        services.AddSingleton<IPackageSearchService>(sp =>
         {
             var sourceService = sp.GetRequiredService<IPackageSourceService>();
-            var manifestManager = sp.GetRequiredService<IManifestManager>();
-            var dependencyResolver = sp.GetRequiredService<IDependencyResolver>();
-            var packageCache = sp.GetRequiredService<IPackageCache>();
+            var logger = sp.GetService<ILogger<PackageSearchService>>();
+            return new PackageSearchService(sourceService, logger);
+        });
+
+        // Register PluginLoadingService
+        services.AddSingleton<IPluginLoadingService>(sp =>
+        {
             var pluginLoader = sp.GetRequiredService<IPluginLoader>();
             var pluginValidator = sp.GetRequiredService<IPluginValidator>();
             var nodeRegistry = sp.GetRequiredService<INodeRegistry>();
+            var packageCache = sp.GetRequiredService<IPackageCache>();
+            var logger = sp.GetService<ILogger<PluginLoadingService>>();
+            return new PluginLoadingService(pluginLoader, pluginValidator, nodeRegistry, packageCache, logger);
+        });
+
+        // Register NuGetPackageManager
+        services.AddSingleton<INuGetPackageManager>(sp =>
+        {
+            var searchService = sp.GetRequiredService<IPackageSearchService>();
+            var pluginLoadingService = sp.GetRequiredService<IPluginLoadingService>();
+            var manifestManager = sp.GetRequiredService<IManifestManager>();
+            var dependencyResolver = sp.GetRequiredService<IDependencyResolver>();
+            var packageCache = sp.GetRequiredService<IPackageCache>();
             var options = sp.GetRequiredService<PackageOptions>();
             var logger = sp.GetService<ILogger<NuGetPackageManager>>();
 
             return new NuGetPackageManager(
-                sourceService,
+                searchService,
+                pluginLoadingService,
                 manifestManager,
                 dependencyResolver,
                 packageCache,
-                pluginLoader,
-                pluginValidator,
-                nodeRegistry,
                 null, // IWorkflowRepository is scoped, pass null for singleton registration
                 options,
                 logger);

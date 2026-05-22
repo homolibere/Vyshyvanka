@@ -151,6 +151,8 @@ When modifying code, ALWAYS check for downstream impact:
 | Authentication provider setting | `ServiceCollectionExtensions`, `AuthController`, `DevelopmentUserSeeder` |
 | Credential storage provider setting | `ServiceCollectionExtensions`, `CredentialService` or `VaultCredentialService` |
 | `ICredentialService` interface | Both `CredentialService` and `VaultCredentialService` |
+| `IPackageSearchService` interface | `PackageSearchService` in `Engine/Packages/` |
+| `IPluginLoadingService` interface | `PluginLoadingService` in `Engine/Packages/` |
 
 ## Designer Service Architecture
 
@@ -179,6 +181,23 @@ Dependency flow: `WorkflowEditService` → `WorkflowStore`, `CanvasStateService`
 
 Components inject only the specific services and API clients they need. There is no facade or god-object.
 
+## Package Management Architecture
+
+The package management subsystem in `Engine/Packages/` is decomposed into focused services:
+
+| Service | Responsibility |
+|---------|---------------|
+| `PackageSearchService` | Search NuGet sources, resolve versions, get package details, check for updates |
+| `PluginLoadingService` | Load/validate/unload plugin assemblies, register/unregister nodes |
+| `NuGetPackageManager` | Orchestrates package lifecycle (install/update/uninstall) using the above services |
+
+Interfaces live in `Core/Interfaces/`:
+- `IPackageSearchService` — search and discovery contract
+- `IPluginLoadingService` — plugin loading contract (includes `PluginLoadResult` record)
+- `INuGetPackageManager` — top-level package lifecycle contract
+
+Dependency flow: `NuGetPackageManager` → `IPackageSearchService`, `IPluginLoadingService`, `IManifestManager`, `IDependencyResolver`, `IPackageCache`.
+
 ## Key Patterns
 
 - Records for DTOs and immutable domain objects
@@ -186,3 +205,4 @@ Components inject only the specific services and API clients they need. There is
 - Node inheritance: `BaseTriggerNode`, `BaseActionNode`, `BaseLogicNode` in `Engine/Nodes/Base/`
 - Dependency injection throughout all projects
 - Store + decomposed services pattern in Designer (see above)
+- Orchestrator + focused services pattern in Package Management (see above)
