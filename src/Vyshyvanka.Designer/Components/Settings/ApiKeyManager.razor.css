@@ -133,7 +133,7 @@
     padding: 14px;
     border: 1px solid var(--success);
     border-radius: 8px;
-    background: rgba(46, 125, 50, 0.08);
+    background: var(--success-bg);
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -236,7 +236,7 @@
     font-weight: 600;
 }
 
-.badge-active { background: rgba(46, 125, 50, 0.15); color: var(--success); border: 1px solid rgba(46, 125, 50, 0.3); }
+.badge-active { background: var(--success-bg); color: var(--success); border: 1px solid var(--success-bg); }
 .badge-revoked { background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger-bg); }
 
 .apikey-actions {

@@ -43,8 +43,8 @@
 }
 
 .btn-copy.copied {
-    color: var(--success, #4caf50);
-    border-color: var(--success, #4caf50);
+    color: var(--success);
+    border-color: var(--success);
 }
 
 .port-tabs {

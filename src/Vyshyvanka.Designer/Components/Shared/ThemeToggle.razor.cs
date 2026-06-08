@@ -3,6 +3,10 @@ using Vyshyvanka.Designer.Services;
 
 namespace Vyshyvanka.Designer.Components;
 
+/// <summary>
+/// Legacy theme toggle (light/dark). Replaced by ThemeSelector in layouts.
+/// Kept for backward compatibility but no longer used in production UI.
+/// </summary>
 public partial class ThemeToggle : ComponentBase, IDisposable
 {
     [Inject]
@@ -15,7 +19,15 @@ public partial class ThemeToggle : ComponentBase, IDisposable
 
     private async Task Toggle()
     {
-        await _themeService.ToggleAsync();
+        // Toggle between light/dark by switching to the opposite base mode theme
+        if (_themeService.IsDark)
+        {
+            await _themeService.SetThemeAsync("vyshyvanka-light");
+        }
+        else
+        {
+            await _themeService.SetThemeAsync("vyshyvanka-dark");
+        }
     }
 
     public void Dispose()

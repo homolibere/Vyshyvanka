@@ -18,19 +18,19 @@
 }
 
 .node-header.category-trigger {
-    fill: #4caf50;
+    fill: var(--category-trigger);
 }
 
 .node-header.category-action {
-    fill: #2196f3;
+    fill: var(--category-action);
 }
 
 .node-header.category-logic {
-    fill: #ff9800;
+    fill: var(--category-logic);
 }
 
 .node-header.category-transform {
-    fill: #9c27b0;
+    fill: var(--category-transform);
 }
 
 .node-icon {
@@ -77,23 +77,23 @@
 
 /* Port type colors */
 .port-string {
-    stroke: #4caf50;
+    stroke: var(--category-trigger);
 }
 
 .port-number {
-    stroke: #2196f3;
+    stroke: var(--category-action);
 }
 
 .port-boolean {
-    stroke: #ff9800;
+    stroke: var(--category-logic);
 }
 
 .port-array {
-    stroke: #9c27b0;
+    stroke: var(--category-transform);
 }
 
 .port-object {
-    stroke: #00bcd4;
+    stroke: var(--info);
 }
 
 .port-any {
@@ -106,17 +106,17 @@
 }
 
 .canvas-node.executed-success .node-bg {
-    stroke: #4caf50;
+    stroke: var(--success);
     stroke-width: 2;
 }
 
 .canvas-node.executed-failed .node-bg {
-    stroke: #ef5350;
+    stroke: var(--danger);
     stroke-width: 2;
 }
 
 .canvas-node.execution-pending .node-bg {
-    stroke: #ff9800;
+    stroke: var(--warning);
     stroke-width: 2;
 }
 
@@ -126,15 +126,15 @@
 }
 
 .indicator-completed {
-    stroke: #4caf50;
+    stroke: var(--success);
 }
 
 .indicator-failed {
-    stroke: #ef5350;
+    stroke: var(--danger);
 }
 
 .indicator-pending {
-    stroke: #ff9800;
+    stroke: var(--warning);
 }
 
 .execution-badge {
@@ -153,7 +153,7 @@
         stroke-width: 2;
     }
     50% {
-        stroke: #42a5f5;
+        stroke: var(--accent);
         stroke-width: 3;
     }
 }

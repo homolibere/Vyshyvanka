@@ -183,7 +183,7 @@
 }
 
 .btn-warning {
-    background: #ffb74d;
+    background: var(--warning);
     color: var(--bg-primary);
 }
 
@@ -192,7 +192,7 @@
 }
 
 .btn-danger {
-    background: #ef5350;
+    background: var(--danger);
     color: var(--btn-primary-text);
 }
 

@@ -8,13 +8,9 @@ using System.Text.Json;
 
 namespace Vyshyvanka.Tests.Unit.Components;
 
-/// <summary>
-/// Legacy ThemeToggle tests — kept for backward compatibility.
-/// ThemeToggle has been replaced by ThemeSelector in layouts.
-/// </summary>
-public class ThemeToggleTests : BunitContext
+public class ThemeSelectorTests : BunitContext
 {
-    public ThemeToggleTests()
+    public ThemeSelectorTests()
     {
         JSInterop.Mode = JSRuntimeMode.Loose;
 
@@ -34,21 +30,39 @@ public class ThemeToggleTests : BunitContext
     }
 
     [Fact]
-    public void WhenLightThemeThenShowsMoonIcon()
+    public void WhenRenderedThenShowsActiveThemeName()
     {
-        var cut = Render<ThemeToggle>();
+        var cut = Render<ThemeSelector>();
 
-        cut.Find("i").ClassList.Should().Contain("fa-moon");
+        cut.Find(".theme-name").TextContent.Should().Contain("Vyshyvanka Light");
     }
 
     [Fact]
-    public void WhenRenderedThenHasToggleButton()
+    public void WhenClickedThenOpensDropdown()
     {
-        var cut = Render<ThemeToggle>();
+        var cut = Render<ThemeSelector>();
 
-        var button = cut.Find(".theme-toggle");
-        button.Should().NotBeNull();
-        button.GetAttribute("title").Should().Contain("dark");
+        cut.Find(".theme-selector-trigger").Click();
+
+        cut.FindAll(".theme-option").Count.Should().BeGreaterThan(1);
+    }
+
+    [Fact]
+    public async Task WhenThemeSelectedThenUpdatesActiveTheme()
+    {
+        var themeService = Services.GetRequiredService<ThemeService>();
+        var cut = Render<ThemeSelector>();
+
+        // Open dropdown
+        cut.Find(".theme-selector-trigger").Click();
+
+        // Select second option (vyshyvanka-dark)
+        var options = cut.FindAll(".theme-option");
+        if (options.Count > 1)
+        {
+            await options[1].ClickAsync(new Microsoft.AspNetCore.Components.Web.MouseEventArgs());
+            themeService.CurrentThemeId.Should().NotBe("vyshyvanka-light");
+        }
     }
 
     private void SetupThemeFetch(string path, string id, string name, string baseMode)
@@ -58,8 +72,10 @@ public class ThemeToggleTests : BunitContext
             Id = id,
             Name = name,
             BaseMode = baseMode,
-            Colors = new() { ["bg-primary"] = "#fff" },
-            Icons = new() { ["trigger"] = "fa-solid fa-bolt" }
+            Preview = new ThemePreview { Bg = "#fff", Accent = "#000", Surface = "#eee" },
+            Colors = new Dictionary<string, string> { ["bg-primary"] = "#fff" },
+            Icons = new Dictionary<string, string> { ["trigger"] = "fa-solid fa-bolt" },
+            Canvas = new ThemeCanvas { Pattern = "dots" }
         };
         var json = JsonSerializer.Serialize(theme);
         JSInterop.Setup<string?>("vyshyvankaTheme.fetchThemeJson", path).SetResult(json);

@@ -133,7 +133,7 @@
 
 /* Plugin node styling */
 .palette-node.plugin-node {
-    border-left: 2px solid #9c27b0;
+    border-left: 2px solid var(--category-transform);
 }
 
 .palette-node.plugin-node:hover {

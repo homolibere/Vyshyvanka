@@ -16,3 +16,4 @@ Comprehensive business requirements and architectural documentation for the Vysh
 | 08 | [Plugin System](08-plugin-system.md) | Plugin architecture, NuGet package management, dependency resolution, isolation, creating plugins |
 | 09 | [Designer](09-designer.md) | Blazor WASM UI, component structure, services, canvas interaction, client models |
 | 10 | [Observability and Testing](10-observability-and-testing.md) | OpenTelemetry, health checks, test strategy, property-based testing, integration tests |
+| 11 | [Custom Themes](11-custom-themes.md) | Theme JSON format, all color variables, icons, canvas patterns, creating custom themes |

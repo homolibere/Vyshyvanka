@@ -205,7 +205,7 @@
 }
 
 .status-dot.active {
-    background: #4caf50;
+    background: var(--success);
 }
 
 .status-dot.inactive {

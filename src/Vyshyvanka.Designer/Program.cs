@@ -66,9 +66,8 @@ using (var scope = host.Services.CreateScope())
     authState.SetStorageService(storage);
     await authState.InitializeAsync();
 
-    // Initialize theme from browser storage
-    var themeService = scope.ServiceProvider.GetRequiredService<ThemeService>();
-    await themeService.InitializeAsync();
+    // Initialize theme from browser storage (deferred — async JS fetch doesn't work here)
+    // Theme initialization moved to App.razor OnAfterRenderAsync where async JS interop is reliable.
 
     // Start proactive token refresh (subscribes to auth state changes)
     var tokenRefresh = scope.ServiceProvider.GetRequiredService<TokenRefreshService>();

@@ -48,6 +48,31 @@ return FormattableString.Invariant($"translate({x}, {y})");
 return $"translate({x}, {y})";
 ```
 
+## Theming
+
+The Designer uses a JSON-based theming system. Themes are stored as static JSON files in `wwwroot/themes/` and applied at runtime via CSS custom properties through JS interop.
+
+**Theme JSON structure:**
+- `id`, `name`, `baseMode` ("light"/"dark"), `description`, `author`
+- `preview` — three color swatches for the selector UI
+- `colors` — maps CSS variable names (without `--` prefix) to values
+- `icons` — maps icon keys to CSS classes (e.g. `"trigger": "fa-solid fa-bolt"`)
+- `canvas` — `pattern`: "vyshyvanka", "dots", or "none"
+
+**Built-in themes:** `vyshyvanka-light`, `vyshyvanka-dark`, `slate`, `ocean-dark`, `minimal`
+
+**Custom themes:** Users upload JSON files via Settings. Stored in localStorage (`vyshyvanka-custom-themes`). Active theme ID persisted in `vyshyvanka-active-theme`.
+
+**ThemeService API:**
+- `InitializeAsync()` — loads built-in + custom themes, applies saved active
+- `SetThemeAsync(themeId)` — switch theme
+- `ImportThemeAsync(json)` — add custom theme
+- `RemoveThemeAsync(themeId)` — delete custom theme
+- `GetIcon(key)` — resolve icon class from active theme
+- `IsVyshyvankaPattern` / `CanvasPattern` — canvas pattern from active theme
+
+`theme.css` remains as a fallback for initial paint before JS applies the active theme.
+
 ## Serialization
 
 Use `System.Text.Json` with camelCase policy everywhere. Prefer source-generated serializer contexts for performance. Only apply `[JsonPropertyName]` when the wire name differs from the C# property name.

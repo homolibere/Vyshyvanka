@@ -98,13 +98,13 @@
 }
 
 ::deep .toolbar-btn.active {
-    background: var(--success-bg);
-    border-color: var(--success);
-    color: var(--success);
+    background: var(--accent-light);
+    border-color: var(--accent);
+    color: var(--accent);
 }
 
 ::deep .toolbar-btn.active:hover:not(:disabled) {
-    background: var(--success-bg);
+    background: var(--accent-light);
 }
 
 ::deep .toolbar-separator {

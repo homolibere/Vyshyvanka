@@ -1,0 +1,43 @@
+@namespace Vyshyvanka.Designer.Components
+
+<div class="theme-selector" @onfocusout="OnFocusOut">
+    <button class="theme-selector-trigger"
+            @onclick="ToggleDropdown"
+            title="Change theme"
+            aria-label="Theme selector"
+            aria-expanded="@_isOpen"
+            aria-haspopup="listbox">
+        <span class="theme-swatch"
+              style="background: @(_themeService.ActiveTheme?.Preview.Accent ?? "#c62828");"></span>
+        <span class="theme-name">@(_themeService.ActiveTheme?.Name ?? "Theme")</span>
+        <i class="fa-solid fa-chevron-down theme-chevron"></i>
+    </button>
+
+    @if (_isOpen)
+    {
+        <div class="theme-dropdown" role="listbox" aria-label="Available themes">
+            @foreach (var theme in _themeService.AvailableThemes)
+            {
+                var isActive = theme.Id == _themeService.CurrentThemeId;
+                <button class="theme-option @(isActive ? "active" : "")"
+                        role="option"
+                        aria-selected="@isActive"
+                        @onclick="() => SelectTheme(theme.Id)">
+                    <span class="theme-option-swatches">
+                        <span class="swatch-bg" style="background: @theme.Preview.Bg;"></span>
+                        <span class="swatch-accent" style="background: @theme.Preview.Accent;"></span>
+                        <span class="swatch-surface" style="background: @theme.Preview.Surface;"></span>
+                    </span>
+                    <span class="theme-option-info">
+                        <span class="theme-option-name">@theme.Name</span>
+                        <span class="theme-option-mode">@theme.BaseMode</span>
+                    </span>
+                    @if (isActive)
+                    {
+                        <i class="fa-solid fa-check theme-option-check"></i>
+                    }
+                </button>
+            }
+        </div>
+    }
+</div>

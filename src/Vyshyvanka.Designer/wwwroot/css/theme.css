@@ -1,6 +1,9 @@
 /* ============================================
-   Vyshyvanka Theme System
-   Light (default) + Dark theme via CSS variables
+   Vyshyvanka Theme System — CSS Variable Fallbacks
+   
+   These values are used as initial fallback before ThemeService
+   loads and applies the active theme JSON via JS interop.
+   The actual theme colors are set dynamically from JSON files.
    ============================================ */
 
 :root,

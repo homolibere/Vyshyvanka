@@ -12,7 +12,18 @@ public partial class App
     [Inject]
     private NavigationManager Navigation { get; set; } = null!;
 
+    [Inject]
+    private ThemeService ThemeService { get; set; } = null!;
+
     private static readonly HashSet<string> PublicRoutes = ["/login"];
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await ThemeService.InitializeAsync();
+        }
+    }
 
     private void OnNavigateAsync(NavigationContext context)
     {

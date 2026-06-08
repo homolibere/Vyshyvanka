@@ -33,18 +33,19 @@
     width: 32px;
     height: 32px;
     padding: 0;
-    background: var(--success-bg);
-    border: 1px solid var(--success);
+    background: var(--accent-light);
+    border: 1px solid var(--accent);
     border-radius: 6px;
-    color: var(--success);
+    color: var(--accent);
     cursor: pointer;
     transition: all 0.15s ease;
     flex-shrink: 0;
 }
 
 .run-to-node-btn:hover:not(:disabled) {
-    background: var(--success-bg);
-    border-color: var(--success);
+    background: var(--accent-light);
+    border-color: var(--accent-hover);
+    color: var(--accent-hover);
 }
 
 .run-to-node-btn:disabled {
@@ -196,11 +197,11 @@
     background: var(--text-muted);
 }
 
-.port-dot.port-string { background: #4caf50; }
-.port-dot.port-number { background: #2196f3; }
-.port-dot.port-boolean { background: #ff9800; }
-.port-dot.port-array { background: #9c27b0; }
-.port-dot.port-object { background: #00bcd4; }
+.port-dot.port-string { background: var(--category-trigger); }
+.port-dot.port-number { background: var(--category-action); }
+.port-dot.port-boolean { background: var(--category-logic); }
+.port-dot.port-array { background: var(--category-transform); }
+.port-dot.port-object { background: var(--info); }
 .port-dot.port-any { background: var(--text-muted); }
 
 .port-name {

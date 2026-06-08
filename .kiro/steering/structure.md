@@ -95,7 +95,7 @@ Place new files according to these tables. Namespace MUST match the folder path 
 | Typed property editors | `Components/PropertyEditors/` |
 | Plugin/package management | `Components/Packages/` |
 | Credentials, API keys, sources | `Components/Settings/` |
-| Reusable UI (dialogs, toasts) | `Components/Shared/` |
+| Reusable UI (dialogs, toasts, theme selector) | `Components/Shared/` |
 | Workflow browser | `Components/Workflow/` |
 | Layout components | `Layout/` |
 | Pages | `Pages/` |
@@ -103,6 +103,7 @@ Place new files according to these tables. Namespace MUST match the folder path 
 | Client models | `Models/` |
 | Static assets | `wwwroot/` |
 | JavaScript interop | `wwwroot/js/` |
+| Theme JSON definitions (built-in) | `wwwroot/themes/` |
 
 Blazor component rules:
 - Each component = up to 3 files: `Name.razor`, `Name.razor.cs`, `Name.razor.css`
@@ -165,6 +166,7 @@ The Designer's workflow state is decomposed into focused services:
 | `WorkflowValidationService` | Validation logic and port compatibility checks |
 | `CanvasStateService` | Pan, zoom, selection, undo/redo, pending connections, drag state |
 | `ExecutionStateService` | Execution visualization and node execution states |
+| `ThemeService` | Multi-theme management: load built-in/custom JSON themes, apply CSS vars via JS interop, import/export, icon lookup |
 
 API clients are split by domain:
 

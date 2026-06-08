@@ -97,7 +97,7 @@
 
 /* Success variant */
 .toast-success {
-    border-left: 3px solid #4caf50;
+    border-left: 3px solid var(--success);
 }
 
 .toast-success .toast-icon {
@@ -111,7 +111,7 @@
 
 /* Error variant */
 .toast-error {
-    border-left: 3px solid #ef5350;
+    border-left: 3px solid var(--danger);
 }
 
 .toast-error .toast-icon {
@@ -125,7 +125,7 @@
 
 /* Warning variant */
 .toast-warning {
-    border-left: 3px solid #ffb74d;
+    border-left: 3px solid var(--warning);
 }
 
 .toast-warning .toast-icon {
