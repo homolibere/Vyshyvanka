@@ -21,6 +21,8 @@ inclusion: always
 | Raw string literals `"""..."""` for multi-line | Escaped strings or `@""` for multi-line JSON/SQL |
 | Pattern matching in switch expressions | Long if-else chains for type/value dispatch |
 | Central package versions via `Directory.Packages.props` | Inline `<PackageReference Version="...">` in csproj |
+| `CultureInfo.InvariantCulture` for SVG/number formatting | Default culture-dependent `ToString()` or `$"{value}"` in markup/SVG |
+| `FormattableString.Invariant($"...")` for SVG path/attribute strings | Plain `$"..."` interpolation with doubles in SVG context |
 
 ## Runtime
 
@@ -29,6 +31,22 @@ inclusion: always
 - Blazor WebAssembly UI (`Vyshyvanka.Designer`)
 - EF Core code-first: SQLite (dev) / PostgreSQL (prod)
 - .NET Aspire for dev orchestration (`Vyshyvanka.AppHost`)
+
+## Culture & Locale
+
+The Designer sets `CultureInfo.InvariantCulture` globally at startup (`Program.cs`). This ensures SVG attributes always use `.` as the decimal separator regardless of the user's browser locale.
+
+When formatting numbers for SVG output (viewBox, transform, path `d`, width/height):
+- Use `FormattableString.Invariant($"...")` in code-behind methods.
+- Never use plain `$"{doubleValue}"` — it respects `CurrentCulture` and produces `,` on European locales, breaking SVG.
+
+```csharp
+// Correct — always produces "translate(144.5, 4)"
+return FormattableString.Invariant($"translate({x}, {y})");
+
+// Wrong — produces "translate(144,5, 4)" on comma-locale systems
+return $"translate({x}, {y})";
+```
 
 ## Serialization
 
