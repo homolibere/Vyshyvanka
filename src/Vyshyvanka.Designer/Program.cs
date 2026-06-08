@@ -1,7 +1,13 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Vyshyvanka.Designer;
 using Vyshyvanka.Designer.Services;
+
+// Force InvariantCulture so SVG attributes always use '.' as decimal separator
+// regardless of the browser's locale (which may use ',' — breaking SVG rendering).
+CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");

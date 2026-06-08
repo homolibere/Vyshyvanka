@@ -73,7 +73,7 @@ public partial class WorkflowCanvas : IAsyncDisposable
         var height = state.Height / state.Zoom;
         var x = -state.PanX / state.Zoom;
         var y = -state.PanY / state.Zoom;
-        return $"{x} {y} {width} {height}";
+        return FormattableString.Invariant($"{x} {y} {width} {height}");
     }
 
 
@@ -259,7 +259,7 @@ public partial class WorkflowCanvas : IAsyncDisposable
         var dx = Math.Abs(x2 - x1) * 0.5;
         var cp1X = x1 + dx;
         var cp2X = x2 - dx;
-        return $"M {x1} {y1} C {cp1X} {y1}, {cp2X} {y2}, {x2} {y2}";
+        return FormattableString.Invariant($"M {x1} {y1} C {cp1X} {y1}, {cp2X} {y2}, {x2} {y2}");
     }
 
     public async ValueTask DisposeAsync()

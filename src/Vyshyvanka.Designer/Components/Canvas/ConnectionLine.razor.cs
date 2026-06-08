@@ -34,7 +34,7 @@ public partial class ConnectionLine
         var dx = Math.Abs(EndX - StartX) * 0.5;
         var cp1x = StartX + dx;
         var cp2x = EndX - dx;
-        return $"M {StartX} {StartY} C {cp1x} {StartY}, {cp2x} {EndY}, {EndX} {EndY}";
+        return FormattableString.Invariant($"M {StartX} {StartY} C {cp1x} {StartY}, {cp2x} {EndY}, {EndX} {EndY}");
     }
 
     private static string GetArrowPoints() => "-6,-4 0,0 -6,4";
@@ -42,7 +42,7 @@ public partial class ConnectionLine
     private string GetArrowTransform()
     {
         var angle = Math.Atan2(EndY - StartY, EndX - StartX) * 180 / Math.PI;
-        return $"translate({EndX}, {EndY}) rotate({angle})";
+        return FormattableString.Invariant($"translate({EndX}, {EndY}) rotate({angle})");
     }
 
     private async Task OnSelectClick()

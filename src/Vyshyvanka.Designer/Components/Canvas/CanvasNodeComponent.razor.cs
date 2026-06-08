@@ -101,10 +101,10 @@ public partial class CanvasNodeComponent
     private static string FormatDuration(double ms)
     {
         if (ms < 1000)
-            return $"{ms:F0}ms";
+            return FormattableString.Invariant($"{ms:F0}ms");
         if (ms < 60000)
-            return $"{ms / 1000:F1}s";
-        return $"{ms / 60000:F1}m";
+            return FormattableString.Invariant($"{ms / 1000:F1}s");
+        return FormattableString.Invariant($"{ms / 60000:F1}m");
     }
 
     private async Task OnMouseDown(MouseEventArgs e)
