@@ -21,6 +21,7 @@ Action nodes perform operations — call APIs, query databases, send emails, etc
 | Node | Type ID | Description |
 |------|---------|-------------|
 | [HTTP Request](http-request.md) | `http-request` | Make HTTP requests to external APIs |
+| [HTTP Response](http-response.md) | `http-response` | Return a synchronous response to the webhook caller |
 | [Code](code.md) | `code` | Execute JavaScript or JSONata to transform data |
 | [Database Query](database-query.md) | `database-query` | Execute SQL queries against a database |
 | [Send Email](email-send.md) | `email-send` | Send emails via SMTP |

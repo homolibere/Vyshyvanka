@@ -15,6 +15,7 @@ Vyshyvanka/
 │   └── Vyshyvanka.ServiceDefaults/   # Shared service configuration (Aspire defaults)
 ├── plugins/
 │   ├── Vyshyvanka.Plugin.AdvancedHttp/ # HTTP retry, polling, batch, GraphQL nodes
+│   ├── Vyshyvanka.Plugin.Crypto/      # Cryptographic operations (HMAC, hash, AES, encoding)
 │   ├── Vyshyvanka.Plugin.GitLab/      # GitLab integration nodes
 │   ├── Vyshyvanka.Plugin.Jira/        # Jira integration nodes
 │   └── Vyshyvanka.Plugin.Tmplt/       # Starter template for new plugins

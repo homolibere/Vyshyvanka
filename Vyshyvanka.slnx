@@ -9,6 +9,7 @@
   </Folder>
   <Folder Name="/plugins/">
     <Project Path="plugins/Vyshyvanka.Plugin.AdvancedHttp/Vyshyvanka.Plugin.AdvancedHttp.csproj" />
+    <Project Path="plugins/Vyshyvanka.Plugin.Crypto/Vyshyvanka.Plugin.Crypto.csproj" />
     <Project Path="plugins/Vyshyvanka.Plugin.GitLab/src/Vyshyvanka.Plugin.GitLab.csproj" />
     <Project Path="plugins/Vyshyvanka.Plugin.Jira/src/Vyshyvanka.Plugin.Jira.csproj" />
   </Folder>

@@ -6,6 +6,7 @@ using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Core.Models;
 using Vyshyvanka.Engine.Credentials;
+using Vyshyvanka.Engine.Execution;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -177,8 +178,13 @@ public class WebhookController : ControllerBase
             }
         }
 
-        // Build webhook data from request
-        var webhookData = await BuildWebhookDataAsync(cancellationToken);
+        // Determine response mode from trigger configuration
+        var responseMode = GetTriggerConfigString(webhookTrigger, "responseMode") ?? "async";
+        var responseTimeoutSeconds = GetTriggerConfigInt(webhookTrigger, "responseTimeout") ?? 30;
+        var exposeAuthHeader = GetTriggerConfigBool(webhookTrigger, "exposeAuthorizationHeader");
+
+        // Build webhook data from request (includes rawBody for sync mode)
+        var webhookData = await BuildWebhookDataAsync(exposeAuthHeader, cancellationToken);
 
         // Create credential provider
         ICredentialProvider credentialProvider = _credentialService is not null
@@ -187,6 +193,12 @@ public class WebhookController : ControllerBase
 
         // Create execution context
         var executionId = Guid.NewGuid();
+
+        // Create webhook response writer for sync mode
+        WebhookResponseWriter? responseWriter = responseMode.Equals("sync", StringComparison.OrdinalIgnoreCase)
+            ? new WebhookResponseWriter()
+            : null;
+
         var context = new ExecutionContext(
             executionId,
             workflow.Id,
@@ -194,12 +206,126 @@ public class WebhookController : ControllerBase
             cancellationToken,
             HttpContext.RequestServices,
             userId: null,
-            _logger);
+            _logger)
+        {
+            WebhookResponse = responseWriter
+        };
 
         // Add webhook data to context
         context.Variables["webhook"] = webhookData;
         context.Variables["input"] = webhookData;
 
+        // Sync mode: execute workflow and wait for HTTP Response node to write
+        if (responseWriter is not null)
+        {
+            return await ExecuteSyncWebhookAsync(
+                workflow, context, responseWriter, responseTimeoutSeconds, executionId, cancellationToken);
+        }
+
+        // Async mode (default): execute and return standard response
+        return await ExecuteAsyncWebhookAsync(workflow, context, executionId, workflowId, cancellationToken);
+    }
+
+    private async Task<IActionResult> ExecuteSyncWebhookAsync(
+        Workflow workflow,
+        ExecutionContext context,
+        WebhookResponseWriter responseWriter,
+        int responseTimeoutSeconds,
+        Guid executionId,
+        CancellationToken cancellationToken)
+    {
+        // Start workflow execution as a task (but don't use Task.Run — stay on the request scope)
+        var executionTask = _workflowEngine.ExecuteAsync(workflow, context, cancellationToken);
+
+        // Race: wait for either the HTTP Response node to fire, or the workflow to complete, or timeout
+        var timeout = TimeSpan.FromSeconds(responseTimeoutSeconds);
+        var responseTask = responseWriter.WaitForResponseAsync(timeout, cancellationToken);
+
+        // Wait for the response or for execution to finish (whichever comes first)
+        await Task.WhenAny(responseTask, executionTask);
+
+        var responseData = responseTask.IsCompletedSuccessfully ? await responseTask : null;
+
+        if (responseData is null)
+        {
+            // No response from the node — either timeout or workflow finished without HTTP Response node
+            if (executionTask.IsCompletedSuccessfully)
+            {
+                // Workflow completed without producing a sync response — return standard webhook response
+                var result = await executionTask;
+                var execution = await _executionRepository.GetByIdAsync(executionId, cancellationToken);
+
+                return Ok(new WebhookResponse
+                {
+                    ExecutionId = executionId,
+                    WorkflowId = workflow.Id,
+                    Status = execution?.Status ?? (result.Success ? ExecutionStatus.Completed : ExecutionStatus.Failed),
+                    Message = result.Success
+                        ? "Workflow executed successfully"
+                        : result.ErrorMessage ?? "Workflow execution failed",
+                    OutputData = execution?.OutputData
+                });
+            }
+
+            if (executionTask.IsFaulted)
+            {
+                var ex = executionTask.Exception?.InnerException ?? executionTask.Exception;
+                _logger.LogError(ex, "Sync webhook workflow {WorkflowId} execution failed", workflow.Id);
+                return BadRequest(new ApiError
+                {
+                    Code = "WEBHOOK_EXECUTION_FAILED",
+                    Message = $"Workflow execution failed: {ex?.Message}"
+                });
+            }
+
+            // Timeout
+            _logger.LogWarning(
+                "Sync webhook workflow {WorkflowId} execution {ExecutionId} did not produce an HTTP Response within {Timeout}s",
+                workflow.Id, executionId, responseTimeoutSeconds);
+
+            return StatusCode(StatusCodes.Status504GatewayTimeout, new ApiError
+            {
+                Code = "WEBHOOK_RESPONSE_TIMEOUT",
+                Message = $"Workflow did not produce an HTTP Response within {responseTimeoutSeconds} seconds"
+            });
+        }
+
+        // Ensure workflow execution completes (persist records) before we return
+        try
+        {
+            await executionTask;
+        }
+        catch (Exception ex)
+        {
+            // Workflow failed after responding — log but don't change the response
+            _logger.LogWarning(ex,
+                "Sync webhook workflow {WorkflowId} execution failed after HTTP Response was sent",
+                workflow.Id);
+        }
+
+        // Write the custom response from the HTTP Response node
+        if (responseData.Headers is not null)
+        {
+            foreach (var (key, value) in responseData.Headers)
+            {
+                Response.Headers.Append(key, value);
+            }
+        }
+
+        _logger.LogInformation(
+            "Sync webhook workflow {WorkflowId}, execution {ExecutionId} responded with status {StatusCode}",
+            workflow.Id, executionId, responseData.StatusCode);
+
+        return new RawJsonResult(responseData.Body ?? string.Empty, responseData.StatusCode);
+    }
+
+    private async Task<IActionResult> ExecuteAsyncWebhookAsync(
+        Workflow workflow,
+        ExecutionContext context,
+        Guid executionId,
+        Guid workflowId,
+        CancellationToken cancellationToken)
+    {
         try
         {
             // Execute the workflow
@@ -241,6 +367,41 @@ public class WebhookController : ControllerBase
         }
     }
 
+    private static string? GetTriggerConfigString(WorkflowNode node, string key)
+    {
+        if (node.Configuration.ValueKind is JsonValueKind.Object &&
+            node.Configuration.TryGetProperty(key, out var value) &&
+            value.ValueKind == JsonValueKind.String)
+        {
+            return value.GetString();
+        }
+
+        return null;
+    }
+
+    private static int? GetTriggerConfigInt(WorkflowNode node, string key)
+    {
+        if (node.Configuration.ValueKind is JsonValueKind.Object &&
+            node.Configuration.TryGetProperty(key, out var value) &&
+            value.ValueKind == JsonValueKind.Number)
+        {
+            return value.GetInt32();
+        }
+
+        return null;
+    }
+
+    private static bool GetTriggerConfigBool(WorkflowNode node, string key)
+    {
+        if (node.Configuration.ValueKind is JsonValueKind.Object &&
+            node.Configuration.TryGetProperty(key, out var value))
+        {
+            return value.ValueKind == JsonValueKind.True;
+        }
+
+        return false;
+    }
+
     private async Task<IActionResult?> ValidateSignatureAsync(string secret, CancellationToken cancellationToken)
     {
         var signatureHeader = Request.Headers[WebhookSecurityService.SignatureHeader].FirstOrDefault();
@@ -275,34 +436,67 @@ public class WebhookController : ControllerBase
         return null; // Signature is valid
     }
 
-    private async Task<JsonElement> BuildWebhookDataAsync(CancellationToken cancellationToken)
+    private async Task<JsonElement> BuildWebhookDataAsync(bool exposeAuthorizationHeader, CancellationToken cancellationToken)
     {
         var webhookData = new Dictionary<string, object?>
         {
             ["method"] = Request.Method,
             ["path"] = Request.Path.Value,
             ["queryString"] = Request.QueryString.Value,
-            ["headers"] = GetHeadersDictionary(),
-            ["query"] = GetQueryDictionary()
+            ["headers"] = GetHeadersDictionary(exposeAuthorizationHeader),
+            ["query"] = GetQueryDictionary(),
+            ["remoteIp"] = HttpContext.Connection.RemoteIpAddress?.ToString()
         };
 
         // Read body if present
         if (Request.ContentLength > 0 || Request.ContentType is not null)
         {
-            webhookData["body"] = await ReadBodyAsync(cancellationToken);
+            // Read raw body string first (needed for signature verification in workflows)
+            Request.Body.Position = 0;
+            using var reader = new StreamReader(Request.Body, leaveOpen: true);
+            var rawBody = await reader.ReadToEndAsync(cancellationToken);
+            Request.Body.Position = 0;
+
+            webhookData["rawBody"] = rawBody;
+
+            // Also provide parsed body for convenience
+            if (!string.IsNullOrWhiteSpace(rawBody))
+            {
+                if (Request.ContentType?.Contains("application/json", StringComparison.OrdinalIgnoreCase) == true)
+                {
+                    try
+                    {
+                        webhookData["body"] = JsonSerializer.Deserialize<JsonElement>(rawBody);
+                    }
+                    catch
+                    {
+                        webhookData["body"] = rawBody;
+                    }
+                }
+                else
+                {
+                    webhookData["body"] = rawBody;
+                }
+            }
         }
 
         return JsonSerializer.SerializeToElement(webhookData);
     }
 
-    private Dictionary<string, string> GetHeadersDictionary()
+    private Dictionary<string, string> GetHeadersDictionary(bool exposeAuthorizationHeader)
     {
         var headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         foreach (var header in Request.Headers)
         {
-            // Skip sensitive headers
-            if (header.Key.StartsWith("Authorization", StringComparison.OrdinalIgnoreCase) ||
-                header.Key.StartsWith("Cookie", StringComparison.OrdinalIgnoreCase))
+            // Skip Cookie headers always
+            if (header.Key.StartsWith("Cookie", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            // Skip Authorization unless explicitly exposed via trigger config
+            if (!exposeAuthorizationHeader &&
+                header.Key.StartsWith("Authorization", StringComparison.OrdinalIgnoreCase))
             {
                 continue;
             }
@@ -322,42 +516,6 @@ public class WebhookController : ControllerBase
         }
 
         return query;
-    }
-
-    private async Task<object?> ReadBodyAsync(CancellationToken cancellationToken)
-    {
-        try
-        {
-            Request.Body.Position = 0;
-            using var reader = new StreamReader(Request.Body, leaveOpen: true);
-            var bodyString = await reader.ReadToEndAsync(cancellationToken);
-            Request.Body.Position = 0;
-
-            if (string.IsNullOrWhiteSpace(bodyString))
-            {
-                return null;
-            }
-
-            // Try to parse as JSON
-            if (Request.ContentType?.Contains("application/json", StringComparison.OrdinalIgnoreCase) == true)
-            {
-                try
-                {
-                    return JsonSerializer.Deserialize<JsonElement>(bodyString);
-                }
-                catch
-                {
-                    // If JSON parsing fails, return as string
-                    return bodyString;
-                }
-            }
-
-            return bodyString;
-        }
-        catch
-        {
-            return null;
-        }
     }
 
     private static bool HasWebhookTriggerWithPath(Workflow workflow, string path)
@@ -389,4 +547,33 @@ public record WebhookResponse
 
     /// <summary>Output data from the workflow (if any).</summary>
     public JsonElement? OutputData { get; init; }
+}
+
+/// <summary>
+/// Returns a pre-serialized JSON string directly to the response without double-encoding.
+/// Used by the sync webhook mode to forward the HTTP Response node's body verbatim.
+/// </summary>
+internal sealed class RawJsonResult : IActionResult
+{
+    private readonly string _json;
+    private readonly int _statusCode;
+
+    public RawJsonResult(string json, int statusCode)
+    {
+        _json = json;
+        _statusCode = statusCode;
+    }
+
+    public async Task ExecuteResultAsync(ActionContext context)
+    {
+        var response = context.HttpContext.Response;
+        response.StatusCode = _statusCode;
+
+        if (!response.Headers.ContainsKey("Content-Type"))
+        {
+            response.ContentType = "application/json; charset=utf-8";
+        }
+
+        await response.WriteAsync(_json);
+    }
 }

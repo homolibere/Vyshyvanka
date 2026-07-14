@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Vyshyvanka.Plugin.Crypto</RootNamespace>
+
+    <!-- NuGet Package Metadata -->
+    <PackageId>Vyshyvanka.Plugin.Crypto</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Vyshyvanka</Authors>
+    <Description>Cryptographic operations plugin for Vyshyvanka. Provides HMAC, hashing, encoding, and JWT signing for payment gateway integrations.</Description>
+    <PackageTags>vyshyvanka;plugin;crypto;hmac;sha256;jwt;signing</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryType>git</RepositoryType>
+
+    <!-- Plugin output settings -->
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Vyshyvanka.Core/Vyshyvanka.Core.csproj">
+      <Private>false</Private>
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </ProjectReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

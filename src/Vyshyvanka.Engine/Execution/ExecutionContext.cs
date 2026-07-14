@@ -37,6 +37,9 @@ public class ExecutionContext : IExecutionContext
     /// <inheritdoc />
     public ILogger Logger { get; }
 
+    /// <inheritdoc />
+    public IWebhookResponseWriter? WebhookResponse { get; init; }
+
     /// <summary>
     /// Creates a new execution context.
     /// </summary>

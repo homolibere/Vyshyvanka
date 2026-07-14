@@ -34,6 +34,12 @@ public interface IExecutionContext
 
     /// <summary>Logger for node execution diagnostics. Defaults to NullLogger when no logger is configured.</summary>
     ILogger Logger { get; }
+
+    /// <summary>
+    /// Response writer for synchronous webhook workflows.
+    /// Null when the workflow is not triggered by a webhook or when responseMode is "async".
+    /// </summary>
+    IWebhookResponseWriter? WebhookResponse { get; }
 }
 
 /// <summary>

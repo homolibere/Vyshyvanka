@@ -56,6 +56,7 @@ classDiagram
     BaseTriggerNode <|-- ManualTriggerNode
 
     BaseActionNode <|-- HttpRequestNode
+    BaseActionNode <|-- HttpResponseNode
     BaseActionNode <|-- DatabaseQueryNode
     BaseActionNode <|-- EmailSendNode
     BaseActionNode <|-- FileOperationsNode
@@ -75,7 +76,7 @@ Trigger nodes initiate workflow execution. They have no input ports and produce 
 
 | Node | Type Identifier | Description |
 |------|----------------|------------|
-| Webhook Trigger | `webhook-trigger` | Fires when an HTTP request hits the webhook endpoint. Passes method, headers, query params, and body as output. Optional security: `secret` (HMAC-SHA256 verification), `allowedIps` (IP allowlist). |
+| Webhook Trigger | `webhook-trigger` | Fires when an HTTP request hits the webhook endpoint. Passes method, headers, query params, body, and rawBody as output. Configuration: `responseMode` (`async` default, `sync` to hold connection for HTTP Response node), `responseTimeout` (seconds), `exposeAuthorizationHeader` (include Authorization header in output), `secret` (HMAC-SHA256 verification), `allowedIps` (IP allowlist). |
 | Schedule Trigger | `schedule-trigger` | Fires on a cron schedule. Passes the scheduled time as output. |
 | Manual Trigger | `manual-trigger` | Fires when a user manually executes the workflow. Passes any provided input data. |
 
@@ -86,6 +87,7 @@ Action nodes perform operations and produce output data.
 | Node | Type Identifier | Description | Credential Required |
 |------|----------------|------------|-------------------|
 | HTTP Request | `http-request` | Makes HTTP requests to external APIs. Configurable method, URL, headers, body. | Optional (ApiKey, OAuth2, BasicAuth, CustomHeaders) |
+| HTTP Response | `http-response` | Returns a synchronous HTTP response to the webhook trigger caller. Used with Webhook Trigger in `sync` response mode. Configurable status code, headers, body. | None |
 | Database Query | `database-query` | Executes SQL queries against configured databases. | Optional (BasicAuth) |
 | Email Send | `email-send` | Sends emails via SMTP. | Optional (BasicAuth) |
 | File Operations | `file-operations` | Reads, writes, and manipulates files. | None |
