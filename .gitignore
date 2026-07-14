@@ -53,3 +53,4 @@ Thumbs.db
 src/Vyshyvanka.Api/packages/*
 .playwright-mcp
 .llm
+samples/
