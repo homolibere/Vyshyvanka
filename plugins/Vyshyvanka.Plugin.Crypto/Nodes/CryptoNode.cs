@@ -21,7 +21,7 @@ namespace Vyshyvanka.Plugin.Crypto.Nodes;
 [ConfigurationProperty("operation", "string",
     Description = "Cryptographic operation to perform",
     IsRequired = true,
-    Options = "hmac-sha256,hmac-sha512,hmac-md5,sha256,sha512,md5,base64-encode,base64-decode,hex-encode,hex-decode,aes-gcm-decrypt,aes-cbc-decrypt")]
+    Options = "hmac-sha1,hmac-sha256,hmac-sha512,hmac-md5,sha1,sha256,sha512,md5,base64-encode,base64-decode,hex-encode,hex-decode,aes-gcm-decrypt,aes-cbc-decrypt")]
 [ConfigurationProperty("key", "string",
     Description = "Secret key for HMAC/AES operations. Supports credential expressions.")]
 [ConfigurationProperty("data", "string",
@@ -70,9 +70,11 @@ public class CryptoNode : INode
 
             var result = operation.ToLowerInvariant() switch
             {
+                "hmac-sha1" => ComputeHmac(HashAlgorithmName.SHA1, RequireKey(key, operation), data, encoding),
                 "hmac-sha256" => ComputeHmac(HashAlgorithmName.SHA256, RequireKey(key, operation), data, encoding),
                 "hmac-sha512" => ComputeHmac(HashAlgorithmName.SHA512, RequireKey(key, operation), data, encoding),
                 "hmac-md5" => ComputeHmac(HashAlgorithmName.MD5, RequireKey(key, operation), data, encoding),
+                "sha1" => ComputeHash(HashAlgorithmName.SHA1, data, encoding),
                 "sha256" => ComputeHash(HashAlgorithmName.SHA256, data, encoding),
                 "sha512" => ComputeHash(HashAlgorithmName.SHA512, data, encoding),
                 "md5" => ComputeHash(HashAlgorithmName.MD5, data, encoding),
@@ -112,6 +114,7 @@ public class CryptoNode : INode
 
         byte[] hash = algorithm.Name switch
         {
+            "SHA1" => HMACSHA1.HashData(keyBytes, dataBytes),
             "SHA256" => HMACSHA256.HashData(keyBytes, dataBytes),
             "SHA512" => HMACSHA512.HashData(keyBytes, dataBytes),
             "MD5" => HMACMD5.HashData(keyBytes, dataBytes),
@@ -127,6 +130,7 @@ public class CryptoNode : INode
 
         byte[] hash = algorithm.Name switch
         {
+            "SHA1" => SHA1.HashData(dataBytes),
             "SHA256" => SHA256.HashData(dataBytes),
             "SHA512" => SHA512.HashData(dataBytes),
             "MD5" => MD5.HashData(dataBytes),

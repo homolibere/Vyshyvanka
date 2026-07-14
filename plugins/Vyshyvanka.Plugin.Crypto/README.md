@@ -8,15 +8,17 @@ Cryptographic operations plugin for Vyshyvanka workflow automation platform.
 
 **Type identifier:** `crypto`
 
-Performs cryptographic operations commonly needed for payment gateway integrations: HMAC signature computation, hashing, encoding/decoding, and JWT token generation.
+Performs cryptographic operations commonly needed for payment gateway integrations: HMAC signature computation, hashing, encoding/decoding, and AES decryption.
 
 #### Supported Operations
 
 | Operation | Description | Requires Key |
 |-----------|-------------|:------------:|
+| `hmac-sha1` | HMAC-SHA1 signature | Yes |
 | `hmac-sha256` | HMAC-SHA256 signature | Yes |
 | `hmac-sha512` | HMAC-SHA512 signature | Yes |
 | `hmac-md5` | HMAC-MD5 signature | Yes |
+| `sha1` | SHA-1 hash | No |
 | `sha256` | SHA-256 hash | No |
 | `sha512` | SHA-512 hash | No |
 | `md5` | MD5 hash | No |
@@ -24,15 +26,19 @@ Performs cryptographic operations commonly needed for payment gateway integratio
 | `base64-decode` | Base64 decode to UTF-8 string | No |
 | `hex-encode` | Hex encode UTF-8 string | No |
 | `hex-decode` | Hex decode to UTF-8 string | No |
+| `aes-gcm-decrypt` | AES-GCM authenticated decryption | Yes |
+| `aes-cbc-decrypt` | AES-CBC decryption (PKCS7 padding) | Yes |
 
 #### Configuration
 
 | Property | Type | Required | Description |
 |----------|------|:--------:|-------------|
 | `operation` | string | Yes | Operation to perform (see table above) |
-| `key` | string | For HMAC | Secret key. Supports credential expressions. |
+| `key` | string | For HMAC/AES | Secret key. Supports credential expressions. |
 | `data` | string | No | Data to process. If omitted, uses input port data serialized to string. |
-| `encoding` | string | No | Output encoding: `hex` (default), `base64`, `utf8` |
+| `encoding` | string | No | Output encoding: `hex` (default), `base64` |
+| `iv` | string | For AES | Initialization vector or nonce. Hex or Base64 encoded. |
+| `inputEncoding` | string | No | Encoding of AES ciphertext input: `base64` (default), `hex` |
 
 #### Output
 
@@ -58,6 +64,13 @@ encoding: "hex"
 ```
 operation: "sha256"
 data: "{{ nodes.<trigger>.data.rawBody }}"
+encoding: "hex"
+```
+
+**SHA-1 checksum for MPay notification verification:**
+```
+operation: "sha1"
+data: "{{ credentials.mpay-merchant.apiKey }}{{ nodes.<trigger>.data.body.timestamp }}{{ nodes.<trigger>.data.body.externalTransactionId }}"
 encoding: "hex"
 ```
 
