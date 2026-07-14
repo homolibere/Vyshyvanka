@@ -13,6 +13,9 @@
                    @bind="_searchQuery"
                    @bind:event="oninput"
                    @onkeyup="OnSearchKeyUp"/>
+            <button class="btn-import" @onclick="ImportWorkflow" title="Import workflow from JSON">
+                📤 Import
+            </button>
             <button class="btn-new" @onclick="CreateNewWorkflow">
                 + New Workflow
             </button>
@@ -89,6 +92,12 @@
                             }
                             else
                             {
+                                <button class="btn-export"
+                                        title="Export as JSON"
+                                        @onclick="() => ExportWorkflow(workflow.Id, workflow.Name)"
+                                        @onclick:stopPropagation="true">
+                                    📥
+                                </button>
                                 <button class="btn-delete"
                                         title="Delete workflow"
                                         @onclick="() => ConfirmDelete(workflow.Id)"
@@ -102,5 +111,20 @@
                 }
             }
         </div>
+
+        @if (_importConfirmWorkflow is not null)
+        {
+            <div class="import-confirm-overlay" @onclick="CancelImport" @onclick:stopPropagation="true">
+                <div class="import-confirm-dialog" @onclick:stopPropagation="true">
+                    <h3>Workflow already exists</h3>
+                    <p>A workflow named <strong>@_importConfirmWorkflow.Name</strong> already exists. Do you want to overwrite it?</p>
+                    <div class="import-confirm-actions">
+                        <button class="btn-cancel" @onclick="CancelImport">Cancel</button>
+                        <button class="btn-import-copy" @onclick="ImportAsCopy">Import as Copy</button>
+                        <button class="btn-overwrite" @onclick="ConfirmImportOverwrite">Overwrite</button>
+                    </div>
+                </div>
+            </div>
+        }
     </div>
 </div>

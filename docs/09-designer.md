@@ -30,7 +30,7 @@ flowchart TD
     subgraph "Panel Components"
         NodePalette["NodePalette<br/>Draggable node catalog"]
         NodeConfigPanel["NodeConfigPanel<br/>Selected node properties"]
-        WorkflowBrowser["WorkflowBrowser<br/>Workflow list & search"]
+        WorkflowBrowser["WorkflowBrowser<br/>Workflow list, search, import/export"]
     end
 
     subgraph "Editor Components"
@@ -235,6 +235,8 @@ flowchart TD
 
 The `canvas-interop.js` file handles low-level mouse and touch events, coordinate transformations, and SVG rendering optimizations that would be too slow in Blazor's render cycle.
 
+The `file-interop.js` file provides file download (`downloadFile`) and file upload (`triggerFileUpload`) via JS interop, used by the WorkflowBrowser for workflow export/import.
+
 ## Pages
 
 ### Home
@@ -251,7 +253,7 @@ The main workspace containing:
 - Workflow canvas (center)
 - Node palette (left sidebar)
 - Node configuration panel (right sidebar)
-- Workflow browser (top bar)
+- Workflow browser (top bar — open, import, per-workflow export and delete)
 - Plugin manager (accessible from toolbar)
 
 ### NotFound
