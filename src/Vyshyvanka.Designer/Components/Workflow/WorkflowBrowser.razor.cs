@@ -48,6 +48,9 @@ public partial class WorkflowBrowser
     private Guid? _shareDialogWorkflowId;
     private string _shareDialogWorkflowName = "";
 
+    // Move-to-folder state
+    private Guid? _actionMenuWorkflowId;
+
     [Parameter] public bool IsOpen { get; set; }
     [Parameter] public Guid? CurrentWorkflowId { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
@@ -79,6 +82,14 @@ public partial class WorkflowBrowser
     {
         if (IsOpen && !_wasOpen && !_isLoading)
         {
+            // Reset transient UI state when reopening
+            _actionMenuWorkflowId = null;
+            _confirmDeleteId = null;
+            _folderMenuId = null;
+            _showFolderInput = false;
+            _showDeleteFolderConfirm = false;
+            _shareDialogWorkflowId = null;
+
             await LoadAllAsync();
         }
 
@@ -254,6 +265,7 @@ public partial class WorkflowBrowser
 
     private void OpenShareDialog(Guid workflowId, string workflowName)
     {
+        _actionMenuWorkflowId = null;
         _shareDialogWorkflowId = workflowId;
         _shareDialogWorkflowName = workflowName;
     }
@@ -262,6 +274,41 @@ public partial class WorkflowBrowser
     {
         _shareDialogWorkflowId = null;
         _shareDialogWorkflowName = "";
+    }
+
+    // --- Move to folder ---
+
+    private void ToggleActionMenu(Guid workflowId)
+    {
+        _actionMenuWorkflowId = _actionMenuWorkflowId == workflowId ? null : workflowId;
+    }
+
+    private async Task MoveWorkflowAsync(Guid workflowId, Guid? folderId)
+    {
+        _actionMenuWorkflowId = null;
+
+        try
+        {
+            await ApiClient.MoveToFolderAsync(workflowId, folderId);
+
+            // Update local state
+            var idx = _workflows.FindIndex(w => w.Id == workflowId);
+            if (idx >= 0)
+            {
+                var w = _workflows[idx];
+                _workflows[idx] = w with { FolderId = folderId };
+            }
+
+            // Refresh folder counts
+            _folders = await FolderClient.GetFoldersAsync();
+
+            var folderName = folderId is null ? "root" : _folders.FirstOrDefault(f => f.Id == folderId)?.Name ?? "folder";
+            Toast.ShowSuccess($"Moved to {folderName}", "Workflow");
+        }
+        catch (Exception ex)
+        {
+            Toast.ShowError(ex.Message, "Move Failed");
+        }
     }
 
     // --- Workflow operations (existing) ---
@@ -301,6 +348,7 @@ public partial class WorkflowBrowser
 
     private void ConfirmDelete(Guid workflowId)
     {
+        _actionMenuWorkflowId = null;
         _confirmDeleteId = workflowId;
     }
 
@@ -326,6 +374,8 @@ public partial class WorkflowBrowser
 
     private async Task ExportWorkflow(Guid workflowId, string workflowName)
     {
+        _actionMenuWorkflowId = null;
+
         try
         {
             var workflow = await ApiClient.GetWorkflowAsync(workflowId);

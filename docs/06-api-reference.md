@@ -135,6 +135,7 @@ See [Security — Webhook Security](07-security.md#webhook-security) for configu
 | POST | `/api/folder` | CanManageWorkflows | Create a new folder. |
 | PUT | `/api/folder/{id}` | CanManageWorkflows | Update folder name/color. |
 | DELETE | `/api/folder/{id}` | CanManageWorkflows | Delete a folder (workflows move to root). |
+| PATCH | `/api/workflow/{id}/folder` | CanManageWorkflows | Move a workflow to a folder (or root if folderId is null). |
 
 ### Teams
 

@@ -154,24 +154,43 @@
                                     {
                                         @if (_activeSection != BrowserSection.Shared)
                                         {
-                                            <button class="btn-share"
-                                                    title="Share workflow"
-                                                    @onclick="() => OpenShareDialog(workflow.Id, workflow.Name)"
-                                                    @onclick:stopPropagation="true">
-                                                🔗
-                                            </button>
-                                            <button class="btn-export"
-                                                    title="Export as JSON"
-                                                    @onclick="() => ExportWorkflow(workflow.Id, workflow.Name)"
-                                                    @onclick:stopPropagation="true">
-                                                📥
-                                            </button>
-                                            <button class="btn-delete"
-                                                    title="Delete workflow"
-                                                    @onclick="() => ConfirmDelete(workflow.Id)"
-                                                    @onclick:stopPropagation="true">
-                                                🗑
-                                            </button>
+                                            <div class="action-menu-wrapper">
+                                                <button class="btn-action-menu"
+                                                        title="Actions"
+                                                        @onclick="() => ToggleActionMenu(workflow.Id)"
+                                                        @onclick:stopPropagation="true">
+                                                    ⋯
+                                                </button>
+                                                @if (_actionMenuWorkflowId == workflow.Id)
+                                                {
+                                                    <div class="action-menu" @onclick:stopPropagation="true">
+                                                        <button @onclick="() => OpenShareDialog(workflow.Id, workflow.Name)">
+                                                            <span class="action-icon">🔗</span> Share
+                                                        </button>
+                                                        <button @onclick="() => ExportWorkflow(workflow.Id, workflow.Name)">
+                                                            <span class="action-icon">📥</span> Export
+                                                        </button>
+                                                        <div class="action-menu-divider"></div>
+                                                        <div class="action-submenu-label">Move to folder</div>
+                                                        <button class="submenu-item @(workflow.FolderId is null ? "active" : "")"
+                                                                @onclick="() => MoveWorkflowAsync(workflow.Id, null)">
+                                                            Root (no folder)
+                                                        </button>
+                                                        @foreach (var folder in _folders)
+                                                        {
+                                                            <button class="submenu-item @(workflow.FolderId == folder.Id ? "active" : "")"
+                                                                    @onclick="() => MoveWorkflowAsync(workflow.Id, folder.Id)">
+                                                                <span class="folder-dot" style="background: @(folder.Color ?? "var(--text-muted)")"></span>
+                                                                @folder.Name
+                                                            </button>
+                                                        }
+                                                        <div class="action-menu-divider"></div>
+                                                        <button class="danger" @onclick="() => ConfirmDelete(workflow.Id)">
+                                                            <span class="action-icon">🗑</span> Delete
+                                                        </button>
+                                                    </div>
+                                                }
+                                            </div>
                                         }
                                         <button class="btn-open" title="Open workflow">→</button>
                                     }

@@ -246,6 +246,42 @@ public class WorkflowController : ControllerBase
     }
 
     /// <summary>
+    /// Moves a workflow to a different folder (or to root if folderId is null).
+    /// </summary>
+    [HttpPatch("{id:guid}/folder")]
+    [Authorize(Policy = Policies.CanManageWorkflows)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ApiError), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> MoveToFolder(
+        Guid id,
+        [FromBody] MoveToFolderRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        _logger.LogDebug("Moving workflow {WorkflowId} to folder {FolderId}", id, request.FolderId);
+
+        var existing = await _repository.GetByIdAsync(id, cancellationToken);
+        if (existing is null || !IsOwnerOrAdmin(existing))
+        {
+            return NotFound(new ApiError
+            {
+                Code = "WORKFLOW_NOT_FOUND",
+                Message = $"Workflow with ID '{id}' was not found"
+            });
+        }
+
+        var updated = existing with
+        {
+            FolderId = request.FolderId,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        await _repository.UpdateAsync(updated, cancellationToken);
+
+        _logger.LogInformation("Moved workflow {WorkflowId} to folder {FolderId}", id, request.FolderId);
+        return NoContent();
+    }
+
+    /// <summary>
     /// Gets active workflows.
     /// Non-Admin users only see their own active workflows.
     /// </summary>

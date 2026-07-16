@@ -53,6 +53,14 @@ public class WorkflowApiClient(HttpClient httpClient) : ApiClientBase(httpClient
         await EnsureSuccessAsync(response, cancellationToken);
     }
 
+    /// <summary>Moves a workflow to a folder (or root if folderId is null).</summary>
+    public async Task MoveToFolderAsync(Guid workflowId, Guid? folderId, CancellationToken cancellationToken = default)
+    {
+        var request = new { folderId };
+        var response = await Http.PatchAsJsonAsync($"api/workflow/{workflowId}/folder", request, cancellationToken);
+        await EnsureSuccessAsync(response, cancellationToken);
+    }
+
     /// <summary>Gets all node definitions from the registry.</summary>
     public async Task<List<NodeDefinition>> GetNodeDefinitionsAsync(CancellationToken cancellationToken = default)
     {

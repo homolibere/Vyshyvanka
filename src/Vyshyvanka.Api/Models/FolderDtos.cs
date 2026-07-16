@@ -57,3 +57,12 @@ public record FolderResponse
         CreatedAt = folder.CreatedAt
     };
 }
+
+/// <summary>
+/// Request to move a workflow to a folder (or to root).
+/// </summary>
+public record MoveToFolderRequest
+{
+    /// <summary>Target folder ID. Null moves the workflow to root (unfiled).</summary>
+    public Guid? FolderId { get; init; }
+}

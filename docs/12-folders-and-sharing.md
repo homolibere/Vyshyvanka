@@ -32,6 +32,7 @@ Workflows can be organized into **flat folders** (one level, no nesting). Each u
 | POST | `/api/folder` | Create a folder |
 | PUT | `/api/folder/{id}` | Update folder name/color |
 | DELETE | `/api/folder/{id}` | Delete folder (workflows move to root) |
+| PATCH | `/api/workflow/{id}/folder` | Move a workflow to a folder (or to root) |
 
 ---
 
