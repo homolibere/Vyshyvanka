@@ -8,6 +8,11 @@
         </div>
 
         <div class="share-body">
+            @if (_errorMessage is not null)
+            {
+                <div class="share-error">@_errorMessage</div>
+            }
+
             <!-- Grant form -->
             <div class="share-form">
                 <div class="form-row">
@@ -93,11 +98,6 @@
                         </div>
                     }
                 </div>
-            }
-
-            @if (_errorMessage is not null)
-            {
-                <div class="share-error">@_errorMessage</div>
             }
         </div>
     </div>

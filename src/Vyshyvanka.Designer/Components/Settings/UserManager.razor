@@ -107,6 +107,9 @@
                         </span>
                     </div>
                     <div class="user-actions-area">
+                        <button class="btn-icon" title="Edit profile" @onclick="() => StartEditUser(user)">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
                         <select class="role-select"
                                 value="@user.Role"
                                 @onchange="e => HandleRoleChange(user.Id, e)">
@@ -148,6 +151,36 @@
                 }
             </div>
         }
+    }
+
+    @if (_editUser is not null)
+    {
+        <div class="modal-backdrop" @onclick="CloseEditUser">
+            <div class="modal-panel" @onclick:stopPropagation="true">
+                <div class="modal-header">
+                    <h3>Edit User</h3>
+                    <button class="btn-icon" @onclick="CloseEditUser"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="form-field">
+                    <label class="field-label">Email</label>
+                    <input class="form-input" type="email" @bind="_editEmail" />
+                </div>
+                <div class="form-field">
+                    <label class="field-label">Display Name</label>
+                    <input class="form-input" @bind="_editDisplayName" placeholder="Optional" />
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-secondary" @onclick="CloseEditUser">Cancel</button>
+                    <button class="btn btn-primary" @onclick="HandleEditUser" disabled="@_isSaving">
+                        @(_isSaving ? "Saving…" : "Save")
+                    </button>
+                </div>
+                @if (!string.IsNullOrEmpty(_editError))
+                {
+                    <p class="form-error">@_editError</p>
+                }
+            </div>
+        </div>
     }
 
     @if (_teamAssignUser is not null)

@@ -123,6 +123,17 @@
                                         {
                                             <span class="shared-badge">Shared</span>
                                         }
+                                        @if (_activeSection == BrowserSection.All && workflow.FolderId is not null)
+                                        {
+                                            var folder = _folders.FirstOrDefault(f => f.Id == workflow.FolderId);
+                                            if (folder is not null)
+                                            {
+                                                <span class="folder-badge">
+                                                    <span class="folder-dot" style="background: @(folder.Color ?? "var(--text-muted)")"></span>
+                                                    @folder.Name
+                                                </span>
+                                            }
+                                        }
                                     </div>
                                     @if (!string.IsNullOrWhiteSpace(workflow.Description))
                                     {

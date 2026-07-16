@@ -56,4 +56,13 @@ public class UserApiClient(HttpClient httpClient) : ApiClientBase(httpClient)
         await EnsureSuccessAsync(response, cancellationToken);
         return await response.Content.ReadFromJsonAsync<AdminUserModel>(JsonOptions, cancellationToken);
     }
+
+    /// <summary>Updates a user's profile (email and display name).</summary>
+    public async Task<AdminUserModel?> UpdateProfileAsync(Guid userId, string email, string? displayName, CancellationToken cancellationToken = default)
+    {
+        var request = new UpdateUserProfileRequest { Email = email, DisplayName = displayName };
+        var response = await Http.PutAsJsonAsync($"api/user/{userId}", request, JsonOptions, cancellationToken);
+        await EnsureSuccessAsync(response, cancellationToken);
+        return await response.Content.ReadFromJsonAsync<AdminUserModel>(JsonOptions, cancellationToken);
+    }
 }

@@ -85,3 +85,19 @@ public record UpdateUserStatusRequest
     /// <summary>Whether the user should be active.</summary>
     public bool IsActive { get; init; }
 }
+
+/// <summary>
+/// Request to update a user's profile (email, display name).
+/// </summary>
+public record UpdateUserProfileRequest
+{
+    /// <summary>New email address.</summary>
+    [Required(ErrorMessage = "Email is required")]
+    [EmailAddress(ErrorMessage = "Invalid email format")]
+    [MaxLength(256, ErrorMessage = "Email cannot exceed 256 characters")]
+    public string Email { get; init; } = string.Empty;
+
+    /// <summary>New display name.</summary>
+    [MaxLength(200, ErrorMessage = "Display name cannot exceed 200 characters")]
+    public string? DisplayName { get; init; }
+}

@@ -66,6 +66,14 @@
         <ApiKeyManager/>
     </div>
 
+    @if (_isEditorOrAbove)
+    {
+        <div class="settings-section">
+            <h2 class="section-title">Teams</h2>
+            <TeamManager/>
+        </div>
+    }
+
     @if (_isAdmin)
     {
         <div class="settings-section">

@@ -14,11 +14,14 @@ public partial class Settings : ComponentBase, IDisposable
     private string? _uploadError;
     private string? _uploadSuccess;
     private bool _isAdmin;
+    private bool _isEditorOrAbove;
 
     protected override void OnInitialized()
     {
         _themeService.OnThemeChanged += StateHasChanged;
-        _isAdmin = string.Equals(AuthState.CurrentUser?.Role, "Admin", StringComparison.OrdinalIgnoreCase);
+        var role = AuthState.CurrentUser?.Role;
+        _isAdmin = string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase);
+        _isEditorOrAbove = _isAdmin || string.Equals(role, "Editor", StringComparison.OrdinalIgnoreCase);
     }
 
     private async Task GoBack()

@@ -1,0 +1,147 @@
+@namespace Vyshyvanka.Designer.Components
+
+<div class="team-manager">
+    <div class="section-header">
+        <div>
+            <h2>🏢 Teams</h2>
+            <p class="section-desc">Create teams to share workflows with groups of users.</p>
+        </div>
+        <button class="btn-add" @onclick="ShowCreateForm" disabled="@_showCreateForm">+ New Team</button>
+    </div>
+
+    @if (_showCreateForm)
+    {
+        <div class="team-form">
+            <div class="form-field">
+                <label class="field-label">Team Name</label>
+                <input class="form-input" placeholder="e.g. Backend Team" @bind="_formName" />
+            </div>
+            <div class="form-field">
+                <label class="field-label">Description (optional)</label>
+                <input class="form-input" placeholder="What this team works on" @bind="_formDescription" />
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-secondary" @onclick="CloseForm" disabled="@_isSaving">Cancel</button>
+                <button class="btn btn-primary" @onclick="HandleCreate" disabled="@_isSaving">
+                    @(_isSaving ? "Creating…" : "Create Team")
+                </button>
+            </div>
+            @if (!string.IsNullOrEmpty(_formError))
+            {
+                <p class="form-error">@_formError</p>
+            }
+        </div>
+    }
+
+    @if (_isLoading)
+    {
+        <div class="loading-state">Loading teams…</div>
+    }
+    else if (_teams.Count == 0 && !_showCreateForm)
+    {
+        <div class="empty-state">
+            <span class="empty-icon">🏢</span>
+            <p>No teams yet</p>
+            <p class="empty-hint">Teams let you share workflows with groups of users at once.</p>
+            <button class="btn btn-primary" @onclick="ShowCreateForm">Create your first team</button>
+        </div>
+    }
+    else
+    {
+        <div class="team-list">
+            @foreach (var team in _teams)
+            {
+                <div class="team-item">
+                    <div class="team-info" @onclick="() => ToggleExpand(team.Id)">
+                        <div class="team-primary">
+                            <span class="team-name">@team.Name</span>
+                            <span class="team-member-count">@team.Members.Count member@(team.Members.Count != 1 ? "s" : "")</span>
+                        </div>
+                        @if (!string.IsNullOrEmpty(team.Description))
+                        {
+                            <span class="team-desc">@team.Description</span>
+                        }
+                    </div>
+                    <div class="team-actions">
+                        <button class="btn-icon" title="Edit" @onclick="() => StartEdit(team)">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        <button class="btn-icon btn-danger" title="Delete" @onclick="() => RequestDelete(team.Id)">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+
+                @if (_expandedTeamId == team.Id)
+                {
+                    <div class="team-members-panel">
+                        @if (team.Members.Count == 0)
+                        {
+                            <p class="members-empty">No members yet. Use User Management to add users to this team.</p>
+                        }
+                        else
+                        {
+                            <div class="members-list">
+                                @foreach (var member in team.Members)
+                                {
+                                    <div class="member-item">
+                                        <div class="member-info">
+                                            <span class="member-name">@(member.DisplayName ?? member.Email ?? "Unknown")</span>
+                                            <span class="member-role">@member.Role</span>
+                                        </div>
+                                        <button class="btn-icon btn-danger-subtle"
+                                                title="Remove from team"
+                                                @onclick="() => RemoveMember(team.Id, member.UserId)">
+                                            <i class="fa-solid fa-user-minus"></i>
+                                        </button>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+
+                @if (_confirmDeleteId == team.Id)
+                {
+                    <div class="confirm-bar confirm-danger">
+                        <span>Delete "<strong>@team.Name</strong>"? Shared workflow permissions for this team will be revoked.</span>
+                        <div class="confirm-actions">
+                            <button class="btn btn-secondary btn-sm" @onclick="CancelAction">Cancel</button>
+                            <button class="btn btn-danger-solid btn-sm" @onclick="ConfirmDelete">Delete</button>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    }
+
+    @if (_editTeam is not null)
+    {
+        <div class="modal-backdrop" @onclick="CloseEdit">
+            <div class="modal-panel" @onclick:stopPropagation="true">
+                <div class="modal-header">
+                    <h3>Edit Team</h3>
+                    <button class="btn-icon" @onclick="CloseEdit"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="form-field">
+                    <label class="field-label">Name</label>
+                    <input class="form-input" @bind="_editName" />
+                </div>
+                <div class="form-field">
+                    <label class="field-label">Description</label>
+                    <input class="form-input" @bind="_editDescription" />
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-secondary" @onclick="CloseEdit">Cancel</button>
+                    <button class="btn btn-primary" @onclick="HandleUpdate" disabled="@_isSaving">
+                        @(_isSaving ? "Saving…" : "Save")
+                    </button>
+                </div>
+                @if (!string.IsNullOrEmpty(_editError))
+                {
+                    <p class="form-error">@_editError</p>
+                }
+            </div>
+        </div>
+    }
+</div>

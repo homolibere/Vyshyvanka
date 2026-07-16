@@ -145,6 +145,55 @@ public class UserController(
     }
 
     /// <summary>
+    /// Updates a user's profile (email and display name).
+    /// </summary>
+    [HttpPut("{id:guid}")]
+    [ProducesResponseType(typeof(AdminUserResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiError), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiError), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<AdminUserResponse>> UpdateProfile(
+        Guid id,
+        [FromBody] UpdateUserProfileRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var user = await userRepository.GetByIdAsync(id, cancellationToken);
+        if (user is null)
+        {
+            return NotFound(new ApiError
+            {
+                Code = "USER_NOT_FOUND",
+                Message = $"User with ID '{id}' was not found"
+            });
+        }
+
+        // Check email uniqueness if changed
+        if (!string.Equals(user.Email, request.Email, StringComparison.OrdinalIgnoreCase))
+        {
+            var existing = await userRepository.GetByEmailAsync(request.Email, cancellationToken);
+            if (existing is not null)
+            {
+                return BadRequest(new ApiError
+                {
+                    Code = "EMAIL_EXISTS",
+                    Message = $"A user with email '{request.Email}' already exists"
+                });
+            }
+        }
+
+        var updated = user with
+        {
+            Email = request.Email.Trim(),
+            DisplayName = string.IsNullOrWhiteSpace(request.DisplayName) ? null : request.DisplayName.Trim()
+        };
+        updated = await userRepository.UpdateAsync(updated, cancellationToken);
+
+        logger.LogInformation("Admin updated profile for user {UserId}: email={Email}, name={DisplayName}",
+            id, updated.Email, updated.DisplayName);
+
+        return Ok(AdminUserResponse.FromModel(updated));
+    }
+
+    /// <summary>
     /// Updates a user's role.
     /// </summary>
     [HttpPut("{id:guid}/role")]

@@ -53,6 +53,15 @@ public record UpdateUserStatusRequest
 }
 
 /// <summary>
+/// Request to update a user's profile (email and display name).
+/// </summary>
+public record UpdateUserProfileRequest
+{
+    public string Email { get; init; } = string.Empty;
+    public string? DisplayName { get; init; }
+}
+
+/// <summary>
 /// Authentication configuration returned by the API.
 /// </summary>
 public record AuthConfigModel

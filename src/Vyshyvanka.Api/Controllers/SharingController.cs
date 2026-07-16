@@ -16,6 +16,8 @@ namespace Vyshyvanka.Api.Controllers;
 public class SharingController(
     IWorkflowPermissionService permissionService,
     IWorkflowRepository workflowRepository,
+    IUserRepository userRepository,
+    ITeamRepository teamRepository,
     ICurrentUserService currentUserService,
     ILogger<SharingController> logger) : ControllerBase
 {
@@ -42,7 +44,15 @@ public class SharingController(
         }
 
         var permissions = await permissionService.GetWorkflowPermissionsAsync(workflowId, cancellationToken);
-        return Ok(permissions.Select(p => WorkflowPermissionResponse.FromModel(p)).ToList());
+
+        var responses = new List<WorkflowPermissionResponse>(permissions.Count);
+        foreach (var perm in permissions)
+        {
+            var targetName = await ResolveTargetNameAsync(perm.TargetType, perm.TargetId, cancellationToken);
+            responses.Add(WorkflowPermissionResponse.FromModel(perm, targetName));
+        }
+
+        return Ok(responses);
     }
 
     /// <summary>
@@ -164,5 +174,25 @@ public class SharingController(
 
         var userId = currentUserService.UserId;
         return userId is not null && ownerId == userId;
+    }
+
+    private async Task<string?> ResolveTargetNameAsync(
+        PermissionTargetType targetType,
+        Guid targetId,
+        CancellationToken cancellationToken)
+    {
+        if (targetType == PermissionTargetType.User)
+        {
+            var user = await userRepository.GetByIdAsync(targetId, cancellationToken);
+            return user?.DisplayName ?? user?.Email;
+        }
+
+        if (targetType == PermissionTargetType.Team)
+        {
+            var team = await teamRepository.GetByIdAsync(targetId, cancellationToken);
+            return team?.Name;
+        }
+
+        return null;
     }
 }

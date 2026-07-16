@@ -39,6 +39,12 @@ public partial class UserManager
     // Auth config
     private bool _canCreateUsers;
 
+    // Edit user
+    private AdminUserModel? _editUser;
+    private string _editEmail = "";
+    private string _editDisplayName = "";
+    private string? _editError;
+
     // Team assignment
     private AdminUserModel? _teamAssignUser;
     private List<TeamResponse> _teams = [];
@@ -203,6 +209,58 @@ public partial class UserManager
         catch (ApiException ex)
         {
             ToastService.ShowError($"Failed to update status: {ex.Message}");
+        }
+    }
+
+    // Edit user profile
+    private void StartEditUser(AdminUserModel user)
+    {
+        _editUser = user;
+        _editEmail = user.Email;
+        _editDisplayName = user.DisplayName ?? "";
+        _editError = null;
+    }
+
+    private void CloseEditUser()
+    {
+        _editUser = null;
+        _editError = null;
+    }
+
+    private async Task HandleEditUser()
+    {
+        if (_editUser is null) return;
+
+        if (string.IsNullOrWhiteSpace(_editEmail))
+        {
+            _editError = "Email is required.";
+            return;
+        }
+
+        _isSaving = true;
+        _editError = null;
+
+        try
+        {
+            await UserClient.UpdateProfileAsync(
+                _editUser.Id,
+                _editEmail.Trim(),
+                string.IsNullOrWhiteSpace(_editDisplayName) ? null : _editDisplayName.Trim());
+            ToastService.ShowSuccess("User profile updated");
+            CloseEditUser();
+            await LoadUsersAsync();
+        }
+        catch (ApiException ex)
+        {
+            _editError = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _editError = $"Failed to update user: {ex.Message}";
+        }
+        finally
+        {
+            _isSaving = false;
         }
     }
 
