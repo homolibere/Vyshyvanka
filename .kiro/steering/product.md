@@ -15,6 +15,9 @@ Vyshyvanka is a .NET 10 workflow automation platform. Users build workflows visu
 | Connection | Directed link from an output port to an input port | Port types must be compatible (see below) |
 | Execution | Immutable runtime record of a workflow run | Terminal states (`Completed`, `Failed`, `Cancelled`) are final — never mutate |
 | Credential | Authentication data stored locally (AES-256) or in an external secrets manager (Vault, OpenBao) | Never returned in API responses; never logged |
+| Folder | Flat organizational container for workflows | Owned by a single user; unique name per owner; deleting moves workflows to root |
+| Team | Named group of users for collective sharing | Owned by creator; creator auto-added as Owner member |
+| WorkflowPermission | Access grant on a workflow to a user or team | Unique per (workflow, targetType, targetId); carries credential policy |
 
 ## Node Categories
 
@@ -121,3 +124,6 @@ Use these terms consistently in code, APIs, UI text, comments, and documentation
 | Credential | secret, auth, key, token |
 | Trigger | starter, initiator, entry |
 | Connection | edge, link, wire |
+| Folder | directory, category, group (when referring to workflow organization) |
+| Team | group (when referring to user groups for sharing) |
+| Permission | access, share grant |

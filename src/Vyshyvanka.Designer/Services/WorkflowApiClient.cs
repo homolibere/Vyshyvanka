@@ -207,6 +207,7 @@ public class WorkflowApiClient(HttpClient httpClient) : ApiClientBase(httpClient
             }
             : new WorkflowSettings(),
         Tags = response.Tags,
+        FolderId = response.FolderId,
         CreatedAt = response.CreatedAt,
         UpdatedAt = response.UpdatedAt,
         CreatedBy = response.CreatedBy

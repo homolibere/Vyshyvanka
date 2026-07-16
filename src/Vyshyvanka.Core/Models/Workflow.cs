@@ -48,6 +48,10 @@ public record Workflow
     [JsonPropertyName("settings")]
     public WorkflowSettings Settings { get; init; } = new();
     
+    /// <summary>Optional folder for organization. Null means the workflow is in the root.</summary>
+    [JsonPropertyName("folderId")]
+    public Guid? FolderId { get; init; }
+
     /// <summary>Tags for categorization and filtering.</summary>
     [JsonPropertyName("tags")]
     public List<string> Tags { get; init; } = [];

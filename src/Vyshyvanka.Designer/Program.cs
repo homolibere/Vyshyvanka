@@ -44,6 +44,9 @@ builder.Services.AddScoped<WorkflowApiClient>(sp => new WorkflowApiClient(sp.Get
 builder.Services.AddScoped<PackageApiClient>(sp => new PackageApiClient(sp.GetRequiredService<HttpClient>()));
 builder.Services.AddScoped<CredentialApiClient>(sp => new CredentialApiClient(sp.GetRequiredService<HttpClient>()));
 builder.Services.AddScoped<ApiKeyApiClient>(sp => new ApiKeyApiClient(sp.GetRequiredService<HttpClient>()));
+builder.Services.AddScoped<FolderApiClient>(sp => new FolderApiClient(sp.GetRequiredService<HttpClient>()));
+builder.Services.AddScoped<TeamApiClient>(sp => new TeamApiClient(sp.GetRequiredService<HttpClient>()));
+builder.Services.AddScoped<SharingApiClient>(sp => new SharingApiClient(sp.GetRequiredService<HttpClient>()));
 builder.Services.AddScoped<WorkflowStore>();
 builder.Services.AddScoped<CanvasStateService>();
 builder.Services.AddScoped<WorkflowValidationService>();

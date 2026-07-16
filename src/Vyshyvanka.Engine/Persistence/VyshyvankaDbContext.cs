@@ -29,6 +29,18 @@ public class VyshyvankaDbContext : DbContext
     /// <summary>Audit logs.</summary>
     public DbSet<AuditLogEntity> AuditLogs => Set<AuditLogEntity>();
 
+    /// <summary>Workflow folders.</summary>
+    public DbSet<FolderEntity> Folders => Set<FolderEntity>();
+
+    /// <summary>Teams.</summary>
+    public DbSet<TeamEntity> Teams => Set<TeamEntity>();
+
+    /// <summary>Team memberships.</summary>
+    public DbSet<TeamMemberEntity> TeamMembers => Set<TeamMemberEntity>();
+
+    /// <summary>Workflow permission grants.</summary>
+    public DbSet<WorkflowPermissionEntity> WorkflowPermissions => Set<WorkflowPermissionEntity>();
+
     public VyshyvankaDbContext(DbContextOptions<VyshyvankaDbContext> options)
         : base(options)
     {
@@ -46,11 +58,17 @@ public class VyshyvankaDbContext : DbContext
             entity.HasIndex(e => e.IsActive);
             entity.HasIndex(e => e.CreatedBy);
             entity.HasIndex(e => e.UpdatedAt);
+            entity.HasIndex(e => e.FolderId);
 
             entity.Property(e => e.Name).HasMaxLength(200).IsRequired();
             entity.Property(e => e.Description).HasMaxLength(2000);
             entity.Property(e => e.NodesJson).IsRequired();
             entity.Property(e => e.ConnectionsJson).IsRequired();
+
+            entity.HasOne(e => e.Folder)
+                .WithMany(f => f.Workflows)
+                .HasForeignKey(e => e.FolderId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<ExecutionEntity>(entity =>
@@ -140,6 +158,84 @@ public class VyshyvankaDbContext : DbContext
             entity.Property(e => e.UserAgent).HasMaxLength(500);
             entity.Property(e => e.ResourceType).HasMaxLength(100);
             entity.Property(e => e.ErrorMessage).HasMaxLength(2000);
+        });
+
+        modelBuilder.Entity<FolderEntity>(entity =>
+        {
+            entity.ToTable("Folders");
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.OwnerId);
+            entity.HasIndex(e => new { e.OwnerId, e.Name }).IsUnique();
+
+            entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Color).HasMaxLength(7);
+
+            entity.HasOne(e => e.Owner)
+                .WithMany()
+                .HasForeignKey(e => e.OwnerId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<TeamEntity>(entity =>
+        {
+            entity.ToTable("Teams");
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.OwnerId);
+            entity.HasIndex(e => new { e.OwnerId, e.Name }).IsUnique();
+
+            entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Description).HasMaxLength(500);
+
+            entity.HasOne(e => e.Owner)
+                .WithMany()
+                .HasForeignKey(e => e.OwnerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(e => e.Members)
+                .WithOne(m => m.Team)
+                .HasForeignKey(m => m.TeamId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<TeamMemberEntity>(entity =>
+        {
+            entity.ToTable("TeamMembers");
+            entity.HasKey(e => new { e.TeamId, e.UserId });
+
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.Property(e => e.Role)
+                .HasConversion<string>()
+                .HasMaxLength(20);
+        });
+
+        modelBuilder.Entity<WorkflowPermissionEntity>(entity =>
+        {
+            entity.ToTable("WorkflowPermissions");
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.WorkflowId);
+            entity.HasIndex(e => new { e.TargetType, e.TargetId });
+            entity.HasIndex(e => new { e.WorkflowId, e.TargetType, e.TargetId }).IsUnique();
+
+            entity.Property(e => e.TargetType)
+                .HasConversion<string>()
+                .HasMaxLength(20);
+
+            entity.Property(e => e.PermissionLevel)
+                .HasConversion<string>()
+                .HasMaxLength(20);
+
+            entity.Property(e => e.CredentialPolicy)
+                .HasConversion<string>()
+                .HasMaxLength(30);
+
+            entity.HasOne(e => e.Workflow)
+                .WithMany()
+                .HasForeignKey(e => e.WorkflowId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

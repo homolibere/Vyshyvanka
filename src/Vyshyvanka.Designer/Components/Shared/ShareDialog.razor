@@ -1,0 +1,104 @@
+@namespace Vyshyvanka.Designer.Components
+
+<div class="share-overlay" @onclick="HandleOverlayClick" @onclick:stopPropagation="true">
+    <div class="share-dialog" @onclick:stopPropagation="true">
+        <div class="share-header">
+            <h3>Share "@WorkflowName"</h3>
+            <button class="btn-close" @onclick="Close">×</button>
+        </div>
+
+        <div class="share-body">
+            <!-- Grant form -->
+            <div class="share-form">
+                <div class="form-row">
+                    <label>Share with</label>
+                    <div class="share-target-row">
+                        <select class="share-select" @bind="_targetType">
+                            <option value="User">User</option>
+                            <option value="Team">Team</option>
+                        </select>
+                        @if (_targetType == "User")
+                        {
+                            <input type="text"
+                                   class="share-input"
+                                   placeholder="User email or ID"
+                                   @bind="_targetInput"
+                                   @bind:event="oninput"/>
+                        }
+                        else
+                        {
+                            <select class="share-input" @bind="_selectedTeamId">
+                                <option value="">Select a team...</option>
+                                @foreach (var team in _teams)
+                                {
+                                    <option value="@team.Id">@team.Name</option>
+                                }
+                            </select>
+                        }
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <label>Permission</label>
+                    <select class="share-select full" @bind="_permissionLevel">
+                        <option value="View">View (read-only)</option>
+                        <option value="Execute">Execute (can run)</option>
+                        <option value="Edit">Edit (can modify)</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <label>Credentials</label>
+                    <div class="credential-options">
+                        <label class="radio-option">
+                            <input type="radio" name="credPolicy" value="UseOwnerCredentials"
+                                   checked="@(_credentialPolicy == "UseOwnerCredentials")"
+                                   @onchange="SetCredentialPolicyOwner"/>
+                            <span class="radio-label">
+                                <strong>Use my credentials</strong>
+                                <small>Your stored credentials will be used when they run this workflow</small>
+                            </span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="credPolicy" value="RequireOwnCredentials"
+                                   checked="@(_credentialPolicy == "RequireOwnCredentials")"
+                                   @onchange="SetCredentialPolicyOwn"/>
+                            <span class="radio-label">
+                                <strong>Require their own</strong>
+                                <small>They must configure their own credentials to run it</small>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <button class="btn-share-action" @onclick="ShareAsync" disabled="@(!CanShare)">
+                    Share
+                </button>
+            </div>
+
+            <!-- Existing permissions -->
+            @if (_permissions.Count > 0)
+            {
+                <div class="existing-shares">
+                    <h4>Currently shared with</h4>
+                    @foreach (var perm in _permissions)
+                    {
+                        <div class="share-entry">
+                            <div class="share-entry-info">
+                                <span class="share-entry-icon">@(perm.TargetType == Vyshyvanka.Core.Enums.PermissionTargetType.User ? "👤" : "👥")</span>
+                                <span class="share-entry-name">@(perm.TargetName ?? perm.TargetId.ToString()[..8])</span>
+                                <span class="share-entry-level">@perm.PermissionLevel</span>
+                            </div>
+                            <button class="btn-revoke" @onclick="() => RevokeAsync(perm.Id)">Revoke</button>
+                        </div>
+                    }
+                </div>
+            }
+
+            @if (_errorMessage is not null)
+            {
+                <div class="share-error">@_errorMessage</div>
+            }
+        </div>
+    </div>
+</div>

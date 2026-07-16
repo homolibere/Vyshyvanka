@@ -75,6 +75,9 @@ Place new files according to these tables. Namespace MUST match the folder path 
 | OIDC user provisioning | `Auth/OidcUserProvisioningService.cs` |
 | Credential handling | `Credentials/` |
 | Vault/OpenBao client | `Credentials/VaultClient.cs`, `Credentials/VaultCredentialService.cs` |
+| Sharing & permissions | `Sharing/` |
+| Workflow permission service | `Sharing/WorkflowPermissionService.cs` |
+| Team service | `Sharing/TeamService.cs` |
 
 ### Vyshyvanka.Api/
 | What | Where |
@@ -155,6 +158,11 @@ When modifying code, ALWAYS check for downstream impact:
 | `ICredentialService` interface | Both `CredentialService` and `VaultCredentialService` |
 | `IPackageSearchService` interface | `PackageSearchService` in `Engine/Packages/` |
 | `IPluginLoadingService` interface | `PluginLoadingService` in `Engine/Packages/` |
+| `IWorkflowPermissionService` interface | `WorkflowPermissionService` in `Engine/Sharing/` |
+| `ITeamService` interface | `TeamService` in `Engine/Sharing/` |
+| `IFolderRepository` interface | `FolderRepository` in `Engine/Persistence/` |
+| `ITeamRepository` interface | `TeamRepository` in `Engine/Persistence/` |
+| Workflow permission model | `WorkflowController`, `ExecutionController`, `SharingController` |
 
 ## Designer Service Architecture
 
@@ -177,6 +185,9 @@ API clients are split by domain:
 | `PackageApiClient` | Package install/update/uninstall, search, sources |
 | `CredentialApiClient` | Credential CRUD |
 | `ApiKeyApiClient` | API key CRUD |
+| `FolderApiClient` | Folder CRUD |
+| `TeamApiClient` | Team CRUD, member management |
+| `SharingApiClient` | Workflow sharing (grant/revoke permissions) |
 
 All API clients inherit from `ApiClientBase` (shared HttpClient, JSON options, error handling).
 

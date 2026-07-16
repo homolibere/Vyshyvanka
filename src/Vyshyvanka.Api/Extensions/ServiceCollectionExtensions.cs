@@ -63,6 +63,11 @@ public static class ServiceCollectionExtensions
 
         services.AddScoped<IWorkflowRepository, WorkflowRepository>();
         services.AddScoped<IExecutionRepository, ExecutionRepository>();
+        services.AddScoped<IFolderRepository, FolderRepository>();
+        services.AddScoped<ITeamRepository, TeamRepository>();
+        services.AddScoped<IWorkflowPermissionRepository, WorkflowPermissionRepository>();
+        services.AddScoped<IWorkflowPermissionService, Vyshyvanka.Engine.Sharing.WorkflowPermissionService>();
+        services.AddScoped<ITeamService, Vyshyvanka.Engine.Sharing.TeamService>();
 
         // Register the persistent workflow engine as the primary IWorkflowEngine
         services.AddScoped<IWorkflowEngine>(sp =>

@@ -24,6 +24,7 @@ public class ExecutionController : ControllerBase
     private readonly IExecutionRepository _executionRepository;
     private readonly ICredentialService? _credentialService;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IWorkflowPermissionService _permissionService;
     private readonly ILogger<ExecutionController> _logger;
 
     public ExecutionController(
@@ -31,6 +32,7 @@ public class ExecutionController : ControllerBase
         IWorkflowRepository workflowRepository,
         IExecutionRepository executionRepository,
         ICurrentUserService currentUserService,
+        IWorkflowPermissionService permissionService,
         ILogger<ExecutionController> logger,
         ICredentialService? credentialService = null)
     {
@@ -38,6 +40,7 @@ public class ExecutionController : ControllerBase
         _workflowRepository = workflowRepository ?? throw new ArgumentNullException(nameof(workflowRepository));
         _executionRepository = executionRepository ?? throw new ArgumentNullException(nameof(executionRepository));
         _currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
+        _permissionService = permissionService ?? throw new ArgumentNullException(nameof(permissionService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _credentialService = credentialService;
     }
@@ -67,8 +70,8 @@ public class ExecutionController : ControllerBase
             });
         }
 
-        // Verify ownership: only the workflow owner or an Admin can execute it
-        if (!IsOwnerOrAdmin(workflow))
+        // Verify permission: owner, admin, or shared with execute level
+        if (!await HasPermissionAsync(workflow, WorkflowPermissionLevel.Execute, cancellationToken))
         {
             return StatusCode(StatusCodes.Status403Forbidden, new ApiError
             {
@@ -101,10 +104,8 @@ public class ExecutionController : ControllerBase
             workflow = PruneWorkflowToNode(workflow, request.TargetNodeId);
         }
 
-        // Create credential provider
-        ICredentialProvider credentialProvider = _credentialService is not null
-            ? new CredentialProvider(_credentialService)
-            : NullCredentialProvider.Instance;
+        // Determine credential provider based on ownership and sharing policy
+        ICredentialProvider credentialProvider = await ResolveCredentialProviderAsync(workflow, cancellationToken);
 
         // Create execution context
         var executionId = Guid.NewGuid();
@@ -196,7 +197,7 @@ public class ExecutionController : ControllerBase
             });
         }
 
-        if (!IsOwnerOrAdmin(workflow))
+        if (!await HasPermissionAsync(workflow, WorkflowPermissionLevel.Execute, cancellationToken))
         {
             return StatusCode(StatusCodes.Status403Forbidden, new ApiError
             {
@@ -215,10 +216,8 @@ public class ExecutionController : ControllerBase
             });
         }
 
-        // Create credential provider
-        ICredentialProvider credentialProvider = _credentialService is not null
-            ? new CredentialProvider(_credentialService)
-            : NullCredentialProvider.Instance;
+        // Determine credential provider based on ownership and sharing policy
+        ICredentialProvider credentialProvider = await ResolveCredentialProviderAsync(workflow, cancellationToken);
 
         var executionId = Guid.NewGuid();
         var context = new ExecutionContext(
@@ -454,12 +453,44 @@ public class ExecutionController : ControllerBase
         };
     }
 
-    private bool IsOwnerOrAdmin(Workflow workflow)
+    private async Task<bool> HasPermissionAsync(Workflow workflow, WorkflowPermissionLevel requiredLevel, CancellationToken cancellationToken)
     {
-        if (User.IsInRole(Roles.Admin))
-            return true;
+        var userId = _currentUserService.UserId;
+        if (userId is null)
+            return false;
+
+        var isAdmin = User.IsInRole(Roles.Admin);
+        return await _permissionService.HasPermissionAsync(
+            workflow.Id, workflow.CreatedBy, userId.Value, requiredLevel, isAdmin, cancellationToken);
+    }
+
+    /// <summary>
+    /// Resolves the credential provider based on ownership and sharing policy.
+    /// If the executor is the owner or admin, use their own credentials.
+    /// If shared with UseOwnerCredentials policy, use the owner's credentials.
+    /// If shared with RequireOwnCredentials policy, use the executor's credentials.
+    /// </summary>
+    private async Task<ICredentialProvider> ResolveCredentialProviderAsync(Workflow workflow, CancellationToken cancellationToken)
+    {
+        if (_credentialService is null)
+            return NullCredentialProvider.Instance;
 
         var userId = _currentUserService.UserId;
-        return userId is not null && workflow.CreatedBy == userId;
+        if (userId is null)
+            return NullCredentialProvider.Instance;
+
+        // Owner always uses their own credentials
+        if (workflow.CreatedBy == userId || User.IsInRole(Roles.Admin))
+            return new CredentialProvider(_credentialService);
+
+        // Shared user: check credential policy
+        var policy = await _permissionService.GetCredentialPolicyAsync(workflow.Id, userId.Value, cancellationToken);
+
+        return policy switch
+        {
+            CredentialSharingPolicy.UseOwnerCredentials => new OwnerCredentialProvider(_credentialService, workflow.CreatedBy),
+            CredentialSharingPolicy.RequireOwnCredentials => new CredentialProvider(_credentialService),
+            _ => new CredentialProvider(_credentialService)
+        };
     }
 }

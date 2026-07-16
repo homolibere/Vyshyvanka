@@ -24,14 +24,15 @@
     border: 1px solid var(--border-color);
     border-radius: 12px;
     width: 100%;
-    max-width: 600px;
-    height: 70vh;
-    max-height: 600px;
+    max-width: 900px;
+    height: 75vh;
+    max-height: 680px;
     display: flex;
     flex-direction: column;
     box-shadow: var(--shadow-lg);
     transform: scale(0.95);
     transition: transform 0.2s ease;
+    position: relative;
 }
 
 .modal-overlay.open .workflow-browser-modal {
@@ -74,10 +75,169 @@
     cursor: not-allowed;
 }
 
+/* Two-panel layout */
+.browser-body {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+}
+
+/* Folder sidebar */
+.folder-sidebar {
+    width: 210px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    padding: 8px 0;
+    overflow-y: auto;
+}
+
+.sidebar-section {
+    padding: 4px 8px;
+}
+
+.sidebar-divider {
+    height: 1px;
+    background: var(--border-color);
+    margin: 8px 12px;
+}
+
+.folder-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    transition: background 0.15s ease;
+    position: relative;
+}
+
+.folder-item:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.folder-item.active {
+    background: var(--accent-light);
+    color: var(--accent);
+    font-weight: 500;
+}
+
+.folder-item.add-folder {
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.folder-item.add-folder:hover {
+    color: var(--accent);
+}
+
+.folder-icon {
+    font-size: 0.875rem;
+    width: 18px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.folder-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.folder-label {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.folder-count {
+    font-size: 0.6875rem;
+    color: var(--text-muted);
+    background: var(--bg-hover);
+    padding: 1px 6px;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.folder-menu-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 4px;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    flex-shrink: 0;
+}
+
+.folder-item:hover .folder-menu-btn {
+    opacity: 1;
+}
+
+.folder-menu-btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.folder-menu {
+    position: absolute;
+    top: 100%;
+    right: 8px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    box-shadow: var(--shadow-lg);
+    z-index: 20;
+    padding: 4px;
+    min-width: 100px;
+}
+
+.folder-menu button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 6px 12px;
+    border: none;
+    background: transparent;
+    border-radius: 4px;
+    font-size: 0.8125rem;
+    color: var(--text-primary);
+    cursor: pointer;
+}
+
+.folder-menu button:hover {
+    background: var(--bg-hover);
+}
+
+.folder-menu button.danger {
+    color: var(--danger);
+}
+
+.folder-menu button.danger:hover {
+    background: var(--danger-bg);
+}
+
+/* Main content area */
+.browser-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
 .browser-toolbar {
     display: flex;
     gap: 12px;
-    padding: 16px 20px;
+    padding: 12px 16px;
     border-bottom: 1px solid var(--border-color);
     flex-shrink: 0;
 }
@@ -99,6 +259,11 @@
 
 .search-input::placeholder {
     color: var(--text-muted);
+}
+
+.folder-name-input {
+    width: 100%;
+    margin-bottom: 16px;
 }
 
 .btn-new {
@@ -222,6 +387,16 @@
     border-radius: 4px;
 }
 
+.shared-badge {
+    font-size: 0.625rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    background: var(--bg-hover);
+    color: var(--text-muted);
+    border-radius: 4px;
+}
+
 .workflow-description {
     font-size: 0.8125rem;
     color: var(--text-muted);
@@ -263,7 +438,9 @@
     color: var(--accent);
 }
 
-.btn-delete {
+.btn-share,
+.btn-delete,
+.btn-export {
     width: 32px;
     height: 32px;
     background: transparent;
@@ -276,8 +453,22 @@
     opacity: 0;
 }
 
-.workflow-item:hover .btn-delete {
+.workflow-item:hover .btn-share,
+.workflow-item:hover .btn-delete,
+.workflow-item:hover .btn-export {
     opacity: 1;
+}
+
+.btn-share:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-light);
+}
+
+.btn-export:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-light);
 }
 
 .btn-delete:hover {
@@ -338,29 +529,7 @@
     color: var(--accent);
 }
 
-.btn-export {
-    width: 32px;
-    height: 32px;
-    background: transparent;
-    border: 1px solid transparent;
-    border-radius: 6px;
-    color: var(--text-muted);
-    font-size: 0.875rem;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    opacity: 0;
-}
-
-.workflow-item:hover .btn-export {
-    opacity: 1;
-}
-
-.btn-export:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-    background: var(--accent-light);
-}
-
+/* Dialog overlays */
 .import-confirm-overlay {
     position: absolute;
     inset: 0;

@@ -177,7 +177,8 @@ public class WorkflowRepository : IWorkflowRepository
             Tags = workflow.Tags.Count > 0 ? string.Join(",", workflow.Tags) : null,
             CreatedAt = workflow.CreatedAt,
             UpdatedAt = workflow.UpdatedAt,
-            CreatedBy = workflow.CreatedBy
+            CreatedBy = workflow.CreatedBy,
+            FolderId = workflow.FolderId
         };
     }
 
@@ -204,6 +205,7 @@ public class WorkflowRepository : IWorkflowRepository
             Connections = DeserializeConnections(entity.ConnectionsJson),
             Settings = DeserializeSettings(entity.SettingsJson),
             Tags = ParseTags(entity.Tags),
+            FolderId = entity.FolderId,
             CreatedAt = entity.CreatedAt,
             UpdatedAt = entity.UpdatedAt,
             CreatedBy = entity.CreatedBy
@@ -224,6 +226,7 @@ public class WorkflowRepository : IWorkflowRepository
         entity.SettingsJson = JsonSerializer.Serialize(workflow.Settings, JsonOptions);
         entity.Tags = workflow.Tags.Count > 0 ? string.Join(",", workflow.Tags) : null;
         entity.UpdatedAt = workflow.UpdatedAt;
+        entity.FolderId = workflow.FolderId;
     }
 
     private static List<WorkflowNode> DeserializeNodes(string json)

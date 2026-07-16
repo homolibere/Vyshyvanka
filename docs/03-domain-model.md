@@ -8,11 +8,19 @@ erDiagram
     User ||--o{ Credential : owns
     User ||--o{ ApiKey : has
     User ||--o{ AuditLog : generates
+    User ||--o{ Folder : owns
+    User ||--o{ Team : owns
+    User ||--o{ TeamMember : "member of"
 
     Workflow ||--|{ WorkflowNode : contains
     Workflow ||--o{ Connection : contains
     Workflow ||--o{ Execution : produces
     Workflow ||--|| WorkflowSettings : has
+    Workflow ||--o{ WorkflowPermission : "shared via"
+    Workflow }o--o| Folder : "organized in"
+
+    Team ||--o{ TeamMember : has
+    Team ||--o{ WorkflowPermission : "receives"
 
     WorkflowNode ||--o| Credential : "may use"
 
@@ -39,6 +47,7 @@ erDiagram
         string Description
         int Version
         bool IsActive
+        Guid FolderId FK
         DateTime CreatedAt
         DateTime UpdatedAt
         Guid CreatedBy FK
@@ -123,6 +132,40 @@ erDiagram
         bool Success
         string ErrorMessage
         JsonElement Details
+    }
+
+    Folder {
+        Guid Id PK
+        string Name
+        string Color
+        Guid OwnerId FK
+        DateTime CreatedAt
+    }
+
+    Team {
+        Guid Id PK
+        string Name
+        string Description
+        Guid OwnerId FK
+        DateTime CreatedAt
+    }
+
+    TeamMember {
+        Guid TeamId PK_FK
+        Guid UserId PK_FK
+        TeamRole Role
+        DateTime JoinedAt
+    }
+
+    WorkflowPermission {
+        Guid Id PK
+        Guid WorkflowId FK
+        PermissionTargetType TargetType
+        Guid TargetId
+        WorkflowPermissionLevel PermissionLevel
+        CredentialSharingPolicy CredentialPolicy
+        Guid GrantedBy FK
+        DateTime GrantedAt
     }
 ```
 

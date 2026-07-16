@@ -2,114 +2,185 @@
 <div class="modal-overlay @(IsOpen ? "open" : "")" @onclick="HandleOverlayClick">
     <div class="workflow-browser-modal" @onclick:stopPropagation="true">
         <div class="modal-header">
-            <h2>Open Workflow</h2>
+            <h2>Workflows</h2>
             <button class="btn-close" @onclick="Close" disabled="@_isLoading">×</button>
         </div>
 
-        <div class="browser-toolbar">
-            <input type="text"
-                   class="search-input"
-                   placeholder="Search workflows..."
-                   @bind="_searchQuery"
-                   @bind:event="oninput"
-                   @onkeyup="OnSearchKeyUp"/>
-            <button class="btn-import" @onclick="ImportWorkflow" title="Import workflow from JSON">
-                📤 Import
-            </button>
-            <button class="btn-new" @onclick="CreateNewWorkflow">
-                + New Workflow
-            </button>
-        </div>
+        <div class="browser-body">
+            <!-- Folder Sidebar -->
+            <div class="folder-sidebar">
+                <div class="sidebar-section">
+                    <div class="folder-item @(_activeSection == BrowserSection.All ? "active" : "")"
+                         @onclick="() => SelectSection(BrowserSection.All)">
+                        <span class="folder-icon">📁</span>
+                        <span class="folder-label">All Workflows</span>
+                        <span class="folder-count">@_workflows.Count</span>
+                    </div>
 
-        <div class="workflow-list">
-            @if (_isLoading)
-            {
-                <div class="loading-state">
-                    <span class="spinner"></span>
-                    <span>Loading workflows...</span>
-                </div>
-            }
-            else if (_error is not null)
-            {
-                <div class="error-state">
-                    <span>⚠️ @_error</span>
-                    <button class="btn-retry" @onclick="LoadWorkflowsAsync">Retry</button>
-                </div>
-            }
-            else if (!FilteredWorkflows.Any())
-            {
-                <div class="empty-state">
-                    @if (string.IsNullOrWhiteSpace(_searchQuery))
+                    @foreach (var folder in _folders)
                     {
-                        <span>No workflows yet. Create your first one!</span>
-                    }
-                    else
-                    {
-                        <span>No workflows match "@_searchQuery"</span>
-                    }
-                </div>
-            }
-            else
-            {
-                @foreach (var workflow in FilteredWorkflows)
-                {
-                    <div class="workflow-item @(workflow.Id == CurrentWorkflowId ? "current" : "")"
-                         @onclick="() => SelectWorkflow(workflow.Id)">
-                        <div class="workflow-info">
-                            <div class="workflow-name">
-                                <span class="status-dot @(workflow.IsActive ? "active" : "inactive")"></span>
-                                @workflow.Name
-                                @if (workflow.Id == CurrentWorkflowId)
-                                {
-                                    <span class="current-badge">Current</span>
-                                }
-                            </div>
-                            @if (!string.IsNullOrWhiteSpace(workflow.Description))
+                        <div class="folder-item @(_activeSection == BrowserSection.Folder && _activeFolderId == folder.Id ? "active" : "")"
+                             @onclick="() => SelectFolder(folder.Id)">
+                            <span class="folder-dot" style="background: @(folder.Color ?? "var(--text-muted)")"></span>
+                            <span class="folder-label">@folder.Name</span>
+                            <span class="folder-count">@folder.WorkflowCount</span>
+                            <button class="folder-menu-btn"
+                                    title="Folder options"
+                                    @onclick="() => ToggleFolderMenu(folder.Id)"
+                                    @onclick:stopPropagation="true">⋯</button>
+                            @if (_folderMenuId == folder.Id)
                             {
-                                <div class="workflow-description">@workflow.Description</div>
+                                <div class="folder-menu" @onclick:stopPropagation="true">
+                                    <button @onclick="() => StartRenameFolder(folder)">Rename</button>
+                                    <button class="danger" @onclick="() => ConfirmDeleteFolder(folder.Id)">Delete</button>
+                                </div>
                             }
-                            <div class="workflow-meta">
-                                <span>v@(workflow.Version)</span>
-                                <span>•</span>
-                                <span>@FormatDate(workflow.UpdatedAt)</span>
-                            </div>
                         </div>
-                        <div class="workflow-actions">
-                            @if (_confirmDeleteId == workflow.Id)
+                    }
+
+                    <div class="folder-item add-folder" @onclick="StartCreateFolder">
+                        <span class="folder-icon">+</span>
+                        <span class="folder-label">New Folder</span>
+                    </div>
+                </div>
+
+                <div class="sidebar-divider"></div>
+
+                <div class="sidebar-section">
+                    <div class="folder-item @(_activeSection == BrowserSection.Shared ? "active" : "")"
+                         @onclick="() => SelectSection(BrowserSection.Shared)">
+                        <span class="folder-icon">🤝</span>
+                        <span class="folder-label">Shared with me</span>
+                        <span class="folder-count">@_sharedWorkflows.Count</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="browser-content">
+                <div class="browser-toolbar">
+                    <input type="text"
+                           class="search-input"
+                           placeholder="Search workflows..."
+                           @bind="_searchQuery"
+                           @bind:event="oninput"
+                           @onkeyup="OnSearchKeyUp"/>
+                    <button class="btn-import" @onclick="ImportWorkflow" title="Import workflow from JSON">
+                        📤 Import
+                    </button>
+                    <button class="btn-new" @onclick="CreateNewWorkflow">
+                        + New
+                    </button>
+                </div>
+
+                <div class="workflow-list">
+                    @if (_isLoading)
+                    {
+                        <div class="loading-state">
+                            <span class="spinner"></span>
+                            <span>Loading workflows...</span>
+                        </div>
+                    }
+                    else if (_error is not null)
+                    {
+                        <div class="error-state">
+                            <span>⚠️ @_error</span>
+                            <button class="btn-retry" @onclick="LoadWorkflowsAsync">Retry</button>
+                        </div>
+                    }
+                    else if (!DisplayedWorkflows.Any())
+                    {
+                        <div class="empty-state">
+                            @if (_activeSection == BrowserSection.Shared)
                             {
-                                <button class="btn-delete-confirm"
-                                        title="Confirm delete"
-                                        @onclick="() => DeleteWorkflowAsync(workflow.Id)"
-                                        @onclick:stopPropagation="true">
-                                    Confirm
-                                </button>
-                                <button class="btn-delete-cancel"
-                                        title="Cancel"
-                                        @onclick="CancelDelete"
-                                        @onclick:stopPropagation="true">
-                                    ✕
-                                </button>
+                                <span>No workflows have been shared with you yet.</span>
+                            }
+                            else if (!string.IsNullOrWhiteSpace(_searchQuery))
+                            {
+                                <span>No workflows match "@_searchQuery"</span>
                             }
                             else
                             {
-                                <button class="btn-export"
-                                        title="Export as JSON"
-                                        @onclick="() => ExportWorkflow(workflow.Id, workflow.Name)"
-                                        @onclick:stopPropagation="true">
-                                    📥
-                                </button>
-                                <button class="btn-delete"
-                                        title="Delete workflow"
-                                        @onclick="() => ConfirmDelete(workflow.Id)"
-                                        @onclick:stopPropagation="true">
-                                    🗑
-                                </button>
+                                <span>No workflows in this folder.</span>
                             }
-                            <button class="btn-open" title="Open workflow">→</button>
                         </div>
-                    </div>
-                }
-            }
+                    }
+                    else
+                    {
+                        @foreach (var workflow in DisplayedWorkflows)
+                        {
+                            <div class="workflow-item @(workflow.Id == CurrentWorkflowId ? "current" : "")"
+                                 @onclick="() => SelectWorkflow(workflow.Id)">
+                                <div class="workflow-info">
+                                    <div class="workflow-name">
+                                        <span class="status-dot @(workflow.IsActive ? "active" : "inactive")"></span>
+                                        @workflow.Name
+                                        @if (workflow.Id == CurrentWorkflowId)
+                                        {
+                                            <span class="current-badge">Current</span>
+                                        }
+                                        @if (_activeSection == BrowserSection.Shared)
+                                        {
+                                            <span class="shared-badge">Shared</span>
+                                        }
+                                    </div>
+                                    @if (!string.IsNullOrWhiteSpace(workflow.Description))
+                                    {
+                                        <div class="workflow-description">@workflow.Description</div>
+                                    }
+                                    <div class="workflow-meta">
+                                        <span>v@(workflow.Version)</span>
+                                        <span>•</span>
+                                        <span>@FormatDate(workflow.UpdatedAt)</span>
+                                    </div>
+                                </div>
+                                <div class="workflow-actions">
+                                    @if (_confirmDeleteId == workflow.Id)
+                                    {
+                                        <button class="btn-delete-confirm"
+                                                title="Confirm delete"
+                                                @onclick="() => DeleteWorkflowAsync(workflow.Id)"
+                                                @onclick:stopPropagation="true">
+                                            Confirm
+                                        </button>
+                                        <button class="btn-delete-cancel"
+                                                title="Cancel"
+                                                @onclick="CancelDelete"
+                                                @onclick:stopPropagation="true">
+                                            ✕
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        @if (_activeSection != BrowserSection.Shared)
+                                        {
+                                            <button class="btn-share"
+                                                    title="Share workflow"
+                                                    @onclick="() => OpenShareDialog(workflow.Id, workflow.Name)"
+                                                    @onclick:stopPropagation="true">
+                                                🔗
+                                            </button>
+                                            <button class="btn-export"
+                                                    title="Export as JSON"
+                                                    @onclick="() => ExportWorkflow(workflow.Id, workflow.Name)"
+                                                    @onclick:stopPropagation="true">
+                                                📥
+                                            </button>
+                                            <button class="btn-delete"
+                                                    title="Delete workflow"
+                                                    @onclick="() => ConfirmDelete(workflow.Id)"
+                                                    @onclick:stopPropagation="true">
+                                                🗑
+                                            </button>
+                                        }
+                                        <button class="btn-open" title="Open workflow">→</button>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
         </div>
 
         @if (_importConfirmWorkflow is not null)
@@ -125,6 +196,46 @@
                     </div>
                 </div>
             </div>
+        }
+
+        @if (_showFolderInput)
+        {
+            <div class="import-confirm-overlay" @onclick="CancelFolderInput" @onclick:stopPropagation="true">
+                <div class="import-confirm-dialog" @onclick:stopPropagation="true">
+                    <h3>@(_renamingFolder is not null ? "Rename Folder" : "New Folder")</h3>
+                    <input type="text"
+                           class="search-input folder-name-input"
+                           placeholder="Folder name"
+                           @bind="_folderNameInput"
+                           @bind:event="oninput"
+                           @onkeyup="OnFolderInputKeyUp"/>
+                    <div class="import-confirm-actions">
+                        <button class="btn-cancel" @onclick="CancelFolderInput">Cancel</button>
+                        <button class="btn-import-copy" @onclick="SaveFolderAsync">Save</button>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (_showDeleteFolderConfirm)
+        {
+            <div class="import-confirm-overlay" @onclick="CancelDeleteFolder" @onclick:stopPropagation="true">
+                <div class="import-confirm-dialog" @onclick:stopPropagation="true">
+                    <h3>Delete Folder</h3>
+                    <p>Workflows in this folder will be moved to the root. Continue?</p>
+                    <div class="import-confirm-actions">
+                        <button class="btn-cancel" @onclick="CancelDeleteFolder">Cancel</button>
+                        <button class="btn-delete-confirm" @onclick="DeleteFolderAsync">Delete</button>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (_shareDialogWorkflowId is not null)
+        {
+            <ShareDialog WorkflowId="_shareDialogWorkflowId.Value"
+                         WorkflowName="@_shareDialogWorkflowName"
+                         OnClose="CloseShareDialog"/>
         }
     </div>
 </div>

@@ -126,6 +126,36 @@ See [Security — Webhook Security](07-security.md#webhook-security) for configu
 | POST | `/api/apikeys/{id}/revoke` | Authenticated | Revoke an API key (deactivate without deleting). |
 | DELETE | `/api/apikeys/{id}` | Authenticated | Permanently delete an API key. |
 
+### Folders
+
+| Method | Path | Auth | Description |
+|--------|------|------|------------|
+| GET | `/api/folder` | CanViewWorkflows | List all folders for the current user. |
+| GET | `/api/folder/{id}` | CanViewWorkflows | Get a folder by ID (own folders only). |
+| POST | `/api/folder` | CanManageWorkflows | Create a new folder. |
+| PUT | `/api/folder/{id}` | CanManageWorkflows | Update folder name/color. |
+| DELETE | `/api/folder/{id}` | CanManageWorkflows | Delete a folder (workflows move to root). |
+
+### Teams
+
+| Method | Path | Auth | Description |
+|--------|------|------|------------|
+| GET | `/api/team` | CanViewWorkflows | List teams the current user belongs to. |
+| GET | `/api/team/{id}` | CanViewWorkflows | Get a team by ID (members only). |
+| POST | `/api/team` | CanManageWorkflows | Create a new team. |
+| PUT | `/api/team/{id}` | CanManageWorkflows | Update team name/description (owner only). |
+| DELETE | `/api/team/{id}` | CanManageWorkflows | Delete a team (owner only). |
+| POST | `/api/team/{id}/members` | CanManageWorkflows | Add a member to a team (owner only). |
+| DELETE | `/api/team/{id}/members/{userId}` | CanManageWorkflows | Remove a member from a team. |
+
+### Workflow Sharing
+
+| Method | Path | Auth | Description |
+|--------|------|------|------------|
+| GET | `/api/workflow/{id}/sharing` | CanViewWorkflows | List permissions for a workflow (owner/admin only). |
+| POST | `/api/workflow/{id}/sharing` | CanManageWorkflows | Share a workflow with a user or team. |
+| DELETE | `/api/workflow/{id}/sharing/{permissionId}` | CanManageWorkflows | Revoke a permission grant. |
+
 ## Request/Response Flow
 
 ```mermaid

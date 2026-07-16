@@ -160,6 +160,7 @@ public record WorkflowResponse
     public List<ConnectionDto> Connections { get; init; } = [];
     public WorkflowSettingsDto? Settings { get; init; }
     public List<string> Tags { get; init; } = [];
+    public Guid? FolderId { get; init; }
     public DateTime CreatedAt { get; init; }
     public DateTime UpdatedAt { get; init; }
     public Guid CreatedBy { get; init; }
@@ -200,6 +201,7 @@ public record WorkflowResponse
                 MaxDegreeOfParallelism = workflow.Settings.MaxDegreeOfParallelism
             } : null,
             Tags = workflow.Tags,
+            FolderId = workflow.FolderId,
             CreatedAt = workflow.CreatedAt,
             UpdatedAt = workflow.UpdatedAt,
             CreatedBy = workflow.CreatedBy

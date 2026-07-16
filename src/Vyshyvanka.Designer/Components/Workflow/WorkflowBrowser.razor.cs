@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Vyshyvanka.Core.Models;
+using Vyshyvanka.Designer.Models;
 using Vyshyvanka.Designer.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
@@ -18,14 +19,14 @@ public partial class WorkflowBrowser
     };
 
     [Inject] private WorkflowApiClient ApiClient { get; set; } = null!;
-
+    [Inject] private FolderApiClient FolderClient { get; set; } = null!;
     [Inject] private NavigationManager Navigation { get; set; } = null!;
-
     [Inject] private IJSRuntime JS { get; set; } = null!;
-
     [Inject] private ToastService Toast { get; set; } = null!;
 
     private List<WorkflowSummary> _workflows = [];
+    private List<WorkflowSummary> _sharedWorkflows = [];
+    private List<FolderResponse> _folders = [];
     private string _searchQuery = "";
     private bool _isLoading;
     private string? _error;
@@ -33,30 +34,58 @@ public partial class WorkflowBrowser
     private Guid? _confirmDeleteId;
     private Workflow? _importConfirmWorkflow;
 
+    // Folder state
+    private BrowserSection _activeSection = BrowserSection.All;
+    private Guid? _activeFolderId;
+    private Guid? _folderMenuId;
+    private bool _showFolderInput;
+    private string _folderNameInput = "";
+    private FolderResponse? _renamingFolder;
+    private bool _showDeleteFolderConfirm;
+    private Guid? _deletingFolderId;
+
+    // Share dialog state
+    private Guid? _shareDialogWorkflowId;
+    private string _shareDialogWorkflowName = "";
+
     [Parameter] public bool IsOpen { get; set; }
-
     [Parameter] public Guid? CurrentWorkflowId { get; set; }
-
     [Parameter] public EventCallback OnClose { get; set; }
 
-    private IEnumerable<WorkflowSummary> FilteredWorkflows =>
-        string.IsNullOrWhiteSpace(_searchQuery)
-            ? _workflows
-            : _workflows.Where(w =>
+    private IEnumerable<WorkflowSummary> DisplayedWorkflows
+    {
+        get
+        {
+            var source = _activeSection == BrowserSection.Shared ? _sharedWorkflows : GetFilteredByFolder();
+
+            if (string.IsNullOrWhiteSpace(_searchQuery))
+                return source;
+
+            return source.Where(w =>
                 w.Name.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase) ||
                 (w.Description?.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase) ?? false));
+        }
+    }
+
+    private IEnumerable<WorkflowSummary> GetFilteredByFolder()
+    {
+        if (_activeSection == BrowserSection.Folder && _activeFolderId is not null)
+            return _workflows.Where(w => w.FolderId == _activeFolderId);
+
+        return _workflows; // All
+    }
 
     protected override async Task OnParametersSetAsync()
     {
         if (IsOpen && !_wasOpen && !_isLoading)
         {
-            await LoadWorkflowsAsync();
+            await LoadAllAsync();
         }
 
         _wasOpen = IsOpen;
     }
 
-    private async Task LoadWorkflowsAsync()
+    private async Task LoadAllAsync()
     {
         _isLoading = true;
         _error = null;
@@ -64,11 +93,21 @@ public partial class WorkflowBrowser
 
         try
         {
-            var workflows = await ApiClient.GetWorkflowsAsync();
+            var workflowsTask = ApiClient.GetWorkflowsAsync();
+            var foldersTask = FolderClient.GetFoldersAsync();
+
+            await Task.WhenAll(workflowsTask, foldersTask);
+
+            var workflows = await workflowsTask;
             _workflows = workflows
-                .Select(w => new WorkflowSummary(w.Id, w.Name, w.Description, w.Version, w.IsActive, w.UpdatedAt))
+                .Select(w => new WorkflowSummary(w.Id, w.Name, w.Description, w.Version, w.IsActive, w.UpdatedAt, w.FolderId))
                 .OrderByDescending(w => w.UpdatedAt)
                 .ToList();
+
+            _folders = await foldersTask;
+
+            // TODO: load shared workflows when API supports "shared with me" listing
+            _sharedWorkflows = [];
         }
         catch (Exception ex)
         {
@@ -80,6 +119,152 @@ public partial class WorkflowBrowser
             StateHasChanged();
         }
     }
+
+    private async Task LoadWorkflowsAsync()
+    {
+        await LoadAllAsync();
+    }
+
+    // --- Section navigation ---
+
+    private void SelectSection(BrowserSection section)
+    {
+        _activeSection = section;
+        _activeFolderId = null;
+        _folderMenuId = null;
+    }
+
+    private void SelectFolder(Guid folderId)
+    {
+        _activeSection = BrowserSection.Folder;
+        _activeFolderId = folderId;
+        _folderMenuId = null;
+    }
+
+    // --- Folder CRUD ---
+
+    private void ToggleFolderMenu(Guid folderId)
+    {
+        _folderMenuId = _folderMenuId == folderId ? null : folderId;
+    }
+
+    private void StartCreateFolder()
+    {
+        _renamingFolder = null;
+        _folderNameInput = "";
+        _showFolderInput = true;
+        _folderMenuId = null;
+    }
+
+    private void StartRenameFolder(FolderResponse folder)
+    {
+        _renamingFolder = folder;
+        _folderNameInput = folder.Name;
+        _showFolderInput = true;
+        _folderMenuId = null;
+    }
+
+    private void CancelFolderInput()
+    {
+        _showFolderInput = false;
+        _renamingFolder = null;
+        _folderNameInput = "";
+    }
+
+    private async Task OnFolderInputKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+            await SaveFolderAsync();
+        else if (e.Key == "Escape")
+            CancelFolderInput();
+    }
+
+    private async Task SaveFolderAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_folderNameInput))
+            return;
+
+        try
+        {
+            if (_renamingFolder is not null)
+            {
+                await FolderClient.UpdateFolderAsync(_renamingFolder.Id, new UpdateFolderRequest
+                {
+                    Name = _folderNameInput.Trim(),
+                    Color = _renamingFolder.Color
+                });
+                Toast.ShowSuccess($"Folder renamed to \"{_folderNameInput.Trim()}\"", "Folder");
+            }
+            else
+            {
+                await FolderClient.CreateFolderAsync(new CreateFolderRequest
+                {
+                    Name = _folderNameInput.Trim()
+                });
+                Toast.ShowSuccess($"Folder \"{_folderNameInput.Trim()}\" created", "Folder");
+            }
+
+            _showFolderInput = false;
+            _renamingFolder = null;
+            _folderNameInput = "";
+            _folders = await FolderClient.GetFoldersAsync();
+        }
+        catch (Exception ex)
+        {
+            Toast.ShowError(ex.Message, "Folder Error");
+        }
+    }
+
+    private void ConfirmDeleteFolder(Guid folderId)
+    {
+        _deletingFolderId = folderId;
+        _showDeleteFolderConfirm = true;
+        _folderMenuId = null;
+    }
+
+    private void CancelDeleteFolder()
+    {
+        _showDeleteFolderConfirm = false;
+        _deletingFolderId = null;
+    }
+
+    private async Task DeleteFolderAsync()
+    {
+        if (_deletingFolderId is null) return;
+
+        try
+        {
+            await FolderClient.DeleteFolderAsync(_deletingFolderId.Value);
+            Toast.ShowSuccess("Folder deleted", "Folder");
+
+            if (_activeFolderId == _deletingFolderId)
+                SelectSection(BrowserSection.All);
+
+            _showDeleteFolderConfirm = false;
+            _deletingFolderId = null;
+            await LoadAllAsync();
+        }
+        catch (Exception ex)
+        {
+            Toast.ShowError(ex.Message, "Folder Error");
+        }
+    }
+
+    // --- Share dialog ---
+
+    private void OpenShareDialog(Guid workflowId, string workflowName)
+    {
+        _shareDialogWorkflowId = workflowId;
+        _shareDialogWorkflowName = workflowName;
+    }
+
+    private void CloseShareDialog()
+    {
+        _shareDialogWorkflowId = null;
+        _shareDialogWorkflowName = "";
+    }
+
+    // --- Workflow operations (existing) ---
 
     private void OnSearchKeyUp(KeyboardEventArgs e)
     {
@@ -178,11 +363,9 @@ public partial class WorkflowBrowser
                 return;
             }
 
-            // Check if a workflow with this ID already exists
             var existing = _workflows.FirstOrDefault(w => w.Id == workflow.Id);
             if (existing is not null)
             {
-                // Show overwrite confirmation
                 _importConfirmWorkflow = workflow;
                 StateHasChanged();
                 return;
@@ -212,7 +395,7 @@ public partial class WorkflowBrowser
         {
             await ApiClient.UpdateWorkflowAsync(workflow);
             Toast.ShowSuccess($"Workflow \"{workflow.Name}\" overwritten", "Import");
-            await LoadWorkflowsAsync();
+            await LoadAllAsync();
         }
         catch (Exception ex)
         {
@@ -249,7 +432,7 @@ public partial class WorkflowBrowser
         {
             await ApiClient.CreateWorkflowAsync(workflow);
             Toast.ShowSuccess($"Workflow \"{workflow.Name}\" imported", "Import");
-            await LoadWorkflowsAsync();
+            await LoadAllAsync();
         }
         catch (Exception ex)
         {
@@ -273,5 +456,13 @@ public partial class WorkflowBrowser
         string? Description,
         int Version,
         bool IsActive,
-        DateTime UpdatedAt);
+        DateTime UpdatedAt,
+        Guid? FolderId);
+
+    private enum BrowserSection
+    {
+        All,
+        Folder,
+        Shared
+    }
 }

@@ -40,4 +40,10 @@ public class WorkflowEntity
     public DateTime UpdatedAt { get; set; }
     
     public Guid CreatedBy { get; set; }
+
+    /// <summary>Optional folder for organization. Null means root.</summary>
+    public Guid? FolderId { get; set; }
+
+    // Navigation
+    public FolderEntity? Folder { get; set; }
 }

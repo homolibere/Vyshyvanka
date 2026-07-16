@@ -1,5 +1,6 @@
 using Vyshyvanka.Api.Authorization;
 using Vyshyvanka.Api.Models;
+using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Core.Models;
 using Vyshyvanka.Engine.Validation;
@@ -19,17 +20,20 @@ public class WorkflowController : ControllerBase
     private readonly IWorkflowRepository _repository;
     private readonly WorkflowValidator _validator;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IWorkflowPermissionService _permissionService;
     private readonly ILogger<WorkflowController> _logger;
 
     public WorkflowController(
         IWorkflowRepository repository,
         WorkflowValidator validator,
         ICurrentUserService currentUserService,
+        IWorkflowPermissionService permissionService,
         ILogger<WorkflowController> logger)
     {
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         _validator = validator ?? throw new ArgumentNullException(nameof(validator));
         _currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
+        _permissionService = permissionService ?? throw new ArgumentNullException(nameof(permissionService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -101,7 +105,7 @@ public class WorkflowController : ControllerBase
         _logger.LogDebug("Getting workflow {WorkflowId}", id);
 
         var workflow = await _repository.GetByIdAsync(id, cancellationToken);
-        if (workflow is null || !IsOwnerOrAdmin(workflow))
+        if (workflow is null || !await HasPermissionAsync(workflow, Core.Enums.WorkflowPermissionLevel.View, cancellationToken))
         {
             return NotFound(new ApiError
             {
@@ -169,7 +173,7 @@ public class WorkflowController : ControllerBase
         _logger.LogDebug("Updating workflow {WorkflowId}", id);
 
         var existing = await _repository.GetByIdAsync(id, cancellationToken);
-        if (existing is null || !IsOwnerOrAdmin(existing))
+        if (existing is null || !await HasPermissionAsync(existing, Core.Enums.WorkflowPermissionLevel.Edit, cancellationToken))
         {
             return NotFound(new ApiError
             {
@@ -367,5 +371,16 @@ public class WorkflowController : ControllerBase
 
         var userId = _currentUserService.UserId;
         return userId is not null && workflow.CreatedBy == userId;
+    }
+
+    private async Task<bool> HasPermissionAsync(Workflow workflow, WorkflowPermissionLevel requiredLevel, CancellationToken cancellationToken)
+    {
+        var userId = _currentUserService.UserId;
+        if (userId is null)
+            return false;
+
+        var isAdmin = User.IsInRole(Roles.Admin);
+        return await _permissionService.HasPermissionAsync(
+            workflow.Id, workflow.CreatedBy, userId.Value, requiredLevel, isAdmin, cancellationToken);
     }
 }
