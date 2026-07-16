@@ -1,0 +1,207 @@
+@namespace Vyshyvanka.Designer.Components
+
+<div class="user-manager">
+    <div class="section-header">
+        <div>
+            <h2>👥 User Management</h2>
+            <p class="section-desc">Manage users, assign roles, and organize team membership.</p>
+        </div>
+        @if (_canCreateUsers)
+        {
+            <button class="btn-add" @onclick="ShowCreateForm" disabled="@_showCreateForm">+ New User</button>
+        }
+    </div>
+
+    @if (_showCreateForm)
+    {
+        <div class="user-form">
+            <div class="form-field">
+                <label class="field-label">Email</label>
+                <input class="form-input" type="email" placeholder="user@example.com" @bind="_formEmail" />
+            </div>
+            <div class="form-field">
+                <label class="field-label">Display Name (optional)</label>
+                <input class="form-input" placeholder="John Doe" @bind="_formDisplayName" />
+            </div>
+            <div class="form-field">
+                <label class="field-label">Password</label>
+                <input class="form-input" type="password" placeholder="Min 8 characters" @bind="_formPassword" />
+            </div>
+            <div class="form-field">
+                <label class="field-label">Role</label>
+                <select class="form-input" @bind="_formRole">
+                    <option value="Viewer">Viewer</option>
+                    <option value="Editor">Editor</option>
+                    <option value="Admin">Admin</option>
+                </select>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-secondary" @onclick="CloseForm" disabled="@_isSaving">Cancel</button>
+                <button class="btn btn-primary" @onclick="HandleCreate" disabled="@_isSaving">
+                    @(_isSaving ? "Creating…" : "Create User")
+                </button>
+            </div>
+            @if (!string.IsNullOrEmpty(_formError))
+            {
+                <p class="form-error">@_formError</p>
+            }
+        </div>
+    }
+
+    <div class="search-bar">
+        <input class="form-input search-input"
+               type="text"
+               placeholder="Search by email or name…"
+               @bind="_searchTerm"
+               @bind:event="oninput"
+               @onkeyup="OnSearchKeyUp" />
+        <button class="btn btn-secondary btn-sm" @onclick="SearchAsync">Search</button>
+    </div>
+
+    @if (_isLoading)
+    {
+        <div class="loading-state">Loading users…</div>
+    }
+    else if (_users.Count == 0)
+    {
+        <div class="empty-state">
+            <span class="empty-icon">👥</span>
+            <p>No users found</p>
+            <p class="empty-hint">
+                @if (string.IsNullOrWhiteSpace(_searchTerm))
+                {
+                    <text>No users have been created yet.</text>
+                }
+                else
+                {
+                    <text>No users match your search criteria.</text>
+                }
+            </p>
+        </div>
+    }
+    else
+    {
+        <div class="user-list">
+            @foreach (var user in _users)
+            {
+                <div class="user-item @(!user.IsActive ? "inactive" : "")">
+                    <div class="user-info">
+                        <div class="user-primary">
+                            <span class="user-name">@(user.DisplayName ?? user.Email)</span>
+                            @if (!user.IsActive)
+                            {
+                                <span class="badge badge-inactive">Inactive</span>
+                            }
+                            @if (user.IsLockedOut)
+                            {
+                                <span class="badge badge-locked">Locked</span>
+                            }
+                        </div>
+                        <span class="user-meta">
+                            @user.Email · @user.AuthenticationProvider ·
+                            Joined @user.CreatedAt.ToString("MMM d, yyyy")
+                            @if (user.LastLoginAt.HasValue)
+                            {
+                                <text> · Last login @user.LastLoginAt.Value.ToString("MMM d, yyyy")</text>
+                            }
+                        </span>
+                    </div>
+                    <div class="user-actions-area">
+                        <select class="role-select"
+                                value="@user.Role"
+                                @onchange="e => HandleRoleChange(user.Id, e)">
+                            <option value="Viewer">Viewer</option>
+                            <option value="Editor">Editor</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                        @if (user.IsActive)
+                        {
+                            <button class="btn-icon" title="Deactivate" @onclick="() => ToggleStatus(user.Id, false)">
+                                <i class="fa-solid fa-user-slash"></i>
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn-icon" title="Activate" @onclick="() => ToggleStatus(user.Id, true)">
+                                <i class="fa-solid fa-user-check"></i>
+                            </button>
+                        }
+                        <button class="btn-icon" title="Add to team" @onclick="() => ShowTeamAssign(user)">
+                            <i class="fa-solid fa-people-group"></i>
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+
+        @if (_totalCount > _users.Count)
+        {
+            <div class="pagination">
+                <span class="page-info">Showing @_users.Count of @_totalCount users</span>
+                @if (_skip > 0)
+                {
+                    <button class="btn btn-secondary btn-sm" @onclick="PreviousPage">← Previous</button>
+                }
+                @if (_skip + _pageSize < _totalCount)
+                {
+                    <button class="btn btn-secondary btn-sm" @onclick="NextPage">Next →</button>
+                }
+            </div>
+        }
+    }
+
+    @if (_teamAssignUser is not null)
+    {
+        <div class="modal-backdrop" @onclick="CloseTeamAssign">
+            <div class="modal-panel" @onclick:stopPropagation="true">
+                <div class="modal-header">
+                    <h3>Assign to Team</h3>
+                    <button class="btn-icon" @onclick="CloseTeamAssign"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <p class="modal-desc">
+                    Add <strong>@(_teamAssignUser.DisplayName ?? _teamAssignUser.Email)</strong> to a team.
+                </p>
+
+                @if (_teams.Count == 0)
+                {
+                    <p class="empty-hint">No teams available. Create a team first.</p>
+                }
+                else
+                {
+                    <div class="team-list-assign">
+                        @foreach (var team in _teams)
+                        {
+                            var isMember = team.Members.Any(m => m.UserId == _teamAssignUser.Id);
+                            <div class="team-assign-item">
+                                <div class="team-assign-info">
+                                    <span class="team-assign-name">@team.Name</span>
+                                    @if (!string.IsNullOrEmpty(team.Description))
+                                    {
+                                        <span class="team-assign-desc">@team.Description</span>
+                                    }
+                                </div>
+                                @if (isMember)
+                                {
+                                    <button class="btn btn-secondary btn-sm" @onclick="() => RemoveFromTeam(team.Id, _teamAssignUser.Id)">
+                                        Remove
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-primary btn-sm" @onclick="() => AddToTeam(team.Id, _teamAssignUser.Id)">
+                                        Add
+                                    </button>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(_teamError))
+                {
+                    <p class="form-error">@_teamError</p>
+                }
+            </div>
+        </div>
+    }
+</div>

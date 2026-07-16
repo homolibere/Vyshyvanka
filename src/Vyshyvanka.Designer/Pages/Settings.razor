@@ -65,4 +65,12 @@
         <h2 class="section-title">API Keys</h2>
         <ApiKeyManager/>
     </div>
+
+    @if (_isAdmin)
+    {
+        <div class="settings-section">
+            <h2 class="section-title">Users</h2>
+            <UserManager/>
+        </div>
+    }
 </div>

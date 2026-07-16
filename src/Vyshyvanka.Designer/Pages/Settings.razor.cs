@@ -9,13 +9,16 @@ public partial class Settings : ComponentBase, IDisposable
 {
     [Inject] private IJSRuntime Js { get; set; } = null!;
     [Inject] private ThemeService _themeService { get; set; } = null!;
+    [Inject] private AuthStateService AuthState { get; set; } = null!;
 
     private string? _uploadError;
     private string? _uploadSuccess;
+    private bool _isAdmin;
 
     protected override void OnInitialized()
     {
         _themeService.OnThemeChanged += StateHasChanged;
+        _isAdmin = string.Equals(AuthState.CurrentUser?.Role, "Admin", StringComparison.OrdinalIgnoreCase);
     }
 
     private async Task GoBack()

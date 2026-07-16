@@ -157,6 +157,18 @@ See [Security — Webhook Security](07-security.md#webhook-security) for configu
 | POST | `/api/workflow/{id}/sharing` | CanManageWorkflows | Share a workflow with a user or team. |
 | DELETE | `/api/workflow/{id}/sharing/{permissionId}` | CanManageWorkflows | Revoke a permission grant. |
 
+### Users (Admin)
+
+| Method | Path | Auth Policy | Description |
+|--------|------|------------|------------|
+| GET | `/api/user` | CanManageUsers | List all users with pagination. Supports `search`, `skip`, `take` query params. Search filters by email or display name. |
+| GET | `/api/user/{id}` | CanManageUsers | Get a single user by ID. |
+| POST | `/api/user` | CanManageUsers | Create a new user. **Built-in provider only.** Sets email, password, display name, and role. Admin-created users are immediately active (bypass approval). |
+| PUT | `/api/user/{id}/role` | CanManageUsers | Update a user's role (Admin, Editor, Viewer). |
+| PUT | `/api/user/{id}/status` | CanManageUsers | Activate or deactivate a user account. |
+
+When the active provider is Keycloak, Authentik, or LDAP, the `POST /api/user` endpoint returns HTTP 400 with code `UNSUPPORTED` because users are provisioned automatically on first login (JIT provisioning). Admins can still list users and change roles/status regardless of the provider.
+
 ## Request/Response Flow
 
 ```mermaid
