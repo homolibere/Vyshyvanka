@@ -1,4 +1,3 @@
-using System.Data.Common;
 using System.Text.Json;
 using Microsoft.Data.Sqlite;
 using Vyshyvanka.Core.Enums;

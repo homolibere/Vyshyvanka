@@ -1,8 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
-using System.Text.Json;
 using Vyshyvanka.Api.Models;
-using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Tests.Integration.Fixtures;
 
 namespace Vyshyvanka.Tests.Integration;

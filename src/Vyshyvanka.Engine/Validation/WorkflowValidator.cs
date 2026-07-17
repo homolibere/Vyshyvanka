@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using Vyshyvanka.Core.Models;
 using ValidationResult = Vyshyvanka.Core.Models.ValidationResult;
 

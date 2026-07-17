@@ -1,6 +1,5 @@
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
-using Vyshyvanka.Designer.Models;
 using Vyshyvanka.Designer.Services;
 using Microsoft.AspNetCore.Components;
 

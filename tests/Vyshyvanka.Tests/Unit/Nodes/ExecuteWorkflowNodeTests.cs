@@ -4,7 +4,6 @@ using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Core.Models;
 using Vyshyvanka.Engine.Credentials;
-using ExecutionContext = Vyshyvanka.Engine.Execution.ExecutionContext;
 using Vyshyvanka.Engine.Nodes.Actions;
 
 namespace Vyshyvanka.Tests.Unit.Nodes;

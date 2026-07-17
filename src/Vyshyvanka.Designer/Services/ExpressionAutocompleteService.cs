@@ -1,4 +1,3 @@
-using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Core.Models;
 
 namespace Vyshyvanka.Designer.Services;
