@@ -32,7 +32,7 @@ builder.Services.AddSwaggerGen(options =>
 
     options.AddSecurityRequirement(_ => new Microsoft.OpenApi.OpenApiSecurityRequirement
     {
-        [new Microsoft.OpenApi.OpenApiSecuritySchemeReference("Bearer")] = new List<string>()
+        [new Microsoft.OpenApi.OpenApiSecuritySchemeReference("Bearer")] = []
     });
 });
 

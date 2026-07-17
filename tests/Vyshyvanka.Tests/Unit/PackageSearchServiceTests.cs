@@ -306,7 +306,7 @@ public class PackageSearchServiceTests
 
         findResource.GetAllVersionsAsync("NonExistent", Arg.Any<SourceCacheContext>(),
                 Arg.Any<NuGetLogger>(), Arg.Any<CancellationToken>())
-            .Returns(Enumerable.Empty<NuGetVersion>());
+            .Returns([]);
 
         var result = await _sut.ResolveLatestVersionAsync("NonExistent", prerelease: false);
 
