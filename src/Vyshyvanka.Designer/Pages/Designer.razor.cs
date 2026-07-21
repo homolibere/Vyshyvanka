@@ -308,8 +308,7 @@ public partial class Designer : IDisposable
 
     private void CloseExecutionInspector()
     {
-        // Keep the execution overlay active, just close the node inspector detail
-        // The user can still see highlighted nodes on the canvas
+        _isExecutionViewActive = false;
     }
 
     private string GetSaveButtonTitle() => ValidationService.ValidationResult.IsValid
