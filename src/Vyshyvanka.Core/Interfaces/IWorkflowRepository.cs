@@ -44,6 +44,11 @@ public interface IWorkflowRepository
         int skip = 0, 
         int take = 50,
         CancellationToken cancellationToken = default);
+
+    /// <summary>Finds active workflows that have a webhook trigger configured with the given path.</summary>
+    Task<Workflow?> GetByWebhookPathAsync(
+        string webhookPath,
+        CancellationToken cancellationToken = default);
     
     /// <summary>Checks if a workflow exists.</summary>
     Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default);

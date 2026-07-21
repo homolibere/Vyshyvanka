@@ -34,6 +34,7 @@ public partial class StringPropertyEditor : ComponentBase
     [Inject] private ExpressionAutocompleteService AutocompleteService { get; set; } = default!;
     [Inject] private CanvasStateService CanvasState { get; set; } = default!;
     [Inject] private ExpressionDragService DragService { get; set; } = default!;
+    [Inject] private WorkflowStore Store { get; set; } = default!;
 
     private ElementReference _inputRef;
     private ExpressionAutocomplete? _autocomplete;
@@ -45,6 +46,15 @@ public partial class StringPropertyEditor : ComponentBase
     private string CurrentValue => Value?.ToString() ?? string.Empty;
 
     private bool HasExpression => ContainsExpression(CurrentValue);
+
+    /// <summary>
+    /// True when this editor is rendering the "path" property for a webhook-trigger node.
+    /// Used to show the resolved webhook URL hint.
+    /// </summary>
+    private bool IsWebhookPathProperty =>
+        Property.Name == "path" &&
+        !string.IsNullOrEmpty(CurrentNodeId) &&
+        Store.GetNode(CurrentNodeId)?.Type == "webhook-trigger";
 
     /// <summary>
     /// Checks if the given value contains expression syntax ({{ ... }}).

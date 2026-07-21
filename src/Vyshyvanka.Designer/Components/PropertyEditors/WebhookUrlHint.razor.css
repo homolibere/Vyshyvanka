@@ -1,0 +1,85 @@
+.webhook-url-hint {
+    margin-top: 8px;
+    padding: 10px 12px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.75rem;
+}
+
+.webhook-url-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    color: var(--text-muted);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.webhook-url-icon {
+    font-size: 0.8rem;
+}
+
+.webhook-url-title {
+    font-size: 0.7rem;
+}
+
+.webhook-url-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 8px;
+}
+
+.webhook-url-row:last-child {
+    margin-bottom: 0;
+}
+
+.webhook-url-label {
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    font-weight: 500;
+}
+
+.webhook-url-value-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.webhook-url-value {
+    flex: 1;
+    padding: 6px 8px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.7rem;
+    color: var(--text-primary);
+    word-break: break-all;
+    line-height: 1.4;
+}
+
+.webhook-url-copy {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.webhook-url-copy:hover {
+    background: var(--bg-hover);
+    border-color: var(--accent);
+    color: var(--accent);
+}

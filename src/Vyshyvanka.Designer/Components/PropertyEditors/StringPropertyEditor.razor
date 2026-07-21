@@ -39,7 +39,11 @@
         <div class="property-description">@Property.Description</div>
     }
 
-    @if (HasExpression)
+    @if (IsWebhookPathProperty)
+    {
+        <WebhookUrlHint PathValue="@CurrentValue"/>
+    }
+    else if (HasExpression)
     {
         <div class="expression-hint">
             <span class="expression-hint-icon">💡</span>

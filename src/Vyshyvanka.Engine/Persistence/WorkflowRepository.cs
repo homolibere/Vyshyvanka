@@ -157,6 +157,34 @@ public class WorkflowRepository : IWorkflowRepository
         return await _context.Workflows.AnyAsync(w => w.Id == id, cancellationToken);
     }
 
+    /// <inheritdoc />
+    public async Task<Workflow?> GetByWebhookPathAsync(
+        string webhookPath,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(webhookPath))
+            return null;
+
+        // Use a SQL LIKE filter on the NodesJson column to narrow candidates,
+        // then confirm in memory with exact path matching on the deserialized model.
+        var pathPattern = $"%\"path\":\"{webhookPath.Replace("\"", "\\\"")}\"%";
+
+        var candidates = await _context.Workflows
+            .AsNoTracking()
+            .Where(w => w.IsActive && EF.Functions.Like(w.NodesJson, pathPattern))
+            .ToListAsync(cancellationToken);
+
+        return candidates
+            .Select(ToModel)
+            .FirstOrDefault(w => w.Nodes.Any(n =>
+                n.Type.Equals("webhook-trigger", StringComparison.OrdinalIgnoreCase) &&
+                n.Configuration.ValueKind == JsonValueKind.Object &&
+                n.Configuration.TryGetProperty("path", out var pathProp) &&
+                pathProp.ValueKind == JsonValueKind.String &&
+                pathProp.GetString()?.TrimStart('/').Equals(
+                    webhookPath.TrimStart('/'), StringComparison.OrdinalIgnoreCase) == true));
+    }
+
 
     private static WorkflowEntity ToEntity(Workflow workflow)
     {

@@ -87,11 +87,8 @@ public class WebhookController : ControllerBase
     {
         _logger.LogDebug("Webhook triggered for path: {WebhookPath}", webhookPath);
 
-        // Search for workflows with matching webhook path
-        var workflows = await _workflowRepository.SearchAsync(webhookPath, 0, 10, cancellationToken);
-        var workflow = workflows.FirstOrDefault(w =>
-            w.IsActive &&
-            HasWebhookTriggerWithPath(w, webhookPath));
+        // Find an active workflow with a webhook trigger configured for this path
+        var workflow = await _workflowRepository.GetByWebhookPathAsync(webhookPath, cancellationToken);
 
         if (workflow is null)
         {

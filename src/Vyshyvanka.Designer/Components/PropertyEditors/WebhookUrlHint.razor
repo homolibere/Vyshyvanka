@@ -1,0 +1,34 @@
+@namespace Vyshyvanka.Designer.Components
+
+@if (!string.IsNullOrEmpty(PathValue))
+{
+    <div class="webhook-url-hint">
+        <div class="webhook-url-header">
+            <span class="webhook-url-icon">🔗</span>
+            <span class="webhook-url-title">Webhook URLs</span>
+        </div>
+
+        <div class="webhook-url-row">
+            <span class="webhook-url-label">By path</span>
+            <div class="webhook-url-value-wrapper">
+                <code class="webhook-url-value">@PathUrl</code>
+                <button class="webhook-url-copy" title="Copy URL" @onclick="() => CopyToClipboard(PathUrl)">
+                    @(_copiedPath ? "✓" : "📋")
+                </button>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(WorkflowId))
+        {
+            <div class="webhook-url-row">
+                <span class="webhook-url-label">By ID</span>
+                <div class="webhook-url-value-wrapper">
+                    <code class="webhook-url-value">@IdUrl</code>
+                    <button class="webhook-url-copy" title="Copy URL" @onclick="() => CopyToClipboard(IdUrl)">
+                        @(_copiedId ? "✓" : "📋")
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+}

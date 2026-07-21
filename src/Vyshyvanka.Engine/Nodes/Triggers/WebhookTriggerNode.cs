@@ -46,18 +46,37 @@ public class WebhookTriggerNode : BaseTriggerNode
     /// <inheritdoc />
     public override Task<NodeOutput> ExecuteAsync(NodeInput input, IExecutionContext context)
     {
-        // Extract webhook request data and pass it downstream
+        // The webhook controller stores request data in context.Variables["webhook"].
+        // Trigger nodes have no incoming connections, so input.Data is empty.
+        var source = GetWebhookDataSource(input, context);
+
         var webhookData = new Dictionary<string, object?>
         {
-            ["headers"] = ExtractProperty(input.Data, "headers"),
-            ["body"] = ExtractProperty(input.Data, "body"),
-            ["query"] = ExtractProperty(input.Data, "query"),
-            ["method"] = ExtractProperty(input.Data, "method"),
-            ["path"] = ExtractProperty(input.Data, "path"),
+            ["headers"] = ExtractProperty(source, "headers"),
+            ["body"] = ExtractProperty(source, "body"),
+            ["query"] = ExtractProperty(source, "query"),
+            ["method"] = ExtractProperty(source, "method"),
+            ["path"] = ExtractProperty(source, "path"),
             ["timestamp"] = DateTime.UtcNow
         };
 
         return Task.FromResult(SuccessOutput(webhookData));
+    }
+
+    /// <summary>
+    /// Resolves the webhook data source — prefers context.Variables["webhook"] (set by
+    /// WebhookController), falls back to input.Data for backwards compatibility.
+    /// </summary>
+    private static JsonElement GetWebhookDataSource(NodeInput input, IExecutionContext context)
+    {
+        if (context.Variables.TryGetValue("webhook", out var webhookVar) &&
+            webhookVar is JsonElement webhookElement &&
+            webhookElement.ValueKind == JsonValueKind.Object)
+        {
+            return webhookElement;
+        }
+
+        return input.Data;
     }
 
     private static object? ExtractProperty(JsonElement element, string propertyName)
