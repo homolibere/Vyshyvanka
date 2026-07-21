@@ -1,0 +1,135 @@
+@namespace Vyshyvanka.Designer.Components
+
+@if (_state is not null)
+{
+    <div class="node-execution-inspector">
+        <div class="inspector-header">
+            <div class="inspector-title">
+                <span class="inspector-status @GetStatusClass(_state.Status)">@GetStatusIcon(_state.Status)</span>
+                <h4>@GetNodeName()</h4>
+                @if (_state.DurationMs.HasValue)
+                {
+                    <span class="inspector-duration">@FormatDuration(_state.DurationMs.Value)</span>
+                }
+            </div>
+            <button class="btn-close-inspector" @onclick="Close" title="Close inspector">×</button>
+        </div>
+
+        @if (_state.HasMultipleIterations)
+        {
+            <div class="iteration-nav">
+                <button class="btn-iter" disabled="@(_currentIteration <= 0)"
+                        @onclick="PreviousIteration">◀</button>
+                <span class="iter-label">
+                    Iteration @(_currentIteration + 1) of @_state.IterationCount
+                </span>
+                <button class="btn-iter" disabled="@(_currentIteration >= _state.IterationCount - 1)"
+                        @onclick="NextIteration">▶</button>
+            </div>
+        }
+
+        <div class="inspector-body">
+            <div class="inspector-section">
+                <div class="section-header" @onclick="() => _inputExpanded = !_inputExpanded">
+                    <span class="section-toggle">@(_inputExpanded ? "▼" : "▶")</span>
+                    <span class="section-title">Input Data</span>
+                    @if (GetCurrentInput() is not null)
+                    {
+                        <button class="btn-copy" @onclick="CopyInput" @onclick:stopPropagation="true" title="Copy">
+                            @(_inputCopied ? "✓" : "📋")
+                        </button>
+                    }
+                </div>
+                @if (_inputExpanded)
+                {
+                    <div class="section-content">
+                        @if (GetCurrentInput() is { } input)
+                        {
+                            <pre class="json-viewer"><code>@FormatJson(input)</code></pre>
+                        }
+                        else
+                        {
+                            <span class="no-data">No input data</span>
+                        }
+                    </div>
+                }
+            </div>
+
+            <div class="inspector-section">
+                <div class="section-header" @onclick="() => _outputExpanded = !_outputExpanded">
+                    <span class="section-toggle">@(_outputExpanded ? "▼" : "▶")</span>
+                    <span class="section-title">Output Data</span>
+                    @if (GetCurrentOutput() is not null)
+                    {
+                        <button class="btn-copy" @onclick="CopyOutput" @onclick:stopPropagation="true" title="Copy">
+                            @(_outputCopied ? "✓" : "📋")
+                        </button>
+                    }
+                </div>
+                @if (_outputExpanded)
+                {
+                    <div class="section-content">
+                        @if (GetCurrentOutput() is { } output)
+                        {
+                            <pre class="json-viewer"><code>@FormatJson(output)</code></pre>
+                        }
+                        else
+                        {
+                            <span class="no-data">No output data</span>
+                        }
+                    </div>
+                }
+            </div>
+
+            @if (GetCurrentError() is { } error)
+            {
+                <div class="inspector-section error-section">
+                    <div class="section-header">
+                        <span class="section-toggle">▼</span>
+                        <span class="section-title">Error</span>
+                    </div>
+                    <div class="section-content">
+                        <div class="error-message">@error</div>
+                    </div>
+                </div>
+            }
+
+            <div class="inspector-section">
+                <div class="section-header" @onclick="() => _metaExpanded = !_metaExpanded">
+                    <span class="section-toggle">@(_metaExpanded ? "▼" : "▶")</span>
+                    <span class="section-title">Timing</span>
+                </div>
+                @if (_metaExpanded)
+                {
+                    <div class="section-content meta-content">
+                        <div class="meta-row">
+                            <span class="meta-label">Started</span>
+                            <span class="meta-value">@_state.StartedAt.ToString("HH:mm:ss.fff")</span>
+                        </div>
+                        @if (_state.CompletedAt.HasValue)
+                        {
+                            <div class="meta-row">
+                                <span class="meta-label">Completed</span>
+                                <span class="meta-value">@_state.CompletedAt.Value.ToString("HH:mm:ss.fff")</span>
+                            </div>
+                        }
+                        @if (_state.DurationMs.HasValue)
+                        {
+                            <div class="meta-row">
+                                <span class="meta-label">Duration</span>
+                                <span class="meta-value">@FormatDuration(_state.DurationMs.Value)</span>
+                            </div>
+                        }
+                        @if (_state.HasMultipleIterations)
+                        {
+                            <div class="meta-row">
+                                <span class="meta-label">Iterations</span>
+                                <span class="meta-value">@_state.IterationCount</span>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}

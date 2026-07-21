@@ -58,3 +58,30 @@ public record NodeExecutionResponse
     public JsonElement? OutputData { get; init; }
     public string? ErrorMessage { get; init; }
 }
+
+/// <summary>
+/// Execution summary response (without node-level details) for history listing.
+/// </summary>
+public record ExecutionSummaryResponse
+{
+    public Guid Id { get; init; }
+    public Guid WorkflowId { get; init; }
+    public int WorkflowVersion { get; init; }
+    public ExecutionStatus Status { get; init; }
+    public ExecutionMode Mode { get; init; }
+    public DateTime StartedAt { get; init; }
+    public DateTime? CompletedAt { get; init; }
+    public TimeSpan? Duration { get; init; }
+    public string? ErrorMessage { get; init; }
+}
+
+/// <summary>
+/// Paginated execution history response.
+/// </summary>
+public record PagedExecutionResponse
+{
+    public List<ExecutionSummaryResponse> Items { get; init; } = [];
+    public int Skip { get; init; }
+    public int Take { get; init; }
+    public int TotalCount { get; init; }
+}

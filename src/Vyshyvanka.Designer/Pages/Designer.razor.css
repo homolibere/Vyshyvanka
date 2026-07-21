@@ -39,6 +39,21 @@
     overflow: hidden;
 }
 
+/* History panel */
+.history-panel {
+    width: 280px;
+    background: var(--bg-surface);
+    border-left: 1px solid var(--border-color);
+    overflow-y: auto;
+    flex-shrink: 0;
+    transition: width 0.2s ease;
+}
+
+.history-panel.collapsed {
+    width: 36px;
+    overflow: hidden;
+}
+
 /* Panel toggle buttons */
 .panel-toggle {
     display: flex;

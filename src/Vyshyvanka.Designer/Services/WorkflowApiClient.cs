@@ -123,6 +123,15 @@ public class WorkflowApiClient(HttpClient httpClient) : ApiClientBase(httpClient
         return await Http.GetFromJsonAsync<ExecutionResponse>($"api/execution/{executionId}", cancellationToken);
     }
 
+    /// <summary>Gets paginated execution history for a workflow.</summary>
+    public async Task<PagedExecutionResponse> GetExecutionHistoryAsync(
+        Guid workflowId, int skip = 0, int take = 20, CancellationToken cancellationToken = default)
+    {
+        var url = $"api/execution?workflowId={workflowId}&skip={skip}&take={take}";
+        var response = await Http.GetFromJsonAsync<PagedExecutionResponse>(url, JsonOptions, cancellationToken);
+        return response ?? new PagedExecutionResponse();
+    }
+
     private static CreateWorkflowRequest MapToCreateRequest(Workflow workflow) => new()
     {
         Name = workflow.Name,

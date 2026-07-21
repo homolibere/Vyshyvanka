@@ -1,0 +1,84 @@
+@namespace Vyshyvanka.Designer.Components
+
+<div class="execution-history-panel">
+    <div class="panel-header">
+        <h3>Execution History</h3>
+        <button class="btn-refresh" @onclick="RefreshAsync" disabled="@_isLoading" title="Refresh">
+            <span class="@(_isLoading ? "spinning" : "")">↻</span>
+        </button>
+    </div>
+
+    @if (_isLoading && _executions.Count == 0)
+    {
+        <div class="panel-loading">
+            <span class="loading-spinner"></span>
+            <span>Loading history...</span>
+        </div>
+    }
+    else if (_executions.Count == 0)
+    {
+        <div class="panel-empty">
+            <span class="empty-icon">📋</span>
+            <p>No executions yet</p>
+            <p class="empty-hint">Run the workflow or trigger it via webhook to see execution history here.</p>
+        </div>
+    }
+    else
+    {
+        <div class="execution-list">
+            @foreach (var execution in _executions)
+            {
+                <div class="execution-item @(IsSelected(execution.Id) ? "selected" : "")"
+                     @onclick="() => SelectExecution(execution.Id)">
+                    <div class="execution-item-header">
+                        <span class="execution-status @GetStatusClass(execution.Status)"
+                              title="@execution.Status.ToString()">
+                            @GetStatusIcon(execution.Status)
+                        </span>
+                        <span class="execution-time" title="@execution.StartedAt.ToString("yyyy-MM-dd HH:mm:ss")">
+                            @FormatRelativeTime(execution.StartedAt)
+                        </span>
+                        <span class="execution-mode" title="@execution.Mode.ToString()">
+                            @GetModeIcon(execution.Mode)
+                        </span>
+                    </div>
+                    <div class="execution-item-details">
+                        <span class="execution-duration">
+                            @if (execution.Duration.HasValue)
+                            {
+                                @FormatDuration(execution.Duration.Value)
+                            }
+                            else
+                            {
+                                <text>—</text>
+                            }
+                        </span>
+                        <span class="execution-version">v@(execution.WorkflowVersion)</span>
+                    </div>
+                    @if (execution.Status == ExecutionStatus.Failed && !string.IsNullOrEmpty(execution.ErrorMessage))
+                    {
+                        <div class="execution-error-preview" title="@execution.ErrorMessage">
+                            @TruncateError(execution.ErrorMessage)
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        @if (_totalCount > _executions.Count)
+        {
+            <div class="load-more">
+                <button class="btn-load-more" @onclick="LoadMoreAsync" disabled="@_isLoading">
+                    @if (_isLoading)
+                    {
+                        <text>Loading...</text>
+                    }
+                    else
+                    {
+                        <text>Load more (@(_totalCount - _executions.Count) remaining)</text>
+                    }
+                </button>
+            </div>
+        }
+    }
+</div>

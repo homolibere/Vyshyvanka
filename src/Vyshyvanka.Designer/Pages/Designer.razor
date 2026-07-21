@@ -48,6 +48,11 @@
         }
 
         <WorkflowCanvas OnNodeDoubleClick="OpenNodeEditor"/>
+
+        @if (_isExecutionViewActive)
+        {
+            <NodeExecutionInspector OnClose="CloseExecutionInspector"/>
+        }
     </div>
 
     <aside class="config-panel @(_isConfigCollapsed ? "collapsed" : "")">
@@ -61,6 +66,23 @@
         @if (!_isConfigCollapsed)
         {
             <NodeConfigPanel/>
+        }
+    </aside>
+
+    <aside class="history-panel @(_isHistoryCollapsed ? "collapsed" : "")">
+        <div class="panel-toggle" @onclick="ToggleHistory"
+             title="@(_isHistoryCollapsed ? "Show History" : "Hide History")">
+            @if (_isHistoryCollapsed)
+            {
+                <span class="toggle-label-vertical">History</span>
+            }
+            <span class="toggle-icon">@(_isHistoryCollapsed ? "◀" : "▶")</span>
+        </div>
+        @if (!_isHistoryCollapsed)
+        {
+            <ExecutionHistoryPanel @ref="_historyPanel"
+                                   OnExecutionSelected="OnExecutionSelected"
+                                   OnExecutionCleared="OnExecutionCleared"/>
         }
     </aside>
 </div>

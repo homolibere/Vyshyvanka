@@ -5,6 +5,7 @@ using Vyshyvanka.Designer.Models;
 using Vyshyvanka.Designer.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Vyshyvanka.Designer.Components;
 
 namespace Vyshyvanka.Designer.Pages;
 
@@ -178,6 +179,19 @@ public partial class Designer : IDisposable
         builder.AddAttribute(seq++, "title", "Credential Manager");
         builder.AddContent(seq++, "🔑 Credentials");
         builder.CloseElement();
+
+        // Separator
+        builder.OpenElement(seq++, "span");
+        builder.AddAttribute(seq++, "class", "toolbar-separator");
+        builder.CloseElement();
+
+        // History
+        builder.OpenElement(seq++, "button");
+        builder.AddAttribute(seq++, "class", $"toolbar-btn {(!_isHistoryCollapsed ? "active" : "")}");
+        builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, ToggleHistory));
+        builder.AddAttribute(seq++, "title", "Execution History");
+        builder.AddContent(seq++, "📜 History");
+        builder.CloseElement();
     };
 
     private bool _isValidationPanelExpanded = true;
@@ -190,6 +204,9 @@ public partial class Designer : IDisposable
     private Guid? _loadedWorkflowId;
     private bool _isPaletteCollapsed;
     private bool _isConfigCollapsed;
+    private bool _isHistoryCollapsed;
+    private bool _isExecutionViewActive;
+    private ExecutionHistoryPanel? _historyPanel;
 
     protected override async Task OnInitializedAsync()
     {
@@ -236,6 +253,12 @@ public partial class Designer : IDisposable
             {
                 EditService.NewWorkflow();
             }
+
+            // Refresh execution history for the new workflow
+            if (_historyPanel is not null)
+            {
+                await _historyPanel.RefreshAsync();
+            }
         }
     }
 
@@ -268,6 +291,26 @@ public partial class Designer : IDisposable
     private void TogglePalette() => _isPaletteCollapsed = !_isPaletteCollapsed;
 
     private void ToggleConfig() => _isConfigCollapsed = !_isConfigCollapsed;
+
+    private void ToggleHistory() => _isHistoryCollapsed = !_isHistoryCollapsed;
+
+    private void OnExecutionSelected(ExecutionResponse execution)
+    {
+        _isExecutionViewActive = true;
+        StateHasChanged();
+    }
+
+    private void OnExecutionCleared()
+    {
+        _isExecutionViewActive = false;
+        StateHasChanged();
+    }
+
+    private void CloseExecutionInspector()
+    {
+        // Keep the execution overlay active, just close the node inspector detail
+        // The user can still see highlighted nodes on the canvas
+    }
 
     private string GetSaveButtonTitle() => ValidationService.ValidationResult.IsValid
         ? "Save workflow"
