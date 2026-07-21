@@ -23,6 +23,10 @@ public class WorkflowStore
     private readonly List<NodeDefinition> _nodeDefinitions = [];
     private bool _isDirty;
 
+    // ── Lookup indexes (lazy, invalidated on mutation) ─────────────────
+    private Dictionary<string, WorkflowNode>? _nodeIndex;
+    private Dictionary<string, NodeDefinition>? _nodeDefinitionIndex;
+
     /// <summary>Event raised when any state changes (general re-render signal).</summary>
     public event Action? OnStateChanged;
 
@@ -39,6 +43,7 @@ public class WorkflowStore
     internal void SetWorkflow(Workflow workflow)
     {
         _workflow = workflow;
+        _nodeIndex = null;
     }
 
     /// <summary>Sets the available node definitions.</summary>
@@ -46,6 +51,7 @@ public class WorkflowStore
     {
         _nodeDefinitions.Clear();
         _nodeDefinitions.AddRange(definitions);
+        _nodeDefinitionIndex = null;
         NotifyStateChanged();
     }
 
@@ -65,13 +71,15 @@ public class WorkflowStore
     /// <summary>Gets a node definition by type.</summary>
     public NodeDefinition? GetNodeDefinition(string nodeType)
     {
-        return _nodeDefinitions.FirstOrDefault(d => d.Type == nodeType);
+        _nodeDefinitionIndex ??= _nodeDefinitions.ToDictionary(d => d.Type);
+        return _nodeDefinitionIndex.GetValueOrDefault(nodeType);
     }
 
     /// <summary>Gets a node by ID.</summary>
     public WorkflowNode? GetNode(string nodeId)
     {
-        return _workflow.Nodes.FirstOrDefault(n => n.Id == nodeId);
+        _nodeIndex ??= _workflow.Nodes.ToDictionary(n => n.Id);
+        return _nodeIndex.GetValueOrDefault(nodeId);
     }
 
     /// <summary>Serializes the current workflow to JSON.</summary>

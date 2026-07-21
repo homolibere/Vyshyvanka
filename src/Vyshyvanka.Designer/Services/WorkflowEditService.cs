@@ -83,7 +83,7 @@ public class WorkflowEditService(
     /// <summary>Updates a node's position (no undo — called continuously during drag).</summary>
     public void MoveNode(string nodeId, double x, double y)
     {
-        var node = store.Workflow.Nodes.FirstOrDefault(n => n.Id == nodeId);
+        var node = store.GetNode(nodeId);
         if (node is null) return;
 
         var updatedNode = node with { Position = new Position(x, y) };
@@ -100,7 +100,7 @@ public class WorkflowEditService(
     /// <summary>Updates a node's configuration.</summary>
     public void UpdateNodeConfiguration(string nodeId, JsonElement configuration)
     {
-        var node = store.Workflow.Nodes.FirstOrDefault(n => n.Id == nodeId);
+        var node = store.GetNode(nodeId);
         if (node is null) return;
 
         CommitChange("Update Node Configuration", w => w with
@@ -203,7 +203,7 @@ public class WorkflowEditService(
     /// <summary>Updates a node's name.</summary>
     public void UpdateNodeName(string nodeId, string name)
     {
-        var node = store.Workflow.Nodes.FirstOrDefault(n => n.Id == nodeId);
+        var node = store.GetNode(nodeId);
         if (node is null || string.IsNullOrWhiteSpace(name)) return;
 
         CommitChange("Update Node Name", w => w with
@@ -216,7 +216,7 @@ public class WorkflowEditService(
     /// <summary>Updates a node's credential.</summary>
     public void UpdateNodeCredential(string nodeId, Guid? credentialId)
     {
-        var node = store.Workflow.Nodes.FirstOrDefault(n => n.Id == nodeId);
+        var node = store.GetNode(nodeId);
         if (node is null) return;
 
         CommitChange("Update Node Credential", w => w with

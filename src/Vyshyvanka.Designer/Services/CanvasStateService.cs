@@ -14,6 +14,9 @@ public class CanvasStateService(WorkflowStore store)
     private Connection? _selectedConnection;
     private PendingConnection? _pendingConnection;
     private string? _draggedNodeType;
+    /// <summary>Maximum number of undo states retained in memory.</summary>
+    internal const int MaxUndoHistory = 50;
+
     private readonly Stack<CanvasAction> _undoStack = new();
     private readonly Stack<CanvasAction> _redoStack = new();
 
@@ -199,6 +202,18 @@ public class CanvasStateService(WorkflowStore store)
             PreviousState = store.Workflow
         });
         _redoStack.Clear();
+        TrimStack(_undoStack, MaxUndoHistory);
+    }
+
+    /// <summary>Discards the oldest entries when the stack exceeds the limit.</summary>
+    private static void TrimStack(Stack<CanvasAction> stack, int maxSize)
+    {
+        if (stack.Count <= maxSize) return;
+
+        var keep = stack.ToArray().AsSpan(0, maxSize); // index 0 = top (newest)
+        stack.Clear();
+        for (var i = keep.Length - 1; i >= 0; i--)
+            stack.Push(keep[i]);
     }
 
     /// <summary>Undoes the last action.</summary>

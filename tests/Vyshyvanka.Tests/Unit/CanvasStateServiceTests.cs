@@ -266,3 +266,56 @@ public class CanvasStateServiceTests
         notified.Should().BeTrue();
     }
 }
+
+public class CanvasStateServiceUndoCapTests
+{
+    private readonly WorkflowStore _store = new();
+    private readonly CanvasStateService _sut;
+
+    public CanvasStateServiceUndoCapTests()
+    {
+        _sut = new CanvasStateService(_store);
+    }
+
+    [Fact]
+    public void WhenMoreThanMaxUndoHistoryPushedThenStackIsCapped()
+    {
+        for (var i = 0; i < CanvasStateService.MaxUndoHistory + 20; i++)
+        {
+            _sut.SaveUndoState($"Action {i}");
+        }
+
+        // Undo should only succeed MaxUndoHistory times
+        var undoCount = 0;
+        while (_sut.CanUndo)
+        {
+            _sut.Undo();
+            undoCount++;
+        }
+
+        undoCount.Should().Be(CanvasStateService.MaxUndoHistory);
+    }
+
+    [Fact]
+    public void WhenUndoStackExceedsCapThenOldestEntryIsDiscarded()
+    {
+        // Push one entry and remember the workflow state
+        _store.SetWorkflow(_store.Workflow with { Name = "First" });
+        _sut.SaveUndoState("First action");
+
+        // Push MaxUndoHistory more entries to evict the first one
+        for (var i = 0; i < CanvasStateService.MaxUndoHistory; i++)
+        {
+            _store.SetWorkflow(_store.Workflow with { Name = $"State {i}" });
+            _sut.SaveUndoState($"Action {i}");
+        }
+
+        // Undo all the way back — should never restore "First"
+        while (_sut.CanUndo)
+        {
+            _sut.Undo();
+        }
+
+        _store.Workflow.Name.Should().NotBe("First");
+    }
+}
