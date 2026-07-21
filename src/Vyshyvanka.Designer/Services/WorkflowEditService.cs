@@ -13,14 +13,25 @@ public class WorkflowEditService(
     WorkflowValidationService validationService,
     ExecutionStateService executionState)
 {
+    /// <summary>
+    /// Applies a workflow mutation with undo tracking, dirty marking, validation, and notification.
+    /// </summary>
+    private void CommitChange(string description, Func<Workflow, Workflow> transform, bool validate = true)
+    {
+        canvasState.SaveUndoState(description);
+        store.SetWorkflow(transform(store.Workflow));
+        store.MarkDirty();
+        if (validate)
+            validationService.ValidateWorkflow();
+        store.NotifyStateChanged();
+    }
+
     /// <summary>Loads a workflow into the designer.</summary>
     public void LoadWorkflow(Workflow workflow)
     {
         canvasState.SaveUndoState("Load Workflow");
         store.SetWorkflow(workflow);
         canvasState.ClearSelectionState();
-        store.MarkDirty();
-        // Reset dirty since we just loaded
         store.MarkAsSaved();
         executionState.ClearExecutionState();
         validationService.ValidateWorkflow();
@@ -34,8 +45,6 @@ public class WorkflowEditService(
         store.SetWorkflow(WorkflowStore.CreateEmptyWorkflow());
         canvasState.ClearSelectionState();
         canvasState.ResetCanvasState();
-        store.MarkDirty();
-        // Reset dirty since this is a fresh workflow
         store.MarkAsSaved();
         executionState.ClearExecutionState();
         validationService.ValidateWorkflow();
@@ -45,40 +54,29 @@ public class WorkflowEditService(
     /// <summary>Adds a node to the workflow.</summary>
     public void AddNode(WorkflowNode node)
     {
-        canvasState.SaveUndoState("Add Node");
-        store.SetWorkflow(store.Workflow with
+        CommitChange("Add Node", w => w with
         {
-            Nodes = [.. store.Workflow.Nodes, node],
+            Nodes = [.. w.Nodes, node],
             UpdatedAt = DateTime.UtcNow
         });
         canvasState.SetSelectedNodeId(node.Id);
-        store.MarkDirty();
-        validationService.ValidateWorkflow();
-        store.NotifyStateChanged();
     }
 
     /// <summary>Removes a node from the workflow.</summary>
     public void RemoveNode(string nodeId)
     {
-        canvasState.SaveUndoState("Remove Node");
-        var connections = store.Workflow.Connections
-            .Where(c => c.SourceNodeId != nodeId && c.TargetNodeId != nodeId)
-            .ToList();
-
-        store.SetWorkflow(store.Workflow with
+        CommitChange("Remove Node", w => w with
         {
-            Nodes = store.Workflow.Nodes.Where(n => n.Id != nodeId).ToList(),
-            Connections = connections,
+            Nodes = w.Nodes.Where(n => n.Id != nodeId).ToList(),
+            Connections = w.Connections
+                .Where(c => c.SourceNodeId != nodeId && c.TargetNodeId != nodeId)
+                .ToList(),
             UpdatedAt = DateTime.UtcNow
         });
-
         canvasState.ClearSelectedNodeIfMatches(nodeId);
-        store.MarkDirty();
-        validationService.ValidateWorkflow();
-        store.NotifyStateChanged();
     }
 
-    /// <summary>Updates a node's position.</summary>
+    /// <summary>Updates a node's position (no undo — called continuously during drag).</summary>
     public void MoveNode(string nodeId, double x, double y)
     {
         var node = store.Workflow.Nodes.FirstOrDefault(n => n.Id == nodeId);
@@ -98,21 +96,14 @@ public class WorkflowEditService(
     /// <summary>Updates a node's configuration.</summary>
     public void UpdateNodeConfiguration(string nodeId, JsonElement configuration)
     {
-        canvasState.SaveUndoState("Update Node Configuration");
         var node = store.Workflow.Nodes.FirstOrDefault(n => n.Id == nodeId);
         if (node is null) return;
 
-        var updatedNode = node with { Configuration = configuration };
-        var nodes = store.Workflow.Nodes.Select(n => n.Id == nodeId ? updatedNode : n).ToList();
-
-        store.SetWorkflow(store.Workflow with
+        CommitChange("Update Node Configuration", w => w with
         {
-            Nodes = nodes,
+            Nodes = w.Nodes.Select(n => n.Id == nodeId ? n with { Configuration = configuration } : n).ToList(),
             UpdatedAt = DateTime.UtcNow
         });
-        store.MarkDirty();
-        validationService.ValidateWorkflow();
-        store.NotifyStateChanged();
     }
 
     /// <summary>Adds a connection between nodes.</summary>
@@ -126,24 +117,19 @@ public class WorkflowEditService(
                 c.TargetPort == connection.TargetPort))
             return;
 
-        canvasState.SaveUndoState("Add Connection");
-        store.SetWorkflow(store.Workflow with
+        CommitChange("Add Connection", w => w with
         {
-            Connections = [.. store.Workflow.Connections, connection],
+            Connections = [.. w.Connections, connection],
             UpdatedAt = DateTime.UtcNow
         });
-        store.MarkDirty();
-        validationService.ValidateWorkflow();
-        store.NotifyStateChanged();
     }
 
     /// <summary>Removes a connection.</summary>
     public void RemoveConnection(Connection connection)
     {
-        canvasState.SaveUndoState("Remove Connection");
-        store.SetWorkflow(store.Workflow with
+        CommitChange("Remove Connection", w => w with
         {
-            Connections = store.Workflow.Connections
+            Connections = w.Connections
                 .Where(c => !(c.SourceNodeId == connection.SourceNodeId &&
                               c.SourcePort == connection.SourcePort &&
                               c.TargetNodeId == connection.TargetNodeId &&
@@ -151,11 +137,7 @@ public class WorkflowEditService(
                 .ToList(),
             UpdatedAt = DateTime.UtcNow
         });
-
         canvasState.ClearSelectedConnectionIfMatches(connection);
-        store.MarkDirty();
-        validationService.ValidateWorkflow();
-        store.NotifyStateChanged();
     }
 
     /// <summary>Completes or cancels the pending connection.</summary>
@@ -183,29 +165,22 @@ public class WorkflowEditService(
     /// <summary>Updates workflow metadata.</summary>
     public void UpdateWorkflowMetadata(string name, string? description = null)
     {
-        canvasState.SaveUndoState("Update Workflow Metadata");
-        store.SetWorkflow(store.Workflow with
+        CommitChange("Update Workflow Metadata", w => w with
         {
             Name = name,
-            Description = description ?? store.Workflow.Description,
+            Description = description ?? w.Description,
             UpdatedAt = DateTime.UtcNow
         });
-        store.MarkDirty();
-        validationService.ValidateWorkflow();
-        store.NotifyStateChanged();
     }
 
     /// <summary>Toggles the workflow active state.</summary>
     public void ToggleWorkflowActive()
     {
-        canvasState.SaveUndoState("Toggle Workflow Active");
-        store.SetWorkflow(store.Workflow with
+        CommitChange("Toggle Workflow Active", w => w with
         {
-            IsActive = !store.Workflow.IsActive,
+            IsActive = !w.IsActive,
             UpdatedAt = DateTime.UtcNow
-        });
-        store.MarkDirty();
-        store.NotifyStateChanged();
+        }, validate: false);
     }
 
     /// <summary>Sets the workflow active state.</summary>
@@ -213,14 +188,11 @@ public class WorkflowEditService(
     {
         if (store.Workflow.IsActive == isActive) return;
 
-        canvasState.SaveUndoState(isActive ? "Activate Workflow" : "Deactivate Workflow");
-        store.SetWorkflow(store.Workflow with
+        CommitChange(isActive ? "Activate Workflow" : "Deactivate Workflow", w => w with
         {
             IsActive = isActive,
             UpdatedAt = DateTime.UtcNow
-        });
-        store.MarkDirty();
-        store.NotifyStateChanged();
+        }, validate: false);
     }
 
     /// <summary>Updates a node's name.</summary>
@@ -229,18 +201,11 @@ public class WorkflowEditService(
         var node = store.Workflow.Nodes.FirstOrDefault(n => n.Id == nodeId);
         if (node is null || string.IsNullOrWhiteSpace(name)) return;
 
-        canvasState.SaveUndoState("Update Node Name");
-        var updatedNode = node with { Name = name };
-        var nodes = store.Workflow.Nodes.Select(n => n.Id == nodeId ? updatedNode : n).ToList();
-
-        store.SetWorkflow(store.Workflow with
+        CommitChange("Update Node Name", w => w with
         {
-            Nodes = nodes,
+            Nodes = w.Nodes.Select(n => n.Id == nodeId ? n with { Name = name } : n).ToList(),
             UpdatedAt = DateTime.UtcNow
         });
-        store.MarkDirty();
-        validationService.ValidateWorkflow();
-        store.NotifyStateChanged();
     }
 
     /// <summary>Updates a node's credential.</summary>
@@ -249,17 +214,11 @@ public class WorkflowEditService(
         var node = store.Workflow.Nodes.FirstOrDefault(n => n.Id == nodeId);
         if (node is null) return;
 
-        canvasState.SaveUndoState("Update Node Credential");
-        var updatedNode = node with { CredentialId = credentialId };
-        var nodes = store.Workflow.Nodes.Select(n => n.Id == nodeId ? updatedNode : n).ToList();
-
-        store.SetWorkflow(store.Workflow with
+        CommitChange("Update Node Credential", w => w with
         {
-            Nodes = nodes,
+            Nodes = w.Nodes.Select(n => n.Id == nodeId ? n with { CredentialId = credentialId } : n).ToList(),
             UpdatedAt = DateTime.UtcNow
-        });
-        store.MarkDirty();
-        store.NotifyStateChanged();
+        }, validate: false);
     }
 
     /// <summary>Drops a node from the palette onto the canvas.</summary>

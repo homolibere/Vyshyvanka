@@ -1,0 +1,68 @@
+@namespace Vyshyvanka.Designer.Layout
+
+<button class="toolbar-btn" @onclick="OnOpen" title="Open Workflow">
+    📂 Open
+</button>
+
+<span class="toolbar-separator"></span>
+
+<button class="toolbar-btn" @onclick="Undo" disabled="@(!CanvasState.CanUndo)" title="Undo">
+    ↶
+</button>
+<button class="toolbar-btn" @onclick="Redo" disabled="@(!CanvasState.CanRedo)" title="Redo">
+    ↷
+</button>
+
+<span class="toolbar-separator"></span>
+
+<button class="toolbar-btn" @onclick="ZoomIn" title="Zoom In">
+    +
+</button>
+<span class="zoom-level">@ZoomPercent</span>
+<button class="toolbar-btn" @onclick="ZoomOut" title="Zoom Out">
+    −
+</button>
+<button class="toolbar-btn" @onclick="ResetView" title="Reset View">
+    ⟲
+</button>
+
+<span class="toolbar-separator"></span>
+
+@if (Store.IsDirty)
+{
+    <span class="dirty-indicator" title="Unsaved changes">●</span>
+}
+
+<button class="toolbar-btn primary" @onclick="OnSave" disabled="@(!IsValid)" title="@SaveTitle">
+    💾 Save
+</button>
+<button class="toolbar-btn @(Store.Workflow.IsActive ? "active" : "")"
+        @onclick="OnToggleActive"
+        title="@ActiveTitle">
+    @(Store.Workflow.IsActive ? "🟢 Active" : "⚪ Inactive")
+</button>
+<button class="toolbar-btn" @onclick="OnExecute" disabled="@(!CanExecute)" title="@RunTitle">
+    ▶ Run
+</button>
+
+@if (ExecutionState.IsExecutionActive)
+{
+    <button class="toolbar-btn" @onclick="OnStop" title="Stop Execution">
+        ⏹ Stop
+    </button>
+}
+
+<span class="toolbar-separator"></span>
+
+<button class="toolbar-btn" @onclick="OnOpenPlugins" title="Plugin Manager">
+    📦 Plugins
+</button>
+<button class="toolbar-btn" @onclick="OnOpenCredentials" title="Credential Manager">
+    🔑 Credentials
+</button>
+
+<span class="toolbar-separator"></span>
+
+<button class="toolbar-btn @(!IsHistoryCollapsed ? "active" : "")" @onclick="OnToggleHistory" title="Execution History">
+    📜 History
+</button>

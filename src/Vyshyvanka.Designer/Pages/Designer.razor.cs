@@ -1,21 +1,19 @@
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Core.Models;
+using Vyshyvanka.Designer.Components;
+using Vyshyvanka.Designer.Layout;
 using Vyshyvanka.Designer.Models;
 using Vyshyvanka.Designer.Services;
 using Microsoft.AspNetCore.Components;
-using Microsoft.JSInterop;
-using Vyshyvanka.Designer.Components;
 
 namespace Vyshyvanka.Designer.Pages;
 
-public partial class Designer : IDisposable
+public partial class Designer : IAsyncDisposable
 {
     [Inject] private WorkflowStore Store { get; set; } = null!;
 
     [Inject] private WorkflowEditService EditService { get; set; } = null!;
-
-    [Inject] private CanvasStateService CanvasState { get; set; } = null!;
 
     [Inject] private WorkflowValidationService ValidationService { get; set; } = null!;
 
@@ -27,171 +25,22 @@ public partial class Designer : IDisposable
 
     [Inject] private ToastService Toast { get; set; } = null!;
 
-    [Inject] private IJSRuntime JS { get; set; } = null!;
-
     [Parameter] public Guid? WorkflowId { get; set; }
 
     [CascadingParameter] private Vyshyvanka.Designer.Layout.DesignerLayout? Layout { get; set; }
 
-    private RenderFragment ToolbarContent => builder =>
+    private RenderFragment _toolbarFragment => builder =>
     {
-        int seq = 0;
-        // Open
-        builder.OpenElement(seq++, "button");
-        builder.AddAttribute(seq++, "class", "toolbar-btn");
-        builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, OpenWorkflowBrowser));
-        builder.AddAttribute(seq++, "title", "Open Workflow");
-        builder.AddContent(seq++, "📂 Open");
-        builder.CloseElement();
-
-        // Separator
-        builder.OpenElement(seq++, "span");
-        builder.AddAttribute(seq++, "class", "toolbar-separator");
-        builder.CloseElement();
-
-        // Undo
-        builder.OpenElement(seq++, "button");
-        builder.AddAttribute(seq++, "class", "toolbar-btn");
-        builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, CanvasState.Undo));
-        builder.AddAttribute(seq++, "disabled", !CanvasState.CanUndo);
-        builder.AddAttribute(seq++, "title", "Undo");
-        builder.AddContent(seq++, "↶");
-        builder.CloseElement();
-
-        // Redo
-        builder.OpenElement(seq++, "button");
-        builder.AddAttribute(seq++, "class", "toolbar-btn");
-        builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, CanvasState.Redo));
-        builder.AddAttribute(seq++, "disabled", !CanvasState.CanRedo);
-        builder.AddAttribute(seq++, "title", "Redo");
-        builder.AddContent(seq++, "↷");
-        builder.CloseElement();
-
-        // Separator
-        builder.OpenElement(seq++, "span");
-        builder.AddAttribute(seq++, "class", "toolbar-separator");
-        builder.CloseElement();
-
-        // Zoom In
-        builder.OpenElement(seq++, "button");
-        builder.AddAttribute(seq++, "class", "toolbar-btn");
-        builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, ZoomIn));
-        builder.AddAttribute(seq++, "title", "Zoom In");
-        builder.AddContent(seq++, "+");
-        builder.CloseElement();
-
-        // Zoom level
-        builder.OpenElement(seq++, "span");
-        builder.AddAttribute(seq++, "class", "zoom-level");
-        builder.AddContent(seq++, $"{(CanvasState.CanvasState.Zoom * 100):0}%");
-        builder.CloseElement();
-
-        // Zoom Out
-        builder.OpenElement(seq++, "button");
-        builder.AddAttribute(seq++, "class", "toolbar-btn");
-        builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, ZoomOut));
-        builder.AddAttribute(seq++, "title", "Zoom Out");
-        builder.AddContent(seq++, "−");
-        builder.CloseElement();
-
-        // Reset View
-        builder.OpenElement(seq++, "button");
-        builder.AddAttribute(seq++, "class", "toolbar-btn");
-        builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, CanvasState.ResetView));
-        builder.AddAttribute(seq++, "title", "Reset View");
-        builder.AddContent(seq++, "⟲");
-        builder.CloseElement();
-
-        // Separator
-        builder.OpenElement(seq++, "span");
-        builder.AddAttribute(seq++, "class", "toolbar-separator");
-        builder.CloseElement();
-
-        // Dirty indicator
-        if (Store.IsDirty)
-        {
-            builder.OpenElement(seq++, "span");
-            builder.AddAttribute(seq++, "class", "dirty-indicator");
-            builder.AddAttribute(seq++, "title", "Unsaved changes");
-            builder.AddContent(seq++, "●");
-            builder.CloseElement();
-        }
-
-        // Save
-        builder.OpenElement(seq++, "button");
-        builder.AddAttribute(seq++, "class", "toolbar-btn primary");
-        builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, SaveWorkflow));
-        builder.AddAttribute(seq++, "disabled", !ValidationService.ValidationResult.IsValid);
-        builder.AddAttribute(seq++, "title", GetSaveButtonTitle());
-        builder.AddContent(seq++, "💾 Save");
-        builder.CloseElement();
-
-        // Active toggle
-        builder.OpenElement(seq++, "button");
-        builder.AddAttribute(seq++, "class", $"toolbar-btn {(Store.Workflow.IsActive ? "active" : "")}");
-        builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, ToggleWorkflowActive));
-        builder.AddAttribute(seq++, "title",
-            Store.Workflow.IsActive
-                ? "Workflow is active (click to deactivate)"
-                : "Workflow is inactive (click to activate)");
-        builder.AddContent(seq++, Store.Workflow.IsActive ? "🟢 Active" : "⚪ Inactive");
-        builder.CloseElement();
-
-        // Run
-        builder.OpenElement(seq++, "button");
-        builder.AddAttribute(seq++, "class", "toolbar-btn");
-        builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, ExecuteWorkflow));
-        builder.AddAttribute(seq++, "disabled",
-            !ValidationService.ValidationResult.IsValid || ExecutionState.IsExecutionActive ||
-            !Store.Workflow.IsActive);
-        builder.AddAttribute(seq++, "title", GetRunButtonTitle());
-        builder.AddContent(seq++, "▶ Run");
-        builder.CloseElement();
-
-        // Stop (conditional)
-        if (ExecutionState.IsExecutionActive)
-        {
-            builder.OpenElement(seq++, "button");
-            builder.AddAttribute(seq++, "class", "toolbar-btn");
-            builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, StopExecution));
-            builder.AddAttribute(seq++, "title", "Stop Execution");
-            builder.AddContent(seq++, "⏹ Stop");
-            builder.CloseElement();
-        }
-
-        // Separator
-        builder.OpenElement(seq++, "span");
-        builder.AddAttribute(seq++, "class", "toolbar-separator");
-        builder.CloseElement();
-
-        // Plugins
-        builder.OpenElement(seq++, "button");
-        builder.AddAttribute(seq++, "class", "toolbar-btn");
-        builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, OpenPluginManager));
-        builder.AddAttribute(seq++, "title", "Plugin Manager");
-        builder.AddContent(seq++, "📦 Plugins");
-        builder.CloseElement();
-
-        // Credentials
-        builder.OpenElement(seq++, "button");
-        builder.AddAttribute(seq++, "class", "toolbar-btn");
-        builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, OpenCredentialManager));
-        builder.AddAttribute(seq++, "title", "Credential Manager");
-        builder.AddContent(seq++, "🔑 Credentials");
-        builder.CloseElement();
-
-        // Separator
-        builder.OpenElement(seq++, "span");
-        builder.AddAttribute(seq++, "class", "toolbar-separator");
-        builder.CloseElement();
-
-        // History
-        builder.OpenElement(seq++, "button");
-        builder.AddAttribute(seq++, "class", $"toolbar-btn {(!_isHistoryCollapsed ? "active" : "")}");
-        builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, ToggleHistory));
-        builder.AddAttribute(seq++, "title", "Execution History");
-        builder.AddContent(seq++, "📜 History");
-        builder.CloseElement();
+        builder.OpenComponent<Vyshyvanka.Designer.Layout.DesignerToolbar>(0);
+        builder.AddAttribute(1, nameof(DesignerToolbar.IsHistoryCollapsed), _isHistoryCollapsed);
+        builder.AddAttribute(2, nameof(DesignerToolbar.OnOpen), EventCallback.Factory.Create(this, OpenWorkflowBrowser));
+        builder.AddAttribute(3, nameof(DesignerToolbar.OnSave), EventCallback.Factory.Create(this, SaveWorkflow));
+        builder.AddAttribute(4, nameof(DesignerToolbar.OnExecute), EventCallback.Factory.Create(this, ExecuteWorkflow));
+        builder.AddAttribute(5, nameof(DesignerToolbar.OnStop), EventCallback.Factory.Create(this, StopExecution));
+        builder.AddAttribute(6, nameof(DesignerToolbar.OnOpenPlugins), EventCallback.Factory.Create(this, OpenPluginManager));
+        builder.AddAttribute(7, nameof(DesignerToolbar.OnOpenCredentials), EventCallback.Factory.Create(this, OpenCredentialManager));
+        builder.AddAttribute(8, nameof(DesignerToolbar.OnToggleHistory), EventCallback.Factory.Create(this, ToggleHistory));
+        builder.CloseComponent();
     };
 
     private bool _isValidationPanelExpanded = true;
@@ -200,7 +49,7 @@ public partial class Designer : IDisposable
     private bool _isWorkflowBrowserOpen;
     private bool _isNodeEditorOpen;
     private string? _editingNodeId;
-    private System.Timers.Timer? _executionPollTimer;
+    private CancellationTokenSource? _pollCts;
     private Guid? _loadedWorkflowId;
     private bool _isPaletteCollapsed;
     private bool _isConfigCollapsed;
@@ -262,9 +111,6 @@ public partial class Designer : IDisposable
         }
     }
 
-    private void ZoomIn() => CanvasState.Zoom(CanvasState.CanvasState.Zoom + 0.1);
-    private void ZoomOut() => CanvasState.Zoom(CanvasState.CanvasState.Zoom - 0.1);
-
     private void OpenPluginManager() => _isPluginManagerOpen = true;
     private void ClosePluginManager() => _isPluginManagerOpen = false;
 
@@ -311,23 +157,6 @@ public partial class Designer : IDisposable
         _isExecutionViewActive = false;
     }
 
-    private string GetSaveButtonTitle() => ValidationService.ValidationResult.IsValid
-        ? "Save workflow"
-        : "Fix validation errors before saving";
-
-    private string GetRunButtonTitle()
-    {
-        if (!ValidationService.ValidationResult.IsValid)
-            return "Fix validation errors before running";
-        if (!Store.Workflow.IsActive)
-            return "Activate workflow before running";
-        return "Execute workflow";
-    }
-
-    private void ToggleWorkflowActive()
-    {
-        EditService.ToggleWorkflowActive();
-    }
 
     private async Task SaveWorkflow()
     {
@@ -438,16 +267,31 @@ public partial class Designer : IDisposable
     private void StartExecutionPolling(Guid executionId)
     {
         StopExecutionPolling();
-        _executionPollTimer = new System.Timers.Timer(1000);
-        _executionPollTimer.Elapsed += async (_, _) => await PollExecutionStatus(executionId);
-        _executionPollTimer.Start();
+        _pollCts = new CancellationTokenSource();
+        _ = PollLoopAsync(executionId, _pollCts.Token);
     }
 
     private void StopExecutionPolling()
     {
-        _executionPollTimer?.Stop();
-        _executionPollTimer?.Dispose();
-        _executionPollTimer = null;
+        _pollCts?.Cancel();
+        _pollCts?.Dispose();
+        _pollCts = null;
+    }
+
+    private async Task PollLoopAsync(Guid executionId, CancellationToken ct)
+    {
+        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+        try
+        {
+            while (await timer.WaitForNextTickAsync(ct))
+            {
+                await PollExecutionStatus(executionId);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected when polling is stopped
+        }
     }
 
     private async Task PollExecutionStatus(Guid executionId)
@@ -562,10 +406,11 @@ public partial class Designer : IDisposable
         ];
     }
 
-    public void Dispose()
+    public ValueTask DisposeAsync()
     {
         Store.OnStateChanged -= StateHasChanged;
         ExecutionState.OnExecutionChanged -= OnExecutionChanged;
         StopExecutionPolling();
+        return ValueTask.CompletedTask;
     }
 }

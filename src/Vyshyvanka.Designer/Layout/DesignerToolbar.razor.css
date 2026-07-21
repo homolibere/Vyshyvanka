@@ -1,0 +1,60 @@
+.toolbar-btn {
+    padding: 4px 10px;
+    background: var(--btn-secondary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+}
+
+.toolbar-btn:hover:not(:disabled) {
+    background: var(--bg-hover);
+    border-color: var(--border-hover);
+}
+
+.toolbar-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.toolbar-btn.primary {
+    background: var(--btn-primary-bg);
+    border-color: var(--btn-primary-border);
+    color: var(--btn-primary-text);
+}
+
+.toolbar-btn.primary:hover:not(:disabled) {
+    background: var(--btn-primary-hover);
+}
+
+.toolbar-btn.active {
+    background: var(--accent-light);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.toolbar-btn.active:hover:not(:disabled) {
+    background: var(--accent-light);
+}
+
+.toolbar-separator {
+    width: 1px;
+    height: 20px;
+    background: var(--border-color);
+    flex-shrink: 0;
+}
+
+.zoom-level {
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    min-width: 36px;
+    text-align: center;
+}
+
+.dirty-indicator {
+    color: var(--warning);
+    font-size: 0.75rem;
+}
