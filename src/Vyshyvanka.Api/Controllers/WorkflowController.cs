@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Vyshyvanka.Api.Authorization;
 using Vyshyvanka.Api.Models;
 using Vyshyvanka.Core.Enums;
@@ -147,6 +148,11 @@ public class WorkflowController : ControllerBase
             });
         }
 
+        // Enforce webhook path uniqueness among active workflows
+        var pathConflict = await ValidateWebhookPathUniquenessAsync(workflow, cancellationToken);
+        if (pathConflict is not null)
+            return pathConflict;
+
         var created = await _repository.CreateAsync(workflow, cancellationToken);
         _logger.LogInformation("Created workflow {WorkflowId}: {WorkflowName}", created.Id, created.Name);
 
@@ -209,12 +215,47 @@ public class WorkflowController : ControllerBase
             });
         }
 
+        // Enforce webhook path uniqueness among active workflows
+        var pathConflict = await ValidateWebhookPathUniquenessAsync(workflow, cancellationToken);
+        if (pathConflict is not null)
+            return pathConflict;
+
         var updated = await _repository.UpdateAsync(workflow, cancellationToken);
         _logger.LogInformation("Updated workflow {WorkflowId}: {WorkflowName}", updated.Id, updated.Name);
 
         return Ok(WorkflowResponse.FromModel(updated));
     }
 
+
+    /// <summary>
+    /// Checks if a webhook path is available (not used by another active workflow).
+    /// Returns 200 with availability info.
+    /// </summary>
+    [HttpGet("webhook-path-check")]
+    [Authorize(Policy = Policies.CanManageWorkflows)]
+    [ProducesResponseType(typeof(WebhookPathCheckResponse), StatusCodes.Status200OK)]
+    public async Task<ActionResult<WebhookPathCheckResponse>> CheckWebhookPath(
+        [FromQuery] string path,
+        [FromQuery] Guid? excludeWorkflowId = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return Ok(new WebhookPathCheckResponse { IsAvailable = true });
+        }
+
+        var existing = await _repository.GetByWebhookPathAsync(path, cancellationToken);
+
+        var isAvailable = existing is null ||
+                          (excludeWorkflowId.HasValue && existing.Id == excludeWorkflowId.Value);
+
+        return Ok(new WebhookPathCheckResponse
+        {
+            IsAvailable = isAvailable,
+            ConflictingWorkflowId = isAvailable ? null : existing!.Id,
+            ConflictingWorkflowName = isAvailable ? null : existing!.Name
+        });
+    }
 
     /// <summary>
     /// Deletes a workflow.
@@ -418,5 +459,48 @@ public class WorkflowController : ControllerBase
         var isAdmin = User.IsInRole(Roles.Admin);
         return await _permissionService.HasPermissionAsync(
             workflow.Id, workflow.CreatedBy, userId.Value, requiredLevel, isAdmin, cancellationToken);
+    }
+
+    /// <summary>
+    /// Validates that the webhook trigger path (if any) is not already used by another active workflow.
+    /// Returns a conflict response if a duplicate is found, or null if the path is available.
+    /// </summary>
+    private async Task<ActionResult<WorkflowResponse>?> ValidateWebhookPathUniquenessAsync(
+        Workflow workflow, CancellationToken cancellationToken)
+    {
+        // Only enforce uniqueness for active workflows
+        if (!workflow.IsActive)
+            return null;
+
+        var webhookTrigger = workflow.Nodes.FirstOrDefault(n =>
+            n.Type.Equals("webhook-trigger", StringComparison.OrdinalIgnoreCase));
+
+        if (webhookTrigger is null)
+            return null;
+
+        // Extract the configured path
+        if (webhookTrigger.Configuration.ValueKind != JsonValueKind.Object ||
+            !webhookTrigger.Configuration.TryGetProperty("path", out var pathProp) ||
+            pathProp.ValueKind != JsonValueKind.String)
+        {
+            return null;
+        }
+
+        var path = pathProp.GetString();
+        if (string.IsNullOrWhiteSpace(path))
+            return null;
+
+        // Check if another workflow already uses this path
+        var existing = await _repository.GetByWebhookPathAsync(path, cancellationToken);
+        if (existing is not null && existing.Id != workflow.Id)
+        {
+            return Conflict(new ApiError
+            {
+                Code = "WEBHOOK_PATH_CONFLICT",
+                Message = $"Webhook path '{path}' is already used by workflow '{existing.Name}' ({existing.Id})"
+            });
+        }
+
+        return null;
     }
 }

@@ -54,9 +54,10 @@ Accounts are locked after 5 consecutive failed login attempts for 15 minutes. Se
 |--------|------|------------|------------|
 | GET | `/api/workflow` | CanViewWorkflows | List workflows with pagination. Supports `skip`, `take`, `search` query params. Non-Admin users see only their own workflows. |
 | GET | `/api/workflow/active` | CanViewWorkflows | List only active workflows. Non-Admin users see only their own. |
+| GET | `/api/workflow/webhook-path-check` | CanManageWorkflows | Check if a webhook path is available. Accepts `path` and optional `excludeWorkflowId` query params. Returns `{ isAvailable, conflictingWorkflowId?, conflictingWorkflowName? }`. |
 | GET | `/api/workflow/{id}` | CanViewWorkflows | Get a single workflow by ID. Requires ownership or Admin role. |
-| POST | `/api/workflow` | CanManageWorkflows | Create a new workflow. Validates before saving. |
-| PUT | `/api/workflow/{id}` | CanManageWorkflows | Update a workflow. Requires version for optimistic concurrency. |
+| POST | `/api/workflow` | CanManageWorkflows | Create a new workflow. Validates before saving. Rejects duplicate webhook paths among active workflows (409). |
+| PUT | `/api/workflow/{id}` | CanManageWorkflows | Update a workflow. Requires version for optimistic concurrency. Rejects duplicate webhook paths among active workflows (409). |
 | DELETE | `/api/workflow/{id}` | CanManageWorkflows | Delete a workflow. |
 
 ### Executions

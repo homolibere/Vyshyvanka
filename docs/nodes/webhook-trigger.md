@@ -60,5 +60,8 @@ Use the Webhook Trigger when you want to:
 ## Notes
 
 - The webhook URL is automatically generated based on the workflow ID and the configured `path`.
+- **Path-based URL:** `{apiBase}/api/webhook/path/{configured-path}`
+- **ID-based URL:** `{apiBase}/api/webhook/{workflowId}`
+- Webhook paths must be unique across all active workflows. Saving an active workflow with a path already used by another active workflow returns HTTP 409 Conflict.
 - When `responseMode` is `lastNode`, the HTTP response is delayed until the workflow finishes, and the last node's output is returned as the response body.
 - When `responseMode` is `immediate`, a `202 Accepted` response is returned immediately and the workflow runs asynchronously.
