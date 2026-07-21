@@ -204,7 +204,7 @@ public partial class Designer : IDisposable
     private Guid? _loadedWorkflowId;
     private bool _isPaletteCollapsed;
     private bool _isConfigCollapsed;
-    private bool _isHistoryCollapsed;
+    private bool _isHistoryCollapsed = true;
     private bool _isExecutionViewActive;
     private ExecutionHistoryPanel? _historyPanel;
 
