@@ -15,9 +15,11 @@ public class WorkflowEditService(
 {
     /// <summary>
     /// Applies a workflow mutation with undo tracking, dirty marking, validation, and notification.
+    /// All intermediate notifications are coalesced into a single re-render.
     /// </summary>
     private void CommitChange(string description, Func<Workflow, Workflow> transform, bool validate = true)
     {
+        using var _ = store.SuspendNotifications();
         canvasState.SaveUndoState(description);
         store.SetWorkflow(transform(store.Workflow));
         store.MarkDirty();
@@ -29,6 +31,7 @@ public class WorkflowEditService(
     /// <summary>Loads a workflow into the designer.</summary>
     public void LoadWorkflow(Workflow workflow)
     {
+        using var _ = store.SuspendNotifications();
         canvasState.SaveUndoState("Load Workflow");
         store.SetWorkflow(workflow);
         canvasState.ClearSelectionState();
@@ -41,6 +44,7 @@ public class WorkflowEditService(
     /// <summary>Creates a new empty workflow.</summary>
     public void NewWorkflow()
     {
+        using var _ = store.SuspendNotifications();
         canvasState.SaveUndoState("New Workflow");
         store.SetWorkflow(WorkflowStore.CreateEmptyWorkflow());
         canvasState.ClearSelectionState();
@@ -143,6 +147,7 @@ public class WorkflowEditService(
     /// <summary>Completes or cancels the pending connection.</summary>
     public void EndConnection(string? targetNodeId = null, string? targetPort = null)
     {
+        using var _ = store.SuspendNotifications();
         var pending = canvasState.ConsumePendingConnection();
         if (pending is not null && targetNodeId is not null && targetPort is not null)
         {

@@ -96,8 +96,57 @@ public class WorkflowStore
         }
     }
 
+    // ── Notification Batching ──────────────────────────────────────────
+
+    private int _suspendCount;
+    private bool _notificationPending;
+
+    /// <summary>
+    /// Suspends state-change notifications for the lifetime of the returned scope.
+    /// Calls to <see cref="NotifyStateChanged"/> while suspended are coalesced into
+    /// a single notification fired when the outermost scope is disposed.
+    /// Scopes are nestable (reference-counted).
+    /// </summary>
+    public IDisposable SuspendNotifications()
+    {
+        _suspendCount++;
+        return new NotificationScope(this);
+    }
+
     /// <summary>Notifies subscribers that state has changed.</summary>
-    public void NotifyStateChanged() => OnStateChanged?.Invoke();
+    public void NotifyStateChanged()
+    {
+        if (_suspendCount > 0)
+        {
+            _notificationPending = true;
+            return;
+        }
+
+        OnStateChanged?.Invoke();
+    }
+
+    private void ResumeNotifications()
+    {
+        if (--_suspendCount == 0 && _notificationPending)
+        {
+            _notificationPending = false;
+            OnStateChanged?.Invoke();
+        }
+    }
+
+    private sealed class NotificationScope(WorkflowStore store) : IDisposable
+    {
+        private bool _disposed;
+
+        public void Dispose()
+        {
+            if (_disposed) return;
+            _disposed = true;
+            store.ResumeNotifications();
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
 
     /// <summary>Creates a new empty workflow.</summary>
     internal static Workflow CreateEmptyWorkflow() => new()

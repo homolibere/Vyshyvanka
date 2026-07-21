@@ -206,6 +206,7 @@ public class CanvasStateService(WorkflowStore store)
     {
         if (!CanUndo) return;
 
+        using var _ = store.SuspendNotifications();
         var action = _undoStack.Pop();
         if (action.PreviousState is not null)
         {
@@ -226,6 +227,7 @@ public class CanvasStateService(WorkflowStore store)
     {
         if (!CanRedo) return;
 
+        using var _ = store.SuspendNotifications();
         var action = _redoStack.Pop();
         if (action.PreviousState is not null)
         {

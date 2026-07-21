@@ -38,6 +38,7 @@ public class ExecutionStateService(WorkflowStore store)
     /// <summary>Sets the current execution for visualization.</summary>
     public void SetCurrentExecution(ExecutionResponse? execution)
     {
+        using var _ = store.SuspendNotifications();
         _currentExecution = execution;
         UpdateNodeExecutionStates();
         OnExecutionChanged?.Invoke(execution);
@@ -50,6 +51,7 @@ public class ExecutionStateService(WorkflowStore store)
         if (_currentExecution?.Id != execution.Id)
             return;
 
+        using var _ = store.SuspendNotifications();
         _currentExecution = execution;
         UpdateNodeExecutionStates();
         OnExecutionChanged?.Invoke(execution);
@@ -59,6 +61,7 @@ public class ExecutionStateService(WorkflowStore store)
     /// <summary>Clears the current execution visualization.</summary>
     public void ClearExecutionState()
     {
+        using var _ = store.SuspendNotifications();
         _currentExecution = null;
         _nodeExecutionStates.Clear();
         OnExecutionChanged?.Invoke(null);
@@ -88,6 +91,7 @@ public class ExecutionStateService(WorkflowStore store)
     /// <summary>Sets mock input data for a node (ephemeral — not persisted).</summary>
     public void SetMockInput(string nodeId, JsonElement data)
     {
+        using var _ = store.SuspendNotifications();
         _mockInputs[nodeId] = data;
         OnMockInputChanged?.Invoke();
         store.NotifyStateChanged();
@@ -98,6 +102,7 @@ public class ExecutionStateService(WorkflowStore store)
     {
         if (_mockInputs.Remove(nodeId))
         {
+            using var _ = store.SuspendNotifications();
             OnMockInputChanged?.Invoke();
             store.NotifyStateChanged();
         }

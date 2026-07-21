@@ -6,6 +6,7 @@ using Vyshyvanka.Designer.Layout;
 using Vyshyvanka.Designer.Models;
 using Vyshyvanka.Designer.Services;
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Logging;
 
 namespace Vyshyvanka.Designer.Pages;
 
@@ -24,6 +25,8 @@ public partial class Designer : IAsyncDisposable
     [Inject] private NavigationManager Navigation { get; set; } = null!;
 
     [Inject] private ToastService Toast { get; set; } = null!;
+
+    [Inject] private ILogger<Designer> Logger { get; set; } = null!;
 
     [Parameter] public Guid? WorkflowId { get; set; }
 
@@ -50,6 +53,8 @@ public partial class Designer : IAsyncDisposable
     private bool _isNodeEditorOpen;
     private string? _editingNodeId;
     private CancellationTokenSource? _pollCts;
+    private int _consecutivePollFailures;
+    private const int MaxPollFailures = 5;
     private Guid? _loadedWorkflowId;
     private bool _isPaletteCollapsed;
     private bool _isConfigCollapsed;
@@ -68,10 +73,17 @@ public partial class Designer : IAsyncDisposable
             var definitions = await ApiClient.GetNodeDefinitionsAsync();
             Store.SetNodeDefinitions(definitions);
         }
-        catch
+        catch (ApiException ex)
         {
-            // Use default definitions if API is not available
+            Logger.LogWarning(ex, "Failed to load node definitions from API (status {StatusCode})", ex.StatusCode);
             Store.SetNodeDefinitions(GetDefaultNodeDefinitions());
+            Toast.ShowWarning("Could not connect to the API. Using default node definitions.", "Limited Mode");
+        }
+        catch (HttpRequestException ex)
+        {
+            Logger.LogWarning(ex, "Network error loading node definitions");
+            Store.SetNodeDefinitions(GetDefaultNodeDefinitions());
+            Toast.ShowWarning("Could not connect to the API. Using default node definitions.", "Limited Mode");
         }
     }
 
@@ -92,9 +104,30 @@ public partial class Designer : IAsyncDisposable
                         EditService.LoadWorkflow(workflow);
                     }
                 }
-                catch
+                catch (ApiException ex) when (ex.StatusCode == 404)
                 {
-                    // Start with new workflow if load fails
+                    Logger.LogWarning("Workflow {WorkflowId} not found", WorkflowId.Value);
+                    Toast.ShowError("The requested workflow was not found.", "Not Found");
+                    EditService.NewWorkflow();
+                    Navigation.NavigateTo("/designer", forceLoad: false);
+                }
+                catch (ApiException ex) when (ex.StatusCode is 401 or 403)
+                {
+                    Logger.LogWarning(ex, "Access denied loading workflow {WorkflowId} (status {StatusCode})", WorkflowId.Value, ex.StatusCode);
+                    Toast.ShowError("You don't have permission to access this workflow.", "Access Denied");
+                    EditService.NewWorkflow();
+                    Navigation.NavigateTo("/designer", forceLoad: false);
+                }
+                catch (ApiException ex)
+                {
+                    Logger.LogError(ex, "API error loading workflow {WorkflowId} (status {StatusCode})", WorkflowId.Value, ex.StatusCode);
+                    Toast.ShowError(ex.Error.GetFullMessage(), $"Load Failed ({ex.Error.Code})");
+                    EditService.NewWorkflow();
+                }
+                catch (HttpRequestException ex)
+                {
+                    Logger.LogError(ex, "Network error loading workflow {WorkflowId}", WorkflowId.Value);
+                    Toast.ShowError("Could not connect to the API to load this workflow.", "Connection Error");
                     EditService.NewWorkflow();
                 }
             }
@@ -267,6 +300,7 @@ public partial class Designer : IAsyncDisposable
     private void StartExecutionPolling(Guid executionId)
     {
         StopExecutionPolling();
+        _consecutivePollFailures = 0;
         _pollCts = new CancellationTokenSource();
         _ = PollLoopAsync(executionId, _pollCts.Token);
     }
@@ -301,12 +335,40 @@ public partial class Designer : IAsyncDisposable
             var execution = await ApiClient.GetExecutionAsync(executionId);
             if (execution is not null)
             {
+                _consecutivePollFailures = 0;
                 ExecutionState.UpdateExecution(execution);
             }
         }
-        catch
+        catch (ApiException ex) when (ex.StatusCode is 401 or 403 or 404)
         {
-            // Ignore polling errors
+            Logger.LogWarning(ex, "Execution {ExecutionId} polling stopped: status {StatusCode}", executionId, ex.StatusCode);
+            StopExecutionPolling();
+            await InvokeAsync(() =>
+            {
+                Toast.ShowError(
+                    ex.StatusCode == 404
+                        ? "Execution not found. It may have been deleted."
+                        : "Access denied to execution status.",
+                    "Polling Stopped");
+                StateHasChanged();
+            });
+        }
+        catch (Exception ex)
+        {
+            _consecutivePollFailures++;
+            Logger.LogWarning(ex, "Execution polling error ({Failures}/{Max})", _consecutivePollFailures, MaxPollFailures);
+
+            if (_consecutivePollFailures >= MaxPollFailures)
+            {
+                StopExecutionPolling();
+                await InvokeAsync(() =>
+                {
+                    Toast.ShowError(
+                        "Lost connection to the API. Execution status is unknown.",
+                        "Polling Stopped");
+                    StateHasChanged();
+                });
+            }
         }
     }
 
