@@ -36,7 +36,11 @@ public partial class CanvasNodeComponent
     public EventCallback OnDoubleClick { get; set; }
 
     private double ComputedWidth => NodeLayout.GetWidth(Node.Name);
-    private double ComputedHeight => NodeLayout.GetHeight(Definition);
+    private double ComputedHeight => NodeLayout.GetHeight(
+        Definition?.Inputs?.Count ?? 0,
+        EffectiveOutputs.Count);
+
+    private List<PortDefinition> EffectiveOutputs => NodeLayout.GetEffectiveOutputs(Node, Definition);
 
     private string GetCategoryClass() => Definition?.Category switch
     {

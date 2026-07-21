@@ -224,23 +224,42 @@ public partial class WorkflowCanvas : IAsyncDisposable
 
         var definition = Store.GetNodeDefinition(node.Type);
         var nodeWidth = NodeLayout.GetWidth(node.Name);
-        var nodeHeight = NodeLayout.GetHeight(definition);
+
+        // Resolve effective ports (accounts for dynamic ports like Switch cases)
+        var effectiveOutputs = NodeLayout.GetEffectiveOutputs(node, definition);
+        var inputCount = definition?.Inputs?.Count ?? 0;
+        var outputCount = effectiveOutputs.Count;
+        var nodeHeight = NodeLayout.GetHeight(inputCount, outputCount);
 
         var x = isOutput ? node.Position.X + nodeWidth : node.Position.X;
         var y = node.Position.Y + nodeHeight / 2;
 
         // Adjust Y based on port index
-        var ports = isOutput ? definition?.Outputs : definition?.Inputs;
-        if (ports is not null)
+        if (isOutput)
         {
-            var index = ports.FindIndex(p => p.Name == portName);
+            var index = effectiveOutputs.FindIndex(p => p.Name == portName);
             if (index >= 0)
             {
-                var totalPorts = ports.Count;
                 var bodyHeight = nodeHeight - NodeLayout.HeaderHeight;
                 var startY = node.Position.Y + NodeLayout.HeaderHeight +
-                             (bodyHeight - (totalPorts - 1) * NodeLayout.PortSpacing) / 2;
+                             (bodyHeight - (outputCount - 1) * NodeLayout.PortSpacing) / 2;
                 y = startY + index * NodeLayout.PortSpacing;
+            }
+        }
+        else
+        {
+            var ports = definition?.Inputs;
+            if (ports is not null)
+            {
+                var index = ports.FindIndex(p => p.Name == portName);
+                if (index >= 0)
+                {
+                    var totalPorts = ports.Count;
+                    var bodyHeight = nodeHeight - NodeLayout.HeaderHeight;
+                    var startY = node.Position.Y + NodeLayout.HeaderHeight +
+                                 (bodyHeight - (totalPorts - 1) * NodeLayout.PortSpacing) / 2;
+                    y = startY + index * NodeLayout.PortSpacing;
+                }
             }
         }
 

@@ -1,0 +1,52 @@
+@namespace Vyshyvanka.Designer.Components
+
+<div class="property-editor cases-editor">
+    <label class="property-label">
+        Routing Cases
+    </label>
+
+    <div class="cases-list">
+        @if (_cases.Count == 0)
+        {
+            <div class="cases-empty">
+                <span>No cases defined. Data will always route to the <strong>default</strong> output.</span>
+            </div>
+        }
+
+        @for (var i = 0; i < _cases.Count; i++)
+        {
+            var index = i;
+            <div class="case-row">
+                <div class="case-number">@(i + 1)</div>
+                <div class="case-fields">
+                    <div class="case-field">
+                        <label class="case-field-label">When value equals</label>
+                        <input type="text"
+                               class="case-input"
+                               placeholder="e.g. 200, true, created"
+                               value="@_cases[index].Value"
+                               @onchange="e => UpdateCaseValue(index, e)"/>
+                    </div>
+                    <div class="case-field">
+                        <label class="case-field-label">Route to output</label>
+                        <input type="text"
+                               class="case-input output-input"
+                               placeholder="@GetDefaultOutputName(index)"
+                               value="@_cases[index].Output"
+                               @onchange="e => UpdateCaseOutput(index, e)"/>
+                    </div>
+                </div>
+                <button class="btn-remove-case" @onclick="() => RemoveCase(index)" title="Remove case">×</button>
+            </div>
+        }
+    </div>
+
+    <button class="btn-add-case" @onclick="AddCase">
+        <span class="add-icon">+</span> Add Case
+    </button>
+
+    <div class="cases-hint">
+        <span class="hint-icon">💡</span>
+        <span>Cases are matched in order against the <strong>Field</strong> value above. First match wins. Unmatched data goes to <strong>default</strong> output.</span>
+    </div>
+</div>

@@ -9,6 +9,13 @@
                                       ShowValidationError="@ShowValidationError"/>
         break;
 
+    case EditorType.Cases:
+        <CasesPropertyEditor Property="@Property"
+                             Value="@Value"
+                             ValueChanged="@OnValueChanged"
+                             ShowValidationError="@ShowValidationError"/>
+        break;
+
     case EditorType.Select:
         <SelectPropertyEditor Property="@Property"
                               Value="@Value"

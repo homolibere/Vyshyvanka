@@ -24,7 +24,7 @@ namespace Vyshyvanka.Engine.Nodes.Logic;
 [NodeInput("input", DisplayName = "Input", IsRequired = true)]
 [NodeOutput("default", DisplayName = "Default")]
 [ConfigurationProperty("field", "string", Description = "Field path to evaluate", IsRequired = true)]
-[ConfigurationProperty("cases", "array", Description = "Array of case definitions with value and output")]
+[ConfigurationProperty("cases", "array", Description = "Array of case definitions with value and output", DataSource = "switch-cases")]
 public class SwitchNode : BaseLogicNode
 {
     private string _id = Guid.NewGuid().ToString();

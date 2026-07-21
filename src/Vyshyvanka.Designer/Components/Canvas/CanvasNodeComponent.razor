@@ -97,22 +97,25 @@
     }
 
     <!-- Output ports -->
-    @if (Definition?.Outputs is not null)
-    {
-        var outputCount = Definition.Outputs.Count;
-        var startY = NodeLayout.HeaderHeight + (ComputedHeight - NodeLayout.HeaderHeight - (outputCount - 1) * NodeLayout.PortSpacing) / 2;
-
-        @for (var i = 0; i < outputCount; i++)
+    @{
+        var effectiveOutputs = EffectiveOutputs;
+        if (effectiveOutputs.Count > 0)
         {
-            var port = Definition.Outputs[i];
-            var portY = startY + i * NodeLayout.PortSpacing;
-            <g class="port output-port"
-               transform="translate(@ComputedWidth, @portY)"
-               @onmousedown="() => OnPortMouseDown(port.Name)"
-               @onmousedown:stopPropagation>
-                <circle r="6" class="port-circle @GetPortTypeClass(port.Type)"/>
-                <text class="port-label" x="-12" y="4" text-anchor="end">@port.DisplayName</text>
-            </g>
+            var outputCount = effectiveOutputs.Count;
+            var startY = NodeLayout.HeaderHeight + (ComputedHeight - NodeLayout.HeaderHeight - (outputCount - 1) * NodeLayout.PortSpacing) / 2;
+
+            @for (var i = 0; i < outputCount; i++)
+            {
+                var port = effectiveOutputs[i];
+                var portY = startY + i * NodeLayout.PortSpacing;
+                <g class="port output-port"
+                   transform="translate(@ComputedWidth, @portY)"
+                   @onmousedown="() => OnPortMouseDown(port.Name)"
+                   @onmousedown:stopPropagation>
+                    <circle r="6" class="port-circle @GetPortTypeClass(port.Type)"/>
+                    <text class="port-label" x="-12" y="4" text-anchor="end">@port.DisplayName</text>
+                </g>
+            }
         }
     }
 </g>

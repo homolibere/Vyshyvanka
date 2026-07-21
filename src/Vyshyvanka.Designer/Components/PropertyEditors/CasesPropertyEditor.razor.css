@@ -1,0 +1,160 @@
+.cases-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.cases-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.cases-empty {
+    padding: 12px;
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    background: var(--bg-hover);
+    border-radius: 6px;
+    border: 1px dashed var(--border-color);
+}
+
+/* Case row */
+.case-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 10px;
+    background: var(--bg-hover);
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    transition: border-color 0.15s ease;
+}
+
+.case-row:hover {
+    border-color: var(--accent-color, #4a9eff);
+}
+
+.case-number {
+    min-width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.625rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    background: var(--bg-surface);
+    border-radius: 50%;
+    margin-top: 18px;
+}
+
+.case-fields {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.case-field {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.case-field-label {
+    font-size: 0.625rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.case-input {
+    width: 100%;
+    padding: 6px 8px;
+    font-size: 0.8125rem;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    background: var(--bg-input, var(--bg-surface));
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: var(--text-primary);
+    transition: border-color 0.15s ease;
+}
+
+.case-input:focus {
+    outline: none;
+    border-color: var(--accent-color, #4a9eff);
+}
+
+.case-input::placeholder {
+    color: var(--text-muted);
+    opacity: 0.6;
+}
+
+.output-input {
+    font-size: 0.75rem;
+}
+
+.btn-remove-case {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    color: var(--text-muted);
+    padding: 4px 6px;
+    border-radius: 4px;
+    margin-top: 16px;
+    transition: color 0.15s ease, background 0.15s ease;
+}
+
+.btn-remove-case:hover {
+    color: #f44336;
+    background: rgba(244, 67, 54, 0.1);
+}
+
+/* Add button */
+.btn-add-case {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 8px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--accent-color, #4a9eff);
+    background: transparent;
+    border: 1px dashed var(--accent-color, #4a9eff);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.btn-add-case:hover {
+    background: rgba(74, 158, 255, 0.08);
+}
+
+.add-icon {
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+/* Hint */
+.cases-hint {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 8px 10px;
+    font-size: 0.6875rem;
+    color: var(--text-muted);
+    background: rgba(74, 158, 255, 0.05);
+    border-radius: 4px;
+    border-left: 3px solid var(--accent-color, #4a9eff);
+}
+
+.hint-icon {
+    font-size: 0.75rem;
+    flex-shrink: 0;
+}

@@ -58,6 +58,7 @@ public partial class PropertyEditor : ComponentBase
             return Property.DataSource switch
             {
                 "workflows" => EditorType.WorkflowSelect,
+                "switch-cases" => EditorType.Cases,
                 _ => EditorType.String
             };
         }
@@ -97,5 +98,6 @@ public enum EditorType
     Json,
     Select,
     WorkflowSelect,
-    Code
+    Code,
+    Cases
 }
