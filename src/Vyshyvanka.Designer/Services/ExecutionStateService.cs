@@ -12,9 +12,13 @@ public class ExecutionStateService(WorkflowStore store)
 {
     private ExecutionResponse? _currentExecution;
     private readonly Dictionary<string, NodeExecutionState> _nodeExecutionStates = new();
+    private readonly Dictionary<string, JsonElement> _mockInputs = new();
 
     /// <summary>Event raised when execution state changes.</summary>
     public event Action<ExecutionResponse?>? OnExecutionChanged;
+
+    /// <summary>Event raised when mock input data changes for any node.</summary>
+    public event Action? OnMockInputChanged;
 
     /// <summary>Gets the current execution being visualized.</summary>
     public ExecutionResponse? CurrentExecution => _currentExecution;
@@ -78,6 +82,36 @@ public class ExecutionStateService(WorkflowStore store)
         };
         store.NotifyStateChanged();
     }
+
+    // ── Mock Input ─────────────────────────────────────────────────────
+
+    /// <summary>Sets mock input data for a node (ephemeral — not persisted).</summary>
+    public void SetMockInput(string nodeId, JsonElement data)
+    {
+        _mockInputs[nodeId] = data;
+        OnMockInputChanged?.Invoke();
+        store.NotifyStateChanged();
+    }
+
+    /// <summary>Clears mock input data for a node.</summary>
+    public void ClearMockInput(string nodeId)
+    {
+        if (_mockInputs.Remove(nodeId))
+        {
+            OnMockInputChanged?.Invoke();
+            store.NotifyStateChanged();
+        }
+    }
+
+    /// <summary>Gets mock input data for a node, or null if none is pinned.</summary>
+    public JsonElement? GetMockInput(string nodeId) =>
+        _mockInputs.TryGetValue(nodeId, out var data) ? data : null;
+
+    /// <summary>Returns whether a node has mock input pinned.</summary>
+    public bool HasMockInput(string nodeId) => _mockInputs.ContainsKey(nodeId);
+
+    /// <summary>Gets all node IDs that have mock input pinned.</summary>
+    public IReadOnlyCollection<string> GetNodesWithMockInput() => _mockInputs.Keys;
 
     /// <summary>Updates node execution states from the current execution.</summary>
     private void UpdateNodeExecutionStates()

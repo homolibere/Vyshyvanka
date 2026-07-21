@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Engine.Nodes.Base;
 using Vyshyvanka.Core.Attributes;
@@ -41,7 +42,16 @@ public class SwitchNode : BaseLogicNode
         var field = GetRequiredConfigValue<string>(input, "field");
         var cases = GetConfigValue<List<SwitchCase>>(input, "cases") ?? [];
 
+        // If the field contains a dot, treat it as a nested property path.
+        // Otherwise (e.g. when an expression like {{ input.body.object_kind }} resolved to a value),
+        // try as a path first, then fall back to using the resolved value directly.
         var fieldValue = GetNestedProperty(input.Data, field);
+
+        if (fieldValue.ValueKind == JsonValueKind.Undefined && !field.Contains('.'))
+        {
+            // The field config resolved to a plain value (not a path) — use it directly for matching
+            fieldValue = JsonSerializer.SerializeToElement(field);
+        }
 
         // Find matching case
         string matchedOutput = "default";
@@ -90,8 +100,10 @@ public class SwitchNode : BaseLogicNode
 public record SwitchCase
 {
     /// <summary>Value to match against.</summary>
+    [JsonPropertyName("value")]
     public object? Value { get; init; }
 
     /// <summary>Output port name when matched.</summary>
+    [JsonPropertyName("output")]
     public string? Output { get; init; }
 }

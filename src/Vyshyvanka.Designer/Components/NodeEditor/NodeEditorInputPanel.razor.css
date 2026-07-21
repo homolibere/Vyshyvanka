@@ -7,13 +7,19 @@
     overflow: hidden;
 }
 
+.node-editor-panel.has-mock-input {
+    border: 1px solid var(--warning, #ff9800);
+    border-radius: 4px;
+}
+
 .panel-header {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
+    gap: 8px;
+    padding: 10px 12px;
     background: var(--bg-elevated);
     border-bottom: 1px solid var(--border-color);
+    flex-wrap: nowrap;
 }
 
 .panel-title {
@@ -21,10 +27,73 @@
     font-size: 14px;
     color: var(--text-primary);
     white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.mock-badge {
+    font-size: 12px;
+}
+
+.header-actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.btn-action {
+    padding: 4px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.btn-action:hover {
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    border-color: var(--text-secondary);
+}
+
+.btn-pin {
+    color: var(--accent, #1976d2);
+    border-color: var(--accent, #1976d2);
+}
+
+.btn-pin:hover {
+    background: var(--accent, #1976d2);
+    color: white;
+}
+
+.btn-clear-mock {
+    color: var(--text-secondary);
+    border: none;
+    padding: 4px 6px;
+    font-size: 14px;
+}
+
+.btn-clear-mock:hover {
+    color: var(--danger, #ef5350);
+}
+
+.btn-edit {
+    border: none;
+    padding: 4px 6px;
+}
+
+.btn-cancel {
+    color: var(--text-secondary);
 }
 
 .btn-copy {
-    margin-left: auto;
     padding: 4px 8px;
     border: 1px solid var(--border-color);
     border-radius: 4px;
@@ -87,6 +156,56 @@
     padding: 12px;
 }
 
+/* ── Edit mode ──────────────────────────────────────────────── */
+
+.edit-mode {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    gap: 8px;
+}
+
+.json-editor {
+    flex: 1;
+    min-height: 120px;
+    padding: 12px;
+    background: var(--bg-code, #1e1e1e);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--code-text, #d4d4d4);
+    resize: none;
+    outline: none;
+    transition: border-color 0.15s ease;
+}
+
+.json-editor:focus {
+    border-color: var(--accent, #1976d2);
+}
+
+.json-editor.has-error {
+    border-color: var(--danger, #ef5350);
+}
+
+.json-editor::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.5;
+}
+
+.json-error {
+    padding: 6px 10px;
+    background: color-mix(in srgb, var(--danger, #ef5350) 10%, transparent);
+    border: 1px solid var(--danger, #ef5350);
+    border-radius: 4px;
+    color: var(--danger, #ef5350);
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+/* ── JSON viewer ────────────────────────────────────────────── */
+
 .json-viewer {
     margin: 0;
     padding: 12px;
@@ -103,7 +222,6 @@
     overflow: auto;
 }
 
-/* JSON syntax highlighting classes */
 .json-viewer .json-key {
     color: #9cdcfe;
 }
@@ -123,6 +241,8 @@
 .json-viewer .json-null {
     color: #569cd6;
 }
+
+/* ── Placeholder ────────────────────────────────────────────── */
 
 .placeholder {
     display: flex;

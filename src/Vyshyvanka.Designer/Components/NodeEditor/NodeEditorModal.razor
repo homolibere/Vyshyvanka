@@ -59,6 +59,9 @@
 
                 <div class="three-panel-layout">
                     <NodeEditorInputPanel InputData="@CurrentInputData"
+                                          MockInput="@CurrentMockInput"
+                                          OnMockInputSet="@HandleMockInputSet"
+                                          OnMockInputCleared="@HandleMockInputCleared"
                                           Ports="@_definition?.Inputs"/>
 
                     <NodeEditorConfigPanel @ref="_configPanel"

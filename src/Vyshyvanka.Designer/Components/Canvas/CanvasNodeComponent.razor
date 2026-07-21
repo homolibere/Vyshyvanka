@@ -58,6 +58,15 @@
         </g>
     }
 
+    <!-- Mock input pin badge (shown when node has pinned test data) -->
+    @if (ExecutionState.HasMockInput(Node.Id))
+    {
+        <g class="mock-input-badge" transform="translate(10, -8)">
+            <circle r="8" fill="#ff9800"/>
+            <text x="0" y="4" text-anchor="middle" fill="white" font-size="9">📌</text>
+        </g>
+    }
+
     <!-- Execution duration (shown when completed) -->
     @if (execState?.DurationMs is not null)
     {

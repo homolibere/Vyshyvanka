@@ -1,8 +1,14 @@
 @namespace Vyshyvanka.Designer.Components
 
-<div class="node-editor-panel input-panel">
+<div class="node-editor-panel input-panel @(HasMockInput ? "has-mock-input" : "")">
     <div class="panel-header">
-        <span class="panel-title">Input</span>
+        <span class="panel-title">
+            Input
+            @if (HasMockInput && !_isEditMode)
+            {
+                <span class="mock-badge" title="Using pinned mock input">📌</span>
+            }
+        </span>
         @if (HasMultiplePorts)
         {
             <div class="port-tabs">
@@ -15,18 +21,63 @@
                 }
             </div>
         }
-        @if (HasInputData)
-        {
-            <button class="btn-copy @(_copied ? "copied" : "")"
-                    @onclick="CopyToClipboardAsync"
-                    title="Copy to clipboard">
-                @(_copied ? "✓" : "📋")
-            </button>
-        }
+        <div class="header-actions">
+            @if (_isEditMode)
+            {
+                <button class="btn-action btn-pin"
+                        @onclick="PinMockInput"
+                        title="Pin this JSON as mock input">
+                    📌 Pin
+                </button>
+                <button class="btn-action btn-cancel"
+                        @onclick="CancelEditMode"
+                        title="Cancel editing">
+                    Cancel
+                </button>
+            }
+            else
+            {
+                @if (HasMockInput)
+                {
+                    <button class="btn-action btn-clear-mock"
+                            @onclick="ClearMockInput"
+                            title="Remove pinned mock input">
+                        ✕
+                    </button>
+                }
+                <button class="btn-action btn-edit"
+                        @onclick="EnterEditMode"
+                        title="Edit input JSON for testing">
+                    ✏️
+                </button>
+                @if (HasInputData)
+                {
+                    <button class="btn-copy @(_copied ? "copied" : "")"
+                            @onclick="CopyToClipboardAsync"
+                            title="Copy to clipboard">
+                        @(_copied ? "✓" : "📋")
+                    </button>
+                }
+            }
+        </div>
     </div>
 
     <div class="panel-content">
-        @if (HasInputData)
+        @if (_isEditMode)
+        {
+            <div class="edit-mode">
+                <textarea class="json-editor @(_jsonError is not null ? "has-error" : "")"
+                          value="@_editText"
+                          @oninput="OnEditTextChanged"
+                          placeholder="Paste or type JSON here..."
+                          spellcheck="false"></textarea>
+                @if (_jsonError is not null)
+                {
+                    <div class="json-error">@_jsonError</div>
+                }
+            </div>
+        }
+        else if (HasInputData)
         {
             <CollapsibleJsonViewer Data="CurrentPortData" ExpressionPrefix="input"/>
         }
@@ -35,7 +86,7 @@
             <div class="placeholder">
                 <span class="placeholder-icon">📥</span>
                 <span class="placeholder-text">No input data available</span>
-                <span class="placeholder-hint">Execute the workflow to see input data</span>
+                <span class="placeholder-hint">Click ✏️ to provide mock input, or execute the workflow</span>
             </div>
         }
     </div>

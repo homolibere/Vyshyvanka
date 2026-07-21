@@ -337,6 +337,9 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
                 _executionState = ExecutionState.GetNodeExecutionState(NodeId);
                 _currentIteration = 0;
 
+                // Clear mock input — real upstream data now takes over
+                ExecutionState.ClearMockInput(NodeId);
+
                 if (result.Status == Core.Enums.ExecutionStatus.Failed)
                 {
                     ToastService.ShowError(result.ErrorMessage ?? "Execution failed");
@@ -381,15 +384,28 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
         {
             await SaveWorkflowIfDirtyAsync();
 
-            // If input data exists and config has no expressions, execute just this node
-            var canRunSingle = CurrentInputData.HasValue &&
-                               CurrentInputData.Value.ValueKind != JsonValueKind.Undefined &&
-                               !NodeConfigHasExpressions();
+            // Use mock input if pinned, otherwise fall back to execution data
+            var inputForExecution = EffectiveInputForExecution;
+
+            // If no input data is available at all, error out
+            if (!inputForExecution.HasValue ||
+                inputForExecution.Value.ValueKind == JsonValueKind.Undefined)
+            {
+                ToastService.ShowError("No input data available. Pin mock input (✏️ → 📌) or use \"Run to here\" first.");
+                return;
+            }
+
+            // When mock input is pinned, always use single-node execution — the engine
+            // resolves {{ input.* }} expressions against the provided data.
+            // Only fall back to full workflow execution when there's no mock input AND
+            // the config has {{ nodes.* }} expressions that need upstream context.
+            var hasMockInput = CurrentMockInput.HasValue;
+            var canRunSingle = hasMockInput || !NodeConfigHasExpressions();
 
             if (canRunSingle)
             {
                 var nodeResult = await ApiClient.ExecuteSingleNodeAsync(
-                    Store.Workflow.Id, NodeId, CurrentInputData!.Value);
+                    Store.Workflow.Id, NodeId, inputForExecution.Value);
 
                 if (nodeResult is not null)
                 {
@@ -493,6 +509,35 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
     private JsonElement? CurrentOutputData => HasIterations
         ? _executionState!.Iterations[_currentIteration].OutputData
         : _executionState?.OutputData;
+
+    // ── Mock input ──────────────────────────────────────────────────────
+
+    private JsonElement? CurrentMockInput => !string.IsNullOrEmpty(NodeId)
+        ? ExecutionState.GetMockInput(NodeId)
+        : null;
+
+    /// <summary>
+    /// Returns the effective input for execution: mock input if pinned, otherwise execution data.
+    /// </summary>
+    private JsonElement? EffectiveInputForExecution => CurrentMockInput ?? CurrentInputData;
+
+    private void HandleMockInputSet(JsonElement data)
+    {
+        if (!string.IsNullOrEmpty(NodeId))
+        {
+            ExecutionState.SetMockInput(NodeId, data);
+            StateHasChanged();
+        }
+    }
+
+    private void HandleMockInputCleared()
+    {
+        if (!string.IsNullOrEmpty(NodeId))
+        {
+            ExecutionState.ClearMockInput(NodeId);
+            StateHasChanged();
+        }
+    }
 
     private void PreviousIteration()
     {

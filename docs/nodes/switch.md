@@ -36,10 +36,11 @@ Each case in the `cases` array is an object:
 ## Behavior
 
 1. Reads the value at the configured `field` path from the input data.
-2. Iterates through the `cases` array in order.
-3. The first case whose `value` matches the field value determines the output port.
-4. If no case matches, data routes to the `default` port.
-5. Downstream nodes on inactive branches are skipped entirely.
+2. If the field resolves to a value (e.g., via an expression like `{{ input.body.event_type }}`) rather than a dot-path, that value is used directly for matching.
+3. Iterates through the `cases` array in order.
+4. The first case whose `value` matches the field value determines the output port.
+5. If no case matches, data routes to the `default` port.
+6. Downstream nodes on inactive branches are skipped entirely.
 
 **Matching rules:**
 - String comparison is case-insensitive.
@@ -106,3 +107,4 @@ Route based on event type:
 - If no `output` is specified in a case, the string representation of `value` is used as the port name.
 - The `default` output port always exists and is used when no case matches.
 - The `field` property supports dot notation for nested access (e.g., `response.status`).
+- The `field` property also accepts expressions (e.g., `{{ input.body.object_kind }}`). When an expression resolves to a plain value, that value is matched against cases directly without further path navigation.
