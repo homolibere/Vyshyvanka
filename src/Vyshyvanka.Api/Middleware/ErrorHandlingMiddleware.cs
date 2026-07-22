@@ -38,7 +38,7 @@ public class ErrorHandlingMiddleware
     private async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
         var traceId = context.TraceIdentifier;
-        
+
         _logger.LogError(
             exception,
             "Unhandled exception occurred. TraceId: {TraceId}, Path: {Path}",
@@ -55,7 +55,7 @@ public class ErrorHandlingMiddleware
     }
 
     private static (HttpStatusCode StatusCode, ApiError Error) MapExceptionToError(
-        Exception exception, 
+        Exception exception,
         string traceId)
     {
         return exception switch

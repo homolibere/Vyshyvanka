@@ -21,7 +21,7 @@ public class CredentialProvider : ICredentialProvider
 
     /// <inheritdoc />
     public async Task<IDictionary<string, string>?> GetCredentialAsync(
-        Guid credentialId, 
+        Guid credentialId,
         CancellationToken cancellationToken = default)
     {
         var decrypted = await _credentialService.GetDecryptedAsync(credentialId, cancellationToken);
@@ -44,7 +44,7 @@ public class NullCredentialProvider : ICredentialProvider
 
     /// <inheritdoc />
     public Task<IDictionary<string, string>?> GetCredentialAsync(
-        Guid credentialId, 
+        Guid credentialId,
         CancellationToken cancellationToken = default)
     {
         return Task.FromResult<IDictionary<string, string>?>(null);

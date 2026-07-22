@@ -11,7 +11,7 @@ public interface ICredentialEncryption
     /// <param name="plainText">The plaintext data to encrypt.</param>
     /// <returns>Encrypted data including IV.</returns>
     byte[] Encrypt(string plainText);
-    
+
     /// <summary>
     /// Decrypts encrypted credential data.
     /// </summary>

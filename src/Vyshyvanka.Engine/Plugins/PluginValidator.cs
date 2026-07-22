@@ -14,10 +14,10 @@ public class PluginValidator : IPluginValidator
     public PluginValidationResult ValidatePlugin(Assembly assembly)
     {
         ArgumentNullException.ThrowIfNull(assembly);
-        
+
         var errors = new List<PluginValidationError>();
         var warnings = new List<PluginValidationWarning>();
-        
+
         // Check for PluginAttribute
         var pluginAttr = assembly.GetCustomAttribute<PluginAttribute>();
         if (pluginAttr is null)
@@ -30,7 +30,7 @@ public class PluginValidator : IPluginValidator
             });
             return new PluginValidationResult { Errors = errors, Warnings = warnings };
         }
-        
+
         // Validate plugin ID
         if (string.IsNullOrWhiteSpace(pluginAttr.Id))
         {
@@ -41,7 +41,7 @@ public class PluginValidator : IPluginValidator
                 Context = assembly.FullName
             });
         }
-        
+
         // Validate plugin name
         if (string.IsNullOrWhiteSpace(pluginAttr.Name))
         {
@@ -52,7 +52,7 @@ public class PluginValidator : IPluginValidator
                 Context = pluginAttr.Id
             });
         }
-        
+
         // Validate plugin version
         if (string.IsNullOrWhiteSpace(pluginAttr.Version))
         {
@@ -63,10 +63,10 @@ public class PluginValidator : IPluginValidator
                 Context = pluginAttr.Id
             });
         }
-        
+
         // Discover and validate node types
         var nodeTypes = DiscoverNodeTypes(assembly);
-        
+
         if (nodeTypes.Count == 0)
         {
             warnings.Add(new PluginValidationWarning(
@@ -76,14 +76,14 @@ public class PluginValidator : IPluginValidator
                 Context = pluginAttr.Id
             });
         }
-        
+
         foreach (var nodeType in nodeTypes)
         {
             var nodeValidation = ValidateNodeType(nodeType);
             errors.AddRange(nodeValidation.Errors);
             warnings.AddRange(nodeValidation.Warnings);
         }
-        
+
         return new PluginValidationResult { Errors = errors, Warnings = warnings };
     }
 
@@ -91,11 +91,11 @@ public class PluginValidator : IPluginValidator
     public PluginValidationResult ValidateNodeType(Type nodeType)
     {
         ArgumentNullException.ThrowIfNull(nodeType);
-        
+
         var errors = new List<PluginValidationError>();
         var warnings = new List<PluginValidationWarning>();
         var context = nodeType.FullName ?? nodeType.Name;
-        
+
         // Check if type implements INode
         if (!typeof(INode).IsAssignableFrom(nodeType))
         {
@@ -107,7 +107,7 @@ public class PluginValidator : IPluginValidator
             });
             return new PluginValidationResult { Errors = errors, Warnings = warnings };
         }
-        
+
         // Check if type is concrete (not abstract or interface)
         if (nodeType.IsAbstract || nodeType.IsInterface)
         {
@@ -119,7 +119,7 @@ public class PluginValidator : IPluginValidator
             });
             return new PluginValidationResult { Errors = errors, Warnings = warnings };
         }
-        
+
         // Check for parameterless constructor
         var constructor = nodeType.GetConstructor(Type.EmptyTypes);
         if (constructor is null)
@@ -132,7 +132,7 @@ public class PluginValidator : IPluginValidator
             });
             return new PluginValidationResult { Errors = errors, Warnings = warnings };
         }
-        
+
         // Try to instantiate and validate instance
         INode? instance;
         try
@@ -149,7 +149,7 @@ public class PluginValidator : IPluginValidator
             });
             return new PluginValidationResult { Errors = errors, Warnings = warnings };
         }
-        
+
         if (instance is null)
         {
             errors.Add(new PluginValidationError(
@@ -160,7 +160,7 @@ public class PluginValidator : IPluginValidator
             });
             return new PluginValidationResult { Errors = errors, Warnings = warnings };
         }
-        
+
         // Validate node properties
         if (string.IsNullOrWhiteSpace(instance.Id))
         {
@@ -171,7 +171,7 @@ public class PluginValidator : IPluginValidator
                 Context = context
             });
         }
-        
+
         if (string.IsNullOrWhiteSpace(instance.Type))
         {
             errors.Add(new PluginValidationError(
@@ -181,7 +181,7 @@ public class PluginValidator : IPluginValidator
                 Context = context
             });
         }
-        
+
         // Validate node definition attribute
         var definitionAttr = nodeType.GetCustomAttribute<NodeDefinitionAttribute>();
         if (definitionAttr is null)
@@ -204,7 +204,7 @@ public class PluginValidator : IPluginValidator
                     Context = context
                 });
             }
-            
+
             if (string.IsNullOrWhiteSpace(definitionAttr.Description))
             {
                 warnings.Add(new PluginValidationWarning(
@@ -215,7 +215,7 @@ public class PluginValidator : IPluginValidator
                 });
             }
         }
-        
+
         // Validate category is set
         if (!Enum.IsDefined(typeof(NodeCategory), instance.Category))
         {
@@ -226,19 +226,19 @@ public class PluginValidator : IPluginValidator
                 Context = context
             });
         }
-        
+
         return new PluginValidationResult { Errors = errors, Warnings = warnings };
     }
 
     private static List<Type> DiscoverNodeTypes(Assembly assembly)
     {
         var nodeTypes = new List<Type>();
-        
+
         try
         {
             var types = assembly.GetTypes()
                 .Where(t => typeof(INode).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
-            
+
             nodeTypes.AddRange(types);
         }
         catch (ReflectionTypeLoadException ex)
@@ -247,7 +247,7 @@ public class PluginValidator : IPluginValidator
             var loadedTypes = ex.Types
                 .Where(t => t is not null && typeof(INode).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract)
                 .Cast<Type>();
-            
+
             nodeTypes.AddRange(loadedTypes);
         }
 

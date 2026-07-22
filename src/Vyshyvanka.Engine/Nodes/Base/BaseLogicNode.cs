@@ -18,7 +18,7 @@ public abstract class BaseLogicNode : BaseNode
     protected static bool EvaluateCondition(JsonElement data, string propertyPath, string @operator, JsonElement compareValue)
     {
         var actualValue = GetNestedProperty(data, propertyPath);
-        
+
         return @operator.ToLowerInvariant() switch
         {
             "equals" or "==" or "eq" => JsonElementEquals(actualValue, compareValue),

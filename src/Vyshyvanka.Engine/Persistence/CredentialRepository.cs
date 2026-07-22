@@ -25,7 +25,7 @@ public class CredentialRepository : ICredentialRepository
         var entity = ToEntity(credential);
         _context.Credentials.Add(entity);
         await _context.SaveChangesAsync(cancellationToken);
-        
+
         return ToModel(entity);
     }
 
@@ -34,7 +34,7 @@ public class CredentialRepository : ICredentialRepository
     {
         var entity = await _context.Credentials
             .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
-        
+
         return entity is null ? null : ToModel(entity);
     }
 
@@ -53,7 +53,7 @@ public class CredentialRepository : ICredentialRepository
         entity.UpdatedAt = credential.UpdatedAt;
 
         await _context.SaveChangesAsync(cancellationToken);
-        
+
         return ToModel(entity);
     }
 
@@ -78,7 +78,7 @@ public class CredentialRepository : ICredentialRepository
             .Where(c => c.OwnerId == ownerId)
             .OrderBy(c => c.Name)
             .ToListAsync(cancellationToken);
-        
+
         return entities.Select(ToModel).ToList();
     }
 

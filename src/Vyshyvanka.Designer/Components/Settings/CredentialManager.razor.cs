@@ -89,7 +89,7 @@ public partial class CredentialManager
             var detail = await ApiClient.GetCredentialAsync(credential.Id);
             if (detail?.StoredFields is not null)
             {
-                _storedFields = [..detail.StoredFields];
+                _storedFields = [.. detail.StoredFields];
             }
         }
         catch

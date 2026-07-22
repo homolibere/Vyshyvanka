@@ -22,7 +22,7 @@ public static class ExpressionFunctions
         ["startsWith"] = StartsWith,
         ["endsWith"] = EndsWith,
         ["split"] = Split,
-        
+
         // Date functions
         ["format"] = FormatDate,
         ["parseDate"] = ParseDate,
@@ -31,7 +31,7 @@ public static class ExpressionFunctions
         ["addMinutes"] = AddMinutes,
         ["now"] = Now,
         ["utcNow"] = UtcNow,
-        
+
         // Math functions
         ["round"] = Round,
         ["floor"] = Floor,
@@ -39,12 +39,12 @@ public static class ExpressionFunctions
         ["abs"] = Abs,
         ["min"] = Min,
         ["max"] = Max,
-        
+
         // Type conversion functions
         ["toString"] = ToString,
         ["toNumber"] = ToNumber,
         ["toBoolean"] = ToBoolean,
-        
+
         // Utility functions
         ["coalesce"] = Coalesce,
         ["ifNull"] = IfNull,
@@ -115,7 +115,7 @@ public static class ExpressionFunctions
         if (value is null) return null;
 
         var start = ConvertToInt(args[1], "substring", "start");
-        
+
         if (args.Length == 3)
         {
             var length = ConvertToInt(args[2], "substring", "length");
@@ -132,7 +132,7 @@ public static class ExpressionFunctions
     {
         ValidateArgCount("length", args, 1);
         var value = args[0];
-        
+
         return value switch
         {
             null => 0,
@@ -313,7 +313,7 @@ public static class ExpressionFunctions
         {
             throw new ExpressionEvaluationException("Function 'min' requires at least 2 arguments", "min");
         }
-        
+
         var values = args.Select(a => ConvertToDouble(a, "min", "value")).ToArray();
         return values.Min();
     }
@@ -324,7 +324,7 @@ public static class ExpressionFunctions
         {
             throw new ExpressionEvaluationException("Function 'max' requires at least 2 arguments", "max");
         }
-        
+
         var values = args.Select(a => ConvertToDouble(a, "max", "value")).ToArray();
         return values.Max();
     }
@@ -343,7 +343,7 @@ public static class ExpressionFunctions
     {
         ValidateArgCount("toNumber", args, 1);
         var value = args[0];
-        
+
         return value switch
         {
             null => 0.0,
@@ -354,7 +354,7 @@ public static class ExpressionFunctions
             decimal dec => (double)dec,
             string s when double.TryParse(s, CultureInfo.InvariantCulture, out var d) => d,
             JsonElement je when je.ValueKind == JsonValueKind.Number => je.GetDouble(),
-            JsonElement je when je.ValueKind == JsonValueKind.String && 
+            JsonElement je when je.ValueKind == JsonValueKind.String &&
                 double.TryParse(je.GetString(), CultureInfo.InvariantCulture, out var d) => d,
             _ => throw new ExpressionEvaluationException($"Cannot convert '{value}' to number", "toNumber")
         };
@@ -364,7 +364,7 @@ public static class ExpressionFunctions
     {
         ValidateArgCount("toBoolean", args, 1);
         var value = args[0];
-        
+
         return value switch
         {
             null => false,
@@ -372,14 +372,14 @@ public static class ExpressionFunctions
             int i => i != 0,
             long l => l != 0,
             double d => d != 0,
-            string s => !string.IsNullOrWhiteSpace(s) && 
-                !s.Equals("false", StringComparison.OrdinalIgnoreCase) && 
+            string s => !string.IsNullOrWhiteSpace(s) &&
+                !s.Equals("false", StringComparison.OrdinalIgnoreCase) &&
                 !s.Equals("0", StringComparison.Ordinal),
             JsonElement je when je.ValueKind == JsonValueKind.True => true,
             JsonElement je when je.ValueKind == JsonValueKind.False => false,
             JsonElement je when je.ValueKind == JsonValueKind.Number => je.GetDouble() != 0,
-            JsonElement je when je.ValueKind == JsonValueKind.String => 
-                !string.IsNullOrWhiteSpace(je.GetString()) && 
+            JsonElement je when je.ValueKind == JsonValueKind.String =>
+                !string.IsNullOrWhiteSpace(je.GetString()) &&
                 !je.GetString()!.Equals("false", StringComparison.OrdinalIgnoreCase),
             _ => true
         };
@@ -406,7 +406,7 @@ public static class ExpressionFunctions
         ValidateArgCount("ifNull", args, 2);
         var value = args[0];
         var defaultValue = args[1];
-        
+
         if (value is null || (value is JsonElement je && je.ValueKind == JsonValueKind.Null))
         {
             return defaultValue;
@@ -496,7 +496,7 @@ public static class ExpressionFunctions
             DateTime dt => dt,
             DateTimeOffset dto => dto.DateTime,
             string s when DateTime.TryParse(s, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt) => dt,
-            JsonElement je when je.ValueKind == JsonValueKind.String && 
+            JsonElement je when je.ValueKind == JsonValueKind.String &&
                 DateTime.TryParse(je.GetString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt) => dt,
             _ => throw new ExpressionEvaluationException(
                 $"Function '{funcName}' requires a date value", funcName)
@@ -512,8 +512,8 @@ public static class ExpressionFunctions
             int i => i != 0,
             long l => l != 0,
             double d => d != 0,
-            string s => !string.IsNullOrWhiteSpace(s) && 
-                !s.Equals("false", StringComparison.OrdinalIgnoreCase) && 
+            string s => !string.IsNullOrWhiteSpace(s) &&
+                !s.Equals("false", StringComparison.OrdinalIgnoreCase) &&
                 !s.Equals("0", StringComparison.Ordinal),
             JsonElement je when je.ValueKind == JsonValueKind.True => true,
             JsonElement je when je.ValueKind == JsonValueKind.False => false,

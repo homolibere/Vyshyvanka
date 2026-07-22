@@ -89,7 +89,7 @@ public class PackageApiClient(HttpClient httpClient) : ApiClientBase(httpClient)
 
         var apiResponse = await response.Content.ReadFromJsonAsync<PackageInstallApiResponse>(cancellationToken);
         return apiResponse?.ToModel() ?? new PackageInstallResultModel
-            { Success = false, Errors = ["Invalid response"] };
+        { Success = false, Errors = ["Invalid response"] };
     }
 
     /// <summary>Updates an installed package to a newer version.</summary>
@@ -120,7 +120,7 @@ public class PackageApiClient(HttpClient httpClient) : ApiClientBase(httpClient)
 
         var apiResponse = await response.Content.ReadFromJsonAsync<PackageUpdateApiResponse>(cancellationToken);
         return apiResponse?.ToModel() ?? new PackageUpdateResultModel
-            { Success = false, Errors = ["Invalid response"] };
+        { Success = false, Errors = ["Invalid response"] };
     }
 
     /// <summary>Uninstalls a package.</summary>
@@ -145,7 +145,7 @@ public class PackageApiClient(HttpClient httpClient) : ApiClientBase(httpClient)
 
         var apiResponse = await response.Content.ReadFromJsonAsync<PackageUninstallApiResponse>(cancellationToken);
         return apiResponse?.ToModel() ?? new PackageUninstallResultModel
-            { Success = false, Errors = ["Invalid response"] };
+        { Success = false, Errors = ["Invalid response"] };
     }
 
     /// <summary>Checks for available updates to installed packages.</summary>
@@ -183,7 +183,7 @@ public class PackageApiClient(HttpClient httpClient) : ApiClientBase(httpClient)
 
         var apiResponse = await response.Content.ReadFromJsonAsync<PackageInstallApiResponse>(cancellationToken);
         return apiResponse?.ToModel() ?? new PackageInstallResultModel
-            { Success = false, Errors = ["Invalid response"] };
+        { Success = false, Errors = ["Invalid response"] };
     }
 
     /// <summary>Gets all configured package sources.</summary>

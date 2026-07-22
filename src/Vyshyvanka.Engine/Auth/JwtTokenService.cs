@@ -84,16 +84,16 @@ public class JwtTokenService : IJwtTokenService
             };
 
             var principal = tokenHandler.ValidateToken(token, validationParameters, out var validatedToken);
-            
+
             if (validatedToken is not JwtSecurityToken jwtToken ||
                 !jwtToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
             {
                 return new CoreTokenValidationResult { IsValid = false, ErrorMessage = "Invalid token algorithm" };
             }
 
-            var userIdClaim = principal.FindFirst(JwtRegisteredClaimNames.Sub) 
+            var userIdClaim = principal.FindFirst(JwtRegisteredClaimNames.Sub)
                 ?? principal.FindFirst(ClaimTypes.NameIdentifier);
-            var emailClaim = principal.FindFirst(JwtRegisteredClaimNames.Email) 
+            var emailClaim = principal.FindFirst(JwtRegisteredClaimNames.Email)
                 ?? principal.FindFirst(ClaimTypes.Email);
             var roleClaim = principal.FindFirst(ClaimTypes.Role);
 

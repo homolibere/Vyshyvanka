@@ -31,7 +31,7 @@ public class AuditLogService : IAuditLogService
         CancellationToken cancellationToken = default)
     {
         var action = success ? "Login" : "LoginFailed";
-        
+
         await LogOperationAsync(
             AuditEventType.Authentication,
             null,
@@ -45,7 +45,7 @@ public class AuditLogService : IAuditLogService
             errorMessage,
             null,
             cancellationToken);
-        
+
         if (success)
         {
             _logger.LogInformation("User {Email} logged in from {IpAddress}", email, ipAddress);
@@ -80,7 +80,7 @@ public class AuditLogService : IAuditLogService
             errorMessage,
             null,
             cancellationToken);
-        
+
         if (!success)
         {
             _logger.LogWarning(
@@ -188,8 +188,8 @@ public class AuditLogService : IAuditLogService
         Action = entity.Action,
         Success = entity.Success,
         ErrorMessage = entity.ErrorMessage,
-        Details = string.IsNullOrEmpty(entity.DetailsJson) 
-            ? null 
+        Details = string.IsNullOrEmpty(entity.DetailsJson)
+            ? null
             : JsonSerializer.Deserialize<JsonElement>(entity.DetailsJson)
     };
 }

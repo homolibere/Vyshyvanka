@@ -25,13 +25,13 @@ public class StringPropertyEditorTests : BunitContext
         string displayName = "URL",
         bool isRequired = false,
         string? description = null) => new()
-    {
-        Name = name,
-        DisplayName = displayName,
-        Type = "string",
-        IsRequired = isRequired,
-        Description = description
-    };
+        {
+            Name = name,
+            DisplayName = displayName,
+            Type = "string",
+            IsRequired = isRequired,
+            Description = description
+        };
 
     [Fact]
     public void WhenRenderedThenDisplaysLabel()

@@ -11,13 +11,13 @@ public class NumberPropertyEditorTests : BunitContext
         string displayName = "Timeout",
         bool isRequired = false,
         string? description = null) => new()
-    {
-        Name = name,
-        DisplayName = displayName,
-        Type = "number",
-        IsRequired = isRequired,
-        Description = description
-    };
+        {
+            Name = name,
+            DisplayName = displayName,
+            Type = "number",
+            IsRequired = isRequired,
+            Description = description
+        };
 
     [Fact]
     public void WhenRenderedThenDisplaysLabel()

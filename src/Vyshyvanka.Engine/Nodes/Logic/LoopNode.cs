@@ -63,7 +63,7 @@ public class LoopNode : BaseLogicNode
         if (items.Count == 0)
         {
             return Task.FromResult(SuccessOutput(new
-                { items = Array.Empty<object>(), totalCount = 0, isComplete = true, outputPort = "done" }));
+            { items = Array.Empty<object>(), totalCount = 0, isComplete = true, outputPort = "done" }));
         }
 
         // Return the items array wrapped in metadata. The engine detects the

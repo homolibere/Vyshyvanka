@@ -30,7 +30,7 @@ public class WorkflowRepository : IWorkflowRepository
         var entity = ToEntity(workflow);
         _context.Workflows.Add(entity);
         await _context.SaveChangesAsync(cancellationToken);
-        
+
         return ToModel(entity);
     }
 
@@ -40,7 +40,7 @@ public class WorkflowRepository : IWorkflowRepository
         var entity = await _context.Workflows
             .AsNoTracking()
             .FirstOrDefaultAsync(w => w.Id == id, cancellationToken);
-        
+
         return entity is null ? null : ToModel(entity);
     }
 
@@ -55,7 +55,7 @@ public class WorkflowRepository : IWorkflowRepository
 
         UpdateEntity(entity, workflow);
         await _context.SaveChangesAsync(cancellationToken);
-        
+
         return ToModel(entity);
     }
 
@@ -76,7 +76,7 @@ public class WorkflowRepository : IWorkflowRepository
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<Workflow>> GetAllAsync(
-        int skip = 0, 
+        int skip = 0,
         int take = 50,
         CancellationToken cancellationToken = default)
     {
@@ -86,14 +86,14 @@ public class WorkflowRepository : IWorkflowRepository
             .Skip(skip)
             .Take(take)
             .ToListAsync(cancellationToken);
-        
+
         return entities.Select(ToModel).ToList();
     }
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<Workflow>> GetByCreatorAsync(
-        Guid createdBy, 
-        int skip = 0, 
+        Guid createdBy,
+        int skip = 0,
         int take = 50,
         CancellationToken cancellationToken = default)
     {
@@ -104,13 +104,13 @@ public class WorkflowRepository : IWorkflowRepository
             .Skip(skip)
             .Take(take)
             .ToListAsync(cancellationToken);
-        
+
         return entities.Select(ToModel).ToList();
     }
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<Workflow>> GetActiveAsync(
-        int skip = 0, 
+        int skip = 0,
         int take = 50,
         CancellationToken cancellationToken = default)
     {
@@ -121,14 +121,14 @@ public class WorkflowRepository : IWorkflowRepository
             .Skip(skip)
             .Take(take)
             .ToListAsync(cancellationToken);
-        
+
         return entities.Select(ToModel).ToList();
     }
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<Workflow>> SearchAsync(
-        string searchTerm, 
-        int skip = 0, 
+        string searchTerm,
+        int skip = 0,
         int take = 50,
         CancellationToken cancellationToken = default)
     {
@@ -138,16 +138,16 @@ public class WorkflowRepository : IWorkflowRepository
         }
 
         var lowerSearchTerm = searchTerm.ToLowerInvariant();
-        
+
         var entities = await _context.Workflows
             .AsNoTracking()
-            .Where(w => w.Name.ToLower().Contains(lowerSearchTerm) || 
+            .Where(w => w.Name.ToLower().Contains(lowerSearchTerm) ||
                        (w.Tags != null && w.Tags.ToLower().Contains(lowerSearchTerm)))
             .OrderByDescending(w => w.UpdatedAt)
             .Skip(skip)
             .Take(take)
             .ToListAsync(cancellationToken);
-        
+
         return entities.Select(ToModel).ToList();
     }
 
@@ -190,7 +190,7 @@ public class WorkflowRepository : IWorkflowRepository
     {
         // Sanitize nodes to handle invalid JsonElement values
         var sanitizedNodes = workflow.Nodes.Select(SanitizeNode).ToList();
-        
+
         return new WorkflowEntity
         {
             Id = workflow.Id,
@@ -243,7 +243,7 @@ public class WorkflowRepository : IWorkflowRepository
     {
         // Sanitize nodes to handle invalid JsonElement values
         var sanitizedNodes = workflow.Nodes.Select(SanitizeNode).ToList();
-        
+
         entity.Name = workflow.Name;
         entity.Description = workflow.Description;
         entity.Version = workflow.Version;

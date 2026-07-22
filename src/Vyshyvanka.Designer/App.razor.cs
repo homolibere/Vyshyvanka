@@ -28,7 +28,7 @@ public partial class App
     private void OnNavigateAsync(NavigationContext context)
     {
         var path = "/" + context.Path.TrimStart('/').ToLowerInvariant();
-        
+
         if (!AuthService.IsAuthenticated && !PublicRoutes.Contains(path))
         {
             Navigation.NavigateTo("/login");

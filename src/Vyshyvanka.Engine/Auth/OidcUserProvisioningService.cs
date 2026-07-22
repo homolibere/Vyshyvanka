@@ -104,7 +104,7 @@ public class OidcUserProvisioningService(
                     using var doc = JsonDocument.Parse(realmAccess);
                     if (doc.RootElement.TryGetProperty("roles", out var rolesElement))
                     {
-                        return [.. rolesElement.EnumerateArray().Select(r => r.GetString()!)] ;
+                        return [.. rolesElement.EnumerateArray().Select(r => r.GetString()!)];
                     }
                 }
                 catch (JsonException ex)

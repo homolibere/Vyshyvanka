@@ -26,7 +26,7 @@ public partial class SelectPropertyEditor : ComponentBase
     private async Task OnChange(ChangeEventArgs e)
     {
         var newValue = e.Value?.ToString();
-        
+
         // Treat empty string as null for optional fields
         if (string.IsNullOrEmpty(newValue))
         {

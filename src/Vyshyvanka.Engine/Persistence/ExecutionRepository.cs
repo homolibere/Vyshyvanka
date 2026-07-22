@@ -28,7 +28,7 @@ public class ExecutionRepository : IExecutionRepository
         var entity = ToEntity(execution);
         _context.Executions.Add(entity);
         await _context.SaveChangesAsync(cancellationToken);
-        
+
         return ToModel(entity);
     }
 
@@ -38,7 +38,7 @@ public class ExecutionRepository : IExecutionRepository
         var entity = await _context.Executions
             .Include(e => e.NodeExecutions)
             .FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
-        
+
         return entity is null ? null : ToModel(entity);
     }
 
@@ -54,7 +54,7 @@ public class ExecutionRepository : IExecutionRepository
 
         UpdateEntity(entity, execution);
         await _context.SaveChangesAsync(cancellationToken);
-        
+
         return ToModel(entity);
     }
 
@@ -75,8 +75,8 @@ public class ExecutionRepository : IExecutionRepository
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<ExecutionModel>> GetByWorkflowIdAsync(
-        Guid workflowId, 
-        int skip = 0, 
+        Guid workflowId,
+        int skip = 0,
         int take = 50,
         CancellationToken cancellationToken = default)
     {
@@ -87,14 +87,14 @@ public class ExecutionRepository : IExecutionRepository
             .Skip(skip)
             .Take(take)
             .ToListAsync(cancellationToken);
-        
+
         return entities.Select(ToModel).ToList();
     }
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<ExecutionModel>> GetByStatusAsync(
-        ExecutionStatus status, 
-        int skip = 0, 
+        ExecutionStatus status,
+        int skip = 0,
         int take = 50,
         CancellationToken cancellationToken = default)
     {
@@ -105,15 +105,15 @@ public class ExecutionRepository : IExecutionRepository
             .Skip(skip)
             .Take(take)
             .ToListAsync(cancellationToken);
-        
+
         return entities.Select(ToModel).ToList();
     }
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<ExecutionModel>> GetByDateRangeAsync(
-        DateTime startDate, 
-        DateTime endDate, 
-        int skip = 0, 
+        DateTime startDate,
+        DateTime endDate,
+        int skip = 0,
         int take = 50,
         CancellationToken cancellationToken = default)
     {
@@ -124,7 +124,7 @@ public class ExecutionRepository : IExecutionRepository
             .Skip(skip)
             .Take(take)
             .ToListAsync(cancellationToken);
-        
+
         return entities.Select(ToModel).ToList();
     }
 
@@ -169,14 +169,14 @@ public class ExecutionRepository : IExecutionRepository
             .Skip(query.Skip)
             .Take(query.Take)
             .ToListAsync(cancellationToken);
-        
+
         return entities.Select(ToModel).ToList();
     }
 
 
     /// <inheritdoc />
     public async Task AddNodeExecutionAsync(
-        Guid executionId, 
+        Guid executionId,
         NodeExecutionModel nodeExecution,
         CancellationToken cancellationToken = default)
     {
@@ -189,11 +189,11 @@ public class ExecutionRepository : IExecutionRepository
             Status = nodeExecution.Status,
             StartedAt = nodeExecution.StartedAt,
             CompletedAt = nodeExecution.CompletedAt,
-            InputDataJson = nodeExecution.InputData.HasValue 
-                ? nodeExecution.InputData.Value.GetRawText() 
+            InputDataJson = nodeExecution.InputData.HasValue
+                ? nodeExecution.InputData.Value.GetRawText()
                 : null,
-            OutputDataJson = nodeExecution.OutputData.HasValue 
-                ? nodeExecution.OutputData.Value.GetRawText() 
+            OutputDataJson = nodeExecution.OutputData.HasValue
+                ? nodeExecution.OutputData.Value.GetRawText()
                 : null,
             ErrorMessage = nodeExecution.ErrorMessage
         };
@@ -212,15 +212,15 @@ public class ExecutionRepository : IExecutionRepository
 
         var entity = await _context.NodeExecutions
             .FirstOrDefaultAsync(
-                ne => ne.ExecutionId == executionId && ne.NodeId == nodeExecution.NodeId, 
+                ne => ne.ExecutionId == executionId && ne.NodeId == nodeExecution.NodeId,
                 cancellationToken)
             ?? throw new InvalidOperationException(
                 $"Node execution for node '{nodeExecution.NodeId}' in execution {executionId} not found");
 
         entity.Status = nodeExecution.Status;
         entity.CompletedAt = nodeExecution.CompletedAt;
-        entity.OutputDataJson = nodeExecution.OutputData.HasValue 
-            ? nodeExecution.OutputData.Value.GetRawText() 
+        entity.OutputDataJson = nodeExecution.OutputData.HasValue
+            ? nodeExecution.OutputData.Value.GetRawText()
             : null;
         entity.ErrorMessage = nodeExecution.ErrorMessage;
 
@@ -238,11 +238,11 @@ public class ExecutionRepository : IExecutionRepository
             Mode = execution.Mode,
             StartedAt = execution.StartedAt,
             CompletedAt = execution.CompletedAt,
-            TriggerDataJson = execution.TriggerData.HasValue 
-                ? execution.TriggerData.Value.GetRawText() 
+            TriggerDataJson = execution.TriggerData.HasValue
+                ? execution.TriggerData.Value.GetRawText()
                 : null,
-            OutputDataJson = execution.OutputData.HasValue 
-                ? execution.OutputData.Value.GetRawText() 
+            OutputDataJson = execution.OutputData.HasValue
+                ? execution.OutputData.Value.GetRawText()
                 : null,
             ErrorMessage = execution.ErrorMessage,
             NodeExecutions = execution.NodeExecutions.Select(ne => new NodeExecutionEntity
@@ -291,8 +291,8 @@ public class ExecutionRepository : IExecutionRepository
     {
         entity.Status = execution.Status;
         entity.CompletedAt = execution.CompletedAt;
-        entity.OutputDataJson = execution.OutputData.HasValue 
-            ? execution.OutputData.Value.GetRawText() 
+        entity.OutputDataJson = execution.OutputData.HasValue
+            ? execution.OutputData.Value.GetRawText()
             : null;
         entity.ErrorMessage = execution.ErrorMessage;
     }

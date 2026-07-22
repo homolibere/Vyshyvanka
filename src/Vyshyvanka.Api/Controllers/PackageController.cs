@@ -270,7 +270,7 @@ public class PackageController : ControllerBase
                     Code = "PACKAGE_IN_USE",
                     Message = "Package is referenced by workflows. Use force=true to uninstall anyway.",
                     Details = new Dictionary<string, string[]>
-                        { ["affectedWorkflows"] = result.AffectedWorkflows.ToArray() }
+                    { ["affectedWorkflows"] = result.AffectedWorkflows.ToArray() }
                 });
             }
 

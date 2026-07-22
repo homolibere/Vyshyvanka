@@ -18,10 +18,10 @@ public class ApiKeyService : IApiKeyService
     }
 
     public async Task<ApiKeyCreateResult> CreateAsync(
-        Guid userId, 
-        string name, 
-        List<string>? scopes = null, 
-        DateTime? expiresAt = null, 
+        Guid userId,
+        string name,
+        List<string>? scopes = null,
+        DateTime? expiresAt = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(name);

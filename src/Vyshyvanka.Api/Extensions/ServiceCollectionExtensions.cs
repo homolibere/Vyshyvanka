@@ -217,7 +217,7 @@ public static class ServiceCollectionExtensions
                         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                         context.Response.ContentType = "application/json";
                         await context.Response.WriteAsJsonAsync(new
-                            { code = "UNAUTHORIZED", message = "Authentication required" });
+                        { code = "UNAUTHORIZED", message = "Authentication required" });
                     },
                     OnForbidden = async context =>
                     {
@@ -288,7 +288,7 @@ public static class ServiceCollectionExtensions
                         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                         context.Response.ContentType = "application/json";
                         await context.Response.WriteAsJsonAsync(new
-                            { code = "UNAUTHORIZED", message = "Authentication required" });
+                        { code = "UNAUTHORIZED", message = "Authentication required" });
                     },
                     OnForbidden = async context =>
                     {
@@ -372,7 +372,7 @@ public static class ServiceCollectionExtensions
                         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                         context.Response.ContentType = "application/json";
                         await context.Response.WriteAsJsonAsync(new
-                            { code = "UNAUTHORIZED", message = "Authentication required" });
+                        { code = "UNAUTHORIZED", message = "Authentication required" });
                     },
                     OnForbidden = async context =>
                     {

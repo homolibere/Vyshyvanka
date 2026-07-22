@@ -12,7 +12,7 @@ public class PluginConfiguration : IPluginConfiguration
 {
     private const string EnvVarPrefix = "VYSHYVANKA_PLUGIN_";
     private const string ConfigFileExtension = ".config.json";
-    
+
     private readonly ConcurrentDictionary<string, Dictionary<string, string>> _pluginConfigs = new();
     private readonly string? _pluginDirectory;
     private readonly ILogger<PluginConfiguration>? _logger;
@@ -29,23 +29,23 @@ public class PluginConfiguration : IPluginConfiguration
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(pluginId);
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
-        
+
         var normalizedPluginId = NormalizePluginId(pluginId);
-        
+
         // First check environment variable (highest priority)
         var envValue = GetEnvironmentValue(normalizedPluginId, key);
         if (envValue is not null)
         {
             return envValue;
         }
-        
+
         // Then check loaded config
-        if (_pluginConfigs.TryGetValue(normalizedPluginId, out var config) && 
+        if (_pluginConfigs.TryGetValue(normalizedPluginId, out var config) &&
             config.TryGetValue(key, out var value))
         {
             return value;
         }
-        
+
         return null;
     }
 
@@ -63,7 +63,7 @@ public class PluginConfiguration : IPluginConfiguration
         {
             return default;
         }
-        
+
         return ConvertValue<T>(value);
     }
 
@@ -75,7 +75,7 @@ public class PluginConfiguration : IPluginConfiguration
         {
             return defaultValue;
         }
-        
+
         var converted = ConvertValue<T>(value);
         return converted ?? defaultValue;
     }
@@ -84,10 +84,10 @@ public class PluginConfiguration : IPluginConfiguration
     public IReadOnlyDictionary<string, string> GetAllValues(string pluginId)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(pluginId);
-        
+
         var normalizedPluginId = NormalizePluginId(pluginId);
         var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        
+
         // Add values from config file
         if (_pluginConfigs.TryGetValue(normalizedPluginId, out var config))
         {
@@ -96,7 +96,7 @@ public class PluginConfiguration : IPluginConfiguration
                 result[kvp.Key] = kvp.Value;
             }
         }
-        
+
         // Override with environment variables (higher priority)
         var envPrefix = $"{EnvVarPrefix}{normalizedPluginId}_";
         foreach (var envVar in Environment.GetEnvironmentVariables().Keys.Cast<string>())
@@ -111,7 +111,7 @@ public class PluginConfiguration : IPluginConfiguration
                 }
             }
         }
-        
+
         return result;
     }
 
@@ -125,10 +125,10 @@ public class PluginConfiguration : IPluginConfiguration
     public void Reload()
     {
         _pluginConfigs.Clear();
-        
+
         // Load from environment variables
         LoadFromEnvironment();
-        
+
         // Load from config files
         if (!string.IsNullOrWhiteSpace(_pluginDirectory) && Directory.Exists(_pluginDirectory))
         {
@@ -145,28 +145,28 @@ public class PluginConfiguration : IPluginConfiguration
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(pluginId);
         ArgumentException.ThrowIfNullOrWhiteSpace(configFilePath);
-        
+
         if (!File.Exists(configFilePath))
         {
             _logger?.LogWarning("Plugin config file not found: {Path}", configFilePath);
             return;
         }
-        
+
         try
         {
             var json = File.ReadAllText(configFilePath);
             var config = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
-            
+
             if (config is not null)
             {
                 var normalizedPluginId = NormalizePluginId(pluginId);
                 var pluginConfig = _pluginConfigs.GetOrAdd(normalizedPluginId, _ => new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase));
-                
+
                 foreach (var kvp in config)
                 {
                     pluginConfig[kvp.Key] = GetJsonElementValue(kvp.Value);
                 }
-                
+
                 _logger?.LogInformation("Loaded config for plugin {PluginId} from {Path}", pluginId, configFilePath);
             }
         }
@@ -184,24 +184,24 @@ public class PluginConfiguration : IPluginConfiguration
             {
                 continue;
             }
-            
+
             var remainder = envVar[EnvVarPrefix.Length..];
             var underscoreIndex = remainder.IndexOf('_');
-            
+
             if (underscoreIndex <= 0)
             {
                 continue;
             }
-            
+
             var pluginId = remainder[..underscoreIndex];
             var key = remainder[(underscoreIndex + 1)..];
             var value = Environment.GetEnvironmentVariable(envVar);
-            
+
             if (string.IsNullOrWhiteSpace(key) || value is null)
             {
                 continue;
             }
-            
+
             var normalizedPluginId = NormalizePluginId(pluginId);
             var pluginConfig = _pluginConfigs.GetOrAdd(normalizedPluginId, _ => new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase));
             pluginConfig[key] = value;
@@ -211,7 +211,7 @@ public class PluginConfiguration : IPluginConfiguration
     private void LoadFromConfigFiles(string directory)
     {
         var configFiles = Directory.GetFiles(directory, $"*{ConfigFileExtension}", SearchOption.AllDirectories);
-        
+
         foreach (var configFile in configFiles)
         {
             var fileName = Path.GetFileNameWithoutExtension(configFile);
@@ -220,7 +220,7 @@ public class PluginConfiguration : IPluginConfiguration
             {
                 fileName = fileName[..^7];
             }
-            
+
             LoadPluginConfig(fileName, configFile);
         }
     }
@@ -254,54 +254,54 @@ public class PluginConfiguration : IPluginConfiguration
     {
         var targetType = typeof(T);
         var underlyingType = Nullable.GetUnderlyingType(targetType) ?? targetType;
-        
+
         try
         {
             if (underlyingType == typeof(string))
             {
                 return (T)(object)value;
             }
-            
+
             if (underlyingType == typeof(bool))
             {
                 return (T)(object)bool.Parse(value);
             }
-            
+
             if (underlyingType == typeof(int))
             {
                 return (T)(object)int.Parse(value);
             }
-            
+
             if (underlyingType == typeof(long))
             {
                 return (T)(object)long.Parse(value);
             }
-            
+
             if (underlyingType == typeof(double))
             {
                 return (T)(object)double.Parse(value);
             }
-            
+
             if (underlyingType == typeof(decimal))
             {
                 return (T)(object)decimal.Parse(value);
             }
-            
+
             if (underlyingType == typeof(TimeSpan))
             {
                 return (T)(object)TimeSpan.Parse(value);
             }
-            
+
             if (underlyingType == typeof(Guid))
             {
                 return (T)(object)Guid.Parse(value);
             }
-            
+
             if (underlyingType.IsEnum)
             {
                 return (T)Enum.Parse(underlyingType, value, ignoreCase: true);
             }
-            
+
             // Try JSON deserialization for complex types
             return JsonSerializer.Deserialize<T>(value);
         }

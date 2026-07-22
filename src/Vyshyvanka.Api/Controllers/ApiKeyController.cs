@@ -38,10 +38,10 @@ public class ApiKeyController : ControllerBase
         }
 
         var result = await _apiKeyService.CreateAsync(
-            userId.Value, 
-            request.Name, 
-            request.Scopes, 
-            request.ExpiresAt, 
+            userId.Value,
+            request.Name,
+            request.Scopes,
+            request.ExpiresAt,
             cancellationToken);
 
         if (!result.Success)

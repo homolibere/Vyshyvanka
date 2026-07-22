@@ -8,13 +8,13 @@ public abstract class VyshyvankaException : Exception
     /// <summary>Error code for programmatic handling.</summary>
     public string ErrorCode { get; }
 
-    protected VyshyvankaException(string errorCode, string message) 
+    protected VyshyvankaException(string errorCode, string message)
         : base(message)
     {
         ErrorCode = errorCode;
     }
 
-    protected VyshyvankaException(string errorCode, string message, Exception innerException) 
+    protected VyshyvankaException(string errorCode, string message, Exception innerException)
         : base(message, innerException)
     {
         ErrorCode = errorCode;

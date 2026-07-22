@@ -15,24 +15,24 @@ public record CreateWorkflowRequest
     [MinLength(1, ErrorMessage = "Name cannot be empty")]
     [MaxLength(200, ErrorMessage = "Name cannot exceed 200 characters")]
     public string Name { get; init; } = string.Empty;
-    
+
     /// <summary>Optional description.</summary>
     [MaxLength(2000, ErrorMessage = "Description cannot exceed 2000 characters")]
     public string? Description { get; init; }
-    
+
     /// <summary>Whether the workflow is active.</summary>
     public bool IsActive { get; init; }
-    
+
     /// <summary>Nodes in the workflow.</summary>
     [Required(ErrorMessage = "Nodes are required")]
     public List<WorkflowNodeDto> Nodes { get; init; } = [];
-    
+
     /// <summary>Connections between nodes.</summary>
     public List<ConnectionDto> Connections { get; init; } = [];
-    
+
     /// <summary>Workflow settings.</summary>
     public WorkflowSettingsDto? Settings { get; init; }
-    
+
     /// <summary>Tags for categorization.</summary>
     public List<string> Tags { get; init; } = [];
 }
@@ -47,27 +47,27 @@ public record UpdateWorkflowRequest
     [MinLength(1, ErrorMessage = "Name cannot be empty")]
     [MaxLength(200, ErrorMessage = "Name cannot exceed 200 characters")]
     public string Name { get; init; } = string.Empty;
-    
+
     /// <summary>Optional description.</summary>
     [MaxLength(2000, ErrorMessage = "Description cannot exceed 2000 characters")]
     public string? Description { get; init; }
-    
+
     /// <summary>Whether the workflow is active.</summary>
     public bool IsActive { get; init; }
-    
+
     /// <summary>Nodes in the workflow.</summary>
     [Required(ErrorMessage = "Nodes are required")]
     public List<WorkflowNodeDto> Nodes { get; init; } = [];
-    
+
     /// <summary>Connections between nodes.</summary>
     public List<ConnectionDto> Connections { get; init; } = [];
-    
+
     /// <summary>Workflow settings.</summary>
     public WorkflowSettingsDto? Settings { get; init; }
-    
+
     /// <summary>Tags for categorization.</summary>
     public List<string> Tags { get; init; } = [];
-    
+
     /// <summary>Expected version for optimistic concurrency.</summary>
     public int Version { get; init; }
 }
@@ -81,22 +81,22 @@ public record WorkflowNodeDto
     /// <summary>Unique identifier within the workflow.</summary>
     [Required(ErrorMessage = "Node ID is required")]
     public string Id { get; init; } = string.Empty;
-    
+
     /// <summary>Node type identifier.</summary>
     [Required(ErrorMessage = "Node type is required")]
     public string Type { get; init; } = string.Empty;
-    
+
     /// <summary>Display name.</summary>
     [Required(ErrorMessage = "Node name is required")]
     [MaxLength(200, ErrorMessage = "Node name cannot exceed 200 characters")]
     public string Name { get; init; } = string.Empty;
-    
+
     /// <summary>Node configuration.</summary>
     public JsonElement? Configuration { get; init; }
-    
+
     /// <summary>Position on canvas.</summary>
     public PositionDto Position { get; init; } = new();
-    
+
     /// <summary>Associated credential ID.</summary>
     public Guid? CredentialId { get; init; }
 }
@@ -109,14 +109,14 @@ public record ConnectionDto
     /// <summary>Source node ID.</summary>
     [Required(ErrorMessage = "Source node ID is required")]
     public string SourceNodeId { get; init; } = string.Empty;
-    
+
     /// <summary>Source port name.</summary>
     public string SourcePort { get; init; } = "output";
-    
+
     /// <summary>Target node ID.</summary>
     [Required(ErrorMessage = "Target node ID is required")]
     public string TargetNodeId { get; init; } = string.Empty;
-    
+
     /// <summary>Target port name.</summary>
     public string TargetPort { get; init; } = "input";
 }
@@ -133,14 +133,14 @@ public record WorkflowSettingsDto
 {
     /// <summary>Maximum execution time in seconds.</summary>
     public int? TimeoutSeconds { get; init; }
-    
+
     /// <summary>Maximum retry attempts.</summary>
     [Range(0, 10, ErrorMessage = "MaxRetries must be between 0 and 10")]
     public int MaxRetries { get; init; }
-    
+
     /// <summary>Error handling mode.</summary>
     public ErrorHandlingMode ErrorHandling { get; init; }
-    
+
     /// <summary>Maximum parallel node executions per level. 0 or negative means use default.</summary>
     [Range(-1, 1000, ErrorMessage = "MaxDegreeOfParallelism must be between -1 and 1000")]
     public int MaxDegreeOfParallelism { get; init; }
@@ -164,7 +164,7 @@ public record WorkflowResponse
     public DateTime CreatedAt { get; init; }
     public DateTime UpdatedAt { get; init; }
     public Guid CreatedBy { get; init; }
-    
+
     /// <summary>Creates a response from a workflow model.</summary>
     public static WorkflowResponse FromModel(Workflow workflow)
     {
@@ -193,8 +193,8 @@ public record WorkflowResponse
             }).ToList(),
             Settings = workflow.Settings is not null ? new WorkflowSettingsDto
             {
-                TimeoutSeconds = workflow.Settings.Timeout.HasValue 
-                    ? (int)workflow.Settings.Timeout.Value.TotalSeconds 
+                TimeoutSeconds = workflow.Settings.Timeout.HasValue
+                    ? (int)workflow.Settings.Timeout.Value.TotalSeconds
                     : null,
                 MaxRetries = workflow.Settings.MaxRetries,
                 ErrorHandling = workflow.Settings.ErrorHandling,

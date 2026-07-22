@@ -18,14 +18,14 @@ public interface IPluginHost
         NodeInput input,
         IExecutionContext context,
         TimeSpan timeout);
-    
+
     /// <summary>
     /// Checks if a node type is from a plugin (vs built-in).
     /// </summary>
     /// <param name="nodeType">The node type identifier.</param>
     /// <returns>True if the node is from a plugin.</returns>
     bool IsPluginNode(string nodeType);
-    
+
     /// <summary>
     /// Gets the plugin ID that provides a node type.
     /// </summary>

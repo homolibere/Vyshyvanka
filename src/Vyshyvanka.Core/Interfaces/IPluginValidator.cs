@@ -13,7 +13,7 @@ public interface IPluginValidator
     /// <param name="assembly">The assembly to validate.</param>
     /// <returns>Validation result with any errors found.</returns>
     PluginValidationResult ValidatePlugin(Assembly assembly);
-    
+
     /// <summary>
     /// Validates a node type from a plugin.
     /// </summary>
@@ -29,22 +29,22 @@ public record PluginValidationResult
 {
     /// <summary>Whether the validation passed.</summary>
     public bool IsValid => Errors.Count == 0;
-    
+
     /// <summary>Validation errors found.</summary>
     public IReadOnlyList<PluginValidationError> Errors { get; init; } = [];
-    
+
     /// <summary>Warnings that don't prevent loading.</summary>
     public IReadOnlyList<PluginValidationWarning> Warnings { get; init; } = [];
-    
+
     /// <summary>Creates a successful validation result.</summary>
     public static PluginValidationResult Success() => new();
-    
+
     /// <summary>Creates a failed validation result with errors.</summary>
-    public static PluginValidationResult Failure(params PluginValidationError[] errors) => 
+    public static PluginValidationResult Failure(params PluginValidationError[] errors) =>
         new() { Errors = errors };
-    
+
     /// <summary>Creates a failed validation result with a single error.</summary>
-    public static PluginValidationResult Failure(string code, string message) => 
+    public static PluginValidationResult Failure(string code, string message) =>
         new() { Errors = [new PluginValidationError(code, message)] };
 }
 

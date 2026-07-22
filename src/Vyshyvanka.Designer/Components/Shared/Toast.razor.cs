@@ -82,7 +82,7 @@ public partial class Toast : IDisposable
             await JS.InvokeVoidAsync("navigator.clipboard.writeText", textToCopy);
             _copied = true;
             StateHasChanged();
-            
+
             await Task.Delay(1500);
             _copied = false;
             StateHasChanged();

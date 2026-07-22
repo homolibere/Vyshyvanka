@@ -94,7 +94,7 @@ public partial class NumberPropertyEditor : ComponentBase
     private static bool TryParseNumber(string input, out object? result)
     {
         result = null;
-        
+
         if (string.IsNullOrWhiteSpace(input))
             return false;
 

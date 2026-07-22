@@ -15,7 +15,7 @@ public interface ICredentialService
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The created credential (without decrypted data).</returns>
     Task<Credential> CreateAsync(CreateCredentialRequest request, CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Gets a credential by ID (without decrypted data).
     /// </summary>
@@ -23,7 +23,7 @@ public interface ICredentialService
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The credential or null if not found.</returns>
     Task<Credential?> GetAsync(Guid id, CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Gets a decrypted credential for use during execution.
     /// </summary>
@@ -31,7 +31,7 @@ public interface ICredentialService
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The decrypted credential or null if not found.</returns>
     Task<DecryptedCredential?> GetDecryptedAsync(Guid id, CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Updates an existing credential.
     /// </summary>
@@ -40,7 +40,7 @@ public interface ICredentialService
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The updated credential.</returns>
     Task<Credential> UpdateAsync(Guid id, UpdateCredentialRequest request, CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Deletes a credential and removes all encrypted data.
     /// </summary>
@@ -48,7 +48,7 @@ public interface ICredentialService
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>True if deleted, false if not found.</returns>
     Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Lists all credentials for a user (without decrypted data).
     /// </summary>
@@ -56,7 +56,7 @@ public interface ICredentialService
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>List of credentials.</returns>
     Task<IReadOnlyList<Credential>> ListAsync(Guid userId, CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Validates credential data against the expected schema for the credential type.
     /// </summary>

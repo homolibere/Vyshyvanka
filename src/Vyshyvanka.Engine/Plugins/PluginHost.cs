@@ -19,7 +19,7 @@ public class PluginHost : IPluginHost
         ArgumentNullException.ThrowIfNull(pluginLoader);
         _pluginLoader = pluginLoader;
         _logger = logger;
-        
+
         // Build node type to plugin mapping
         RefreshNodeTypeMapping();
     }
@@ -33,34 +33,34 @@ public class PluginHost : IPluginHost
     {
         ArgumentNullException.ThrowIfNull(node);
         ArgumentNullException.ThrowIfNull(context);
-        
+
         var pluginId = GetPluginIdForNode(node.Type);
-        
+
         _logger?.LogDebug(
             "Executing plugin node {NodeType} from plugin {PluginId} with timeout {Timeout}",
             node.Type, pluginId ?? "unknown", timeout);
-        
+
         using var timeoutCts = new CancellationTokenSource(timeout);
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
-            timeoutCts.Token, 
+            timeoutCts.Token,
             context.CancellationToken);
-        
+
         try
         {
             // Execute the node with timeout
             var executeTask = ExecuteWithExceptionHandlingAsync(node, input, context);
-            
+
             // Use a delay task without cancellation token for timeout detection
             var timeoutTask = Task.Delay(timeout);
             var completedTask = await Task.WhenAny(executeTask, timeoutTask);
-            
+
             if (completedTask == timeoutTask && !executeTask.IsCompleted)
             {
                 // Timeout occurred
                 _logger?.LogWarning(
                     "Plugin node {NodeType} execution timed out after {Timeout}",
                     node.Type, timeout);
-                
+
                 return new NodeOutput
                 {
                     Data = JsonSerializer.SerializeToElement(new { }),
@@ -68,7 +68,7 @@ public class PluginHost : IPluginHost
                     ErrorMessage = $"Plugin node execution timed out after {timeout.TotalSeconds} seconds"
                 };
             }
-            
+
             return await executeTask;
         }
         catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested)
@@ -76,7 +76,7 @@ public class PluginHost : IPluginHost
             _logger?.LogWarning(
                 "Plugin node {NodeType} execution timed out after {Timeout}",
                 node.Type, timeout);
-            
+
             return new NodeOutput
             {
                 Data = JsonSerializer.SerializeToElement(new { }),
@@ -87,7 +87,7 @@ public class PluginHost : IPluginHost
         catch (OperationCanceledException)
         {
             _logger?.LogInformation("Plugin node {NodeType} execution was cancelled", node.Type);
-            
+
             return new NodeOutput
             {
                 Data = JsonSerializer.SerializeToElement(new { }),
@@ -102,7 +102,7 @@ public class PluginHost : IPluginHost
     {
         if (string.IsNullOrWhiteSpace(nodeType))
             return false;
-            
+
         return _nodeTypeToPluginId.ContainsKey(nodeType);
     }
 
@@ -111,7 +111,7 @@ public class PluginHost : IPluginHost
     {
         if (string.IsNullOrWhiteSpace(nodeType))
             return null;
-            
+
         return _nodeTypeToPluginId.GetValueOrDefault(nodeType);
     }
 
@@ -121,7 +121,7 @@ public class PluginHost : IPluginHost
     public void RefreshNodeTypeMapping()
     {
         _nodeTypeToPluginId.Clear();
-        
+
         foreach (var plugin in _pluginLoader.GetLoadedPlugins())
         {
             foreach (var nodeType in plugin.NodeTypes)
@@ -136,7 +136,7 @@ public class PluginHost : IPluginHost
                 }
                 catch (Exception ex)
                 {
-                    _logger?.LogWarning(ex, 
+                    _logger?.LogWarning(ex,
                         "Failed to get node type from {TypeName} in plugin {PluginId}",
                         nodeType.Name, plugin.Id);
                 }
@@ -156,10 +156,10 @@ public class PluginHost : IPluginHost
         catch (Exception ex)
         {
             // Catch all exceptions from plugin nodes to prevent them from crashing the system
-            _logger?.LogError(ex, 
+            _logger?.LogError(ex,
                 "Plugin node {NodeType} threw an unhandled exception: {Message}",
                 node.Type, ex.Message);
-            
+
             return new NodeOutput
             {
                 Data = JsonSerializer.SerializeToElement(new { }),

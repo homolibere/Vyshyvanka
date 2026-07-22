@@ -11,13 +11,13 @@ public class BooleanPropertyEditorTests : BunitContext
         string displayName = "Enabled",
         bool isRequired = false,
         string? description = null) => new()
-    {
-        Name = name,
-        DisplayName = displayName,
-        Type = "boolean",
-        IsRequired = isRequired,
-        Description = description
-    };
+        {
+            Name = name,
+            DisplayName = displayName,
+            Type = "boolean",
+            IsRequired = isRequired,
+            Description = description
+        };
 
     [Fact]
     public void WhenRenderedThenDisplaysLabel()

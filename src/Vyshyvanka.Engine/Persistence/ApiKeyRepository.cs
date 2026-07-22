@@ -22,7 +22,7 @@ public class ApiKeyRepository : IApiKeyRepository
         var entity = await _context.ApiKeys
             .AsNoTracking()
             .FirstOrDefaultAsync(k => k.Id == id, cancellationToken);
-        
+
         return entity is null ? null : ToModel(entity);
     }
 
@@ -31,7 +31,7 @@ public class ApiKeyRepository : IApiKeyRepository
         var entity = await _context.ApiKeys
             .AsNoTracking()
             .FirstOrDefaultAsync(k => k.KeyHash == keyHash, cancellationToken);
-        
+
         return entity is null ? null : ToModel(entity);
     }
 
@@ -41,7 +41,7 @@ public class ApiKeyRepository : IApiKeyRepository
             .AsNoTracking()
             .Where(k => k.UserId == userId)
             .ToListAsync(cancellationToken);
-        
+
         return entities.Select(ToModel);
     }
 
@@ -57,13 +57,13 @@ public class ApiKeyRepository : IApiKeyRepository
     {
         var entity = await _context.ApiKeys.FindAsync([apiKey.Id], cancellationToken)
             ?? throw new InvalidOperationException($"API key {apiKey.Id} not found");
-        
+
         entity.Name = apiKey.Name;
         entity.Scopes = string.Join(",", apiKey.Scopes);
         entity.ExpiresAt = apiKey.ExpiresAt;
         entity.LastUsedAt = apiKey.LastUsedAt;
         entity.IsActive = apiKey.IsActive;
-        
+
         await _context.SaveChangesAsync(cancellationToken);
         return ToModel(entity);
     }
@@ -84,8 +84,8 @@ public class ApiKeyRepository : IApiKeyRepository
         Name = entity.Name,
         KeyHash = entity.KeyHash,
         UserId = entity.UserId,
-        Scopes = string.IsNullOrEmpty(entity.Scopes) 
-            ? [] 
+        Scopes = string.IsNullOrEmpty(entity.Scopes)
+            ? []
             : entity.Scopes.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList(),
         CreatedAt = entity.CreatedAt,
         ExpiresAt = entity.ExpiresAt,
