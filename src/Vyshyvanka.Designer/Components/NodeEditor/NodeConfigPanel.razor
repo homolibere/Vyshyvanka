@@ -71,8 +71,8 @@
                 <label class="config-label">Name</label>
                 <input type="text"
                        class="config-input"
-                       value="@nodeName"
-                       @oninput="@(e => nodeName = e.Value?.ToString() ?? "")"
+                       value="@_nodeName"
+                       @oninput="@(e => _nodeName = e.Value?.ToString() ?? "")"
                        @onblur="@(() => UpdateNodeName(node.Id))"/>
             </div>
 
@@ -134,11 +134,11 @@
                 </div>
                 <textarea class="config-textarea" 
                           placeholder="Enter JSON configuration..."
-                          @bind="configJson"
+                          @bind="_configJson"
                           @bind:event="oninput"></textarea>
-                @if (!string.IsNullOrEmpty(configError))
+                @if (!string.IsNullOrEmpty(_configError))
                 {
-                    <div class="config-error">@configError</div>
+                    <div class="config-error">@_configError</div>
                 }
                 <button class="config-btn" @onclick="ApplyConfiguration">Apply</button>
             </div>

@@ -8,17 +8,17 @@
             aria-expanded="@_isOpen"
             aria-haspopup="listbox">
         <span class="theme-swatch"
-              style="background: @(_themeService.ActiveTheme?.Preview.Accent ?? "#c62828");"></span>
-        <span class="theme-name">@(_themeService.ActiveTheme?.Name ?? "Theme")</span>
+              style="background: @(ThemeService.ActiveTheme?.Preview.Accent ?? "#c62828");"></span>
+        <span class="theme-name">@(ThemeService.ActiveTheme?.Name ?? "Theme")</span>
         <i class="fa-solid fa-chevron-down theme-chevron"></i>
     </button>
 
     @if (_isOpen)
     {
         <div class="theme-dropdown" role="listbox" aria-label="Available themes">
-            @foreach (var theme in _themeService.AvailableThemes)
+            @foreach (var theme in ThemeService.AvailableThemes)
             {
-                var isActive = theme.Id == _themeService.CurrentThemeId;
+                var isActive = theme.Id == ThemeService.CurrentThemeId;
                 <button class="theme-option @(isActive ? "active" : "")"
                         role="option"
                         aria-selected="@isActive"

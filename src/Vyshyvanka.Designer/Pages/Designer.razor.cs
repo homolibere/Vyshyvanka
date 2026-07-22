@@ -32,7 +32,7 @@ public partial class Designer : IAsyncDisposable
 
     [CascadingParameter] private Vyshyvanka.Designer.Layout.DesignerLayout? Layout { get; set; }
 
-    private RenderFragment _toolbarFragment => builder =>
+    private RenderFragment ToolbarFragment => builder =>
     {
         builder.OpenComponent<Vyshyvanka.Designer.Layout.DesignerToolbar>(0);
         builder.AddAttribute(1, nameof(DesignerToolbar.IsHistoryCollapsed), _isHistoryCollapsed);

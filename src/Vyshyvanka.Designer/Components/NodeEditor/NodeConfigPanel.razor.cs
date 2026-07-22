@@ -19,9 +19,9 @@ public partial class NodeConfigPanel : IDisposable
 
     [Inject] private ToastService ToastService { get; set; } = null!;
 
-    private string configJson = "{}";
-    private string nodeName = "";
-    private string? configError;
+    private string _configJson = "{}";
+    private string _nodeName = "";
+    private string? _configError;
     private string _workflowName = "";
     private string _workflowDescription = "";
     private bool _isRunningToNode;
@@ -38,14 +38,14 @@ public partial class NodeConfigPanel : IDisposable
         var node = CanvasState.GetSelectedNode();
         if (node is not null)
         {
-            nodeName = node.Name;
+            _nodeName = node.Name;
             try
             {
-                configJson = node.Configuration.GetRawText();
+                _configJson = node.Configuration.GetRawText();
             }
             catch
             {
-                configJson = "{}";
+                _configJson = "{}";
             }
         }
         else
@@ -55,7 +55,7 @@ public partial class NodeConfigPanel : IDisposable
             _workflowDescription = Store.Workflow.Description ?? "";
         }
 
-        configError = null;
+        _configError = null;
         StateHasChanged();
     }
 
@@ -79,8 +79,8 @@ public partial class NodeConfigPanel : IDisposable
 
     private void UpdateNodeName(string nodeId)
     {
-        if (string.IsNullOrWhiteSpace(nodeName)) return;
-        EditService.UpdateNodeName(nodeId, nodeName);
+        if (string.IsNullOrWhiteSpace(_nodeName)) return;
+        EditService.UpdateNodeName(nodeId, _nodeName);
     }
 
     private void ApplyConfiguration()
@@ -90,13 +90,13 @@ public partial class NodeConfigPanel : IDisposable
 
         try
         {
-            var config = System.Text.Json.JsonDocument.Parse(configJson).RootElement;
+            var config = System.Text.Json.JsonDocument.Parse(_configJson).RootElement;
             EditService.UpdateNodeConfiguration(node.Id, config);
-            configError = null;
+            _configError = null;
         }
         catch (System.Text.Json.JsonException ex)
         {
-            configError = $"Invalid JSON: {ex.Message}";
+            _configError = $"Invalid JSON: {ex.Message}";
         }
     }
 

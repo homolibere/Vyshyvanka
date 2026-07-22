@@ -44,7 +44,7 @@ public partial class NodeExecutionInspector : IDisposable
         InvokeAsync(StateHasChanged);
     }
 
-    private void HandleExecutionChanged(ExecutionResponse? _)
+    private void HandleExecutionChanged(ExecutionResponse? execution)
     {
         UpdateState();
         InvokeAsync(StateHasChanged);

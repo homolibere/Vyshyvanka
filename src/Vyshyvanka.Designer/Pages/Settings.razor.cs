@@ -8,7 +8,7 @@ namespace Vyshyvanka.Designer.Pages;
 public partial class Settings : ComponentBase, IDisposable
 {
     [Inject] private IJSRuntime Js { get; set; } = null!;
-    [Inject] private ThemeService _themeService { get; set; } = null!;
+    [Inject] private ThemeService ThemeService { get; set; } = null!;
     [Inject] private AuthStateService AuthState { get; set; } = null!;
 
     private string? _uploadError;
@@ -18,7 +18,7 @@ public partial class Settings : ComponentBase, IDisposable
 
     protected override void OnInitialized()
     {
-        _themeService.OnThemeChanged += StateHasChanged;
+        ThemeService.OnThemeChanged += StateHasChanged;
         var role = AuthState.CurrentUser?.Role;
         _isAdmin = string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase);
         _isEditorOrAbove = _isAdmin || string.Equals(role, "Editor", StringComparison.OrdinalIgnoreCase);
@@ -31,19 +31,19 @@ public partial class Settings : ComponentBase, IDisposable
 
     private async Task ApplyTheme(string themeId)
     {
-        await _themeService.SetThemeAsync(themeId);
+        await ThemeService.SetThemeAsync(themeId);
     }
 
     private async Task ExportTheme(string themeId)
     {
-        var json = _themeService.ExportThemeJson(themeId);
+        var json = ThemeService.ExportThemeJson(themeId);
         if (string.IsNullOrEmpty(json)) return;
         await Js.InvokeVoidAsync("downloadFile", $"{themeId}.json", json, "application/json");
     }
 
     private async Task DeleteTheme(string themeId)
     {
-        await _themeService.RemoveThemeAsync(themeId);
+        await ThemeService.RemoveThemeAsync(themeId);
     }
 
     private async Task OnThemeFileSelected(InputFileChangeEventArgs e)
@@ -66,7 +66,7 @@ public partial class Settings : ComponentBase, IDisposable
             using var reader = new StreamReader(stream);
             var json = await reader.ReadToEndAsync();
 
-            var id = await _themeService.ImportThemeAsync(json);
+            var id = await ThemeService.ImportThemeAsync(json);
             if (id is null)
             {
                 _uploadError = "Invalid theme JSON. Ensure it has id, name, baseMode, and colors.";
@@ -84,6 +84,6 @@ public partial class Settings : ComponentBase, IDisposable
 
     public void Dispose()
     {
-        _themeService.OnThemeChanged -= StateHasChanged;
+        ThemeService.OnThemeChanged -= StateHasChanged;
     }
 }

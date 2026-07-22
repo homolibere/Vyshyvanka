@@ -1,7 +1,7 @@
 @namespace Vyshyvanka.Designer.Components
 
-<button class="theme-toggle" @onclick="Toggle" title="@(_themeService.IsDark ? "Switch to light theme" : "Switch to dark theme")" aria-label="Toggle theme">
-    @if (_themeService.IsDark)
+<button class="theme-toggle" @onclick="Toggle" title="@(ThemeService.IsDark ? "Switch to light theme" : "Switch to dark theme")" aria-label="Toggle theme">
+    @if (ThemeService.IsDark)
     {
         <i class="fas fa-sun"></i>
     }

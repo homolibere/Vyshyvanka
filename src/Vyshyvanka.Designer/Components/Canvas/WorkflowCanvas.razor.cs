@@ -27,13 +27,13 @@ public partial class WorkflowCanvas : IAsyncDisposable
     private ElementReference _canvasContainer;
     private IJSObjectReference? _resizeObserver;
     private DotNetObjectReference<WorkflowCanvas>? _dotNetRef;
-    private bool isPanning;
-    private bool isCanvasDragStarted;
-    private string? draggingNodeId;
-    private double lastMouseX;
-    private double lastMouseY;
-    private double dragStartX;
-    private double dragStartY;
+    private bool _isPanning;
+    private bool _isCanvasDragStarted;
+    private string? _draggingNodeId;
+    private double _lastMouseX;
+    private double _lastMouseY;
+    private double _dragStartX;
+    private double _dragStartY;
     private const double DragThreshold = 5;
 
     protected override void OnInitialized()
@@ -85,18 +85,18 @@ public partial class WorkflowCanvas : IAsyncDisposable
 
         if (e.Button == 1 || (e.Button == 0 && e.ShiftKey)) // Middle click or Shift+Left click - immediate pan
         {
-            isPanning = true;
-            lastMouseX = e.ClientX;
-            lastMouseY = e.ClientY;
+            _isPanning = true;
+            _lastMouseX = e.ClientX;
+            _lastMouseY = e.ClientY;
         }
         else if (e.Button == 0)
         {
             // Left click on empty canvas - prepare for potential pan
-            isCanvasDragStarted = true;
-            dragStartX = e.ClientX;
-            dragStartY = e.ClientY;
-            lastMouseX = e.ClientX;
-            lastMouseY = e.ClientY;
+            _isCanvasDragStarted = true;
+            _dragStartX = e.ClientX;
+            _dragStartY = e.ClientY;
+            _lastMouseX = e.ClientX;
+            _lastMouseY = e.ClientY;
         }
     }
 
@@ -110,54 +110,54 @@ public partial class WorkflowCanvas : IAsyncDisposable
             var y = (e.OffsetY - state.PanY) / state.Zoom;
             CanvasState.UpdatePendingConnection(x, y);
         }
-        else if (isPanning)
+        else if (_isPanning)
         {
-            var deltaX = e.ClientX - lastMouseX;
-            var deltaY = e.ClientY - lastMouseY;
+            var deltaX = e.ClientX - _lastMouseX;
+            var deltaY = e.ClientY - _lastMouseY;
             CanvasState.Pan(deltaX, deltaY);
-            lastMouseX = e.ClientX;
-            lastMouseY = e.ClientY;
+            _lastMouseX = e.ClientX;
+            _lastMouseY = e.ClientY;
         }
-        else if (isCanvasDragStarted)
+        else if (_isCanvasDragStarted)
         {
             // Check if we've moved enough to start panning
-            var distX = Math.Abs(e.ClientX - dragStartX);
-            var distY = Math.Abs(e.ClientY - dragStartY);
+            var distX = Math.Abs(e.ClientX - _dragStartX);
+            var distY = Math.Abs(e.ClientY - _dragStartY);
             if (distX > DragThreshold || distY > DragThreshold)
             {
-                isPanning = true;
-                isCanvasDragStarted = false;
+                _isPanning = true;
+                _isCanvasDragStarted = false;
             }
         }
-        else if (draggingNodeId is not null)
+        else if (_draggingNodeId is not null)
         {
             // Move the dragged node
             var state = CanvasState.CanvasState;
-            var deltaX = (e.ClientX - lastMouseX) / state.Zoom;
-            var deltaY = (e.ClientY - lastMouseY) / state.Zoom;
+            var deltaX = (e.ClientX - _lastMouseX) / state.Zoom;
+            var deltaY = (e.ClientY - _lastMouseY) / state.Zoom;
 
-            var node = Store.GetNode(draggingNodeId);
+            var node = Store.GetNode(_draggingNodeId);
             if (node is not null)
             {
-                EditService.MoveNode(draggingNodeId, node.Position.X + deltaX, node.Position.Y + deltaY);
+                EditService.MoveNode(_draggingNodeId, node.Position.X + deltaX, node.Position.Y + deltaY);
             }
 
-            lastMouseX = e.ClientX;
-            lastMouseY = e.ClientY;
+            _lastMouseX = e.ClientX;
+            _lastMouseY = e.ClientY;
         }
     }
 
     private void OnCanvasMouseUp(MouseEventArgs e)
     {
         // If we started a canvas drag but didn't pan, it was a click - clear selection
-        if (isCanvasDragStarted && !isPanning)
+        if (_isCanvasDragStarted && !_isPanning)
         {
             CanvasState.ClearSelection();
         }
 
-        isPanning = false;
-        isCanvasDragStarted = false;
-        draggingNodeId = null;
+        _isPanning = false;
+        _isCanvasDragStarted = false;
+        _draggingNodeId = null;
         if (CanvasState.PendingConnection is not null)
         {
             EditService.EndConnection();
@@ -195,9 +195,9 @@ public partial class WorkflowCanvas : IAsyncDisposable
 
     private void StartNodeDrag(string nodeId, MouseEventArgs e)
     {
-        draggingNodeId = nodeId;
-        lastMouseX = e.ClientX;
-        lastMouseY = e.ClientY;
+        _draggingNodeId = nodeId;
+        _lastMouseX = e.ClientX;
+        _lastMouseY = e.ClientY;
         CanvasState.SelectNode(nodeId);
     }
 

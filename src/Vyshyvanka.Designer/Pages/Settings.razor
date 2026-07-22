@@ -12,9 +12,9 @@
         <h2 class="section-title">Themes</h2>
 
         <div class="theme-grid">
-            @foreach (var theme in _themeService.AvailableThemes)
+            @foreach (var theme in ThemeService.AvailableThemes)
             {
-                var isActive = theme.Id == _themeService.CurrentThemeId;
+                var isActive = theme.Id == ThemeService.CurrentThemeId;
                 <div class="theme-card @(isActive ? "active" : "")" @onclick="() => ApplyTheme(theme.Id)">
                     <div class="theme-card-preview">
                         <span class="preview-swatch" style="background: @theme.Preview.Bg;"></span>

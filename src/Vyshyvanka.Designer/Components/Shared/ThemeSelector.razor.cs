@@ -6,13 +6,13 @@ namespace Vyshyvanka.Designer.Components;
 public partial class ThemeSelector : ComponentBase, IDisposable
 {
     [Inject]
-    private ThemeService _themeService { get; set; } = default!;
+    private ThemeService ThemeService { get; set; } = default!;
 
     private bool _isOpen;
 
     protected override void OnInitialized()
     {
-        _themeService.OnThemeChanged += StateHasChanged;
+        ThemeService.OnThemeChanged += StateHasChanged;
     }
 
     private void ToggleDropdown()
@@ -22,7 +22,7 @@ public partial class ThemeSelector : ComponentBase, IDisposable
 
     private async Task SelectTheme(string themeId)
     {
-        await _themeService.SetThemeAsync(themeId);
+        await ThemeService.SetThemeAsync(themeId);
         _isOpen = false;
     }
 
@@ -38,6 +38,6 @@ public partial class ThemeSelector : ComponentBase, IDisposable
 
     public void Dispose()
     {
-        _themeService.OnThemeChanged -= StateHasChanged;
+        ThemeService.OnThemeChanged -= StateHasChanged;
     }
 }

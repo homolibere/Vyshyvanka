@@ -5,7 +5,7 @@
     </div>
 
     <div class="palette-search">
-        <input type="text" placeholder="Search nodes..." @bind="searchText" @bind:event="oninput"/>
+        <input type="text" placeholder="Search nodes..." @bind="_searchText" @bind:event="oninput"/>
     </div>
 
     @foreach (var category in GetGroupedNodes())
@@ -14,10 +14,10 @@
             <div class="category-header" @onclick="() => ToggleCategory(category.Key)">
                 <span class="category-icon">@GetCategoryIcon(category.Key)</span>
                 <span class="category-name">@category.Key</span>
-                <span class="category-toggle">@(expandedCategories.Contains(category.Key) ? "▼" : "▶")</span>
+                <span class="category-toggle">@(_expandedCategories.Contains(category.Key) ? "▼" : "▶")</span>
             </div>
 
-            @if (expandedCategories.Contains(category.Key))
+            @if (_expandedCategories.Contains(category.Key))
             {
                 <div class="category-nodes">
                     @foreach (var node in category)

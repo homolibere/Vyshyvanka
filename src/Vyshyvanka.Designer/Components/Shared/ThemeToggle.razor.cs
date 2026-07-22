@@ -10,28 +10,28 @@ namespace Vyshyvanka.Designer.Components;
 public partial class ThemeToggle : ComponentBase, IDisposable
 {
     [Inject]
-    private ThemeService _themeService { get; set; } = default!;
+    private ThemeService ThemeService { get; set; } = default!;
 
     protected override void OnInitialized()
     {
-        _themeService.OnThemeChanged += StateHasChanged;
+        ThemeService.OnThemeChanged += StateHasChanged;
     }
 
     private async Task Toggle()
     {
         // Toggle between light/dark by switching to the opposite base mode theme
-        if (_themeService.IsDark)
+        if (ThemeService.IsDark)
         {
-            await _themeService.SetThemeAsync("vyshyvanka-light");
+            await ThemeService.SetThemeAsync("vyshyvanka-light");
         }
         else
         {
-            await _themeService.SetThemeAsync("vyshyvanka-dark");
+            await ThemeService.SetThemeAsync("vyshyvanka-dark");
         }
     }
 
     public void Dispose()
     {
-        _themeService.OnThemeChanged -= StateHasChanged;
+        ThemeService.OnThemeChanged -= StateHasChanged;
     }
 }

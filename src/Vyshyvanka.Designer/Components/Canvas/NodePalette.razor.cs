@@ -13,8 +13,8 @@ public partial class NodePalette : IDisposable
     [Inject]
     private CanvasStateService CanvasState { get; set; } = null!;
 
-    private string searchText = string.Empty;
-    private HashSet<NodeCategory> expandedCategories = [NodeCategory.Trigger, NodeCategory.Logic];
+    private string _searchText = string.Empty;
+    private HashSet<NodeCategory> _expandedCategories = [NodeCategory.Trigger, NodeCategory.Logic];
 
     protected override void OnInitialized()
     {
@@ -30,12 +30,12 @@ public partial class NodePalette : IDisposable
     {
         var nodes = Store.NodeDefinitions.AsEnumerable();
 
-        if (!string.IsNullOrWhiteSpace(searchText))
+        if (!string.IsNullOrWhiteSpace(_searchText))
         {
             nodes = nodes.Where(n =>
-                n.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
-                n.Description.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
-                (!string.IsNullOrEmpty(n.SourcePackage) && n.SourcePackage.Contains(searchText, StringComparison.OrdinalIgnoreCase)));
+                n.Name.Contains(_searchText, StringComparison.OrdinalIgnoreCase) ||
+                n.Description.Contains(_searchText, StringComparison.OrdinalIgnoreCase) ||
+                (!string.IsNullOrEmpty(n.SourcePackage) && n.SourcePackage.Contains(_searchText, StringComparison.OrdinalIgnoreCase)));
         }
 
         return nodes.GroupBy(n => n.Category).OrderBy(g => g.Key);
@@ -43,10 +43,10 @@ public partial class NodePalette : IDisposable
 
     private void ToggleCategory(NodeCategory category)
     {
-        if (expandedCategories.Contains(category))
-            expandedCategories.Remove(category);
+        if (_expandedCategories.Contains(category))
+            _expandedCategories.Remove(category);
         else
-            expandedCategories.Add(category);
+            _expandedCategories.Add(category);
     }
 
     private static string GetCategoryIcon(NodeCategory category) => category switch
