@@ -16,12 +16,10 @@ namespace Vyshyvanka.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
-public class WorkflowController : ControllerBase
+public class WorkflowController : VyshyvankaControllerBase
 {
     private readonly IWorkflowRepository _repository;
     private readonly WorkflowValidator _validator;
-    private readonly ICurrentUserService _currentUserService;
-    private readonly IWorkflowPermissionService _permissionService;
     private readonly ILogger<WorkflowController> _logger;
 
     public WorkflowController(
@@ -30,11 +28,10 @@ public class WorkflowController : ControllerBase
         ICurrentUserService currentUserService,
         IWorkflowPermissionService permissionService,
         ILogger<WorkflowController> logger)
+        : base(currentUserService, permissionService)
     {
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         _validator = validator ?? throw new ArgumentNullException(nameof(validator));
-        _currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
-        _permissionService = permissionService ?? throw new ArgumentNullException(nameof(permissionService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -448,17 +445,6 @@ public class WorkflowController : ControllerBase
 
         var userId = _currentUserService.UserId;
         return userId is not null && workflow.CreatedBy == userId;
-    }
-
-    private async Task<bool> HasPermissionAsync(Workflow workflow, WorkflowPermissionLevel requiredLevel, CancellationToken cancellationToken)
-    {
-        var userId = _currentUserService.UserId;
-        if (userId is null)
-            return false;
-
-        var isAdmin = User.IsInRole(Roles.Admin);
-        return await _permissionService.HasPermissionAsync(
-            workflow.Id, workflow.CreatedBy, userId.Value, requiredLevel, isAdmin, cancellationToken);
     }
 
     /// <summary>

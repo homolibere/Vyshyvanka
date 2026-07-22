@@ -17,14 +17,12 @@ namespace Vyshyvanka.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
-public class ExecutionController : ControllerBase
+public class ExecutionController : VyshyvankaControllerBase
 {
     private readonly IWorkflowEngine _workflowEngine;
     private readonly IWorkflowRepository _workflowRepository;
     private readonly IExecutionRepository _executionRepository;
     private readonly ICredentialService? _credentialService;
-    private readonly ICurrentUserService _currentUserService;
-    private readonly IWorkflowPermissionService _permissionService;
     private readonly ILogger<ExecutionController> _logger;
 
     public ExecutionController(
@@ -35,12 +33,11 @@ public class ExecutionController : ControllerBase
         IWorkflowPermissionService permissionService,
         ILogger<ExecutionController> logger,
         ICredentialService? credentialService = null)
+        : base(currentUserService, permissionService)
     {
         _workflowEngine = workflowEngine ?? throw new ArgumentNullException(nameof(workflowEngine));
         _workflowRepository = workflowRepository ?? throw new ArgumentNullException(nameof(workflowRepository));
         _executionRepository = executionRepository ?? throw new ArgumentNullException(nameof(executionRepository));
-        _currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
-        _permissionService = permissionService ?? throw new ArgumentNullException(nameof(permissionService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _credentialService = credentialService;
     }
@@ -451,17 +448,6 @@ public class ExecutionController : ControllerBase
                 requiredNodeIds.Contains(c.SourceNodeId) &&
                 requiredNodeIds.Contains(c.TargetNodeId)).ToList()
         };
-    }
-
-    private async Task<bool> HasPermissionAsync(Workflow workflow, WorkflowPermissionLevel requiredLevel, CancellationToken cancellationToken)
-    {
-        var userId = _currentUserService.UserId;
-        if (userId is null)
-            return false;
-
-        var isAdmin = User.IsInRole(Roles.Admin);
-        return await _permissionService.HasPermissionAsync(
-            workflow.Id, workflow.CreatedBy, userId.Value, requiredLevel, isAdmin, cancellationToken);
     }
 
     /// <summary>
