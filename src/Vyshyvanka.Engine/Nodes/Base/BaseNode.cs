@@ -10,6 +10,10 @@ namespace Vyshyvanka.Engine.Nodes.Base;
 /// </summary>
 public abstract class BaseNode : INode
 {
+    private static readonly JsonSerializerOptions ConfigSerializerOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
     /// <inheritdoc />
     public abstract string Id { get; }
 
@@ -73,7 +77,7 @@ public abstract class BaseNode : INode
 
         if (input.Configuration.TryGetProperty(key, out var value))
         {
-            return JsonSerializer.Deserialize<T>(value.GetRawText());
+            return JsonSerializer.Deserialize<T>(value.GetRawText(), ConfigSerializerOptions);
         }
 
         return default;

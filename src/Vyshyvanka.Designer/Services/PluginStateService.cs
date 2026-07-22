@@ -169,7 +169,7 @@ public class PluginStateService : IDisposable
 
         // Set up debounce timer - fire and forget with error handling
         _searchDebounceTimer = new Timer(
-            _ => ExecuteSearchWithErrorHandlingAsync(query, cancellationToken),
+            _ => _ = ExecuteSearchWithErrorHandlingAsync(query, cancellationToken),
             null,
             debounceMs,
             Timeout.Infinite);
@@ -178,7 +178,7 @@ public class PluginStateService : IDisposable
     /// <summary>
     /// Executes search with error handling for timer callback.
     /// </summary>
-    private async void ExecuteSearchWithErrorHandlingAsync(string query, CancellationToken cancellationToken)
+    private async Task ExecuteSearchWithErrorHandlingAsync(string query, CancellationToken cancellationToken)
     {
         try
         {

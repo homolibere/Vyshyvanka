@@ -56,7 +56,25 @@ public abstract class BaseLogicNode : BaseNode
             if (current.ValueKind != JsonValueKind.Object)
                 return default;
 
-            if (!current.TryGetProperty(part, out current))
+            if (current.TryGetProperty(part, out var next))
+            {
+                current = next;
+                continue;
+            }
+
+            // Fallback: case-insensitive property lookup
+            var found = false;
+            foreach (var prop in current.EnumerateObject())
+            {
+                if (prop.Name.Equals(part, StringComparison.OrdinalIgnoreCase))
+                {
+                    current = prop.Value;
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found)
                 return default;
         }
 

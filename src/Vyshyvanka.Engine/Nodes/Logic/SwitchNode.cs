@@ -76,7 +76,7 @@ public class SwitchNode : BaseLogicNode
 
     private static bool ValuesMatch(JsonElement fieldValue, object? caseValue)
     {
-        if (caseValue is null)
+        if (caseValue is null || (caseValue is JsonElement je && je.ValueKind == JsonValueKind.Null))
             return fieldValue.ValueKind == JsonValueKind.Null || fieldValue.ValueKind == JsonValueKind.Undefined;
 
         return fieldValue.ValueKind switch
