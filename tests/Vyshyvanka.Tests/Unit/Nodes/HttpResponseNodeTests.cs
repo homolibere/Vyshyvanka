@@ -40,7 +40,7 @@ public class HttpResponseNodeTests
 
         result.Success.Should().BeFalse();
         result.ErrorMessage.Should().Contain("Webhook Trigger");
-        result.ErrorMessage.Should().Contain("sync");
+        result.ErrorMessage.Should().Contain("lastNode");
     }
 
     [Fact]

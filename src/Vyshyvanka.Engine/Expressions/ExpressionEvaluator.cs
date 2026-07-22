@@ -451,12 +451,18 @@ public partial class ExpressionEvaluator : IExpressionEvaluator
         {
             currentPath.Add(part);
 
+            // Null-safe navigation: if current value is null/undefined, short-circuit to null
+            if (current.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+            {
+                return null;
+            }
+
             if (current.ValueKind == JsonValueKind.Object)
             {
                 if (!current.TryGetProperty(part, out current))
                 {
-                    throw new ExpressionEvaluationException(
-                        $"Property '{part}' not found at path '{string.Join(".", currentPath)}'", originalPath);
+                    // Property not found — return null instead of throwing
+                    return null;
                 }
             }
             else if (current.ValueKind == JsonValueKind.Array && int.TryParse(part, out var index))
@@ -464,24 +470,21 @@ public partial class ExpressionEvaluator : IExpressionEvaluator
                 var arrayLength = current.GetArrayLength();
                 if (index < 0 || index >= arrayLength)
                 {
-                    throw new ExpressionEvaluationException(
-                        $"Array index {index} is out of bounds. Array length is {arrayLength} at path '{string.Join(".", currentPath)}'",
-                        originalPath);
+                    // Array index out of bounds — return null instead of throwing
+                    return null;
                 }
 
                 current = current[index];
             }
             else if (current.ValueKind == JsonValueKind.Array)
             {
-                throw new ExpressionEvaluationException(
-                    $"Expected numeric index for array access, got '{part}' at path '{string.Join(".", currentPath)}'",
-                    originalPath);
+                // Non-numeric index on array — return null instead of throwing
+                return null;
             }
             else
             {
-                throw new ExpressionEvaluationException(
-                    $"Cannot access '{part}' on {current.ValueKind} value at path '{string.Join(".", currentPath)}'",
-                    originalPath);
+                // Cannot navigate further into a scalar value — return null
+                return null;
             }
         }
 

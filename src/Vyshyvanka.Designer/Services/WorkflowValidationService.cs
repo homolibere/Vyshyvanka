@@ -74,7 +74,9 @@ public class WorkflowValidationService(WorkflowStore store)
         if (sourceDefinition is null || targetDefinition is null)
             return false;
 
-        var sourcePortDef = sourceDefinition.Outputs.FirstOrDefault(p => p.Name == sourcePort);
+        // Use effective outputs to account for dynamic ports (e.g., Switch cases)
+        var effectiveOutputs = NodeLayout.GetEffectiveOutputs(sourceNode, sourceDefinition);
+        var sourcePortDef = effectiveOutputs.FirstOrDefault(p => p.Name == sourcePort);
         var targetPortDef = targetDefinition.Inputs.FirstOrDefault(p => p.Name == targetPort);
         if (sourcePortDef is null || targetPortDef is null)
             return false;

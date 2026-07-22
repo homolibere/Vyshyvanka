@@ -191,8 +191,9 @@ public class WebhookController : ControllerBase
         // Create execution context
         var executionId = Guid.NewGuid();
 
-        // Create webhook response writer for sync mode
-        WebhookResponseWriter? responseWriter = responseMode.Equals("sync", StringComparison.OrdinalIgnoreCase)
+        // Create webhook response writer for sync mode (responseMode = "lastNode" or legacy "sync")
+        WebhookResponseWriter? responseWriter = responseMode.Equals("lastNode", StringComparison.OrdinalIgnoreCase)
+                                                || responseMode.Equals("sync", StringComparison.OrdinalIgnoreCase)
             ? new WebhookResponseWriter()
             : null;
 

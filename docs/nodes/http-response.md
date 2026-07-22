@@ -6,7 +6,7 @@
 
 ## Description
 
-Returns a synchronous HTTP response to the caller that triggered the workflow via a webhook. This node can only be used in workflows where the Webhook Trigger has `responseMode` set to `"sync"`.
+Returns a synchronous HTTP response to the caller that triggered the workflow via a webhook. This node can only be used in workflows where the Webhook Trigger has `responseMode` set to `"lastNode"`.
 
 Only one HTTP Response node may fire per workflow execution. If multiple HTTP Response nodes exist in parallel branches, the first one to execute wins.
 
@@ -44,12 +44,12 @@ Only one HTTP Response node may fire per workflow execution. If multiple HTTP Re
 The Webhook Trigger node in the same workflow must have:
 ```json
 {
-  "responseMode": "sync",
+  "responseMode": "lastNode",
   "responseTimeout": 30
 }
 ```
 
-If `responseMode` is not `"sync"` (or is omitted), the HTTP Response node will produce a failure output.
+If `responseMode` is not `"lastNode"` (or is omitted), the HTTP Response node will produce a failure output.
 
 ## Error Conditions
 

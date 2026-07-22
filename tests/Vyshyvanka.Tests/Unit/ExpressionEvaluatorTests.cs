@@ -271,4 +271,126 @@ public class ExpressionEvaluatorTests
         success.Should().BeFalse();
         error.Should().NotBeNullOrEmpty();
     }
+
+    // --- Null-safe navigation ---
+
+    [Fact]
+    public void WhenAccessingPropertyOnNullValueThenReturnsNull()
+    {
+        var context = CreateContext(nodeOutputs: new()
+        {
+            ["webhook"] = ToJson(new { body = (object?)null })
+        });
+
+        var result = _sut.Evaluate("{{ nodes.webhook.body.object_kind }}", context);
+
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void WhenAccessingNestedPropertyOnNullIntermediateThenReturnsNull()
+    {
+        var context = CreateContext(nodeOutputs: new()
+        {
+            ["api"] = ToJson(new { response = new { data = (object?)null } })
+        });
+
+        var result = _sut.Evaluate("{{ nodes.api.response.data.items.count }}", context);
+
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void WhenAccessingMissingPropertyOnObjectThenReturnsNull()
+    {
+        var context = CreateContext(nodeOutputs: new()
+        {
+            ["node1"] = ToJson(new { name = "test" })
+        });
+
+        var result = _sut.Evaluate("{{ nodes.node1.nonExistentField }}", context);
+
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void WhenAccessingPropertyOnEmptyObjectThenReturnsNull()
+    {
+        var context = CreateContext(nodeOutputs: new()
+        {
+            ["switch"] = ToJson(new { })
+        });
+
+        var result = _sut.Evaluate("{{ nodes.switch.body.object_kind }}", context);
+
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void WhenArrayIndexOutOfBoundsThenReturnsNull()
+    {
+        var context = CreateContext(nodeOutputs: new()
+        {
+            ["node1"] = ToJson(new { items = new[] { "a", "b" } })
+        });
+
+        var result = _sut.Evaluate("{{ nodes.node1.items[5] }}", context);
+
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void WhenNonNumericIndexOnArrayThenReturnsNull()
+    {
+        var context = CreateContext(nodeOutputs: new()
+        {
+            ["node1"] = ToJson(new { items = new[] { "a", "b" } })
+        });
+
+        var result = _sut.Evaluate("{{ nodes.node1.items.name }}", context);
+
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void WhenNavigatingIntoScalarValueThenReturnsNull()
+    {
+        var context = CreateContext(nodeOutputs: new()
+        {
+            ["node1"] = ToJson(new { count = 42 })
+        });
+
+        var result = _sut.Evaluate("{{ nodes.node1.count.something }}", context);
+
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void WhenTryEvaluateWithNullPathThenSucceedsWithNull()
+    {
+        var context = CreateContext(nodeOutputs: new()
+        {
+            ["webhook"] = ToJson(new { body = (object?)null })
+        });
+
+        var success = _sut.TryEvaluate("{{ nodes.webhook.body.field }}", context, out var result, out var error);
+
+        success.Should().BeTrue();
+        result.Should().BeNull();
+        error.Should().BeNull();
+    }
+
+    [Fact]
+    public void WhenNullPathInInterpolatedStringThenResolvesToEmpty()
+    {
+        var context = CreateContext(nodeOutputs: new()
+        {
+            ["node1"] = ToJson(new { name = "Alice" }),
+            ["node2"] = ToJson(new { data = (object?)null })
+        });
+
+        var result = _sut.Evaluate("Hello {{ nodes.node1.name }}, status: {{ nodes.node2.data.status }}", context);
+
+        result.Should().Be("Hello Alice, status: ");
+    }
 }

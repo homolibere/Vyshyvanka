@@ -8,7 +8,7 @@ namespace Vyshyvanka.Engine.Nodes.Actions;
 
 /// <summary>
 /// Returns a synchronous HTTP response to the webhook caller.
-/// Can only be used in workflows triggered by a Webhook Trigger with responseMode set to "sync".
+/// Can only be used in workflows triggered by a Webhook Trigger with responseMode set to "lastNode".
 /// Only one HTTP Response node may fire per workflow execution.
 /// </summary>
 [NodeDefinition(
@@ -41,7 +41,7 @@ public class HttpResponseNode : BaseActionNode
             if (webhookResponse is null)
             {
                 return FailureOutput(
-                    "HTTP Response node can only be used in workflows triggered by a Webhook Trigger with responseMode \"sync\".");
+                    "HTTP Response node can only be used in workflows triggered by a Webhook Trigger with responseMode \"lastNode\".");
             }
 
             if (webhookResponse.IsResponseSent)
