@@ -11,6 +11,9 @@ public partial class UserMenu : ComponentBase, IDisposable
     [Inject]
     private NavigationManager Navigation { get; set; } = null!;
 
+    [Inject]
+    private WorkflowEditService EditService { get; set; } = null!;
+
     protected override void OnInitialized()
     {
         AuthService.OnAuthStateChanged += StateHasChanged;
@@ -36,6 +39,7 @@ public partial class UserMenu : ComponentBase, IDisposable
 
     private void HandleLogout()
     {
+        EditService.NewWorkflow();
         AuthService.Logout();
         Navigation.NavigateTo("/login");
     }

@@ -52,4 +52,16 @@ public partial class Login
         public string Email { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
     }
+
+    private void PrefillCredentials(string role)
+    {
+        (_model.Email, _model.Password) = role switch
+        {
+            "admin" => ("admin@vyshyvanka.local", "Admin123!"),
+            "editor" => ("editor@vyshyvanka.local", "Editor123!"),
+            "viewer" => ("viewer@vyshyvanka.local", "Viewer123!"),
+            _ => (_model.Email, _model.Password)
+        };
+        _errorMessage = null;
+    }
 }

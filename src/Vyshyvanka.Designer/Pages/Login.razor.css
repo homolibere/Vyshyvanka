@@ -81,3 +81,32 @@
 .dev-credentials code {
     color: var(--accent);
 }
+
+.dev-credential-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.dev-credential-item:hover {
+    background: var(--bg-surface);
+}
+
+.dev-credential-item + .dev-credential-item {
+    margin-top: 0.25rem;
+}
+
+.dev-credential-role {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 0.1rem 0.4rem;
+    border-radius: 3px;
+    background: var(--accent-light);
+    color: var(--accent);
+    white-space: nowrap;
+}
