@@ -1,6 +1,9 @@
 using System.Text.Json;
 using Vyshyvanka.Api.Authorization;
 using Vyshyvanka.Api.Models;
+using Vyshyvanka.Contracts;
+using Vyshyvanka.Contracts.Folders;
+using Vyshyvanka.Contracts.Workflows;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Core.Models;
@@ -80,7 +83,7 @@ public class WorkflowController : VyshyvankaControllerBase
 
         var response = new PagedResponse<WorkflowResponse>
         {
-            Items = workflows.Select(WorkflowResponse.FromModel).ToList(),
+            Items = workflows.Select(w => w.ToResponse()).ToList(),
             Skip = skip,
             Take = take,
             TotalCount = workflows.Count
@@ -112,7 +115,7 @@ public class WorkflowController : VyshyvankaControllerBase
             });
         }
 
-        return Ok(WorkflowResponse.FromModel(workflow));
+        return Ok(workflow.ToResponse());
     }
 
 
@@ -156,7 +159,7 @@ public class WorkflowController : VyshyvankaControllerBase
         return CreatedAtAction(
             nameof(GetById),
             new { id = created.Id },
-            WorkflowResponse.FromModel(created));
+            created.ToResponse());
     }
 
     /// <summary>
@@ -220,7 +223,7 @@ public class WorkflowController : VyshyvankaControllerBase
         var updated = await _repository.UpdateAsync(workflow, cancellationToken);
         _logger.LogInformation("Updated workflow {WorkflowId}: {WorkflowName}", updated.Id, updated.Name);
 
-        return Ok(WorkflowResponse.FromModel(updated));
+        return Ok(updated.ToResponse());
     }
 
 
@@ -351,7 +354,7 @@ public class WorkflowController : VyshyvankaControllerBase
 
         var response = new PagedResponse<WorkflowResponse>
         {
-            Items = workflows.Select(WorkflowResponse.FromModel).ToList(),
+            Items = workflows.Select(w => w.ToResponse()).ToList(),
             Skip = skip,
             Take = take,
             TotalCount = workflows.Count

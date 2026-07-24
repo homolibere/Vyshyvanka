@@ -1,35 +1,25 @@
+using Vyshyvanka.Contracts;
+
 namespace Vyshyvanka.Designer.Models;
 
 /// <summary>
-/// Standard API error response matching the server's ApiError format.
+/// Extension methods for ApiError.
 /// </summary>
-public record ApiError
+public static class ApiErrorExtensions
 {
-    /// <summary>Error code for programmatic handling.</summary>
-    public string Code { get; init; } = string.Empty;
-
-    /// <summary>Human-readable error message.</summary>
-    public string Message { get; init; } = string.Empty;
-
-    /// <summary>Additional error details by field.</summary>
-    public Dictionary<string, string[]>? Details { get; init; }
-
-    /// <summary>Trace ID for debugging.</summary>
-    public string? TraceId { get; init; }
-
     /// <summary>Gets a formatted error message including details if available.</summary>
-    public string GetFullMessage()
+    public static string GetFullMessage(this ApiError error)
     {
-        if (Details is null || Details.Count == 0)
-            return Message;
+        if (error.Details is null || error.Details.Count == 0)
+            return error.Message;
 
-        var detailMessages = Details
+        var detailMessages = error.Details
             .SelectMany(kvp => kvp.Value.Select(v => $"{kvp.Key}: {v}"))
             .ToList();
 
         return detailMessages.Count > 0
-            ? $"{Message} ({string.Join("; ", detailMessages)})"
-            : Message;
+            ? $"{error.Message} ({string.Join("; ", detailMessages)})"
+            : error.Message;
     }
 }
 

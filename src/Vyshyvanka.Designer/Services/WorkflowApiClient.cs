@@ -1,5 +1,8 @@
 using System.Net.Http.Json;
 using System.Text.Json;
+using Vyshyvanka.Contracts;
+using Vyshyvanka.Contracts.Executions;
+using Vyshyvanka.Contracts.Workflows;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Core.Models;
@@ -15,7 +18,7 @@ public class WorkflowApiClient(HttpClient httpClient) : ApiClientBase(httpClient
     /// <summary>Gets all workflows.</summary>
     public async Task<List<Workflow>> GetWorkflowsAsync(CancellationToken cancellationToken = default)
     {
-        var response = await Http.GetFromJsonAsync<PagedWorkflowResponse>("api/workflow", cancellationToken);
+        var response = await Http.GetFromJsonAsync<PagedResponse<WorkflowResponse>>("api/workflow", cancellationToken);
         return response?.Items.Select(MapToWorkflow).ToList() ?? [];
     }
 
@@ -124,12 +127,12 @@ public class WorkflowApiClient(HttpClient httpClient) : ApiClientBase(httpClient
     }
 
     /// <summary>Gets paginated execution history for a workflow.</summary>
-    public async Task<PagedExecutionResponse> GetExecutionHistoryAsync(
+    public async Task<PagedResponse<ExecutionSummaryResponse>> GetExecutionHistoryAsync(
         Guid workflowId, int skip = 0, int take = 20, CancellationToken cancellationToken = default)
     {
         var url = $"api/execution?workflowId={workflowId}&skip={skip}&take={take}";
-        var response = await Http.GetFromJsonAsync<PagedExecutionResponse>(url, JsonOptions, cancellationToken);
-        return response ?? new PagedExecutionResponse();
+        var response = await Http.GetFromJsonAsync<PagedResponse<ExecutionSummaryResponse>>(url, JsonOptions, cancellationToken);
+        return response ?? new PagedResponse<ExecutionSummaryResponse>();
     }
 
     private static CreateWorkflowRequest MapToCreateRequest(Workflow workflow) => new()

@@ -71,7 +71,7 @@ public class CredentialApiClientTests
         var handler = new MockHttpHandler(MockHttpHandler.JsonResponse(json));
         var sut = CreateClient(handler);
 
-        var model = new CreateCredentialModel { Name = "New Cred", Type = Vyshyvanka.Core.Enums.CredentialType.ApiKey };
+        var model = new CreateCredentialRequest { Name = "New Cred", Type = Vyshyvanka.Core.Enums.CredentialType.ApiKey };
         var result = await sut.CreateCredentialAsync(model);
 
         handler.LastRequest!.Method.Should().Be(HttpMethod.Post);
@@ -86,7 +86,7 @@ public class CredentialApiClientTests
         var handler = new MockHttpHandler(MockHttpHandler.ErrorResponse("VALIDATION", "Name required"));
         var sut = CreateClient(handler);
 
-        var model = new CreateCredentialModel { Name = "" };
+        var model = new CreateCredentialRequest { Name = "" };
 
         var act = () => sut.CreateCredentialAsync(model);
 
@@ -101,7 +101,7 @@ public class CredentialApiClientTests
         var handler = new MockHttpHandler(MockHttpHandler.JsonResponse(json));
         var sut = CreateClient(handler);
 
-        var model = new UpdateCredentialModel { Name = "Updated" };
+        var model = new UpdateCredentialRequest { Name = "Updated" };
         var result = await sut.UpdateCredentialAsync(id, model);
 
         handler.LastRequest!.Method.Should().Be(HttpMethod.Put);

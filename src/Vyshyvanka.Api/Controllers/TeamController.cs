@@ -1,5 +1,7 @@
 using Vyshyvanka.Api.Authorization;
 using Vyshyvanka.Api.Models;
+using Vyshyvanka.Contracts;
+using Vyshyvanka.Contracts.Teams;
 using Vyshyvanka.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -30,7 +32,7 @@ public class TeamController(
             return Unauthorized();
 
         var teams = await teamService.GetUserTeamsAsync(userId.Value, cancellationToken);
-        return Ok(teams.Select(TeamResponse.FromModel).ToList());
+        return Ok(teams.Select(t => t.ToResponse()).ToList());
     }
 
     /// <summary>
@@ -56,7 +58,7 @@ public class TeamController(
             });
         }
 
-        return Ok(TeamResponse.FromModel(team));
+        return Ok(team.ToResponse());
     }
 
     /// <summary>
@@ -76,7 +78,7 @@ public class TeamController(
         {
             var team = await teamService.CreateAsync(request.Name, request.Description, userId, cancellationToken);
             logger.LogInformation("Created team {TeamId}: {TeamName}", team.Id, team.Name);
-            return CreatedAtAction(nameof(GetById), new { id = team.Id }, TeamResponse.FromModel(team));
+            return CreatedAtAction(nameof(GetById), new { id = team.Id }, team.ToResponse());
         }
         catch (InvalidOperationException ex)
         {
@@ -107,7 +109,7 @@ public class TeamController(
         {
             var team = await teamService.UpdateAsync(id, request.Name, request.Description, userId, cancellationToken);
             logger.LogInformation("Updated team {TeamId}: {TeamName}", team.Id, team.Name);
-            return Ok(TeamResponse.FromModel(team));
+            return Ok(team.ToResponse());
         }
         catch (InvalidOperationException ex)
         {

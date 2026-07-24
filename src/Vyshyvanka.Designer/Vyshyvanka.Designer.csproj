@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Vyshyvanka.Contracts\Vyshyvanka.Contracts.csproj" />
     <ProjectReference Include="..\Vyshyvanka.Core\Vyshyvanka.Core.csproj" />
   </ItemGroup>
 

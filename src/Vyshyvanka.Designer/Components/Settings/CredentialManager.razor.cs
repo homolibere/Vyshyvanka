@@ -21,7 +21,7 @@ public partial class CredentialManager
     [Parameter]
     public EventCallback OnClose { get; set; }
 
-    private List<CredentialModel> _credentials = [];
+    private List<CredentialResponse> _credentials = [];
     private bool _isLoading;
     private bool _showCreateForm;
     private bool _showEditForm;
@@ -72,7 +72,7 @@ public partial class CredentialManager
         _formError = null;
     }
 
-    private async Task ShowEditForm(CredentialModel credential)
+    private async Task ShowEditForm(CredentialResponse credential)
     {
         _showEditForm = true;
         _showCreateForm = false;
@@ -126,7 +126,7 @@ public partial class CredentialManager
 
         try
         {
-            var model = new CreateCredentialModel
+            var model = new CreateCredentialRequest
             {
                 Name = _formName,
                 Type = _formType,
@@ -170,7 +170,7 @@ public partial class CredentialManager
 
         try
         {
-            var model = new UpdateCredentialModel
+            var model = new UpdateCredentialRequest
             {
                 Name = _formName,
                 Data = _formData.Count > 0 && _formData.Values.Any(v => !string.IsNullOrWhiteSpace(v))

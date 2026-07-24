@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Vyshyvanka.Contracts.Auth;
 using Vyshyvanka.Designer.Models;
 
 namespace Vyshyvanka.Designer.Services;

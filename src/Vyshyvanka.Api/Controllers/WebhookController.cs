@@ -2,6 +2,7 @@ using System.Text.Json;
 using Vyshyvanka.Api.Extensions;
 using Vyshyvanka.Api.Models;
 using Vyshyvanka.Api.Services;
+using Vyshyvanka.Contracts;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Core.Models;

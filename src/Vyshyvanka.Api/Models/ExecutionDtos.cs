@@ -1,105 +1,11 @@
-using System.ComponentModel.DataAnnotations;
-using System.Text.Json;
-using Vyshyvanka.Core.Enums;
+using Vyshyvanka.Contracts.Executions;
 using Vyshyvanka.Core.Models;
 
 namespace Vyshyvanka.Api.Models;
 
-/// <summary>
-/// Request to trigger a workflow execution.
-/// </summary>
-public record TriggerExecutionRequest
+public static class ExecutionMappings
 {
-    /// <summary>ID of the workflow to execute.</summary>
-    [Required(ErrorMessage = "WorkflowId is required")]
-    public Guid WorkflowId { get; init; }
-
-    /// <summary>Input data for the execution.</summary>
-    public JsonElement? InputData { get; init; }
-
-    /// <summary>Execution mode.</summary>
-    public ExecutionMode Mode { get; init; } = ExecutionMode.Api;
-
-    /// <summary>
-    /// Optional target node ID. When set, only nodes from the trigger up to
-    /// and including this node will be executed (partial execution for debugging).
-    /// </summary>
-    public string? TargetNodeId { get; init; }
-
-    /// <summary>
-    /// Whether to include the target node in execution. Default is true.
-    /// When false, only predecessors of the target node are executed (useful for populating input).
-    /// </summary>
-    public bool IncludeTargetNode { get; init; } = true;
-}
-
-/// <summary>
-/// Request to execute a single node with provided input data.
-/// </summary>
-public record ExecuteNodeRequest
-{
-    /// <summary>ID of the workflow containing the node.</summary>
-    [Required(ErrorMessage = "WorkflowId is required")]
-    public Guid WorkflowId { get; init; }
-
-    /// <summary>ID of the node to execute.</summary>
-    [Required(ErrorMessage = "NodeId is required")]
-    public string NodeId { get; init; } = string.Empty;
-
-    /// <summary>Input data to pass to the node.</summary>
-    [Required(ErrorMessage = "InputData is required")]
-    public JsonElement InputData { get; init; }
-}
-
-/// <summary>
-/// Query parameters for filtering executions.
-/// </summary>
-public record ExecutionQueryRequest
-{
-    /// <summary>Filter by workflow ID.</summary>
-    public Guid? WorkflowId { get; init; }
-
-    /// <summary>Filter by status.</summary>
-    public ExecutionStatus? Status { get; init; }
-
-    /// <summary>Filter by mode.</summary>
-    public ExecutionMode? Mode { get; init; }
-
-    /// <summary>Filter by start date (from).</summary>
-    public DateTime? StartDateFrom { get; init; }
-
-    /// <summary>Filter by start date (to).</summary>
-    public DateTime? StartDateTo { get; init; }
-
-    /// <summary>Number of records to skip.</summary>
-    [Range(0, int.MaxValue)]
-    public int Skip { get; init; }
-
-    /// <summary>Number of records to take.</summary>
-    [Range(1, 100)]
-    public int Take { get; init; } = 50;
-}
-
-/// <summary>
-/// Execution response DTO.
-/// </summary>
-public record ExecutionResponse
-{
-    public Guid Id { get; init; }
-    public Guid WorkflowId { get; init; }
-    public int WorkflowVersion { get; init; }
-    public ExecutionStatus Status { get; init; }
-    public ExecutionMode Mode { get; init; }
-    public DateTime StartedAt { get; init; }
-    public DateTime? CompletedAt { get; init; }
-    public TimeSpan? Duration { get; init; }
-    public JsonElement? TriggerData { get; init; }
-    public JsonElement? OutputData { get; init; }
-    public string? ErrorMessage { get; init; }
-    public List<NodeExecutionResponse> NodeExecutions { get; init; } = [];
-
-    /// <summary>Creates a response from an execution model.</summary>
-    public static ExecutionResponse FromModel(Execution execution)
+    public static ExecutionResponse ToResponse(this Execution execution)
     {
         return new ExecutionResponse
         {
@@ -117,28 +23,12 @@ public record ExecutionResponse
             OutputData = execution.OutputData,
             ErrorMessage = execution.ErrorMessage,
             NodeExecutions = execution.NodeExecutions
-                .Select(NodeExecutionResponse.FromModel)
+                .Select(ne => ne.ToResponse())
                 .ToList()
         };
     }
-}
 
-/// <summary>
-/// Node execution response DTO.
-/// </summary>
-public record NodeExecutionResponse
-{
-    public string NodeId { get; init; } = string.Empty;
-    public ExecutionStatus Status { get; init; }
-    public DateTime StartedAt { get; init; }
-    public DateTime? CompletedAt { get; init; }
-    public TimeSpan? Duration { get; init; }
-    public JsonElement? InputData { get; init; }
-    public JsonElement? OutputData { get; init; }
-    public string? ErrorMessage { get; init; }
-
-    /// <summary>Creates a response from a node execution model.</summary>
-    public static NodeExecutionResponse FromModel(NodeExecution nodeExecution)
+    public static NodeExecutionResponse ToResponse(this NodeExecution nodeExecution)
     {
         return new NodeExecutionResponse
         {
@@ -154,25 +44,8 @@ public record NodeExecutionResponse
             ErrorMessage = nodeExecution.ErrorMessage
         };
     }
-}
 
-/// <summary>
-/// Summary response for execution list (without node details).
-/// </summary>
-public record ExecutionSummaryResponse
-{
-    public Guid Id { get; init; }
-    public Guid WorkflowId { get; init; }
-    public int WorkflowVersion { get; init; }
-    public ExecutionStatus Status { get; init; }
-    public ExecutionMode Mode { get; init; }
-    public DateTime StartedAt { get; init; }
-    public DateTime? CompletedAt { get; init; }
-    public TimeSpan? Duration { get; init; }
-    public string? ErrorMessage { get; init; }
-
-    /// <summary>Creates a summary response from an execution model.</summary>
-    public static ExecutionSummaryResponse FromModel(Execution execution)
+    public static ExecutionSummaryResponse ToSummaryResponse(this Execution execution)
     {
         return new ExecutionSummaryResponse
         {

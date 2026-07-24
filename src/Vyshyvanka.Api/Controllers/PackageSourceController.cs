@@ -1,5 +1,7 @@
 using Vyshyvanka.Api.Authorization;
 using Vyshyvanka.Api.Models;
+using Vyshyvanka.Contracts;
+using Vyshyvanka.Contracts.Packages;
 using Vyshyvanka.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -36,7 +38,7 @@ public class PackageSourceController : ControllerBase
         _logger.LogDebug("Getting package sources");
 
         var sources = _sourceService.GetSources();
-        var response = sources.Select(PackageSourceResponse.FromSource).ToList();
+        var response = sources.Select(s => s.ToResponse()).ToList();
         return Ok(response);
     }
 
@@ -76,7 +78,7 @@ public class PackageSourceController : ControllerBase
 
             return CreatedAtAction(
                 nameof(GetSources),
-                PackageSourceResponse.FromSource(source));
+                source.ToResponse());
         }
         catch (ArgumentException ex)
         {
@@ -129,7 +131,7 @@ public class PackageSourceController : ControllerBase
                 .First(s => s.Name.Equals(request.Name, StringComparison.OrdinalIgnoreCase));
 
             _logger.LogInformation("Package source updated: {SourceName}", updated.Name);
-            return Ok(PackageSourceResponse.FromSource(updated));
+            return Ok(updated.ToResponse());
         }
         catch (ArgumentException ex)
         {
@@ -201,6 +203,6 @@ public class PackageSourceController : ControllerBase
         }
 
         var result = await _sourceService.TestSourceAsync(name, cancellationToken);
-        return Ok(SourceTestResponse.FromResult(result));
+        return Ok(result.ToResponse());
     }
 }

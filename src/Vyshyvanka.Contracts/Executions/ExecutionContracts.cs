@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Vyshyvanka.Core.Enums;
 
-namespace Vyshyvanka.Designer.Models;
+namespace Vyshyvanka.Contracts.Executions;
 
 /// <summary>
 /// Request to trigger a workflow execution.
@@ -23,6 +23,20 @@ public record ExecuteNodeRequest
     public Guid WorkflowId { get; init; }
     public string NodeId { get; init; } = string.Empty;
     public JsonElement InputData { get; init; }
+}
+
+/// <summary>
+/// Query parameters for filtering executions.
+/// </summary>
+public record ExecutionQueryRequest
+{
+    public Guid? WorkflowId { get; init; }
+    public ExecutionStatus? Status { get; init; }
+    public ExecutionMode? Mode { get; init; }
+    public DateTime? StartDateFrom { get; init; }
+    public DateTime? StartDateTo { get; init; }
+    public int Skip { get; init; }
+    public int Take { get; init; } = 50;
 }
 
 /// <summary>
@@ -60,7 +74,7 @@ public record NodeExecutionResponse
 }
 
 /// <summary>
-/// Execution summary response (without node-level details) for history listing.
+/// Summary response for execution list (without node details).
 /// </summary>
 public record ExecutionSummaryResponse
 {
@@ -73,15 +87,4 @@ public record ExecutionSummaryResponse
     public DateTime? CompletedAt { get; init; }
     public TimeSpan? Duration { get; init; }
     public string? ErrorMessage { get; init; }
-}
-
-/// <summary>
-/// Paginated execution history response.
-/// </summary>
-public record PagedExecutionResponse
-{
-    public List<ExecutionSummaryResponse> Items { get; init; } = [];
-    public int Skip { get; init; }
-    public int Take { get; init; }
-    public int TotalCount { get; init; }
 }

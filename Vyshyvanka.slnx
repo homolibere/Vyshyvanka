@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/Vyshyvanka.Core/Vyshyvanka.Core.csproj" />
+    <Project Path="src/Vyshyvanka.Contracts/Vyshyvanka.Contracts.csproj" />
     <Project Path="src/Vyshyvanka.Engine/Vyshyvanka.Engine.csproj" />
     <Project Path="src/Vyshyvanka.Api/Vyshyvanka.Api.csproj" />
     <Project Path="src/Vyshyvanka.Designer/Vyshyvanka.Designer.csproj" />

@@ -1,8 +1,9 @@
 using System.Security.Claims;
 using Vyshyvanka.Api.Authorization;
 using Vyshyvanka.Api.Models;
+using Vyshyvanka.Contracts;
+using Vyshyvanka.Contracts.Credentials;
 using Vyshyvanka.Core.Interfaces;
-using Vyshyvanka.Core.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -27,7 +28,7 @@ public class CredentialController(
         if (userId is null) return Unauthorized();
 
         var credentials = await credentialService.ListAsync(userId.Value, cancellationToken);
-        return Ok(credentials.Select(c => CredentialResponse.FromModel(c)));
+        return Ok(credentials.Select(c => c.ToResponse()));
     }
 
     /// <summary>Get a credential by ID (includes stored field keys for UI masking).</summary>
@@ -59,7 +60,7 @@ public class CredentialController(
                 .ToList();
         }
 
-        return Ok(CredentialResponse.FromModel(credential, storedFields));
+        return Ok(credential.ToResponse(storedFields));
     }
 
     /// <summary>Create a new credential.</summary>
@@ -67,7 +68,7 @@ public class CredentialController(
     [ProducesResponseType(typeof(CredentialResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ApiError), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create(
-        [FromBody] CreateCredentialDto dto,
+        [FromBody] CreateCredentialRequest dto,
         CancellationToken cancellationToken)
     {
         var userId = GetCurrentUserId();
@@ -83,7 +84,7 @@ public class CredentialController(
             });
         }
 
-        var request = new CreateCredentialRequest
+        var request = new Core.Models.CreateCredentialRequest
         {
             Name = dto.Name,
             Type = dto.Type,
@@ -92,7 +93,7 @@ public class CredentialController(
         };
 
         var credential = await credentialService.CreateAsync(request, cancellationToken);
-        return CreatedAtAction(nameof(Get), new { id = credential.Id }, CredentialResponse.FromModel(credential));
+        return CreatedAtAction(nameof(Get), new { id = credential.Id }, credential.ToResponse());
     }
 
     /// <summary>Update an existing credential.</summary>
@@ -101,7 +102,7 @@ public class CredentialController(
     [ProducesResponseType(typeof(ApiError), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(
         Guid id,
-        [FromBody] UpdateCredentialDto dto,
+        [FromBody] UpdateCredentialRequest dto,
         CancellationToken cancellationToken)
     {
         var userId = GetCurrentUserId();
@@ -130,9 +131,9 @@ public class CredentialController(
             }
         }
 
-        var request = new UpdateCredentialRequest { Name = dto.Name, Data = dto.Data };
+        var request = new Core.Models.UpdateCredentialRequest { Name = dto.Name, Data = dto.Data };
         var updated = await credentialService.UpdateAsync(id, request, cancellationToken);
-        return Ok(CredentialResponse.FromModel(updated));
+        return Ok(updated.ToResponse());
     }
 
     /// <summary>Delete a credential.</summary>

@@ -1,5 +1,7 @@
 using Vyshyvanka.Api.Authorization;
 using Vyshyvanka.Api.Models;
+using Vyshyvanka.Contracts;
+using Vyshyvanka.Contracts.Folders;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Core.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -31,7 +33,7 @@ public class FolderController(
             return Unauthorized();
 
         var folders = await folderRepository.GetByOwnerAsync(userId.Value, cancellationToken);
-        return Ok(folders.Select(FolderResponse.FromModel).ToList());
+        return Ok(folders.Select(f => f.ToResponse()).ToList());
     }
 
     /// <summary>
@@ -53,7 +55,7 @@ public class FolderController(
             });
         }
 
-        return Ok(FolderResponse.FromModel(folder));
+        return Ok(folder.ToResponse());
     }
 
     /// <summary>
@@ -90,7 +92,7 @@ public class FolderController(
         var created = await folderRepository.CreateAsync(folder, cancellationToken);
         logger.LogInformation("Created folder {FolderId}: {FolderName}", created.Id, created.Name);
 
-        return CreatedAtAction(nameof(GetById), new { id = created.Id }, FolderResponse.FromModel(created));
+        return CreatedAtAction(nameof(GetById), new { id = created.Id }, created.ToResponse());
     }
 
     /// <summary>
@@ -124,7 +126,7 @@ public class FolderController(
         var result = await folderRepository.UpdateAsync(updated, cancellationToken);
         logger.LogInformation("Updated folder {FolderId}: {FolderName}", result.Id, result.Name);
 
-        return Ok(FolderResponse.FromModel(result));
+        return Ok(result.ToResponse());
     }
 
     /// <summary>

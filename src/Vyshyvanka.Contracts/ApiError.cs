@@ -1,4 +1,4 @@
-namespace Vyshyvanka.Api.Models;
+namespace Vyshyvanka.Contracts;
 
 /// <summary>
 /// Standard API error response.

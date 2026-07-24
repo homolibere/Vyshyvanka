@@ -1,5 +1,7 @@
 using Vyshyvanka.Api.Authorization;
 using Vyshyvanka.Api.Models;
+using Vyshyvanka.Contracts;
+using Vyshyvanka.Contracts.Sharing;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -49,7 +51,7 @@ public class SharingController(
         foreach (var perm in permissions)
         {
             var targetName = await ResolveTargetNameAsync(perm.TargetType, perm.TargetId, cancellationToken);
-            responses.Add(WorkflowPermissionResponse.FromModel(perm, targetName));
+            responses.Add(perm.ToResponse(targetName));
         }
 
         return Ok(responses);
@@ -117,7 +119,7 @@ public class SharingController(
         return CreatedAtAction(
             nameof(GetPermissions),
             new { workflowId },
-            WorkflowPermissionResponse.FromModel(permission));
+            permission.ToResponse());
     }
 
     /// <summary>

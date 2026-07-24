@@ -22,6 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Vyshyvanka.Contracts\Vyshyvanka.Contracts.csproj" />
     <ProjectReference Include="..\Vyshyvanka.Core\Vyshyvanka.Core.csproj" />
     <ProjectReference Include="..\Vyshyvanka.Engine\Vyshyvanka.Engine.csproj" />
     <ProjectReference Include="..\Vyshyvanka.ServiceDefaults\Vyshyvanka.ServiceDefaults.csproj" />

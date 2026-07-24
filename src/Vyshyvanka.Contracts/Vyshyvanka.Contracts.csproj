@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <!-- NuGet Package Metadata -->
+    <PackageId>Vyshyvanka.Contracts</PackageId>
+    <Version>0.1.0</Version>
+    <Authors>Vyshyvanka</Authors>
+    <Description>Shared API request/response records for Vyshyvanka. Referenced by both the API server and the Blazor Designer client.</Description>
+    <PackageTags>vyshyvanka;workflow;automation;contracts;dto</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryType>git</RepositoryType>
+
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Vyshyvanka.Core\Vyshyvanka.Core.csproj" />
+  </ItemGroup>
+
+</Project>

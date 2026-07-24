@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Vyshyvanka.Core.Enums;
 
-namespace Vyshyvanka.Designer.Models;
+namespace Vyshyvanka.Contracts.Workflows;
 
 /// <summary>
 /// Request to create a new workflow.
@@ -90,15 +90,4 @@ public record WorkflowResponse
     public DateTime CreatedAt { get; init; }
     public DateTime UpdatedAt { get; init; }
     public Guid CreatedBy { get; init; }
-}
-
-/// <summary>
-/// Paginated workflow response.
-/// </summary>
-public record PagedWorkflowResponse
-{
-    public List<WorkflowResponse> Items { get; init; } = [];
-    public int Skip { get; init; }
-    public int Take { get; init; }
-    public int TotalCount { get; init; }
 }

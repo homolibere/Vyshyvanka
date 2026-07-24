@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Vyshyvanka.Contracts.Auth;
 using Vyshyvanka.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -163,32 +164,4 @@ public class ApiKeyController(IApiKeyService apiKeyService) : ControllerBase
         }
         return userId;
     }
-}
-
-public record CreateApiKeyRequest
-{
-    public string Name { get; init; } = string.Empty;
-    public List<string>? Scopes { get; init; }
-    public DateTime? ExpiresAt { get; init; }
-}
-
-public record CreateApiKeyResponse
-{
-    public Guid Id { get; init; }
-    public string Name { get; init; } = string.Empty;
-    public string Key { get; init; } = string.Empty;
-    public List<string> Scopes { get; init; } = [];
-    public DateTime CreatedAt { get; init; }
-    public DateTime? ExpiresAt { get; init; }
-}
-
-public record ApiKeyResponse
-{
-    public Guid Id { get; init; }
-    public string Name { get; init; } = string.Empty;
-    public List<string> Scopes { get; init; } = [];
-    public DateTime CreatedAt { get; init; }
-    public DateTime? ExpiresAt { get; init; }
-    public DateTime? LastUsedAt { get; init; }
-    public bool IsActive { get; init; }
 }

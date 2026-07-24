@@ -44,7 +44,7 @@ public class ApiKeyApiClientTests
         var handler = new MockHttpHandler(MockHttpHandler.JsonResponse(json));
         var sut = CreateClient(handler);
 
-        var model = new CreateApiKeyModel { Name = "New Key" };
+        var model = new CreateApiKeyRequest { Name = "New Key" };
         var result = await sut.CreateApiKeyAsync(model);
 
         handler.LastRequest!.Method.Should().Be(HttpMethod.Post);
@@ -58,7 +58,7 @@ public class ApiKeyApiClientTests
         var handler = new MockHttpHandler(MockHttpHandler.ErrorResponse("VALIDATION", "Name required"));
         var sut = CreateClient(handler);
 
-        var model = new CreateApiKeyModel { Name = "" };
+        var model = new CreateApiKeyRequest { Name = "" };
 
         var act = () => sut.CreateApiKeyAsync(model);
 

@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using Vyshyvanka.Contracts.Sharing;
 using Vyshyvanka.Designer.Models;
 
 namespace Vyshyvanka.Designer.Services;

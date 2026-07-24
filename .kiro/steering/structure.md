@@ -8,6 +8,7 @@ inclusion: always
 Vyshyvanka/
 ├── src/
 │   ├── Vyshyvanka.Core/              # Domain layer — zero dependencies on other projects
+│   ├── Vyshyvanka.Contracts/         # Shared API request/response records (pure DTOs, no logic)
 │   ├── Vyshyvanka.Engine/            # Execution engine, persistence, plugins, auth
 │   ├── Vyshyvanka.Api/               # ASP.NET Core REST API
 │   ├── Vyshyvanka.AppHost/           # .NET Aspire orchestration (dev hosting)
@@ -33,11 +34,12 @@ Dependencies flow strictly downward. NEVER introduce an upward or circular refer
 | Project | Allowed References | Forbidden References |
 |---------|-------------------|----------------------|
 | Core | None | Everything else |
-| Engine | Core | Api, Designer, AppHost |
-| Api | Core, Engine | Designer, AppHost |
-| AppHost | Api, ServiceDefaults | Core, Engine directly |
-| Designer | None (HTTP calls only) | Core, Engine, Api |
-| Plugin.* | Core | Engine, Api, Designer |
+| Contracts | Core | Engine, Api, Designer, AppHost |
+| Engine | Core | Api, Designer, AppHost, Contracts |
+| Api | Core, Engine, Contracts | Designer, AppHost |
+| AppHost | Api, ServiceDefaults | Core, Engine, Contracts directly |
+| Designer | Contracts | Core, Engine, Api |
+| Plugin.* | Core | Engine, Api, Designer, Contracts |
 | Tests | All projects | — |
 
 ## Code Placement
@@ -52,6 +54,21 @@ Place new files according to these tables. Namespace MUST match the folder path 
 | Enums | `Enums/` |
 | Custom exceptions | `Exceptions/` |
 | Node / plugin attributes | `Attributes/` |
+
+### Vyshyvanka.Contracts/
+| What | Where |
+|------|-------|
+| Workflow request/response records | `Workflows/` |
+| Execution request/response records | `Executions/` |
+| Credential request/response records | `Credentials/` |
+| Package request/response records | `Packages/` |
+| Sharing request/response records | `Sharing/` |
+| Team request/response records | `Teams/` |
+| Folder request/response records | `Folders/` |
+| User/Auth request/response records | `Auth/` |
+| Common types (`ApiError`, `PagedResponse<T>`) | root namespace |
+
+All records in Contracts are plain (no validation attributes, no `FromModel()` methods, no domain model dependencies beyond `Vyshyvanka.Core.Enums`).
 
 ### Vyshyvanka.Engine/
 | What | Where |

@@ -20,7 +20,7 @@ public partial class UserManager
     [Inject]
     private ToastService ToastService { get; set; } = null!;
 
-    private List<AdminUserModel> _users = [];
+    private List<AdminUserResponse> _users = [];
     private int _totalCount;
     private bool _isLoading;
     private string _searchTerm = "";
@@ -40,13 +40,13 @@ public partial class UserManager
     private bool _canCreateUsers;
 
     // Edit user
-    private AdminUserModel? _editUser;
+    private AdminUserResponse? _editUser;
     private string _editEmail = "";
     private string _editDisplayName = "";
     private string? _editError;
 
     // Team assignment
-    private AdminUserModel? _teamAssignUser;
+    private AdminUserResponse? _teamAssignUser;
     private List<TeamResponse> _teams = [];
     private string? _teamError;
 
@@ -60,7 +60,7 @@ public partial class UserManager
     {
         try
         {
-            var config = await Http.GetFromJsonAsync<AuthConfigModel>("api/auth/config");
+            var config = await Http.GetFromJsonAsync<AuthConfigResponse>("api/auth/config");
             _canCreateUsers = string.Equals(config?.Provider, "BuiltIn", StringComparison.OrdinalIgnoreCase);
         }
         catch
@@ -213,7 +213,7 @@ public partial class UserManager
     }
 
     // Edit user profile
-    private void StartEditUser(AdminUserModel user)
+    private void StartEditUser(AdminUserResponse user)
     {
         _editUser = user;
         _editEmail = user.Email;
@@ -265,7 +265,7 @@ public partial class UserManager
     }
 
     // Team assignment
-    private async Task ShowTeamAssign(AdminUserModel user)
+    private async Task ShowTeamAssign(AdminUserResponse user)
     {
         _teamAssignUser = user;
         _teamError = null;

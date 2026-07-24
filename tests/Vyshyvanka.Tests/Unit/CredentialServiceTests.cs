@@ -19,7 +19,7 @@ public class CredentialServiceTests
     [Fact]
     public async Task WhenCreatingValidCredentialThenPersistsEncryptedData()
     {
-        var request = new CreateCredentialRequest
+        var request = new Vyshyvanka.Core.Models.CreateCredentialRequest
         {
             Name = "My API Key",
             Type = CredentialType.ApiKey,
@@ -42,7 +42,7 @@ public class CredentialServiceTests
     [Fact]
     public async Task WhenCreatingCredentialWithInvalidDataThenThrowsArgumentException()
     {
-        var request = new CreateCredentialRequest
+        var request = new Vyshyvanka.Core.Models.CreateCredentialRequest
         {
             Name = "Bad Credential",
             Type = CredentialType.ApiKey,
@@ -138,7 +138,7 @@ public class CredentialServiceTests
         _repository.UpdateAsync(Arg.Any<Credential>(), Arg.Any<CancellationToken>())!
             .Returns(ci => ci.Arg<Credential>());
 
-        var request = new UpdateCredentialRequest
+        var request = new Vyshyvanka.Core.Models.UpdateCredentialRequest
         {
             Name = "New Name",
             Data = new Dictionary<string, string> { ["apiKey"] = "sk-new" }

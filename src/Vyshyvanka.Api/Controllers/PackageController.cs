@@ -1,5 +1,7 @@
 using Vyshyvanka.Api.Authorization;
 using Vyshyvanka.Api.Models;
+using Vyshyvanka.Contracts;
+using Vyshyvanka.Contracts.Packages;
 using Vyshyvanka.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -55,7 +57,7 @@ public class PackageController : ControllerBase
         };
 
         var result = await _packageManager.SearchPackagesAsync(query, options, cancellationToken);
-        return Ok(PackageSearchResponse.FromResult(result));
+        return Ok(result.ToResponse());
     }
 
 
@@ -70,7 +72,7 @@ public class PackageController : ControllerBase
         _logger.LogDebug("Getting installed packages");
 
         var packages = _packageManager.GetInstalledPackages();
-        var response = packages.Select(InstalledPackageResponse.FromPackage).ToList();
+        var response = packages.Select(p => p.ToResponse()).ToList();
         return Ok(response);
     }
 
@@ -111,7 +113,7 @@ public class PackageController : ControllerBase
             });
         }
 
-        return Ok(PackageDetailsResponse.FromDetails(details));
+        return Ok(details.ToResponse());
     }
 
 
@@ -161,7 +163,7 @@ public class PackageController : ControllerBase
 
         _logger.LogInformation("Package installed successfully: {PackageId} v{Version}",
             result.Package?.PackageId, result.Package?.Version);
-        return Ok(PackageInstallResponse.FromResult(result));
+        return Ok(result.ToResponse());
     }
 
     /// <summary>
@@ -221,7 +223,7 @@ public class PackageController : ControllerBase
 
         _logger.LogInformation("Package updated successfully: {PackageId} v{OldVersion} -> v{NewVersion}",
             id, result.PreviousVersion, result.Package?.Version);
-        return Ok(PackageUpdateResponse.FromResult(result));
+        return Ok(result.ToResponse());
     }
 
 
@@ -283,7 +285,7 @@ public class PackageController : ControllerBase
         }
 
         _logger.LogInformation("Package uninstalled successfully: {PackageId}", id);
-        return Ok(PackageUninstallResponse.FromResult(result));
+        return Ok(result.ToResponse());
     }
 
     /// <summary>
@@ -299,7 +301,7 @@ public class PackageController : ControllerBase
         _logger.LogDebug("Checking for package updates");
 
         var updates = await _packageManager.CheckForUpdatesAsync(cancellationToken);
-        var response = updates.Select(PackageUpdateInfoResponse.FromInfo).ToList();
+        var response = updates.Select(u => u.ToResponse()).ToList();
         return Ok(response);
     }
 
@@ -353,6 +355,6 @@ public class PackageController : ControllerBase
 
         _logger.LogInformation("Package uploaded and installed: {PackageId} v{Version}",
             result.Package?.PackageId, result.Package?.Version);
-        return Ok(PackageInstallResponse.FromResult(result));
+        return Ok(result.ToResponse());
     }
 }

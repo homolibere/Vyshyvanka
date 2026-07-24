@@ -1,6 +1,6 @@
 using System.Net;
 using System.Text.Json;
-using Vyshyvanka.Api.Models;
+using Vyshyvanka.Contracts;
 using Vyshyvanka.Core.Exceptions;
 
 namespace Vyshyvanka.Api.Middleware;

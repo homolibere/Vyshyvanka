@@ -16,7 +16,7 @@ public partial class ApiKeyManager
     [Inject]
     private IJSRuntime Js { get; set; } = null!;
 
-    private List<ApiKeyModel> _keys = [];
+    private List<ApiKeyResponse> _keys = [];
     private bool _isLoading;
 
     // Create form
@@ -87,7 +87,7 @@ public partial class ApiKeyManager
                 ? DateTime.UtcNow.AddDays(days)
                 : null;
 
-            var model = new CreateApiKeyModel
+            var model = new CreateApiKeyRequest
             {
                 Name = _formName.Trim(),
                 ExpiresAt = expiresAt

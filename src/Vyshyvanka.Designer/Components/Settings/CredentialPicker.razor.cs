@@ -25,7 +25,7 @@ public partial class CredentialPicker : ComponentBase
     [Parameter]
     public CredentialType? FilterType { get; set; }
 
-    private List<CredentialModel> _credentials = [];
+    private List<CredentialResponse> _credentials = [];
     private string _selectedId = "";
     private bool _showCreateForm;
     private bool _isSaving;
@@ -101,7 +101,7 @@ public partial class CredentialPicker : ComponentBase
 
         try
         {
-            var model = new CreateCredentialModel
+            var model = new CreateCredentialRequest
             {
                 Name = _newName,
                 Type = _newType,

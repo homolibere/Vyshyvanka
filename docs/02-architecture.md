@@ -24,6 +24,7 @@ graph TD
     Designer["Vyshyvanka.Designer<br/><i>Blazor WASM</i>"]
     Api["Vyshyvanka.Api<br/><i>ASP.NET Core</i>"]
     Engine["Vyshyvanka.Engine<br/><i>Execution, Persistence, Plugins</i>"]
+    Contracts["Vyshyvanka.Contracts<br/><i>Shared API DTOs</i>"]
     Core["Vyshyvanka.Core<br/><i>Domain Models, Interfaces</i>"]
     ServiceDefaults["Vyshyvanka.ServiceDefaults<br/><i>Aspire Shared Config</i>"]
     Plugin["Vyshyvanka.Plugin.*<br/><i>Extension Packages</i>"]
@@ -31,16 +32,20 @@ graph TD
 
     AppHost --> Api
     AppHost --> Designer
+    Designer --> Contracts
     Designer -->|HTTP| Api
+    Api --> Contracts
     Api --> Engine
     Api --> Core
     Api --> ServiceDefaults
+    Contracts --> Core
     Engine --> Core
     Plugin --> Core
     Tests --> Api
     Tests --> Engine
     Tests --> Core
     Tests --> Designer
+    Tests --> Contracts
     Tests --> ServiceDefaults
 ```
 
@@ -51,13 +56,14 @@ Dependencies flow strictly downward. Violations cause circular reference build e
 | Project | Can Reference | Must Not Reference |
 |---------|--------------|-------------------|
 | Core | Nothing | Any other project |
-| Engine | Core | Api, Designer |
-| Api | Core, Engine, ServiceDefaults | Designer |
-| Designer | Core (shared enums only) | Engine, Api |
-| Plugin.* | Core | Engine, Api, Designer |
+| Contracts | Core | Engine, Api, Designer |
+| Engine | Core | Api, Designer, Contracts |
+| Api | Core, Engine, Contracts, ServiceDefaults | Designer |
+| Designer | Contracts | Core (directly), Engine, Api |
+| Plugin.* | Core | Engine, Api, Designer, Contracts |
 | Tests | All projects | — |
 
-The Designer communicates with the API exclusively over HTTP. It never references Engine or Api assemblies directly.
+The Designer communicates with the API exclusively over HTTP. It shares request/response types via the Contracts library but never references Engine or Api assemblies directly.
 
 ## Deployment Topology
 

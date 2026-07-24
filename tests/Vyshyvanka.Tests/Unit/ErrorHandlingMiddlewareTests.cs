@@ -1,7 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using Vyshyvanka.Api.Middleware;
-using Vyshyvanka.Api.Models;
+using Vyshyvanka.Contracts;
 using Vyshyvanka.Core.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;

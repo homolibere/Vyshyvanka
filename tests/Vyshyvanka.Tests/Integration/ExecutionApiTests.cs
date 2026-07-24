@@ -1,6 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
 using Vyshyvanka.Api.Models;
+using Vyshyvanka.Contracts.Executions;
+using Vyshyvanka.Contracts.Workflows;
 using Vyshyvanka.Tests.Integration.Fixtures;
 
 namespace Vyshyvanka.Tests.Integration;

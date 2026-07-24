@@ -1,6 +1,8 @@
 using System.Text.Json;
 using Vyshyvanka.Api.Authorization;
 using Vyshyvanka.Api.Models;
+using Vyshyvanka.Contracts;
+using Vyshyvanka.Contracts.Executions;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Core.Models;
@@ -155,7 +157,7 @@ public class ExecutionController : VyshyvankaControllerBase
                 "Workflow {WorkflowId} execution {ExecutionId} completed with status {Status}",
                 workflow.Id, execution.Id, execution.Status);
 
-            return Accepted(ExecutionResponse.FromModel(execution));
+            return Accepted(execution.ToResponse());
         }
         catch (Exception ex)
         {
@@ -280,7 +282,7 @@ public class ExecutionController : VyshyvankaControllerBase
             });
         }
 
-        return Ok(ExecutionResponse.FromModel(execution));
+        return Ok(execution.ToResponse());
     }
 
     /// <summary>
@@ -312,7 +314,7 @@ public class ExecutionController : VyshyvankaControllerBase
 
         var response = new PagedResponse<ExecutionSummaryResponse>
         {
-            Items = executions.Select(ExecutionSummaryResponse.FromModel).ToList(),
+            Items = executions.Select(e => e.ToSummaryResponse()).ToList(),
             Skip = query.Skip,
             Take = query.Take,
             TotalCount = executions.Count
@@ -340,7 +342,7 @@ public class ExecutionController : VyshyvankaControllerBase
 
         var response = new PagedResponse<ExecutionSummaryResponse>
         {
-            Items = executions.Select(ExecutionSummaryResponse.FromModel).ToList(),
+            Items = executions.Select(e => e.ToSummaryResponse()).ToList(),
             Skip = skip,
             Take = take,
             TotalCount = executions.Count
@@ -368,7 +370,7 @@ public class ExecutionController : VyshyvankaControllerBase
 
         var response = new PagedResponse<ExecutionSummaryResponse>
         {
-            Items = executions.Select(ExecutionSummaryResponse.FromModel).ToList(),
+            Items = executions.Select(e => e.ToSummaryResponse()).ToList(),
             Skip = skip,
             Take = take,
             TotalCount = executions.Count

@@ -1,5 +1,7 @@
 using Vyshyvanka.Api.Authorization;
 using Vyshyvanka.Api.Models;
+using Vyshyvanka.Contracts;
+using Vyshyvanka.Contracts.Auth;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Core.Models;
@@ -51,7 +53,7 @@ public class UserController(
             .OrderBy(u => u.Email)
             .Skip(skip)
             .Take(take)
-            .Select(AdminUserResponse.FromModel)
+            .Select(u => u.ToAdminResponse())
             .ToList();
 
         return Ok(new UserListResponse
@@ -79,7 +81,7 @@ public class UserController(
             });
         }
 
-        return Ok(AdminUserResponse.FromModel(user));
+        return Ok(user.ToAdminResponse());
     }
 
     /// <summary>
@@ -141,7 +143,7 @@ public class UserController(
         user = await userRepository.UpdateAsync(user, cancellationToken);
 
         logger.LogInformation("Admin created user {Email} with role {Role}", user.Email, user.Role);
-        return CreatedAtAction(nameof(GetById), new { id = user.Id }, AdminUserResponse.FromModel(user));
+        return CreatedAtAction(nameof(GetById), new { id = user.Id }, user.ToAdminResponse());
     }
 
     /// <summary>
@@ -190,7 +192,7 @@ public class UserController(
         logger.LogInformation("Admin updated profile for user {UserId}: email={Email}, name={DisplayName}",
             id, updated.Email, updated.DisplayName);
 
-        return Ok(AdminUserResponse.FromModel(updated));
+        return Ok(updated.ToAdminResponse());
     }
 
     /// <summary>
@@ -229,7 +231,7 @@ public class UserController(
         logger.LogInformation("Admin changed role for {Email} from {OldRole} to {NewRole}",
             user.Email, user.Role, role);
 
-        return Ok(AdminUserResponse.FromModel(updated));
+        return Ok(updated.ToAdminResponse());
     }
 
     /// <summary>
@@ -259,6 +261,6 @@ public class UserController(
         logger.LogInformation("Admin {Action} user {Email}",
             request.IsActive ? "activated" : "deactivated", user.Email);
 
-        return Ok(AdminUserResponse.FromModel(updated));
+        return Ok(updated.ToAdminResponse());
     }
 }

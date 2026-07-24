@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using Vyshyvanka.Contracts.Auth;
 using Vyshyvanka.Designer.Models;
 
 namespace Vyshyvanka.Designer.Services;
@@ -26,43 +27,43 @@ public class UserApiClient(HttpClient httpClient) : ApiClientBase(httpClient)
     }
 
     /// <summary>Gets a user by ID.</summary>
-    public async Task<AdminUserModel?> GetUserAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<AdminUserResponse?> GetUserAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await Http.GetFromJsonAsync<AdminUserModel>($"api/user/{id}", JsonOptions, cancellationToken);
+        return await Http.GetFromJsonAsync<AdminUserResponse>($"api/user/{id}", JsonOptions, cancellationToken);
     }
 
     /// <summary>Creates a new user (BuiltIn provider only).</summary>
-    public async Task<AdminUserModel?> CreateUserAsync(CreateUserRequest request, CancellationToken cancellationToken = default)
+    public async Task<AdminUserResponse?> CreateUserAsync(CreateUserRequest request, CancellationToken cancellationToken = default)
     {
         var response = await Http.PostAsJsonAsync("api/user", request, JsonOptions, cancellationToken);
         await EnsureSuccessAsync(response, cancellationToken);
-        return await response.Content.ReadFromJsonAsync<AdminUserModel>(JsonOptions, cancellationToken);
+        return await response.Content.ReadFromJsonAsync<AdminUserResponse>(JsonOptions, cancellationToken);
     }
 
     /// <summary>Updates a user's role.</summary>
-    public async Task<AdminUserModel?> UpdateRoleAsync(Guid userId, string role, CancellationToken cancellationToken = default)
+    public async Task<AdminUserResponse?> UpdateRoleAsync(Guid userId, string role, CancellationToken cancellationToken = default)
     {
         var request = new UpdateUserRoleRequest { Role = role };
         var response = await Http.PutAsJsonAsync($"api/user/{userId}/role", request, JsonOptions, cancellationToken);
         await EnsureSuccessAsync(response, cancellationToken);
-        return await response.Content.ReadFromJsonAsync<AdminUserModel>(JsonOptions, cancellationToken);
+        return await response.Content.ReadFromJsonAsync<AdminUserResponse>(JsonOptions, cancellationToken);
     }
 
     /// <summary>Activates or deactivates a user.</summary>
-    public async Task<AdminUserModel?> UpdateStatusAsync(Guid userId, bool isActive, CancellationToken cancellationToken = default)
+    public async Task<AdminUserResponse?> UpdateStatusAsync(Guid userId, bool isActive, CancellationToken cancellationToken = default)
     {
         var request = new UpdateUserStatusRequest { IsActive = isActive };
         var response = await Http.PutAsJsonAsync($"api/user/{userId}/status", request, JsonOptions, cancellationToken);
         await EnsureSuccessAsync(response, cancellationToken);
-        return await response.Content.ReadFromJsonAsync<AdminUserModel>(JsonOptions, cancellationToken);
+        return await response.Content.ReadFromJsonAsync<AdminUserResponse>(JsonOptions, cancellationToken);
     }
 
     /// <summary>Updates a user's profile (email and display name).</summary>
-    public async Task<AdminUserModel?> UpdateProfileAsync(Guid userId, string email, string? displayName, CancellationToken cancellationToken = default)
+    public async Task<AdminUserResponse?> UpdateProfileAsync(Guid userId, string email, string? displayName, CancellationToken cancellationToken = default)
     {
         var request = new UpdateUserProfileRequest { Email = email, DisplayName = displayName };
         var response = await Http.PutAsJsonAsync($"api/user/{userId}", request, JsonOptions, cancellationToken);
         await EnsureSuccessAsync(response, cancellationToken);
-        return await response.Content.ReadFromJsonAsync<AdminUserModel>(JsonOptions, cancellationToken);
+        return await response.Content.ReadFromJsonAsync<AdminUserResponse>(JsonOptions, cancellationToken);
     }
 }

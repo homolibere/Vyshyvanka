@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using Vyshyvanka.Contracts.Auth;
 using Vyshyvanka.Designer.Models;
 
 namespace Vyshyvanka.Designer.Services;
@@ -9,22 +10,22 @@ namespace Vyshyvanka.Designer.Services;
 public class ApiKeyApiClient(HttpClient httpClient) : ApiClientBase(httpClient)
 {
     /// <summary>Lists all API keys for the current user.</summary>
-    public async Task<List<ApiKeyModel>> GetApiKeysAsync(CancellationToken cancellationToken = default)
+    public async Task<List<ApiKeyResponse>> GetApiKeysAsync(CancellationToken cancellationToken = default)
     {
         var response = await Http.GetAsync("api/apikeys", cancellationToken);
         if (!response.IsSuccessStatusCode)
             return [];
 
-        return await response.Content.ReadFromJsonAsync<List<ApiKeyModel>>(JsonOptions, cancellationToken) ?? [];
+        return await response.Content.ReadFromJsonAsync<List<ApiKeyResponse>>(JsonOptions, cancellationToken) ?? [];
     }
 
     /// <summary>Creates a new API key. The plain-text key is only available in the response.</summary>
-    public async Task<CreateApiKeyResponseModel?> CreateApiKeyAsync(
-        CreateApiKeyModel model, CancellationToken cancellationToken = default)
+    public async Task<CreateApiKeyResponse?> CreateApiKeyAsync(
+        CreateApiKeyRequest model, CancellationToken cancellationToken = default)
     {
         var response = await Http.PostAsJsonAsync("api/apikeys", model, JsonOptions, cancellationToken);
         await EnsureSuccessAsync(response, cancellationToken);
-        return await response.Content.ReadFromJsonAsync<CreateApiKeyResponseModel>(JsonOptions, cancellationToken);
+        return await response.Content.ReadFromJsonAsync<CreateApiKeyResponse>(JsonOptions, cancellationToken);
     }
 
     /// <summary>Revokes an API key (deactivates without deleting).</summary>

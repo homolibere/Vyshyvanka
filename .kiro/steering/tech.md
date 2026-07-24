@@ -198,6 +198,26 @@ public class HttpRetryNode : BaseActionNode
 }
 ```
 
+## Contracts Library (Vyshyvanka.Contracts)
+
+Shared API request/response records live in `Vyshyvanka.Contracts`. Both Api and Designer reference this project, eliminating duplicate DTO definitions.
+
+**What goes INTO Contracts:**
+- Request records sent by clients (e.g., `CreateWorkflowRequest`, `TriggerExecutionRequest`)
+- Response records returned by the API (e.g., `WorkflowResponse`, `ExecutionResponse`)
+- Shared structural DTOs (e.g., `WorkflowNodeDto`, `ConnectionDto`, `PositionDto`)
+- The `ApiError` record (standard error shape)
+- Pagination wrappers (`PagedResponse<T>`)
+
+**What stays OUT of Contracts:**
+- `[Required]`, `[MaxLength]`, and other validation attributes — these stay on the Api side; Contracts records are plain
+- `FromModel()` static factory methods — these reference domain models and stay in Api
+- Designer-only UI state models (`CanvasState`, `NodeEditorState`, `ThemeDefinition`, etc.)
+- Internal Designer API deserialization helpers (marked `internal`)
+- Api-only models used exclusively by middleware (`WebhookPathCheckResponse`, inline controller records that are not consumed by the Designer)
+
+**Rule of thumb:** If a record is serialized/deserialized on both sides of the HTTP boundary with the same shape, it belongs in Contracts. If it's only used on one side, it stays local.
+
 ## Authentication Providers
 
 Configured via `Authentication:Provider` in `appsettings.json`. Four options:
