@@ -28,7 +28,7 @@ public class CredentialServiceTests
         };
 
         _encryption.Encrypt(Arg.Any<string>()).Returns([1, 2, 3]);
-        _repository.CreateAsync(Arg.Any<Credential>(), Arg.Any<CancellationToken>())
+        _repository.CreateAsync(Arg.Any<Credential>(), Arg.Any<CancellationToken>())!
             .Returns(ci => ci.Arg<Credential>());
 
         var result = await _sut.CreateAsync(request);
@@ -135,7 +135,7 @@ public class CredentialServiceTests
         _repository.GetByIdAsync(credentialId, Arg.Any<CancellationToken>())
             .Returns(existing);
         _encryption.Encrypt(Arg.Any<string>()).Returns([4, 5, 6]);
-        _repository.UpdateAsync(Arg.Any<Credential>(), Arg.Any<CancellationToken>())
+        _repository.UpdateAsync(Arg.Any<Credential>(), Arg.Any<CancellationToken>())!
             .Returns(ci => ci.Arg<Credential>());
 
         var request = new UpdateCredentialRequest

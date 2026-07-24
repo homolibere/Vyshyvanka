@@ -4,10 +4,10 @@
   </PropertyGroup>
   <!-- Suppress known vulnerabilities that cannot be fixed (e.g., no patched version available) -->
   <ItemGroup>
-      <!-- Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability -->
-      <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-pgww-w46g-26qg"/>
-      <!-- Package 'AngleSharp' 1.4.0 has a known moderate severity vulnerability -->
-      <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-2m69-gcr7-jv3q"/>
+    <!-- Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability -->
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-pgww-w46g-26qg" />
+    <!-- Package 'AngleSharp' 1.4.0 has a known moderate severity vulnerability -->
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-2m69-gcr7-jv3q" />
   </ItemGroup>
   <ItemGroup>
     <!-- Aspire -->
@@ -31,7 +31,7 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.10" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.10" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.10" />
-    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
     <!-- Identity & Security -->
     <PackageVersion Include="System.DirectoryServices.Protocols" Version="10.0.10" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.21.0" />
