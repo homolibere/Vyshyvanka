@@ -16,7 +16,7 @@ inclusion: always
 | File-scoped namespaces | Block-scoped namespaces |
 | `CancellationToken` in every async method | Fire-and-forget async |
 | Return `Task`/`Task<T>` from async | Return `void` from async |
-| Primary constructors for DI | Manual field assignment when primary ctor works |
+| Primary constructors when ctor only captures deps | Manual field assignment when primary ctor works |
 | Collection expressions `[1, 2, 3]` | `new List<int> { 1, 2, 3 }` |
 | Raw string literals `"""..."""` for multi-line | Escaped strings or `@""` for multi-line JSON/SQL |
 | Pattern matching in switch expressions | Long if-else chains for type/value dispatch |
@@ -153,6 +153,50 @@ Configured via `Database:Provider` in `appsettings.json`. Two options:
 - Aspire defaults added via `builder.AddServiceDefaults()`.
 - Use interface-based registration: `services.AddScoped<IFoo, Foo>()`.
 - Authentication and credential storage providers are selected at startup via `appsettings.json` and branched in `ServiceCollectionExtensions`.
+
+## Primary Constructors
+
+Use primary constructors when the constructor **only captures dependencies** (no validation, no transformation, no side effects). Keep an explicit constructor body when the constructor does work beyond assignment.
+
+**Use primary constructors for:**
+- Service classes with injected dependencies
+- Controllers with injected services
+- Repositories with injected DbContext/services
+
+```csharp
+// Good — only captures dependencies
+public class WorkflowEngine(
+    INodeRegistry nodeRegistry,
+    IExpressionEvaluator evaluator,
+    ILogger<WorkflowEngine> logger) : IWorkflowEngine
+{
+    public async Task<ExecutionResult> ExecuteAsync(Workflow workflow, CancellationToken ct)
+    {
+        logger.LogInformation("Starting execution");
+        // use captured parameters directly
+    }
+}
+```
+
+**Keep explicit constructors for:**
+- Base classes in inheritance hierarchies (e.g., `BaseTriggerNode`, `BaseActionNode`)
+- Classes that validate/transform constructor arguments
+- Classes that mix injected dependencies with mutable owned state
+
+```csharp
+// Keep explicit — does validation and inherits from a base
+public class HttpRetryNode : BaseActionNode
+{
+    private readonly int _maxRetries;
+
+    public HttpRetryNode(IHttpClientFactory factory, int maxRetries)
+        : base("http-retry")
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(maxRetries);
+        _maxRetries = maxRetries;
+    }
+}
+```
 
 ## Authentication Providers
 

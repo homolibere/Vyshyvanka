@@ -7,15 +7,9 @@ namespace Vyshyvanka.Engine.Auth;
 /// <summary>
 /// Service for API key generation and validation.
 /// </summary>
-public class ApiKeyService : IApiKeyService
+public class ApiKeyService(IApiKeyRepository repository) : IApiKeyService
 {
-    private readonly IApiKeyRepository _repository;
     private const string KeyPrefix = "ff_";
-
-    public ApiKeyService(IApiKeyRepository repository)
-    {
-        _repository = repository;
-    }
 
     public async Task<ApiKeyCreateResult> CreateAsync(
         Guid userId,
@@ -41,7 +35,7 @@ public class ApiKeyService : IApiKeyService
             IsActive = true
         };
 
-        var created = await _repository.CreateAsync(apiKey, cancellationToken);
+        var created = await repository.CreateAsync(apiKey, cancellationToken);
 
         return new ApiKeyCreateResult
         {
@@ -53,12 +47,12 @@ public class ApiKeyService : IApiKeyService
 
     public async Task<ApiKey?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await _repository.GetByIdAsync(id, cancellationToken);
+        return await repository.GetByIdAsync(id, cancellationToken);
     }
 
     public async Task<IEnumerable<ApiKey>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        return await _repository.GetByUserIdAsync(userId, cancellationToken);
+        return await repository.GetByUserIdAsync(userId, cancellationToken);
     }
 
     public async Task<ApiKeyValidationResult> ValidateAsync(string apiKey, CancellationToken cancellationToken = default)
@@ -69,7 +63,7 @@ public class ApiKeyService : IApiKeyService
         }
 
         var keyHash = HashApiKey(apiKey);
-        var storedKey = await _repository.GetByKeyHashAsync(keyHash, cancellationToken);
+        var storedKey = await repository.GetByKeyHashAsync(keyHash, cancellationToken);
 
         if (storedKey is null)
         {
@@ -88,7 +82,7 @@ public class ApiKeyService : IApiKeyService
 
         // Update last used timestamp
         var updatedKey = storedKey with { LastUsedAt = DateTime.UtcNow };
-        await _repository.UpdateAsync(updatedKey, cancellationToken);
+        await repository.UpdateAsync(updatedKey, cancellationToken);
 
         return new ApiKeyValidationResult
         {
@@ -101,17 +95,17 @@ public class ApiKeyService : IApiKeyService
 
     public async Task RevokeAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var apiKey = await _repository.GetByIdAsync(id, cancellationToken);
+        var apiKey = await repository.GetByIdAsync(id, cancellationToken);
         if (apiKey is not null)
         {
             var revokedKey = apiKey with { IsActive = false };
-            await _repository.UpdateAsync(revokedKey, cancellationToken);
+            await repository.UpdateAsync(revokedKey, cancellationToken);
         }
     }
 
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        await _repository.DeleteAsync(id, cancellationToken);
+        await repository.DeleteAsync(id, cancellationToken);
     }
 
     private static string GenerateApiKey()

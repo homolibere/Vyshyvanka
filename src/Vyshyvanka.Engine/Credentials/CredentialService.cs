@@ -8,17 +8,8 @@ namespace Vyshyvanka.Engine.Credentials;
 /// <summary>
 /// Service for managing credentials with encryption.
 /// </summary>
-public class CredentialService : ICredentialService
+public class CredentialService(ICredentialRepository repository, ICredentialEncryption encryption) : ICredentialService
 {
-    private readonly ICredentialRepository _repository;
-    private readonly ICredentialEncryption _encryption;
-
-    public CredentialService(ICredentialRepository repository, ICredentialEncryption encryption)
-    {
-        _repository = repository ?? throw new ArgumentNullException(nameof(repository));
-        _encryption = encryption ?? throw new ArgumentNullException(nameof(encryption));
-    }
-
     /// <inheritdoc />
     public async Task<Credential> CreateAsync(CreateCredentialRequest request,
         CancellationToken cancellationToken = default)
@@ -34,7 +25,7 @@ public class CredentialService : ICredentialService
         }
 
         var serializedData = JsonSerializer.Serialize(request.Data);
-        var encryptedData = _encryption.Encrypt(serializedData);
+        var encryptedData = encryption.Encrypt(serializedData);
 
         var now = DateTime.UtcNow;
         var credential = new Credential
@@ -48,25 +39,25 @@ public class CredentialService : ICredentialService
             UpdatedAt = now
         };
 
-        return await _repository.CreateAsync(credential, cancellationToken);
+        return await repository.CreateAsync(credential, cancellationToken);
     }
 
     /// <inheritdoc />
     public async Task<Credential?> GetAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await _repository.GetByIdAsync(id, cancellationToken);
+        return await repository.GetByIdAsync(id, cancellationToken);
     }
 
     /// <inheritdoc />
     public async Task<DecryptedCredential?> GetDecryptedAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var credential = await _repository.GetByIdAsync(id, cancellationToken);
+        var credential = await repository.GetByIdAsync(id, cancellationToken);
         if (credential is null)
         {
             return null;
         }
 
-        var decryptedJson = _encryption.Decrypt(credential.EncryptedData);
+        var decryptedJson = encryption.Decrypt(credential.EncryptedData);
         var values = JsonSerializer.Deserialize<Dictionary<string, string>>(decryptedJson) ?? [];
 
         return new DecryptedCredential
@@ -83,7 +74,7 @@ public class CredentialService : ICredentialService
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        var existing = await _repository.GetByIdAsync(id, cancellationToken)
+        var existing = await repository.GetByIdAsync(id, cancellationToken)
                        ?? throw new InvalidOperationException($"Credential {id} not found");
 
         byte[] encryptedData = existing.EncryptedData;
@@ -99,7 +90,7 @@ public class CredentialService : ICredentialService
             }
 
             var serializedData = JsonSerializer.Serialize(request.Data);
-            encryptedData = _encryption.Encrypt(serializedData);
+            encryptedData = encryption.Encrypt(serializedData);
         }
 
         var updated = existing with
@@ -109,19 +100,19 @@ public class CredentialService : ICredentialService
             UpdatedAt = DateTime.UtcNow
         };
 
-        return await _repository.UpdateAsync(updated, cancellationToken);
+        return await repository.UpdateAsync(updated, cancellationToken);
     }
 
     /// <inheritdoc />
     public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await _repository.DeleteAsync(id, cancellationToken);
+        return await repository.DeleteAsync(id, cancellationToken);
     }
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<Credential>> ListAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        return await _repository.GetByOwnerIdAsync(userId, cancellationToken);
+        return await repository.GetByOwnerIdAsync(userId, cancellationToken);
     }
 
     /// <inheritdoc />

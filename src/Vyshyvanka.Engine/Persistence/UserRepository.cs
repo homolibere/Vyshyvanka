@@ -8,18 +8,12 @@ namespace Vyshyvanka.Engine.Persistence;
 /// <summary>
 /// EF Core implementation of user repository.
 /// </summary>
-public class UserRepository : IUserRepository
+public class UserRepository(VyshyvankaDbContext context) : IUserRepository
 {
-    private readonly VyshyvankaDbContext _context;
-
-    public UserRepository(VyshyvankaDbContext context)
-    {
-        _context = context;
-    }
 
     public async Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var entity = await _context.Users
+        var entity = await context.Users
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
 
@@ -28,7 +22,7 @@ public class UserRepository : IUserRepository
 
     public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
     {
-        var entity = await _context.Users
+        var entity = await context.Users
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
 
@@ -37,7 +31,7 @@ public class UserRepository : IUserRepository
 
     public async Task<User?> GetByExternalIdAsync(string externalId, CancellationToken cancellationToken = default)
     {
-        var entity = await _context.Users
+        var entity = await context.Users
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.ExternalId == externalId, cancellationToken);
 
@@ -47,14 +41,14 @@ public class UserRepository : IUserRepository
     public async Task<User> CreateAsync(User user, CancellationToken cancellationToken = default)
     {
         var entity = ToEntity(user);
-        _context.Users.Add(entity);
-        await _context.SaveChangesAsync(cancellationToken);
+        context.Users.Add(entity);
+        await context.SaveChangesAsync(cancellationToken);
         return ToModel(entity);
     }
 
     public async Task<User> UpdateAsync(User user, CancellationToken cancellationToken = default)
     {
-        var entity = await _context.Users.FindAsync([user.Id], cancellationToken)
+        var entity = await context.Users.FindAsync([user.Id], cancellationToken)
                      ?? throw new InvalidOperationException($"User {user.Id} not found");
 
         entity.Email = user.Email;
@@ -66,13 +60,13 @@ public class UserRepository : IUserRepository
         entity.FailedLoginAttempts = user.FailedLoginAttempts;
         entity.LockoutEnd = user.LockoutEnd;
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
         return ToModel(entity);
     }
 
     public async Task<IEnumerable<User>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        var entities = await _context.Users
+        var entities = await context.Users
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
@@ -81,29 +75,29 @@ public class UserRepository : IUserRepository
 
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var entity = await _context.Users.FindAsync([id], cancellationToken);
+        var entity = await context.Users.FindAsync([id], cancellationToken);
         if (entity is not null)
         {
-            _context.Users.Remove(entity);
-            await _context.SaveChangesAsync(cancellationToken);
+            context.Users.Remove(entity);
+            await context.SaveChangesAsync(cancellationToken);
         }
     }
 
     internal async Task UpdateRefreshTokenAsync(Guid userId, string? refreshToken, DateTime? expiresAt,
         CancellationToken cancellationToken = default)
     {
-        var entity = await _context.Users.FindAsync([userId], cancellationToken)
+        var entity = await context.Users.FindAsync([userId], cancellationToken)
                      ?? throw new InvalidOperationException($"User {userId} not found");
 
         entity.RefreshToken = refreshToken;
         entity.RefreshTokenExpiresAt = expiresAt;
-        await _context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
     }
 
     internal async Task<(string? RefreshToken, DateTime? ExpiresAt)> GetRefreshTokenAsync(Guid userId,
         CancellationToken cancellationToken = default)
     {
-        var entity = await _context.Users
+        var entity = await context.Users
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
 
@@ -113,7 +107,7 @@ public class UserRepository : IUserRepository
     internal async Task<User?> GetByRefreshTokenAsync(string refreshToken,
         CancellationToken cancellationToken = default)
     {
-        var entity = await _context.Users
+        var entity = await context.Users
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.RefreshToken == refreshToken, cancellationToken);
 

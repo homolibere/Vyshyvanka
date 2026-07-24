@@ -8,18 +8,12 @@ namespace Vyshyvanka.Engine.Persistence;
 /// <summary>
 /// EF Core implementation of API key repository.
 /// </summary>
-public class ApiKeyRepository : IApiKeyRepository
+public class ApiKeyRepository(VyshyvankaDbContext context) : IApiKeyRepository
 {
-    private readonly VyshyvankaDbContext _context;
-
-    public ApiKeyRepository(VyshyvankaDbContext context)
-    {
-        _context = context;
-    }
 
     public async Task<ApiKey?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var entity = await _context.ApiKeys
+        var entity = await context.ApiKeys
             .AsNoTracking()
             .FirstOrDefaultAsync(k => k.Id == id, cancellationToken);
 
@@ -28,7 +22,7 @@ public class ApiKeyRepository : IApiKeyRepository
 
     public async Task<ApiKey?> GetByKeyHashAsync(string keyHash, CancellationToken cancellationToken = default)
     {
-        var entity = await _context.ApiKeys
+        var entity = await context.ApiKeys
             .AsNoTracking()
             .FirstOrDefaultAsync(k => k.KeyHash == keyHash, cancellationToken);
 
@@ -37,7 +31,7 @@ public class ApiKeyRepository : IApiKeyRepository
 
     public async Task<IEnumerable<ApiKey>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        var entities = await _context.ApiKeys
+        var entities = await context.ApiKeys
             .AsNoTracking()
             .Where(k => k.UserId == userId)
             .ToListAsync(cancellationToken);
@@ -48,14 +42,14 @@ public class ApiKeyRepository : IApiKeyRepository
     public async Task<ApiKey> CreateAsync(ApiKey apiKey, CancellationToken cancellationToken = default)
     {
         var entity = ToEntity(apiKey);
-        _context.ApiKeys.Add(entity);
-        await _context.SaveChangesAsync(cancellationToken);
+        context.ApiKeys.Add(entity);
+        await context.SaveChangesAsync(cancellationToken);
         return ToModel(entity);
     }
 
     public async Task<ApiKey> UpdateAsync(ApiKey apiKey, CancellationToken cancellationToken = default)
     {
-        var entity = await _context.ApiKeys.FindAsync([apiKey.Id], cancellationToken)
+        var entity = await context.ApiKeys.FindAsync([apiKey.Id], cancellationToken)
             ?? throw new InvalidOperationException($"API key {apiKey.Id} not found");
 
         entity.Name = apiKey.Name;
@@ -64,17 +58,17 @@ public class ApiKeyRepository : IApiKeyRepository
         entity.LastUsedAt = apiKey.LastUsedAt;
         entity.IsActive = apiKey.IsActive;
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
         return ToModel(entity);
     }
 
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var entity = await _context.ApiKeys.FindAsync([id], cancellationToken);
+        var entity = await context.ApiKeys.FindAsync([id], cancellationToken);
         if (entity is not null)
         {
-            _context.ApiKeys.Remove(entity);
-            await _context.SaveChangesAsync(cancellationToken);
+            context.ApiKeys.Remove(entity);
+            await context.SaveChangesAsync(cancellationToken);
         }
     }
 

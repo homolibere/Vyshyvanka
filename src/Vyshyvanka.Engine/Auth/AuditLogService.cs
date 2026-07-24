@@ -11,17 +11,8 @@ namespace Vyshyvanka.Engine.Auth;
 /// <summary>
 /// Service for audit logging.
 /// </summary>
-public class AuditLogService : IAuditLogService
+public class AuditLogService(VyshyvankaDbContext context, ILogger<AuditLogService> logger) : IAuditLogService
 {
-    private readonly VyshyvankaDbContext _context;
-    private readonly ILogger<AuditLogService> _logger;
-
-    public AuditLogService(VyshyvankaDbContext context, ILogger<AuditLogService> logger)
-    {
-        _context = context;
-        _logger = logger;
-    }
-
     public async Task LogAuthenticationAttemptAsync(
         string email,
         bool success,
@@ -48,11 +39,11 @@ public class AuditLogService : IAuditLogService
 
         if (success)
         {
-            _logger.LogInformation("User {Email} logged in from {IpAddress}", email, ipAddress);
+            logger.LogInformation("User {Email} logged in from {IpAddress}", email, ipAddress);
         }
         else
         {
-            _logger.LogWarning("Failed login attempt for {Email} from {IpAddress}: {Error}", email, ipAddress, errorMessage);
+            logger.LogWarning("Failed login attempt for {Email} from {IpAddress}: {Error}", email, ipAddress, errorMessage);
         }
     }
 
@@ -83,7 +74,7 @@ public class AuditLogService : IAuditLogService
 
         if (!success)
         {
-            _logger.LogWarning(
+            logger.LogWarning(
                 "Authorization denied for user {UserId} ({Email}) attempting {Action} on {ResourceType}/{ResourceId}: {Error}",
                 userId, userEmail, action, resourceType, resourceId, errorMessage);
         }
@@ -120,15 +111,15 @@ public class AuditLogService : IAuditLogService
             DetailsJson = details?.GetRawText()
         };
 
-        _context.AuditLogs.Add(entity);
-        await _context.SaveChangesAsync(cancellationToken);
+        context.AuditLogs.Add(entity);
+        await context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<IEnumerable<AuditLog>> GetLogsAsync(
         AuditLogQuery query,
         CancellationToken cancellationToken = default)
     {
-        var queryable = _context.AuditLogs.AsNoTracking();
+        var queryable = context.AuditLogs.AsNoTracking();
 
         if (query.UserId.HasValue)
         {

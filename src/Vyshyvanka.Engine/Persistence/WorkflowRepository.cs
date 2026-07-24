@@ -9,18 +9,12 @@ namespace Vyshyvanka.Engine.Persistence;
 /// <summary>
 /// EF Core implementation of workflow repository.
 /// </summary>
-public class WorkflowRepository : IWorkflowRepository
+public class WorkflowRepository(VyshyvankaDbContext context) : IWorkflowRepository
 {
-    private readonly VyshyvankaDbContext _context;
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
-
-    public WorkflowRepository(VyshyvankaDbContext context)
-    {
-        _context = context ?? throw new ArgumentNullException(nameof(context));
-    }
 
     /// <inheritdoc />
     public async Task<Workflow> CreateAsync(Workflow workflow, CancellationToken cancellationToken = default)
@@ -28,8 +22,8 @@ public class WorkflowRepository : IWorkflowRepository
         ArgumentNullException.ThrowIfNull(workflow);
 
         var entity = ToEntity(workflow);
-        _context.Workflows.Add(entity);
-        await _context.SaveChangesAsync(cancellationToken);
+        context.Workflows.Add(entity);
+        await context.SaveChangesAsync(cancellationToken);
 
         return ToModel(entity);
     }
@@ -37,7 +31,7 @@ public class WorkflowRepository : IWorkflowRepository
     /// <inheritdoc />
     public async Task<Workflow?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var entity = await _context.Workflows
+        var entity = await context.Workflows
             .AsNoTracking()
             .FirstOrDefaultAsync(w => w.Id == id, cancellationToken);
 
@@ -49,12 +43,12 @@ public class WorkflowRepository : IWorkflowRepository
     {
         ArgumentNullException.ThrowIfNull(workflow);
 
-        var entity = await _context.Workflows
+        var entity = await context.Workflows
             .FirstOrDefaultAsync(w => w.Id == workflow.Id, cancellationToken)
             ?? throw new InvalidOperationException($"Workflow {workflow.Id} not found");
 
         UpdateEntity(entity, workflow);
-        await _context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         return ToModel(entity);
     }
@@ -62,14 +56,14 @@ public class WorkflowRepository : IWorkflowRepository
     /// <inheritdoc />
     public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var entity = await _context.Workflows.FindAsync([id], cancellationToken);
+        var entity = await context.Workflows.FindAsync([id], cancellationToken);
         if (entity is null)
         {
             return false;
         }
 
-        _context.Workflows.Remove(entity);
-        await _context.SaveChangesAsync(cancellationToken);
+        context.Workflows.Remove(entity);
+        await context.SaveChangesAsync(cancellationToken);
         return true;
     }
 
@@ -80,7 +74,7 @@ public class WorkflowRepository : IWorkflowRepository
         int take = 50,
         CancellationToken cancellationToken = default)
     {
-        var entities = await _context.Workflows
+        var entities = await context.Workflows
             .AsNoTracking()
             .OrderByDescending(w => w.UpdatedAt)
             .Skip(skip)
@@ -97,7 +91,7 @@ public class WorkflowRepository : IWorkflowRepository
         int take = 50,
         CancellationToken cancellationToken = default)
     {
-        var entities = await _context.Workflows
+        var entities = await context.Workflows
             .AsNoTracking()
             .Where(w => w.CreatedBy == createdBy)
             .OrderByDescending(w => w.UpdatedAt)
@@ -114,7 +108,7 @@ public class WorkflowRepository : IWorkflowRepository
         int take = 50,
         CancellationToken cancellationToken = default)
     {
-        var entities = await _context.Workflows
+        var entities = await context.Workflows
             .AsNoTracking()
             .Where(w => w.IsActive)
             .OrderByDescending(w => w.UpdatedAt)
@@ -139,7 +133,7 @@ public class WorkflowRepository : IWorkflowRepository
 
         var lowerSearchTerm = searchTerm.ToLowerInvariant();
 
-        var entities = await _context.Workflows
+        var entities = await context.Workflows
             .AsNoTracking()
             .Where(w => w.Name.ToLower().Contains(lowerSearchTerm) ||
                        (w.Tags != null && w.Tags.ToLower().Contains(lowerSearchTerm)))
@@ -154,7 +148,7 @@ public class WorkflowRepository : IWorkflowRepository
     /// <inheritdoc />
     public async Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await _context.Workflows.AnyAsync(w => w.Id == id, cancellationToken);
+        return await context.Workflows.AnyAsync(w => w.Id == id, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -169,7 +163,7 @@ public class WorkflowRepository : IWorkflowRepository
         // then confirm in memory with exact path matching on the deserialized model.
         var pathPattern = $"%\"path\":\"{webhookPath.Replace("\"", "\\\"")}\"%";
 
-        var candidates = await _context.Workflows
+        var candidates = await context.Workflows
             .AsNoTracking()
             .Where(w => w.IsActive && EF.Functions.Like(w.NodesJson, pathPattern))
             .ToListAsync(cancellationToken);

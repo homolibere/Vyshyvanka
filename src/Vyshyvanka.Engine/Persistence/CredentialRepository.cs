@@ -8,14 +8,8 @@ namespace Vyshyvanka.Engine.Persistence;
 /// <summary>
 /// EF Core implementation of credential repository.
 /// </summary>
-public class CredentialRepository : ICredentialRepository
+public class CredentialRepository(VyshyvankaDbContext context) : ICredentialRepository
 {
-    private readonly VyshyvankaDbContext _context;
-
-    public CredentialRepository(VyshyvankaDbContext context)
-    {
-        _context = context ?? throw new ArgumentNullException(nameof(context));
-    }
 
     /// <inheritdoc />
     public async Task<Credential> CreateAsync(Credential credential, CancellationToken cancellationToken = default)
@@ -23,8 +17,8 @@ public class CredentialRepository : ICredentialRepository
         ArgumentNullException.ThrowIfNull(credential);
 
         var entity = ToEntity(credential);
-        _context.Credentials.Add(entity);
-        await _context.SaveChangesAsync(cancellationToken);
+        context.Credentials.Add(entity);
+        await context.SaveChangesAsync(cancellationToken);
 
         return ToModel(entity);
     }
@@ -32,7 +26,7 @@ public class CredentialRepository : ICredentialRepository
     /// <inheritdoc />
     public async Task<Credential?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var entity = await _context.Credentials
+        var entity = await context.Credentials
             .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
 
         return entity is null ? null : ToModel(entity);
@@ -43,7 +37,7 @@ public class CredentialRepository : ICredentialRepository
     {
         ArgumentNullException.ThrowIfNull(credential);
 
-        var entity = await _context.Credentials
+        var entity = await context.Credentials
             .FirstOrDefaultAsync(c => c.Id == credential.Id, cancellationToken)
             ?? throw new InvalidOperationException($"Credential {credential.Id} not found");
 
@@ -52,7 +46,7 @@ public class CredentialRepository : ICredentialRepository
         entity.EncryptedData = credential.EncryptedData;
         entity.UpdatedAt = credential.UpdatedAt;
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         return ToModel(entity);
     }
@@ -60,21 +54,21 @@ public class CredentialRepository : ICredentialRepository
     /// <inheritdoc />
     public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var entity = await _context.Credentials.FindAsync([id], cancellationToken);
+        var entity = await context.Credentials.FindAsync([id], cancellationToken);
         if (entity is null)
         {
             return false;
         }
 
-        _context.Credentials.Remove(entity);
-        await _context.SaveChangesAsync(cancellationToken);
+        context.Credentials.Remove(entity);
+        await context.SaveChangesAsync(cancellationToken);
         return true;
     }
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<Credential>> GetByOwnerIdAsync(Guid ownerId, CancellationToken cancellationToken = default)
     {
-        var entities = await _context.Credentials
+        var entities = await context.Credentials
             .Where(c => c.OwnerId == ownerId)
             .OrderBy(c => c.Name)
             .ToListAsync(cancellationToken);

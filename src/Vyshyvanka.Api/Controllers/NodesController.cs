@@ -8,27 +8,20 @@ namespace Vyshyvanka.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-public class NodesController : ControllerBase
+public class NodesController(INodeRegistry nodeRegistry) : ControllerBase
 {
-    private readonly INodeRegistry _nodeRegistry;
-
-    public NodesController(INodeRegistry nodeRegistry)
-    {
-        _nodeRegistry = nodeRegistry;
-    }
-
     /// <summary>Gets all available node definitions.</summary>
     [HttpGet]
     public ActionResult<IEnumerable<NodeDefinition>> GetAll()
     {
-        return Ok(_nodeRegistry.GetAllDefinitions());
+        return Ok(nodeRegistry.GetAllDefinitions());
     }
 
     /// <summary>Gets a specific node definition by type.</summary>
     [HttpGet("{nodeType}")]
     public ActionResult<NodeDefinition> GetByType(string nodeType)
     {
-        var definition = _nodeRegistry.GetDefinition(nodeType);
+        var definition = nodeRegistry.GetDefinition(nodeType);
         if (definition is null)
             return NotFound();
 

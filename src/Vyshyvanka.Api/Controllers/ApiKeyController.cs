@@ -11,14 +11,8 @@ namespace Vyshyvanka.Api.Controllers;
 [ApiController]
 [Route("api/apikeys")]
 [Authorize]
-public class ApiKeyController : ControllerBase
+public class ApiKeyController(IApiKeyService apiKeyService) : ControllerBase
 {
-    private readonly IApiKeyService _apiKeyService;
-
-    public ApiKeyController(IApiKeyService apiKeyService)
-    {
-        _apiKeyService = apiKeyService;
-    }
 
     /// <summary>
     /// Create a new API key.
@@ -37,7 +31,7 @@ public class ApiKeyController : ControllerBase
             return BadRequest(new { error = "Name is required" });
         }
 
-        var result = await _apiKeyService.CreateAsync(
+        var result = await apiKeyService.CreateAsync(
             userId.Value,
             request.Name,
             request.Scopes,
@@ -72,7 +66,7 @@ public class ApiKeyController : ControllerBase
             return Unauthorized();
         }
 
-        var keys = await _apiKeyService.GetByUserIdAsync(userId.Value, cancellationToken);
+        var keys = await apiKeyService.GetByUserIdAsync(userId.Value, cancellationToken);
 
         return Ok(keys.Select(k => new ApiKeyResponse
         {
@@ -98,7 +92,7 @@ public class ApiKeyController : ControllerBase
             return Unauthorized();
         }
 
-        var key = await _apiKeyService.GetByIdAsync(id, cancellationToken);
+        var key = await apiKeyService.GetByIdAsync(id, cancellationToken);
         if (key is null || key.UserId != userId)
         {
             return NotFound();
@@ -128,13 +122,13 @@ public class ApiKeyController : ControllerBase
             return Unauthorized();
         }
 
-        var key = await _apiKeyService.GetByIdAsync(id, cancellationToken);
+        var key = await apiKeyService.GetByIdAsync(id, cancellationToken);
         if (key is null || key.UserId != userId)
         {
             return NotFound();
         }
 
-        await _apiKeyService.RevokeAsync(id, cancellationToken);
+        await apiKeyService.RevokeAsync(id, cancellationToken);
         return NoContent();
     }
 
@@ -150,13 +144,13 @@ public class ApiKeyController : ControllerBase
             return Unauthorized();
         }
 
-        var key = await _apiKeyService.GetByIdAsync(id, cancellationToken);
+        var key = await apiKeyService.GetByIdAsync(id, cancellationToken);
         if (key is null || key.UserId != userId)
         {
             return NotFound();
         }
 
-        await _apiKeyService.DeleteAsync(id, cancellationToken);
+        await apiKeyService.DeleteAsync(id, cancellationToken);
         return NoContent();
     }
 

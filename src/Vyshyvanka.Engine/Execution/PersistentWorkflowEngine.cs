@@ -11,17 +11,8 @@ namespace Vyshyvanka.Engine.Execution;
 /// Workflow engine decorator that adds execution persistence.
 /// Persists execution start, node completions, and final results.
 /// </summary>
-public class PersistentWorkflowEngine : IWorkflowEngine
+public class PersistentWorkflowEngine(IWorkflowEngine innerEngine, IExecutionRepository repository) : IWorkflowEngine
 {
-    private readonly IWorkflowEngine _innerEngine;
-    private readonly IExecutionRepository _repository;
-
-    public PersistentWorkflowEngine(IWorkflowEngine innerEngine, IExecutionRepository repository)
-    {
-        _innerEngine = innerEngine ?? throw new ArgumentNullException(nameof(innerEngine));
-        _repository = repository ?? throw new ArgumentNullException(nameof(repository));
-    }
-
     /// <inheritdoc />
     public async Task<ExecutionResult> ExecuteAsync(
         Workflow workflow,
@@ -43,12 +34,12 @@ public class PersistentWorkflowEngine : IWorkflowEngine
             NodeExecutions = []
         };
 
-        await _repository.CreateAsync(execution, cancellationToken);
+        await repository.CreateAsync(execution, cancellationToken);
 
         try
         {
             // Execute the workflow
-            var result = await _innerEngine.ExecuteAsync(workflow, context, cancellationToken);
+            var result = await innerEngine.ExecuteAsync(workflow, context, cancellationToken);
 
             // Persist node execution results
             await PersistNodeExecutionsAsync(context.ExecutionId, result.NodeResults, cancellationToken);
@@ -64,7 +55,7 @@ public class PersistentWorkflowEngine : IWorkflowEngine
                 ErrorMessage = result.ErrorMessage
             };
 
-            await _repository.UpdateAsync(completedExecution, cancellationToken);
+            await repository.UpdateAsync(completedExecution, cancellationToken);
 
             return result;
         }
@@ -78,7 +69,7 @@ public class PersistentWorkflowEngine : IWorkflowEngine
                 ErrorMessage = "Execution was cancelled"
             };
 
-            await _repository.UpdateAsync(cancelledExecution, cancellationToken);
+            await repository.UpdateAsync(cancelledExecution, cancellationToken);
             throw;
         }
         catch (Exception ex)
@@ -91,7 +82,7 @@ public class PersistentWorkflowEngine : IWorkflowEngine
                 ErrorMessage = ex.Message
             };
 
-            await _repository.UpdateAsync(failedExecution, cancellationToken);
+            await repository.UpdateAsync(failedExecution, cancellationToken);
             throw;
         }
     }
@@ -116,11 +107,11 @@ public class PersistentWorkflowEngine : IWorkflowEngine
             StartedAt = startTime
         };
 
-        await _repository.AddNodeExecutionAsync(context.ExecutionId, nodeExecution, cancellationToken);
+        await repository.AddNodeExecutionAsync(context.ExecutionId, nodeExecution, cancellationToken);
 
         try
         {
-            var result = await _innerEngine.ExecuteNodeAsync(node, context, cancellationToken);
+            var result = await innerEngine.ExecuteNodeAsync(node, context, cancellationToken);
 
             // Update node execution with a result
             var nodeResult = result.NodeResults.FirstOrDefault(r => r.NodeId == node.Id);
@@ -135,7 +126,7 @@ public class PersistentWorkflowEngine : IWorkflowEngine
                 ErrorMessage = result.ErrorMessage
             };
 
-            await _repository.UpdateNodeExecutionAsync(
+            await repository.UpdateNodeExecutionAsync(
                 context.ExecutionId,
                 completedNodeExecution,
                 cancellationToken);
@@ -152,7 +143,7 @@ public class PersistentWorkflowEngine : IWorkflowEngine
                 ErrorMessage = ex.Message
             };
 
-            await _repository.UpdateNodeExecutionAsync(
+            await repository.UpdateNodeExecutionAsync(
                 context.ExecutionId,
                 failedNodeExecution,
                 cancellationToken);
@@ -164,7 +155,7 @@ public class PersistentWorkflowEngine : IWorkflowEngine
     /// <inheritdoc />
     public Task CancelExecutionAsync(Guid executionId)
     {
-        return _innerEngine.CancelExecutionAsync(executionId);
+        return innerEngine.CancelExecutionAsync(executionId);
     }
 
     /// <inheritdoc />
@@ -175,7 +166,7 @@ public class PersistentWorkflowEngine : IWorkflowEngine
         CancellationToken cancellationToken = default)
     {
         // Single-node execution with input doesn't need persistence — it's a quick debug tool
-        return _innerEngine.ExecuteNodeWithInputAsync(node, inputData, context, cancellationToken);
+        return innerEngine.ExecuteNodeWithInputAsync(node, inputData, context, cancellationToken);
     }
 
     private async Task PersistNodeExecutionsAsync(
@@ -196,7 +187,7 @@ public class PersistentWorkflowEngine : IWorkflowEngine
                 ErrorMessage = nodeResult.ErrorMessage
             };
 
-            await _repository.AddNodeExecutionAsync(executionId, nodeExecution, cancellationToken);
+            await repository.AddNodeExecutionAsync(executionId, nodeExecution, cancellationToken);
         }
     }
 

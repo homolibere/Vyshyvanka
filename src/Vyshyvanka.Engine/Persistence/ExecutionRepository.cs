@@ -11,14 +11,8 @@ namespace Vyshyvanka.Engine.Persistence;
 /// <summary>
 /// EF Core implementation of execution repository.
 /// </summary>
-public class ExecutionRepository : IExecutionRepository
+public class ExecutionRepository(VyshyvankaDbContext context) : IExecutionRepository
 {
-    private readonly VyshyvankaDbContext _context;
-
-    public ExecutionRepository(VyshyvankaDbContext context)
-    {
-        _context = context ?? throw new ArgumentNullException(nameof(context));
-    }
 
     /// <inheritdoc />
     public async Task<ExecutionModel> CreateAsync(ExecutionModel execution, CancellationToken cancellationToken = default)
@@ -26,8 +20,8 @@ public class ExecutionRepository : IExecutionRepository
         ArgumentNullException.ThrowIfNull(execution);
 
         var entity = ToEntity(execution);
-        _context.Executions.Add(entity);
-        await _context.SaveChangesAsync(cancellationToken);
+        context.Executions.Add(entity);
+        await context.SaveChangesAsync(cancellationToken);
 
         return ToModel(entity);
     }
@@ -35,7 +29,7 @@ public class ExecutionRepository : IExecutionRepository
     /// <inheritdoc />
     public async Task<ExecutionModel?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var entity = await _context.Executions
+        var entity = await context.Executions
             .Include(e => e.NodeExecutions)
             .FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
 
@@ -47,13 +41,13 @@ public class ExecutionRepository : IExecutionRepository
     {
         ArgumentNullException.ThrowIfNull(execution);
 
-        var entity = await _context.Executions
+        var entity = await context.Executions
             .Include(e => e.NodeExecutions)
             .FirstOrDefaultAsync(e => e.Id == execution.Id, cancellationToken)
             ?? throw new InvalidOperationException($"Execution {execution.Id} not found");
 
         UpdateEntity(entity, execution);
-        await _context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         return ToModel(entity);
     }
@@ -61,14 +55,14 @@ public class ExecutionRepository : IExecutionRepository
     /// <inheritdoc />
     public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var entity = await _context.Executions.FindAsync([id], cancellationToken);
+        var entity = await context.Executions.FindAsync([id], cancellationToken);
         if (entity is null)
         {
             return false;
         }
 
-        _context.Executions.Remove(entity);
-        await _context.SaveChangesAsync(cancellationToken);
+        context.Executions.Remove(entity);
+        await context.SaveChangesAsync(cancellationToken);
         return true;
     }
 
@@ -80,7 +74,7 @@ public class ExecutionRepository : IExecutionRepository
         int take = 50,
         CancellationToken cancellationToken = default)
     {
-        var entities = await _context.Executions
+        var entities = await context.Executions
             .Include(e => e.NodeExecutions)
             .Where(e => e.WorkflowId == workflowId)
             .OrderByDescending(e => e.StartedAt)
@@ -98,7 +92,7 @@ public class ExecutionRepository : IExecutionRepository
         int take = 50,
         CancellationToken cancellationToken = default)
     {
-        var entities = await _context.Executions
+        var entities = await context.Executions
             .Include(e => e.NodeExecutions)
             .Where(e => e.Status == status)
             .OrderByDescending(e => e.StartedAt)
@@ -117,7 +111,7 @@ public class ExecutionRepository : IExecutionRepository
         int take = 50,
         CancellationToken cancellationToken = default)
     {
-        var entities = await _context.Executions
+        var entities = await context.Executions
             .Include(e => e.NodeExecutions)
             .Where(e => e.StartedAt >= startDate && e.StartedAt <= endDate)
             .OrderByDescending(e => e.StartedAt)
@@ -135,7 +129,7 @@ public class ExecutionRepository : IExecutionRepository
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        var queryable = _context.Executions
+        var queryable = context.Executions
             .Include(e => e.NodeExecutions)
             .AsQueryable();
 
@@ -198,8 +192,8 @@ public class ExecutionRepository : IExecutionRepository
             ErrorMessage = nodeExecution.ErrorMessage
         };
 
-        _context.NodeExecutions.Add(entity);
-        await _context.SaveChangesAsync(cancellationToken);
+        context.NodeExecutions.Add(entity);
+        await context.SaveChangesAsync(cancellationToken);
     }
 
     /// <inheritdoc />
@@ -210,7 +204,7 @@ public class ExecutionRepository : IExecutionRepository
     {
         ArgumentNullException.ThrowIfNull(nodeExecution);
 
-        var entity = await _context.NodeExecutions
+        var entity = await context.NodeExecutions
             .FirstOrDefaultAsync(
                 ne => ne.ExecutionId == executionId && ne.NodeId == nodeExecution.NodeId,
                 cancellationToken)
@@ -224,7 +218,7 @@ public class ExecutionRepository : IExecutionRepository
             : null;
         entity.ErrorMessage = nodeExecution.ErrorMessage;
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
     }
 
     private static ExecutionEntity ToEntity(ExecutionModel execution)
