@@ -8,7 +8,7 @@
 | API | ASP.NET Core (REST) |
 | UI | Blazor WebAssembly |
 | ORM | Entity Framework Core (code-first) |
-| Database | SQLite (development), PostgreSQL (production) |
+| Database | PostgreSQL (default), SQLite (opt-in for CI) |
 | Orchestration | .NET Aspire 9.1 |
 | Observability | OpenTelemetry (traces, metrics, logs) |
 | Serialization | System.Text.Json |
@@ -66,7 +66,7 @@ graph LR
     subgraph Aspire["Aspire AppHost"]
         direction TB
         API["API Service<br/>ASP.NET Core"]
-        DB[(Database<br/>SQLite / PostgreSQL)]
+        DB[(Database<br/>PostgreSQL / SQLite)]
         WASM["Designer<br/>Blazor WASM"]
     end
 
@@ -77,7 +77,13 @@ graph LR
     API -->|NuGet Protocol| NuGet["NuGet Feeds"]
 ```
 
-The Aspire AppHost orchestrates both services. In development mode, SQLite is used by default. Setting the `USE_POSTGRES` environment variable switches to a PostgreSQL container managed by Aspire with a persistent data volume.
+The Aspire AppHost orchestrates both services with three database modes:
+
+1. **Existing PostgreSQL** (if `ConnectionStrings:vyshyvankadb` is set in AppHost config) — connects to your local/external PostgreSQL instance, no container needed.
+2. **Aspire-managed container** (default when no connection string is provided) — spins up a PostgreSQL Docker container with a persistent data volume.
+3. **SQLite** (`Database:Provider=Sqlite`) — file-based, no container or external database required.
+
+For standalone deployments (without Aspire), configure `Database:Provider` and `ConnectionStrings:vyshyvankadb` in `appsettings.json` or environment variables.
 
 ## Layered Architecture
 
@@ -101,7 +107,7 @@ graph TB
     end
 
     subgraph Infrastructure
-        Persistence["Repositories<br/>EF Core + SQLite/PostgreSQL"]
+        Persistence["Repositories<br/>EF Core + PostgreSQL/SQLite"]
         Auth["Auth Services<br/>JWT, Password Hashing"]
         Credentials["Credential Services<br/>AES-256 Encryption"]
         Packages["Package Manager<br/>NuGet Protocol"]

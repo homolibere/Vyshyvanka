@@ -63,6 +63,7 @@ Place new files according to these tables. Namespace MUST match the folder path 
 | Workflow execution | `Execution/` |
 | Expression evaluation | `Expressions/` |
 | EF Core DbContext | `Persistence/VyshyvankaDbContext.cs` |
+| Design-time DbContext factory | `Persistence/DesignTimeDbContextFactory.cs` |
 | Repository implementations | `Persistence/` |
 | Entity classes | `Persistence/Entities/` |
 | EF Core migrations | `Persistence/Migrations/` |

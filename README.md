@@ -43,7 +43,7 @@ Dependencies flow downward only. The Designer communicates with the API exclusiv
 | Runtime | .NET 10 / C# 14 |
 | API | ASP.NET Core |
 | UI | Blazor WebAssembly |
-| Database | SQLite (dev) / PostgreSQL (prod) |
+| Database | PostgreSQL (default) / SQLite (opt-in) |
 | ORM | Entity Framework Core (code-first) |
 | Orchestration | .NET Aspire |
 | Auth | Built-in JWT, Keycloak, Authentik, or LDAP |
@@ -55,7 +55,7 @@ Dependencies flow downward only. The Designer communicates with the API exclusiv
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 - [.NET Aspire workload](https://learn.microsoft.com/en-us/dotnet/aspire/fundamentals/setup-tooling) (`dotnet workload install aspire`)
-- Docker (optional, for PostgreSQL via Aspire)
+- Docker (required for default PostgreSQL via Aspire; not needed if using an existing PostgreSQL instance or SQLite)
 
 ## Getting Started
 
@@ -75,10 +75,20 @@ Starts both the API and Designer with service discovery:
 dotnet run --project src/Vyshyvanka.AppHost
 ```
 
-This uses SQLite by default. To use PostgreSQL instead (requires Docker):
+This uses PostgreSQL by default (Docker required). To use an existing local PostgreSQL instead, add `appsettings.Development.json` in `src/Vyshyvanka.AppHost/`:
+
+```json
+{
+  "ConnectionStrings": {
+    "vyshyvankadb": "Host=127.0.0.1;Port=5432;Database=vyshyvanka;Username=postgres;Password=postgres"
+  }
+}
+```
+
+For a lightweight setup without any database server:
 
 ```bash
-USE_POSTGRES=true dotnet run --project src/Vyshyvanka.AppHost
+Database__Provider=Sqlite dotnet run --project src/Vyshyvanka.AppHost
 ```
 
 ### Run individual projects

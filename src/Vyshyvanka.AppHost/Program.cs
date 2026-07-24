@@ -1,28 +1,46 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-// Check if PostgreSQL mode is enabled via environment variable
-var usePostgres = builder.Configuration["UsePostgres"]?.Equals("true", StringComparison.OrdinalIgnoreCase) == true
-    || Environment.GetEnvironmentVariable("USE_POSTGRES")?.Equals("true", StringComparison.OrdinalIgnoreCase) == true;
+var databaseProvider = builder.Configuration["Database:Provider"]
+    ?? Environment.GetEnvironmentVariable("Database__Provider")
+    ?? "PostgreSql";
+
+var existingConnectionString = builder.Configuration["ConnectionStrings:vyshyvankadb"]
+    ?? Environment.GetEnvironmentVariable("ConnectionStrings__vyshyvankadb");
 
 IResourceBuilder<ProjectResource> api;
 
-if (usePostgres)
+if (databaseProvider.Equals("Sqlite", StringComparison.OrdinalIgnoreCase))
 {
-    // Configure PostgreSQL for production/distributed deployments
+    var connStr = existingConnectionString ?? "Data Source=vyshyvanka.db";
+    Console.WriteLine($"[Vyshyvanka] Database: SQLite ({connStr})");
+
+    api = builder.AddProject<Projects.Vyshyvanka_Api>("api")
+        .WithEnvironment("Database__Provider", "Sqlite")
+        .WithEnvironment("ConnectionStrings__vyshyvankadb", connStr);
+}
+else if (!string.IsNullOrWhiteSpace(existingConnectionString))
+{
+    Console.WriteLine($"[Vyshyvanka] Database: PostgreSQL (existing instance)");
+
+    var database = builder.AddConnectionString("vyshyvankadb");
+
+    api = builder.AddProject<Projects.Vyshyvanka_Api>("api")
+        .WithReference(database)
+        .WithEnvironment("Database__Provider", "PostgreSql");
+}
+else
+{
+    Console.WriteLine("[Vyshyvanka] Database: PostgreSQL (Aspire-managed container)");
+
     var postgres = builder.AddPostgres("postgres")
         .WithDataVolume("vyshyvanka-postgres-data");
 
     var database = postgres.AddDatabase("vyshyvankadb");
 
-    // Add API service with PostgreSQL connection
     api = builder.AddProject<Projects.Vyshyvanka_Api>("api")
         .WithReference(database)
-        .WaitFor(database);
-}
-else
-{
-    // Default: SQLite for development/single-instance deployments
-    api = builder.AddProject<Projects.Vyshyvanka_Api>("api");
+        .WaitFor(database)
+        .WithEnvironment("Database__Provider", "PostgreSql");
 }
 
 // Add Designer service with reference to API for service discovery

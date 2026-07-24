@@ -29,7 +29,7 @@ inclusion: always
 - .NET 10, C# 14, nullable enabled, implicit usings enabled
 - ASP.NET Core REST API (`Vyshyvanka.Api`)
 - Blazor WebAssembly UI (`Vyshyvanka.Designer`)
-- EF Core code-first: SQLite (dev) / PostgreSQL (prod)
+- EF Core code-first: PostgreSQL (default) / SQLite (opt-in for CI)
 - .NET Aspire for dev orchestration (`Vyshyvanka.AppHost`)
 
 ## Culture & Locale
@@ -127,6 +127,24 @@ Domain errors use typed exceptions inheriting `VyshyvankaException` (defined in 
 - Use EF Core migrations for ALL schema changes. Never use `EnsureCreatedAsync()`.
 - At startup, `MigrateAsync()` applies pending migrations automatically.
 - To add a migration: `dotnet ef migrations add <Name> --project src/Vyshyvanka.Engine --startup-project src/Vyshyvanka.Api --output-dir Persistence/Migrations`
+
+## Database Provider
+
+Configured via `Database:Provider` in `appsettings.json`. Two options:
+
+| Provider | Value | Connection String | Use Case |
+|----------|-------|-------------------|----------|
+| PostgreSQL | `PostgreSql` | Standard Npgsql connection string | Default — dev and production |
+| SQLite | `Sqlite` | `Data Source=vyshyvanka.db` | Lightweight/CI scenarios |
+
+- Connection string name is always `vyshyvankadb` (in `ConnectionStrings` section).
+- PostgreSQL is the default. The Aspire AppHost detects an existing connection string or spins up a container automatically.
+- To use an existing PostgreSQL instance: set `ConnectionStrings:vyshyvankadb` in the AppHost's `appsettings.Development.json` or via env var `ConnectionStrings__vyshyvankadb`.
+- For SQLite (no container needed): set `Database:Provider` to `Sqlite` in AppHost config or via env var `Database__Provider=Sqlite`.
+- Migrations are provider-agnostic: column definitions omit the `type:` parameter so EF Core resolves store types from CLR types at apply time. This lets one migration set work with both PostgreSQL and SQLite.
+- The `DesignTimeDbContextFactory` targets PostgreSQL for snapshot/diff purposes during `dotnet ef migrations add`. The generated `.cs` migration files must be post-processed to remove `type:` parameters and provider-specific annotations before commit.
+- When adding a new migration, always strip `type: "..."` from column definitions and remove `using Npgsql...Metadata;` / `.Annotation("Npgsql:...", ...)` lines from the `.cs` file.
+- `PendingModelChangesWarning` is suppressed in DbContext registration because the ModelSnapshot uses PostgreSQL annotations that differ from the runtime provider. This is expected — do not remove the suppression.
 
 ## Dependency Injection
 

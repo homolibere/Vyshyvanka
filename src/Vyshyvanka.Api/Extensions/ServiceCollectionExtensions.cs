@@ -57,9 +57,34 @@ public static class ServiceCollectionExtensions
         });
 
         // Register persistence
-        var connectionString = configuration.GetConnectionString("Vyshyvanka") ?? "Data Source=vyshyvanka.db";
+        var databaseSettings = new DatabaseSettings();
+        configuration.GetSection("Database").Bind(databaseSettings);
+        services.AddSingleton(databaseSettings);
+
         services.AddDbContext<VyshyvankaDbContext>(options =>
-            options.UseSqlite(connectionString));
+        {
+            // Suppress false-positive warning when the runtime provider differs from the
+            // provider used to generate the ModelSnapshot (PostgreSQL design-time factory).
+            options.ConfigureWarnings(w =>
+                w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+
+            switch (databaseSettings.Provider)
+            {
+                case DatabaseProvider.PostgreSql:
+                    var pgConnectionString = configuration.GetConnectionString("vyshyvankadb")
+                        ?? throw new InvalidOperationException(
+                            "ConnectionStrings:vyshyvankadb is required when using PostgreSQL provider");
+                    options.UseNpgsql(pgConnectionString);
+                    break;
+
+                case DatabaseProvider.Sqlite:
+                default:
+                    var sqliteConnectionString = configuration.GetConnectionString("vyshyvankadb")
+                        ?? "Data Source=vyshyvanka.db";
+                    options.UseSqlite(sqliteConnectionString);
+                    break;
+            }
+        });
 
         services.AddScoped<IWorkflowRepository, WorkflowRepository>();
         services.AddScoped<IExecutionRepository, ExecutionRepository>();

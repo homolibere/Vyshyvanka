@@ -31,6 +31,7 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.10" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.10" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.10" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2" />
     <!-- Identity & Security -->
     <PackageVersion Include="System.DirectoryServices.Protocols" Version="10.0.10" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.21.0" />
