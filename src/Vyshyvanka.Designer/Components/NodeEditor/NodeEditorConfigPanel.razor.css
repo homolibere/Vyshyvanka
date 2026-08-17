@@ -1,9 +1,11 @@
+/* NodeEditorConfigPanel — refactored with design tokens */
+
 .node-editor-panel {
     display: flex;
     flex-direction: column;
     height: 100%;
     background: var(--bg-surface);
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     overflow: hidden;
 }
 
@@ -11,31 +13,31 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 16px;
+    padding: var(--space-3) var(--space-4);
     background: var(--bg-elevated);
     border-bottom: 1px solid var(--border-color);
 }
 
 .panel-title {
-    font-weight: 600;
-    font-size: 14px;
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-size-base);
     color: var(--text-primary);
 }
 
 .panel-actions {
     display: flex;
-    gap: 4px;
+    gap: var(--space-1);
 }
 
 .mode-toggle {
-    padding: 4px 8px;
+    padding: var(--space-1) var(--space-2);
     background: transparent;
     border: 1px solid var(--border-color);
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     color: var(--text-secondary);
     cursor: pointer;
-    font-size: 12px;
-    transition: all 0.15s ease;
+    font-size: var(--font-size-sm);
+    transition: var(--transition-color);
 }
 
 .mode-toggle:hover {
@@ -52,24 +54,24 @@
 .panel-content {
     flex: 1;
     overflow: auto;
-    padding: 12px;
+    padding: var(--space-3);
 }
 
 .property-list {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: var(--space-4);
 }
 
 .validation-summary {
     display: flex;
     align-items: flex-start;
-    gap: 8px;
-    padding: 12px;
-    margin-bottom: 16px;
-    background: var(--error-bg, var(--danger-bg));
+    gap: var(--space-2);
+    padding: var(--space-3);
+    margin-bottom: var(--space-4);
+    background: var(--danger-bg);
     border: 1px solid var(--danger);
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     animation: shake 0.3s ease-in-out;
 }
 
@@ -80,19 +82,19 @@
 }
 
 .validation-icon {
-    font-size: 16px;
+    font-size: var(--icon-size-md);
     flex-shrink: 0;
 }
 
 .validation-message {
-    font-size: 13px;
+    font-size: var(--font-size-md);
     color: var(--danger);
-    line-height: 1.4;
+    line-height: var(--line-height-normal);
 }
 
 .validation-message ul {
-    margin: 4px 0 0 0;
-    padding-left: 16px;
+    margin: var(--space-1) 0 0 0;
+    padding-left: var(--space-4);
 }
 
 .validation-message li {
@@ -107,18 +109,18 @@
     height: 100%;
     text-align: center;
     color: var(--text-secondary);
-    padding: 32px;
+    padding: var(--space-7);
 }
 
 .no-config-icon {
-    font-size: 32px;
-    margin-bottom: 12px;
-    opacity: 0.6;
+    font-size: var(--font-size-4xl);
+    margin-bottom: var(--space-3);
+    opacity: var(--opacity-muted);
     color: var(--success);
 }
 
 .no-config-text {
-    font-size: 14px;
+    font-size: var(--font-size-base);
 }
 
 .json-editor-container {
@@ -130,14 +132,14 @@
 .json-editor {
     flex: 1;
     min-height: 200px;
-    padding: 12px;
+    padding: var(--space-3);
     background: var(--bg-code);
     border: 1px solid var(--border-color);
-    border-radius: 4px;
-    font-family: 'Consolas', 'Monaco', monospace;
-    font-size: 12px;
-    line-height: 1.5;
-    color: var(--code-text, #9cdcfe);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-normal);
+    color: #9cdcfe;
     resize: none;
 }
 
@@ -151,11 +153,11 @@
 }
 
 .json-error {
-    margin-top: 8px;
-    padding: 8px 12px;
-    background: var(--error-bg, var(--danger-bg));
+    margin-top: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    background: var(--danger-bg);
     border: 1px solid var(--danger);
-    border-radius: 4px;
-    font-size: 12px;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
     color: var(--danger);
 }

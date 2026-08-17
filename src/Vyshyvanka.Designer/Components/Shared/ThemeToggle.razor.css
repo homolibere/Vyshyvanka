@@ -1,3 +1,5 @@
+/* ThemeToggle — refactored with design tokens */
+
 .theme-toggle {
     display: flex;
     align-items: center;
@@ -7,10 +9,10 @@
     color: var(--text-muted);
     width: 30px;
     height: 30px;
-    border-radius: 6px;
+    border-radius: var(--radius-md);
     cursor: pointer;
-    font-size: 0.85rem;
-    transition: all 0.15s ease;
+    font-size: var(--font-size-md);
+    transition: var(--transition-color);
 }
 
 .theme-toggle:hover {

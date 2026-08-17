@@ -1,17 +1,17 @@
+/* ConfirmDialog — uses v-overlay + v-modal from components.css */
+
 .modal-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    inset: 0;
     background: var(--overlay-bg);
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1100;
+    z-index: var(--z-popover);
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.2s ease, visibility 0.2s ease;
+    transition: opacity var(--duration-slow) var(--ease-default),
+                visibility var(--duration-slow) var(--ease-default);
 }
 
 .modal-overlay.open {
@@ -22,7 +22,7 @@
 .modal-content.confirm-dialog {
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
+    border-radius: var(--radius-xl);
     width: 100%;
     max-width: 420px;
     max-height: 80vh;
@@ -30,7 +30,7 @@
     flex-direction: column;
     box-shadow: var(--shadow-lg);
     transform: scale(0.95);
-    transition: transform 0.2s ease;
+    transition: transform var(--duration-slow) var(--ease-out);
 }
 
 .modal-overlay.open .modal-content {
@@ -40,15 +40,15 @@
 .modal-header {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 16px 20px;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-5);
     border-bottom: 1px solid var(--border-color);
 }
 
 .modal-header h3 {
     margin: 0;
-    font-size: 1.125rem;
-    font-weight: 600;
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
     color: var(--text-primary);
     flex: 1;
 }
@@ -62,7 +62,7 @@
 }
 
 .modal-header.header-danger {
-    border-bottom-color: rgba(239, 83, 80, 0.3);
+    border-bottom-color: var(--danger-bg);
 }
 
 .modal-header.header-danger h3 {
@@ -70,7 +70,7 @@
 }
 
 .dialog-icon {
-    font-size: 1.25rem;
+    font-size: var(--font-size-2xl);
     flex-shrink: 0;
 }
 
@@ -82,7 +82,7 @@
     cursor: pointer;
     padding: 0;
     line-height: 1;
-    transition: color 0.15s ease;
+    transition: color var(--duration-normal) var(--ease-default);
     margin-left: auto;
 }
 
@@ -91,21 +91,21 @@
 }
 
 .btn-close:disabled {
-    opacity: 0.5;
+    opacity: var(--opacity-disabled);
     cursor: not-allowed;
 }
 
 .modal-body {
-    padding: 20px;
+    padding: var(--space-5);
     overflow-y: auto;
     flex: 1;
 }
 
 .dialog-message {
-    margin: 0 0 16px 0;
-    font-size: 0.9375rem;
+    margin: 0 0 var(--space-4) 0;
+    font-size: var(--font-size-base);
     color: var(--text-secondary);
-    line-height: 1.5;
+    line-height: var(--line-height-normal);
 }
 
 .dialog-message:last-child {
@@ -115,27 +115,27 @@
 .affected-items-section {
     background: var(--danger-bg);
     border: 1px solid var(--danger-bg);
-    border-radius: 8px;
-    padding: 12px 16px;
-    margin-top: 12px;
+    border-radius: var(--radius-lg);
+    padding: var(--space-3) var(--space-4);
+    margin-top: var(--space-3);
 }
 
 .affected-items-label {
     display: block;
-    font-size: 0.8125rem;
-    font-weight: 500;
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-medium);
     color: var(--danger);
-    margin-bottom: 8px;
+    margin-bottom: var(--space-2);
 }
 
 .affected-items-list {
     margin: 0;
-    padding: 0 0 0 20px;
+    padding: 0 0 0 var(--space-5);
     list-style-type: disc;
 }
 
 .affected-items-list li {
-    font-size: 0.875rem;
+    font-size: var(--font-size-base);
     color: var(--text-secondary);
     padding: 2px 0;
 }
@@ -144,23 +144,24 @@
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 12px;
-    padding: 16px 20px;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-5);
     border-top: 1px solid var(--border-color);
 }
 
 .btn {
-    padding: 10px 20px;
-    font-size: 0.875rem;
-    font-weight: 500;
+    padding: var(--space-3) var(--space-5);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
     border: none;
-    border-radius: 6px;
+    border-radius: var(--radius-md);
     cursor: pointer;
-    transition: background 0.15s ease, opacity 0.15s ease;
+    transition: background var(--duration-normal) var(--ease-default),
+                opacity var(--duration-normal) var(--ease-default);
 }
 
 .btn:disabled {
-    opacity: 0.5;
+    opacity: var(--opacity-disabled);
     cursor: not-allowed;
 }
 
@@ -188,7 +189,7 @@
 }
 
 .btn-warning:hover:not(:disabled) {
-    background: #ffa726;
+    filter: brightness(1.1);
 }
 
 .btn-danger {
@@ -197,27 +198,21 @@
 }
 
 .btn-danger:hover:not(:disabled) {
-    background: #e53935;
+    filter: brightness(1.1);
 }
 
 .processing-indicator {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-2);
 }
 
 .processing-indicator::before {
     content: "";
-    width: 12px;
-    height: 12px;
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
     border: 2px solid transparent;
     border-top-color: currentColor;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
+    border-radius: var(--radius-full);
+    animation: v-spin 0.8s linear infinite;
 }

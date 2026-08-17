@@ -1,26 +1,26 @@
 .team-manager {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: var(--space-4);
 }
 
 .section-header {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 16px;
+    gap: var(--space-4);
 }
 
 .section-header h2 {
     margin: 0;
-    font-size: 1.25rem;
-    font-weight: 600;
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-semibold);
     color: var(--text-primary);
 }
 
 .section-desc {
     margin: 4px 0 0;
-    font-size: 0.8rem;
+    font-size: var(--font-size-sm);
     color: var(--text-muted);
 }
 
@@ -28,13 +28,13 @@
     padding: 6px 14px;
     background: var(--btn-primary-bg);
     border: 1px solid var(--btn-primary-border);
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     color: var(--btn-primary-text);
-    font-size: 0.8rem;
+    font-size: var(--font-size-sm);
     cursor: pointer;
     white-space: nowrap;
     flex-shrink: 0;
-    transition: background 0.15s ease;
+    transition: background var(--duration-normal) var(--ease-default);
 }
 
 .btn-add:hover:not(:disabled) {
@@ -42,7 +42,7 @@
 }
 
 .btn-add:disabled {
-    opacity: 0.5;
+    opacity: var(--opacity-disabled);
     cursor: not-allowed;
 }
 
@@ -50,7 +50,7 @@
 .team-form {
     padding: 14px;
     border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: var(--radius-lg);
     background: var(--bg-code);
     display: flex;
     flex-direction: column;
@@ -60,22 +60,22 @@
 .form-field {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: var(--space-1);
 }
 
 .field-label {
-    font-size: 0.75rem;
-    font-weight: 500;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
     color: var(--text-muted);
 }
 
 .form-input {
-    padding: 8px 12px;
+    padding: var(--space-2) var(--space-3);
     background: var(--bg-input);
     border: 1px solid var(--border-color);
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     color: var(--text-primary);
-    font-size: 0.875rem;
+    font-size: var(--font-size-base);
     width: 100%;
     box-sizing: border-box;
     transition: border-color 0.15s ease;
@@ -88,34 +88,34 @@
 
 .form-actions {
     display: flex;
-    gap: 8px;
+    gap: var(--space-2);
     justify-content: flex-end;
     margin-top: 4px;
 }
 
 .form-error {
     color: var(--danger);
-    font-size: 0.75rem;
+    font-size: var(--font-size-sm);
     margin: 0;
     padding: 6px 8px;
     background: var(--danger-bg);
     border: 1px solid var(--danger);
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
 }
 
 /* Buttons */
 .btn {
     padding: 7px 16px;
-    font-size: 0.8rem;
-    border-radius: 4px;
+    font-size: var(--font-size-sm);
+    border-radius: var(--radius-sm);
     border: 1px solid transparent;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: var(--transition-color);
 }
 
 .btn-sm {
     padding: 5px 12px;
-    font-size: 0.75rem;
+    font-size: var(--font-size-sm);
 }
 
 .btn-primary {
@@ -129,7 +129,7 @@
 }
 
 .btn-primary:disabled {
-    opacity: 0.5;
+    opacity: var(--opacity-disabled);
     cursor: not-allowed;
 }
 
@@ -166,9 +166,9 @@
     align-items: center;
     justify-content: space-between;
     padding: 10px 12px;
-    border-radius: 6px;
-    transition: background 0.15s ease;
-    gap: 12px;
+    border-radius: var(--radius-md);
+    transition: background var(--duration-normal) var(--ease-default);
+    gap: var(--space-3);
 }
 
 .team-item:hover {
@@ -187,12 +187,12 @@
 .team-primary {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-2);
 }
 
 .team-name {
-    font-size: 0.875rem;
-    font-weight: 500;
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
     color: var(--text-primary);
 }
 
@@ -205,7 +205,7 @@
 }
 
 .team-desc {
-    font-size: 0.75rem;
+    font-size: var(--font-size-sm);
     color: var(--text-muted);
     white-space: nowrap;
     overflow: hidden;
@@ -214,10 +214,10 @@
 
 .team-actions {
     display: flex;
-    gap: 4px;
+    gap: var(--space-1);
     flex-shrink: 0;
     opacity: 0;
-    transition: opacity 0.15s ease;
+    transition: opacity var(--duration-normal) var(--ease-default);
 }
 
 .team-item:hover .team-actions {
@@ -226,14 +226,14 @@
 
 /* Members panel */
 .team-members-panel {
-    padding: 8px 12px 12px 24px;
+    padding: var(--space-2) var(--space-3) 12px 24px;
     border-left: 2px solid var(--border-color);
     margin-left: 12px;
     margin-bottom: 4px;
 }
 
 .members-empty {
-    font-size: 0.75rem;
+    font-size: var(--font-size-sm);
     color: var(--text-muted);
     margin: 0;
 }
@@ -241,16 +241,16 @@
 .members-list {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: var(--space-1);
 }
 
 .member-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 4px 8px;
-    border-radius: 4px;
-    transition: background 0.15s ease;
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    transition: background var(--duration-normal) var(--ease-default);
 }
 
 .member-item:hover {
@@ -260,34 +260,34 @@
 .member-info {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-2);
 }
 
 .member-name {
-    font-size: 0.8rem;
+    font-size: var(--font-size-sm);
     color: var(--text-primary);
 }
 
 .member-role {
     font-size: 0.65rem;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: var(--letter-spacing-wide);
     color: var(--text-muted);
     background: var(--bg-code);
     padding: 1px 5px;
-    border-radius: 3px;
+    border-radius: var(--radius-sm);
 }
 
 /* Btn icon */
 .btn-icon {
     background: transparent;
     border: 1px solid transparent;
-    border-radius: 4px;
-    padding: 4px 6px;
+    border-radius: var(--radius-sm);
+    padding: var(--space-1) 6px;
     cursor: pointer;
-    font-size: 0.8rem;
+    font-size: var(--font-size-sm);
     color: var(--text-muted);
-    transition: all 0.15s ease;
+    transition: var(--transition-color);
 }
 
 .btn-icon:hover {
@@ -303,12 +303,12 @@
 .btn-danger-subtle {
     background: transparent;
     border: 1px solid transparent;
-    border-radius: 4px;
-    padding: 4px 6px;
+    border-radius: var(--radius-sm);
+    padding: var(--space-1) 6px;
     cursor: pointer;
-    font-size: 0.75rem;
+    font-size: var(--font-size-sm);
     color: var(--text-muted);
-    transition: all 0.15s ease;
+    transition: var(--transition-color);
 }
 
 .btn-danger-subtle:hover {
@@ -321,11 +321,11 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-size: 0.8rem;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
     color: var(--text-primary);
-    gap: 12px;
+    gap: var(--space-3);
 }
 
 .confirm-danger {
@@ -335,7 +335,7 @@
 
 .confirm-actions {
     display: flex;
-    gap: 6px;
+    gap: var(--space-2);
     flex-shrink: 0;
 }
 
@@ -346,7 +346,7 @@
     justify-content: center;
     padding: 40px;
     color: var(--text-muted);
-    font-size: 0.875rem;
+    font-size: var(--font-size-base);
 }
 
 .empty-state {
@@ -361,7 +361,7 @@
 
 .empty-icon {
     font-size: 2.5rem;
-    margin-bottom: 12px;
+    margin-bottom: var(--space-3);
 }
 
 .empty-state p {
@@ -371,9 +371,9 @@
 }
 
 .empty-hint {
-    font-size: 0.8rem !important;
+    font-size: var(--font-size-sm) !important;
     color: var(--text-muted) !important;
-    margin-bottom: 16px !important;
+    margin-bottom: var(--space-4) !important;
 }
 
 /* Edit modal */
@@ -384,19 +384,19 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    z-index: var(--z-modal);
 }
 
 .modal-panel {
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 20px;
+    border-radius: var(--radius-xl);
+    padding: var(--space-5);
     width: 100%;
     max-width: 400px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: var(--space-3);
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 }
 
@@ -408,7 +408,7 @@
 
 .modal-header h3 {
     margin: 0;
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
     color: var(--text-primary);
 }

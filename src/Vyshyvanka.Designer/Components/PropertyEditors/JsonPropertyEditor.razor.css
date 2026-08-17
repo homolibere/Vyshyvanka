@@ -1,48 +1,50 @@
+/* JsonPropertyEditor — refactored with design tokens */
+
 .property-editor {
-    margin-bottom: 16px;
+    margin-bottom: var(--space-4);
 }
 
 .property-label {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 0.75rem;
-    font-weight: 500;
+    gap: var(--space-2);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
     color: var(--text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 8px;
+    letter-spacing: var(--letter-spacing-wide);
+    margin-bottom: var(--space-2);
 }
 
 .required-indicator {
     color: var(--danger);
-    font-weight: bold;
+    font-weight: var(--font-weight-bold);
 }
 
 .type-badge {
-    padding: 2px 6px;
+    padding: 2px var(--space-2);
     background: var(--bg-hover);
-    border-radius: 3px;
-    font-size: 0.625rem;
-    font-family: 'Monaco', 'Menlo', monospace;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    font-family: var(--font-family-mono);
     color: var(--accent);
     text-transform: none;
-    letter-spacing: 0;
+    letter-spacing: var(--letter-spacing-normal);
 }
 
 .property-textarea {
     width: 100%;
     min-height: 120px;
-    padding: 8px 12px;
+    padding: var(--space-2) var(--space-3);
     background: var(--bg-input);
     border: 1px solid var(--border-color);
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     color: var(--text-primary);
-    font-size: 0.75rem;
-    font-family: 'Monaco', 'Menlo', monospace;
+    font-size: var(--font-size-sm);
+    font-family: var(--font-family-mono);
     resize: vertical;
-    transition: border-color 0.15s ease;
-    line-height: 1.5;
+    transition: border-color var(--duration-normal) var(--ease-default);
+    line-height: var(--line-height-normal);
 }
 
 .property-textarea:focus {
@@ -59,19 +61,19 @@
 }
 
 .property-description {
-    font-size: 0.75rem;
+    font-size: var(--font-size-sm);
     color: var(--text-muted);
-    margin-top: 6px;
-    line-height: 1.4;
+    margin-top: var(--space-2);
+    line-height: var(--line-height-normal);
 }
 
 .validation-error {
-    margin-top: 6px;
-    padding: 6px 8px;
+    margin-top: var(--space-2);
+    padding: var(--space-2) var(--space-2);
     background: var(--danger-bg);
     border: 1px solid var(--danger);
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     color: var(--danger);
-    font-size: 0.75rem;
-    font-family: 'Monaco', 'Menlo', monospace;
+    font-size: var(--font-size-sm);
+    font-family: var(--font-family-mono);
 }

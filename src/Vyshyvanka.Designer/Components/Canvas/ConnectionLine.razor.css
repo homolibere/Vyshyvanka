@@ -1,3 +1,5 @@
+/* ConnectionLine — refactored with design tokens */
+
 .connection {
     cursor: pointer;
 }
@@ -5,14 +7,14 @@
 .connection-hitarea {
     fill: none;
     stroke: transparent;
-    stroke-width: 20;
+    stroke-width: var(--port-hit-area);
 }
 
 .connection-line {
     fill: none;
     stroke: var(--accent);
-    stroke-width: 2;
-    transition: stroke 0.15s ease;
+    stroke-width: var(--connection-width);
+    transition: stroke var(--duration-normal) var(--ease-default);
 }
 
 .connection:hover .connection-line {
@@ -20,13 +22,13 @@
 }
 
 .connection.selected .connection-line {
-    stroke: #fff;
-    stroke-width: 3;
+    stroke: var(--text-on-surface-dark);
+    stroke-width: var(--connection-width-hover);
 }
 
 .connection-arrow {
     fill: var(--accent);
-    transition: fill 0.15s ease;
+    transition: fill var(--duration-normal) var(--ease-default);
 }
 
 .connection:hover .connection-arrow {
@@ -34,13 +36,13 @@
 }
 
 .connection.selected .connection-arrow {
-    fill: #fff;
+    fill: var(--text-on-surface-dark);
 }
 
 .delete-btn {
     cursor: pointer;
     opacity: 0;
-    transition: opacity 0.15s ease;
+    transition: opacity var(--duration-normal) var(--ease-default);
 }
 
 .connection.selected .delete-btn {
@@ -48,5 +50,5 @@
 }
 
 .delete-btn:hover circle {
-    fill: #c62828;
+    fill: var(--danger);
 }

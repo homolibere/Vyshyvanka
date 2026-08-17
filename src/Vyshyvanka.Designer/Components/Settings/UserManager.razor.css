@@ -1,26 +1,26 @@
 .user-manager {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: var(--space-4);
 }
 
 .section-header {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 16px;
+    gap: var(--space-4);
 }
 
 .section-header h2 {
     margin: 0;
-    font-size: 1.25rem;
-    font-weight: 600;
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-semibold);
     color: var(--text-primary);
 }
 
 .section-desc {
     margin: 4px 0 0;
-    font-size: 0.8rem;
+    font-size: var(--font-size-sm);
     color: var(--text-muted);
 }
 
@@ -28,13 +28,13 @@
     padding: 6px 14px;
     background: var(--btn-primary-bg);
     border: 1px solid var(--btn-primary-border);
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     color: var(--btn-primary-text);
-    font-size: 0.8rem;
+    font-size: var(--font-size-sm);
     cursor: pointer;
     white-space: nowrap;
     flex-shrink: 0;
-    transition: background 0.15s ease;
+    transition: background var(--duration-normal) var(--ease-default);
 }
 
 .btn-add:hover:not(:disabled) {
@@ -42,14 +42,14 @@
 }
 
 .btn-add:disabled {
-    opacity: 0.5;
+    opacity: var(--opacity-disabled);
     cursor: not-allowed;
 }
 
 /* Search */
 .search-bar {
     display: flex;
-    gap: 8px;
+    gap: var(--space-2);
     align-items: center;
 }
 
@@ -61,7 +61,7 @@
 .user-form {
     padding: 14px;
     border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: var(--radius-lg);
     background: var(--bg-code);
     display: flex;
     flex-direction: column;
@@ -71,22 +71,22 @@
 .form-field {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: var(--space-1);
 }
 
 .field-label {
-    font-size: 0.75rem;
-    font-weight: 500;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
     color: var(--text-muted);
 }
 
 .form-input {
-    padding: 8px 12px;
+    padding: var(--space-2) var(--space-3);
     background: var(--bg-input);
     border: 1px solid var(--border-color);
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     color: var(--text-primary);
-    font-size: 0.875rem;
+    font-size: var(--font-size-base);
     width: 100%;
     box-sizing: border-box;
     transition: border-color 0.15s ease;
@@ -99,34 +99,34 @@
 
 .form-actions {
     display: flex;
-    gap: 8px;
+    gap: var(--space-2);
     justify-content: flex-end;
     margin-top: 4px;
 }
 
 .form-error {
     color: var(--danger);
-    font-size: 0.75rem;
+    font-size: var(--font-size-sm);
     margin: 0;
     padding: 6px 8px;
     background: var(--danger-bg);
     border: 1px solid var(--danger);
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
 }
 
 /* Buttons */
 .btn {
     padding: 7px 16px;
-    font-size: 0.8rem;
-    border-radius: 4px;
+    font-size: var(--font-size-sm);
+    border-radius: var(--radius-sm);
     border: 1px solid transparent;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: var(--transition-color);
 }
 
 .btn-sm {
     padding: 5px 12px;
-    font-size: 0.75rem;
+    font-size: var(--font-size-sm);
 }
 
 .btn-primary {
@@ -140,7 +140,7 @@
 }
 
 .btn-primary:disabled {
-    opacity: 0.5;
+    opacity: var(--opacity-disabled);
     cursor: not-allowed;
 }
 
@@ -167,9 +167,9 @@
     align-items: center;
     justify-content: space-between;
     padding: 10px 12px;
-    border-radius: 6px;
-    transition: background 0.15s ease;
-    gap: 12px;
+    border-radius: var(--radius-md);
+    transition: background var(--duration-normal) var(--ease-default);
+    gap: var(--space-3);
 }
 
 .user-item:hover {
@@ -191,12 +191,12 @@
 .user-primary {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-2);
 }
 
 .user-name {
-    font-size: 0.875rem;
-    font-weight: 500;
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
     color: var(--text-primary);
     white-space: nowrap;
     overflow: hidden;
@@ -204,7 +204,7 @@
 }
 
 .user-meta {
-    font-size: 0.75rem;
+    font-size: var(--font-size-sm);
     color: var(--text-muted);
     white-space: nowrap;
     overflow: hidden;
@@ -214,17 +214,17 @@
 .user-actions-area {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-2);
     flex-shrink: 0;
 }
 
 .role-select {
-    padding: 4px 8px;
+    padding: var(--space-1) var(--space-2);
     background: var(--bg-input);
     border: 1px solid var(--border-color);
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     color: var(--text-primary);
-    font-size: 0.75rem;
+    font-size: var(--font-size-sm);
     cursor: pointer;
     transition: border-color 0.15s ease;
 }
@@ -238,10 +238,10 @@
 .badge {
     font-size: 0.6rem;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: var(--letter-spacing-wide);
     padding: 2px 6px;
-    border-radius: 4px;
-    font-weight: 600;
+    border-radius: var(--radius-sm);
+    font-weight: var(--font-weight-semibold);
     flex-shrink: 0;
 }
 
@@ -261,12 +261,12 @@
 .btn-icon {
     background: transparent;
     border: 1px solid transparent;
-    border-radius: 4px;
-    padding: 4px 6px;
+    border-radius: var(--radius-sm);
+    padding: var(--space-1) 6px;
     cursor: pointer;
-    font-size: 0.8rem;
+    font-size: var(--font-size-sm);
     color: var(--text-muted);
-    transition: all 0.15s ease;
+    transition: var(--transition-color);
 }
 
 .btn-icon:hover {
@@ -279,12 +279,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
-    padding: 8px 0;
+    gap: var(--space-3);
+    padding: var(--space-2) 0;
 }
 
 .page-info {
-    font-size: 0.75rem;
+    font-size: var(--font-size-sm);
     color: var(--text-muted);
 }
 
@@ -295,7 +295,7 @@
     justify-content: center;
     padding: 40px;
     color: var(--text-muted);
-    font-size: 0.875rem;
+    font-size: var(--font-size-base);
 }
 
 .empty-state {
@@ -310,7 +310,7 @@
 
 .empty-icon {
     font-size: 2.5rem;
-    margin-bottom: 12px;
+    margin-bottom: var(--space-3);
 }
 
 .empty-state p {
@@ -320,9 +320,9 @@
 }
 
 .empty-hint {
-    font-size: 0.8rem !important;
+    font-size: var(--font-size-sm) !important;
     color: var(--text-muted) !important;
-    margin-bottom: 16px !important;
+    margin-bottom: var(--space-4) !important;
 }
 
 /* Team assignment modal */
@@ -333,14 +333,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    z-index: var(--z-modal);
 }
 
 .modal-panel {
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 20px;
+    border-radius: var(--radius-xl);
+    padding: var(--space-5);
     width: 100%;
     max-width: 440px;
     max-height: 80vh;
@@ -352,18 +352,18 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 8px;
+    margin-bottom: var(--space-2);
 }
 
 .modal-header h3 {
     margin: 0;
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
     color: var(--text-primary);
 }
 
 .modal-desc {
-    font-size: 0.8rem;
+    font-size: var(--font-size-sm);
     color: var(--text-muted);
     margin: 0 0 16px;
 }
@@ -371,17 +371,17 @@
 .team-list-assign {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: var(--space-2);
 }
 
 .team-assign-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 10px;
-    border-radius: 6px;
+    padding: var(--space-2) 10px;
+    border-radius: var(--radius-md);
     border: 1px solid var(--border-color);
-    gap: 12px;
+    gap: var(--space-3);
 }
 
 .team-assign-info {
@@ -392,8 +392,8 @@
 }
 
 .team-assign-name {
-    font-size: 0.8rem;
-    font-weight: 500;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
     color: var(--text-primary);
 }
 

@@ -1,3 +1,5 @@
+/* NodePalette — refactored with design tokens */
+
 .palette-container {
     display: flex;
     flex-direction: column;
@@ -5,32 +7,33 @@
 }
 
 .palette-header {
-    padding: 16px;
+    padding: var(--space-4);
     border-bottom: 1px solid var(--border-color);
 }
 
 .palette-header h3 {
     margin: 0;
-    font-size: 0.875rem;
-    font-weight: 600;
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
     color: var(--text-primary);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: var(--letter-spacing-wide);
 }
 
 .palette-search {
-    padding: 12px 16px;
+    padding: var(--space-3) var(--space-4);
     border-bottom: 1px solid var(--border-color);
 }
 
 .palette-search input {
     width: 100%;
-    padding: 8px 12px;
+    padding: var(--space-2) var(--space-3);
     background: var(--bg-input);
     border: 1px solid var(--border-color);
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     color: var(--text-primary);
-    font-size: 0.875rem;
+    font-size: var(--font-size-base);
+    transition: border-color var(--duration-normal) var(--ease-default);
 }
 
 .palette-search input:focus {
@@ -49,10 +52,10 @@
 .category-header {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 12px 16px;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
     cursor: pointer;
-    transition: background 0.15s ease;
+    transition: background var(--duration-normal) var(--ease-default);
 }
 
 .category-header:hover {
@@ -60,32 +63,32 @@
 }
 
 .category-icon {
-    font-size: 1rem;
+    font-size: var(--font-size-lg);
 }
 
 .category-name {
     flex: 1;
-    font-size: 0.875rem;
-    font-weight: 500;
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
     color: var(--text-primary);
 }
 
 .category-toggle {
-    font-size: 0.625rem;
+    font-size: var(--font-size-xs);
     color: var(--text-muted);
 }
 
 .category-nodes {
-    padding: 4px 0;
+    padding: var(--space-1) 0;
 }
 
 .palette-node {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 10px 16px 10px 24px;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4) var(--space-3) var(--space-6);
     cursor: grab;
-    transition: background 0.15s ease;
+    transition: background var(--duration-normal) var(--ease-default);
 }
 
 .palette-node:hover {
@@ -97,14 +100,14 @@
 }
 
 .node-icon {
-    font-size: 1.25rem;
+    font-size: var(--font-size-2xl);
     width: 32px;
     height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
     background: var(--bg-input);
-    border-radius: 6px;
+    border-radius: var(--radius-md);
 }
 
 .node-info {
@@ -115,7 +118,9 @@
 }
 
 .node-name {
-    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    font-size: var(--font-size-base);
     color: var(--text-primary);
     white-space: nowrap;
     overflow: hidden;
@@ -123,13 +128,12 @@
 }
 
 .node-description {
-    font-size: 0.75rem;
+    font-size: var(--font-size-sm);
     color: var(--text-muted);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
-
 
 /* Plugin node styling */
 .palette-node.plugin-node {
@@ -137,17 +141,11 @@
 }
 
 .palette-node.plugin-node:hover {
-    background: var(--bg-hover);
     border-left-color: #ba68c8;
 }
 
 .plugin-badge {
-    font-size: 0.75rem;
-    margin-left: 4px;
-    opacity: 0.8;
-}
-
-.node-name {
-    display: flex;
-    align-items: center;
+    font-size: var(--font-size-sm);
+    margin-left: var(--space-1);
+    opacity: var(--opacity-hover);
 }

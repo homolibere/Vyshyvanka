@@ -1,32 +1,32 @@
 .installed-packages {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: var(--space-4);
     height: 100%;
 }
 
 .tab-toolbar {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
     background: var(--bg-surface);
-    border-radius: 8px;
+    border-radius: var(--radius-lg);
 }
 
 .btn {
-    padding: 8px 16px;
-    font-size: 0.875rem;
-    font-weight: 500;
+    padding: var(--space-2) var(--space-4);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
     border: none;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     cursor: pointer;
-    transition: background 0.15s ease, opacity 0.15s ease;
+    transition: background var(--duration-normal) var(--ease-default), opacity 0.15s ease;
     white-space: nowrap;
 }
 
 .btn:disabled {
-    opacity: 0.5;
+    opacity: var(--opacity-disabled);
     cursor: not-allowed;
 }
 
@@ -56,9 +56,9 @@
 }
 
 .update-count {
-    font-size: 0.875rem;
+    font-size: var(--font-size-base);
     color: var(--accent);
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
 }
 
 .loading-state {
@@ -67,7 +67,7 @@
     align-items: center;
     justify-content: center;
     padding: 48px 24px;
-    gap: 16px;
+    gap: var(--space-4);
     color: var(--text-muted);
 }
 
@@ -76,7 +76,7 @@
     height: 32px;
     border: 3px solid var(--border-color);
     border-top-color: var(--accent);
-    border-radius: 50%;
+    border-radius: var(--radius-full);
     animation: spin 1s linear infinite;
 }
 
@@ -93,24 +93,24 @@
     justify-content: center;
     padding: 48px 24px;
     text-align: center;
-    gap: 12px;
+    gap: var(--space-3);
 }
 
 .empty-icon {
     font-size: 3rem;
-    opacity: 0.5;
+    opacity: var(--opacity-disabled);
 }
 
 .empty-state h4 {
     margin: 0;
-    font-size: 1.125rem;
-    font-weight: 600;
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
     color: var(--text-primary);
 }
 
 .empty-state p {
     margin: 0;
-    font-size: 0.875rem;
+    font-size: var(--font-size-base);
     color: var(--text-muted);
     max-width: 300px;
 }
@@ -118,7 +118,7 @@
 .package-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: var(--space-3);
     overflow-y: auto;
     flex: 1;
     padding-right: 4px;
@@ -134,7 +134,7 @@
 
 .package-list::-webkit-scrollbar-thumb {
     background: var(--border-hover);
-    border-radius: 3px;
+    border-radius: var(--radius-sm);
 }
 
 .package-list::-webkit-scrollbar-thumb:hover {
@@ -145,25 +145,25 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    padding: 12px 16px;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
     background: var(--danger-bg);
     border: 1px solid var(--danger);
-    border-radius: 8px;
+    border-radius: var(--radius-lg);
     color: var(--danger);
-    font-size: 0.875rem;
+    font-size: var(--font-size-base);
 }
 
 .btn-dismiss {
     background: transparent;
     border: none;
     color: var(--danger);
-    font-size: 1.25rem;
+    font-size: var(--font-size-2xl);
     cursor: pointer;
     padding: 0;
     line-height: 1;
     opacity: 0.7;
-    transition: opacity 0.15s ease;
+    transition: opacity var(--duration-normal) var(--ease-default);
 }
 
 .btn-dismiss:hover {

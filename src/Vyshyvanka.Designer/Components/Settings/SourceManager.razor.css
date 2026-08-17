@@ -1,32 +1,32 @@
 .source-manager {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: var(--space-4);
     height: 100%;
 }
 
 .tab-toolbar {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
     background: var(--bg-surface);
-    border-radius: 8px;
+    border-radius: var(--radius-lg);
 }
 
 .btn {
-    padding: 8px 16px;
-    font-size: 0.875rem;
-    font-weight: 500;
+    padding: var(--space-2) var(--space-4);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
     border: none;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     cursor: pointer;
-    transition: background 0.15s ease, opacity 0.15s ease;
+    transition: background var(--duration-normal) var(--ease-default), opacity 0.15s ease;
     white-space: nowrap;
 }
 
 .btn:disabled {
-    opacity: 0.5;
+    opacity: var(--opacity-disabled);
     cursor: not-allowed;
 }
 
@@ -59,8 +59,8 @@
 }
 
 .btn-sm {
-    padding: 6px 12px;
-    font-size: 0.75rem;
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--font-size-sm);
 }
 
 .loading-state {
@@ -69,7 +69,7 @@
     align-items: center;
     justify-content: center;
     padding: 48px 24px;
-    gap: 16px;
+    gap: var(--space-4);
     color: var(--text-muted);
 }
 
@@ -78,7 +78,7 @@
     height: 32px;
     border: 3px solid var(--border-color);
     border-top-color: var(--accent);
-    border-radius: 50%;
+    border-radius: var(--radius-full);
     animation: spin 1s linear infinite;
 }
 
@@ -95,24 +95,24 @@
     justify-content: center;
     padding: 48px 24px;
     text-align: center;
-    gap: 12px;
+    gap: var(--space-3);
 }
 
 .empty-icon {
     font-size: 3rem;
-    opacity: 0.5;
+    opacity: var(--opacity-disabled);
 }
 
 .empty-state h4 {
     margin: 0;
-    font-size: 1.125rem;
-    font-weight: 600;
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
     color: var(--text-primary);
 }
 
 .empty-state p {
     margin: 0;
-    font-size: 0.875rem;
+    font-size: var(--font-size-base);
     color: var(--text-muted);
     max-width: 300px;
 }
@@ -120,7 +120,7 @@
 .source-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: var(--space-3);
     overflow-y: auto;
     flex: 1;
     padding-right: 4px;
@@ -136,7 +136,7 @@
 
 .source-list::-webkit-scrollbar-thumb {
     background: var(--border-hover);
-    border-radius: 3px;
+    border-radius: var(--radius-sm);
 }
 
 .source-list::-webkit-scrollbar-thumb:hover {
@@ -147,12 +147,12 @@
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 16px;
-    padding: 16px;
+    gap: var(--space-4);
+    padding: var(--space-4);
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
-    transition: background 0.15s ease, border-color 0.15s ease;
+    border-radius: var(--radius-lg);
+    transition: background var(--duration-normal) var(--ease-default), border-color 0.15s ease;
 }
 
 .source-item:hover {
@@ -169,60 +169,60 @@
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: var(--space-2);
 }
 
 .source-header {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-2);
     flex-wrap: wrap;
 }
 
 .source-name {
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
     color: var(--text-primary);
 }
 
 .trusted-badge {
-    font-size: 0.75rem;
+    font-size: var(--font-size-sm);
     color: var(--success);
     background: var(--success-bg);
     padding: 2px 8px;
-    border-radius: 4px;
-    font-weight: 500;
+    border-radius: var(--radius-sm);
+    font-weight: var(--font-weight-medium);
 }
 
 .disabled-badge {
-    font-size: 0.75rem;
+    font-size: var(--font-size-sm);
     color: var(--text-muted);
     background: rgba(136, 136, 136, 0.15);
     padding: 2px 8px;
-    border-radius: 4px;
-    font-weight: 500;
+    border-radius: var(--radius-sm);
+    font-weight: var(--font-weight-medium);
 }
 
 .credentials-badge {
-    font-size: 0.75rem;
+    font-size: var(--font-size-sm);
     color: var(--warning);
     cursor: help;
 }
 
 .source-url {
-    font-size: 0.875rem;
+    font-size: var(--font-size-base);
     color: var(--text-muted);
     word-break: break-all;
 }
 
 .test-result {
     margin-top: 4px;
-    font-size: 0.75rem;
-    padding: 4px 8px;
-    border-radius: 4px;
+    font-size: var(--font-size-sm);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: var(--space-1);
     width: fit-content;
 }
 
@@ -239,51 +239,51 @@
 .test-status {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: var(--space-1);
 }
 
 .source-actions {
     flex-shrink: 0;
     display: flex;
-    gap: 8px;
+    gap: var(--space-2);
 }
 
 .error-message {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    padding: 12px 16px;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
     background: var(--danger-bg);
     border: 1px solid var(--danger);
-    border-radius: 8px;
+    border-radius: var(--radius-lg);
     color: var(--danger);
-    font-size: 0.875rem;
+    font-size: var(--font-size-base);
 }
 
 .status-message {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    padding: 12px 16px;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
     background: var(--accent-light);
     border: 1px solid var(--accent);
-    border-radius: 8px;
+    border-radius: var(--radius-lg);
     color: var(--accent);
-    font-size: 0.875rem;
+    font-size: var(--font-size-base);
 }
 
 .btn-dismiss {
     background: transparent;
     border: none;
     color: inherit;
-    font-size: 1.25rem;
+    font-size: var(--font-size-2xl);
     cursor: pointer;
     padding: 0;
     line-height: 1;
     opacity: 0.7;
-    transition: opacity 0.15s ease;
+    transition: opacity var(--duration-normal) var(--ease-default);
 }
 
 .btn-dismiss:hover {

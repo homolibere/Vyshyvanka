@@ -1,13 +1,15 @@
+/* UserMenu — refactored with design tokens */
+
 .user-menu {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-2);
 }
 
 .user-info {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-2);
 }
 
 .user-avatar {
@@ -16,17 +18,17 @@
     justify-content: center;
     width: 28px;
     height: 28px;
-    border-radius: 50%;
+    border-radius: var(--radius-full);
     background: var(--btn-primary-bg);
     color: white;
-    font-size: 0.7rem;
-    font-weight: 600;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
     flex-shrink: 0;
 }
 
 .user-name {
     color: var(--text-primary);
-    font-size: 0.85rem;
+    font-size: var(--font-size-md);
     max-width: 160px;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -35,12 +37,12 @@
 
 .user-role {
     color: var(--text-muted);
-    font-size: 0.7rem;
+    font-size: var(--font-size-xs);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    padding: 1px 6px;
+    letter-spacing: var(--letter-spacing-wide);
+    padding: 1px var(--space-2);
     border: 1px solid var(--border-color);
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
 }
 
 .btn-logout {
@@ -52,10 +54,10 @@
     color: var(--text-muted);
     width: 30px;
     height: 30px;
-    border-radius: 6px;
+    border-radius: var(--radius-md);
     cursor: pointer;
-    font-size: 0.8rem;
-    transition: all 0.15s ease;
+    font-size: var(--font-size-sm);
+    transition: var(--transition-color);
 }
 
 .btn-logout:hover {
@@ -73,11 +75,11 @@
     color: var(--text-muted);
     width: 30px;
     height: 30px;
-    border-radius: 6px;
+    border-radius: var(--radius-md);
     cursor: pointer;
-    font-size: 0.8rem;
+    font-size: var(--font-size-sm);
     text-decoration: none;
-    transition: all 0.15s ease;
+    transition: var(--transition-color);
 }
 
 .btn-settings:hover {

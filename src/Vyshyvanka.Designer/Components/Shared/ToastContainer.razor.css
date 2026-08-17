@@ -1,11 +1,13 @@
+/* ToastContainer — refactored with design tokens */
+
 .toast-container {
     position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 1200;
+    top: var(--space-5);
+    right: var(--space-5);
+    z-index: var(--z-toast);
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: var(--space-3);
     pointer-events: none;
 }
 

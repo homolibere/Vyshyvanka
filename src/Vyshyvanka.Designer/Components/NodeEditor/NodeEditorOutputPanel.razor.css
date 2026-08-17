@@ -1,38 +1,40 @@
+/* NodeEditorOutputPanel — refactored with design tokens */
+
 .node-editor-panel {
     display: flex;
     flex-direction: column;
     height: 100%;
     background: var(--bg-surface);
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     overflow: hidden;
 }
 
 .panel-header {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
     background: var(--bg-elevated);
     border-bottom: 1px solid var(--border-color);
 }
 
 .panel-title {
-    font-weight: 600;
-    font-size: 14px;
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-size-base);
     color: var(--text-primary);
     white-space: nowrap;
 }
 
 .btn-copy {
     margin-left: auto;
-    padding: 4px 8px;
+    padding: var(--space-1) var(--space-2);
     border: 1px solid var(--border-color);
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     background: transparent;
     color: var(--text-secondary);
-    font-size: 12px;
+    font-size: var(--font-size-sm);
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: var(--transition-color);
     line-height: 1;
 }
 
@@ -49,7 +51,7 @@
 
 .port-tabs {
     display: flex;
-    gap: 4px;
+    gap: var(--space-1);
     overflow-x: auto;
     scrollbar-width: none;
 }
@@ -59,15 +61,15 @@
 }
 
 .port-tab {
-    padding: 4px 10px;
+    padding: var(--space-1) var(--space-3);
     border: 1px solid var(--border-color);
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     background: transparent;
     color: var(--text-secondary);
-    font-size: 12px;
+    font-size: var(--font-size-sm);
     cursor: pointer;
     white-space: nowrap;
-    transition: all 0.15s ease;
+    transition: var(--transition-color);
 }
 
 .port-tab:hover {
@@ -84,18 +86,18 @@
 .panel-content {
     flex: 1;
     overflow: auto;
-    padding: 12px;
+    padding: var(--space-3);
 }
 
 .json-viewer {
     margin: 0;
-    padding: 12px;
+    padding: var(--space-3);
     background: var(--bg-code);
-    border-radius: 4px;
-    font-family: 'Consolas', 'Monaco', monospace;
-    font-size: 12px;
-    line-height: 1.5;
-    color: var(--code-text, #9cdcfe);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-normal);
+    color: #9cdcfe;
     white-space: pre-wrap;
     word-break: break-word;
     border: 1px solid var(--border-color);
@@ -103,26 +105,11 @@
     overflow: auto;
 }
 
-/* JSON syntax highlighting classes */
-.json-viewer .json-key {
-    color: #9cdcfe;
-}
-
-.json-viewer .json-string {
-    color: #ce9178;
-}
-
-.json-viewer .json-number {
-    color: #b5cea8;
-}
-
-.json-viewer .json-boolean {
-    color: #569cd6;
-}
-
-.json-viewer .json-null {
-    color: #569cd6;
-}
+.json-viewer .json-key { color: #9cdcfe; }
+.json-viewer .json-string { color: #ce9178; }
+.json-viewer .json-number { color: #b5cea8; }
+.json-viewer .json-boolean { color: #569cd6; }
+.json-viewer .json-null { color: #569cd6; }
 
 .placeholder {
     display: flex;
@@ -135,17 +122,17 @@
 }
 
 .placeholder-icon {
-    font-size: 32px;
-    margin-bottom: 12px;
-    opacity: 0.6;
+    font-size: var(--font-size-4xl);
+    margin-bottom: var(--space-3);
+    opacity: var(--opacity-muted);
 }
 
 .placeholder-text {
-    font-size: 14px;
-    margin-bottom: 4px;
+    font-size: var(--font-size-base);
+    margin-bottom: var(--space-1);
 }
 
 .placeholder-hint {
-    font-size: 12px;
+    font-size: var(--font-size-sm);
     opacity: 0.7;
 }
