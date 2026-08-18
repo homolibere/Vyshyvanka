@@ -68,23 +68,29 @@ Used by: Workflow Browser, Execution History, Packages, Settings.
 Used by: Designer screen.
 
 ```
-┌────────────────────────── 1440px ──────────────────────────┐
-│ TOOLBAR (48px height, #292524 bg, full width)               │
-│ [← back] [workflow name] ─────── [execute] [save]          │
-├──────────┬──────────────────────────────────┬──────────────┤
-│          │                                   │              │
-│  NODE    │         CANVAS                    │   CONFIG     │
-│  PALETTE │         (dark, infinite pan/zoom) │   PANEL      │
-│  240px   │         960×852                   │   300px      │
-│  #292524 │         #1C1917                   │   #292524    │
-│          │                                   │              │
-│  node    │         [nodes + connections]     │   [selected  │
-│  list    │                                   │    node      │
-│  items   │                                   │    props]    │
-│          │                                   │              │
-│  852px   │                                   │   852px      │
-│          │                                   │              │
-└──────────┴──────────────────────────────────┴──────────────┘
+┌──────────────────────────── 1440px ─────────────────────────────┐
+│ TOOLBAR (48px height, #292524 bg, full width)                    │
+│ [← back] [workflow name] [undo/redo] ── [active] [save] [run]   │
+│                                          [zoom -] 100% [zoom +] │
+├──┬──────────┬────────────────────────────────────┬──────────────┤
+│  │          │                                     │              │
+│A │ CONTEXT  │           CANVAS                    │   CONFIG     │
+│C │ PANEL    │           (dark, infinite pan/zoom) │   PANEL      │
+│T │ 240px    │           912×852                   │   300px      │
+│I │ #292524  │           #1C1917                   │   #292524    │
+│V │          │                                     │              │
+│I │ Content  │           [nodes + connections]     │   [selected  │
+│T │ depends  │                                     │    node      │
+│Y │ on tab:  │                                     │    props]    │
+│  │ - Nodes  │                                     │              │
+│B │ - Files  │                                     │   852px      │
+│A │ - History│                                     │              │
+│R │ - Creds  │                                     │              │
+│  │ - Pkgs   │                                     │              │
+│48│          │                                     │              │
+│px│  852px   │                                     │              │
+│  │          │                                     │              │
+└──┴──────────┴────────────────────────────────────┴──────────────┘
 ```
 
 ### Key Dimensions
@@ -92,16 +98,47 @@ Used by: Designer screen.
 | Region | Width | Height | Background | Position |
 |--------|-------|--------|------------|----------|
 | Toolbar | 1440 | 48 | `#292524` | Top, full width |
-| Node Palette | 240 | 852 | `#292524` | Left, below toolbar |
-| Canvas | 960 | 852 | `#1C1917` | Center |
+| Activity Bar | 48 | 852 | `#1C1917` | Left edge, below toolbar |
+| Context Panel | 240 | 852 | `#292524` | Right of activity bar |
+| Canvas | 912 | 852 | `#1C1917` | Center, fills remaining |
 | Config Panel | 300 | 852 | `#292524` | Right, below toolbar |
 
-### Node Palette
+### Activity Bar
 
-- Layout: Flex column, 4px gap
-- Contains categorized list of available node types
-- Each item: Node name + category color indicator
-- Draggable onto canvas
+A narrow vertical icon strip on the far left that controls which panel is shown in the Context Panel.
+
+| Position | Icon | Panel | Description |
+|----------|------|-------|-------------|
+| Top | `fa-cube` | Node Palette | Drag nodes onto canvas (default active) |
+| Top | `fa-folder-open` | Workflow Browser | Browse and open workflows inline |
+| Top | `fa-clock-rotate-left` | Execution History | View runs for current workflow |
+| Bottom | `fa-shield-halved` | Credentials | Manage credentials in-context |
+| Bottom | `fa-box` | Plugins | Manage installed plugin packages |
+
+Styling:
+- Background: `#1C1917` (canvas bg — visually separates from panels)
+- Icons: Neutral-400 (`#A8A29E`) default, white when active
+- Active indicator: 2px left border in Primary (`#C62828`)
+- Item size: 48×48px centered icon, minimum touch target
+- Layout: Flex column, space-between (top group + bottom group)
+
+### Context Panel
+
+- Width: 240px (same as previous node palette)
+- Background: `#292524`
+- Header: Panel title (uppercase, small text), matches `v-panel__header` pattern
+- Body: Scrollable content area
+- Content switches based on the active activity bar tab
+- Default active tab: Node Palette (for workflow building)
+
+### Toolbar (Simplified)
+
+With secondary actions moved to the activity bar, the toolbar only contains workflow-level actions:
+
+- Layout: Flex row, items vertically centered, space-between
+- Left: Back arrow + workflow name + undo/redo
+- Center/Right: Active toggle + Save + Run buttons + zoom controls
+- No more: Open, Plugins, Credentials, History buttons
 
 ### Config Panel
 

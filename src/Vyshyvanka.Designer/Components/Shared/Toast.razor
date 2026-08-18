@@ -2,7 +2,9 @@
 @* Toast notification component *@
 
 <div class="toast @GetTypeClass() @(_isVisible ? "visible" : "hiding")" role="alert">
-    <div class="toast-icon">@GetIcon()</div>
+    <div class="toast-icon">
+        <i class="fa-solid @GetIconClass()"></i>
+    </div>
     <div class="toast-content">
         @if (!string.IsNullOrEmpty(Title))
         {
@@ -12,8 +14,10 @@
     </div>
     <div class="toast-actions">
         <button class="toast-copy @(_copied ? "copied" : "")" @onclick="CopyToClipboardAsync" aria-label="Copy message" title="Copy to clipboard">
-            @(_copied ? "✓" : "📋")
+            <i class="fa-solid @(_copied ? "fa-check" : "fa-copy") v-icon v-icon--sm"></i>
         </button>
-        <button class="toast-close" @onclick="Dismiss" aria-label="Close">×</button>
+        <button class="toast-close" @onclick="Dismiss" aria-label="Close notification">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
     </div>
 </div>

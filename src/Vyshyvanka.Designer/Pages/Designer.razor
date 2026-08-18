@@ -9,28 +9,84 @@
 }
 
 <div class="designer-container">
-    <aside class="node-palette @(_isPaletteCollapsed ? "collapsed" : "")">
-        <div class="panel-toggle" @onclick="TogglePalette" title="@(_isPaletteCollapsed ? "Show Nodes" : "Hide Nodes")">
-            <span class="toggle-icon">@(_isPaletteCollapsed ? "▶" : "◀")</span>
-            @if (_isPaletteCollapsed)
-            {
-                <span class="toggle-label-vertical">Nodes</span>
-            }
+    @* ── Activity Bar (far left, 48px) ─────────────────────────────── *@
+    <nav class="v-activity-bar" aria-label="Designer panels">
+        <div class="v-activity-bar__top">
+            <button class="v-activity-bar__item @(_activePanel == DesignerPanel.Nodes ? "v-activity-bar__item--active" : "")"
+                    @onclick="() => SetActivePanel(DesignerPanel.Nodes)"
+                    title="Nodes"
+                    aria-label="Node palette"
+                    aria-pressed="@(_activePanel == DesignerPanel.Nodes)">
+                <i class="fa-solid fa-cube"></i>
+            </button>
+            <button class="v-activity-bar__item @(_activePanel == DesignerPanel.Workflows ? "v-activity-bar__item--active" : "")"
+                    @onclick="() => SetActivePanel(DesignerPanel.Workflows)"
+                    title="Workflows"
+                    aria-label="Workflow browser"
+                    aria-pressed="@(_activePanel == DesignerPanel.Workflows)">
+                <i class="fa-solid fa-folder-open"></i>
+            </button>
+            <button class="v-activity-bar__item @(_activePanel == DesignerPanel.History ? "v-activity-bar__item--active" : "")"
+                    @onclick="() => SetActivePanel(DesignerPanel.History)"
+                    title="History"
+                    aria-label="Execution history"
+                    aria-pressed="@(_activePanel == DesignerPanel.History)">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+            </button>
         </div>
-        @if (!_isPaletteCollapsed)
+        <div class="v-activity-bar__bottom">
+            <button class="v-activity-bar__item @(_activePanel == DesignerPanel.Credentials ? "v-activity-bar__item--active" : "")"
+                    @onclick="() => SetActivePanel(DesignerPanel.Credentials)"
+                    title="Credentials"
+                    aria-label="Credential manager"
+                    aria-pressed="@(_activePanel == DesignerPanel.Credentials)">
+                <i class="fa-solid fa-shield-halved"></i>
+            </button>
+            <button class="v-activity-bar__item @(_activePanel == DesignerPanel.Plugins ? "v-activity-bar__item--active" : "")"
+                    @onclick="() => SetActivePanel(DesignerPanel.Plugins)"
+                    title="Plugins"
+                    aria-label="Plugin manager"
+                    aria-pressed="@(_activePanel == DesignerPanel.Plugins)">
+                <i class="fa-solid fa-box"></i>
+            </button>
+        </div>
+    </nav>
+
+    @* ── Context Panel (240px, content switches based on active tab) ── *@
+    <aside class="context-panel">
+        @switch (_activePanel)
         {
-            <NodePalette/>
+            case DesignerPanel.Nodes:
+                <NodePalette/>
+                break;
+            case DesignerPanel.Workflows:
+                <WorkflowBrowser IsOpen="true"
+                                 CurrentWorkflowId="@WorkflowId"
+                                 OnClose="() => SetActivePanel(DesignerPanel.Nodes)"/>
+                break;
+            case DesignerPanel.History:
+                <ExecutionHistoryPanel @ref="_historyPanel"
+                                       OnExecutionSelected="OnExecutionSelected"
+                                       OnExecutionCleared="OnExecutionCleared"/>
+                break;
+            case DesignerPanel.Credentials:
+                <CredentialManager IsOpen="true" OnClose="() => SetActivePanel(DesignerPanel.Nodes)"/>
+                break;
+            case DesignerPanel.Plugins:
+                <PluginManager IsOpen="true" OnClose="() => SetActivePanel(DesignerPanel.Nodes)"/>
+                break;
         }
     </aside>
 
+    @* ── Canvas Area (fills remaining space) ──────────────────────── *@
     <div class="canvas-area">
         @if (!ValidationService.ValidationResult.IsValid)
         {
             <div class="validation-panel">
                 <div class="validation-header" @onclick="ToggleValidationPanel">
-                    <span class="validation-icon">⚠️</span>
+                    <i class="fa-solid fa-triangle-exclamation"></i>
                     <span>@ValidationService.ValidationResult.Errors.Count validation error(s)</span>
-                    <span class="validation-toggle">@(_isValidationPanelExpanded ? "▼" : "▶")</span>
+                    <i class="fa-solid @(_isValidationPanelExpanded ? "fa-chevron-down" : "fa-chevron-right") validation-toggle"></i>
                 </div>
                 @if (_isValidationPanelExpanded)
                 {
@@ -55,50 +111,23 @@
         }
     </div>
 
+    @* ── Config Panel (right, 300px) ──────────────────────────────── *@
     <aside class="config-panel @(_isConfigCollapsed ? "collapsed" : "")">
-        <div class="panel-toggle" @onclick="ToggleConfig" title="@(_isConfigCollapsed ? "Show Properties" : "Hide Properties")">
+        <div class="panel-toggle" @onclick="ToggleConfig" title="@(_isConfigCollapsed ? "Show Properties" : "Hide Properties")" aria-label="Toggle properties panel">
             @if (_isConfigCollapsed)
             {
                 <span class="toggle-label-vertical">Properties</span>
             }
-            <span class="toggle-icon">@(_isConfigCollapsed ? "◀" : "▶")</span>
+            <i class="fa-solid @(_isConfigCollapsed ? "fa-chevron-left" : "fa-chevron-right") toggle-icon"></i>
         </div>
         @if (!_isConfigCollapsed)
         {
             <NodeConfigPanel/>
         }
     </aside>
-
-    <aside class="history-panel @(_isHistoryCollapsed ? "collapsed" : "")">
-        <div class="panel-toggle" @onclick="ToggleHistory"
-             title="@(_isHistoryCollapsed ? "Show History" : "Hide History")">
-            @if (_isHistoryCollapsed)
-            {
-                <span class="toggle-label-vertical">History</span>
-            }
-            <span class="toggle-icon">@(_isHistoryCollapsed ? "◀" : "▶")</span>
-        </div>
-        @if (!_isHistoryCollapsed)
-        {
-            <ExecutionHistoryPanel @ref="_historyPanel"
-                                   OnExecutionSelected="OnExecutionSelected"
-                                   OnExecutionCleared="OnExecutionCleared"/>
-        }
-    </aside>
 </div>
 
-@* Plugin Manager Modal *@
-<PluginManager IsOpen="@_isPluginManagerOpen" OnClose="ClosePluginManager"/>
-
-@* Credential Manager Modal *@
-<CredentialManager IsOpen="@_isCredentialManagerOpen" OnClose="CloseCredentialManager"/>
-
-@* Workflow Browser Modal *@
-<WorkflowBrowser IsOpen="@_isWorkflowBrowserOpen"
-                 CurrentWorkflowId="@WorkflowId"
-                 OnClose="CloseWorkflowBrowser"/>
-
-@* Node Editor Modal *@
+@* Node Editor Modal (only modal remaining) *@
 <NodeEditorModal IsOpen="@_isNodeEditorOpen"
                  NodeId="@_editingNodeId"
                  OnClose="CloseNodeEditor"

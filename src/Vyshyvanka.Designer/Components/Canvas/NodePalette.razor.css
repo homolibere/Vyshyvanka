@@ -1,59 +1,19 @@
-/* NodePalette — refactored with design tokens */
-
-.palette-container {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
-
-.palette-header {
-    padding: var(--space-4);
-    border-bottom: 1px solid var(--border-color);
-}
-
-.palette-header h3 {
-    margin: 0;
-    font-size: var(--font-size-base);
-    font-weight: var(--font-weight-semibold);
-    color: var(--text-primary);
-    text-transform: uppercase;
-    letter-spacing: var(--letter-spacing-wide);
-}
+/* NodePalette — extends v-panel--palette from components.css */
 
 .palette-search {
-    padding: var(--space-3) var(--space-4);
-    border-bottom: 1px solid var(--border-color);
-}
-
-.palette-search input {
-    width: 100%;
     padding: var(--space-2) var(--space-3);
-    background: var(--bg-input);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    color: var(--text-primary);
-    font-size: var(--font-size-base);
-    transition: border-color var(--duration-normal) var(--ease-default);
-}
-
-.palette-search input:focus {
-    outline: none;
-    border-color: var(--accent);
-}
-
-.palette-search input::placeholder {
-    color: var(--text-muted);
+    border-bottom: 1px solid var(--border-color);
 }
 
 .palette-category {
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-subtle);
 }
 
 .category-header {
     display: flex;
     align-items: center;
     gap: var(--space-2);
-    padding: var(--space-3) var(--space-4);
+    padding: var(--space-2) var(--space-3);
     cursor: pointer;
     transition: background var(--duration-normal) var(--ease-default);
 }
@@ -62,18 +22,15 @@
     background: var(--bg-hover);
 }
 
-.category-icon {
-    font-size: var(--font-size-lg);
-}
-
 .category-name {
     flex: 1;
-    font-size: var(--font-size-base);
-    font-weight: var(--font-weight-medium);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
     color: var(--text-primary);
+    text-transform: capitalize;
 }
 
-.category-toggle {
+.category-chevron {
     font-size: var(--font-size-xs);
     color: var(--text-muted);
 }
@@ -82,70 +39,54 @@
     padding: var(--space-1) 0;
 }
 
-.palette-node {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    padding: var(--space-3) var(--space-4) var(--space-3) var(--space-6);
-    cursor: grab;
-    transition: background var(--duration-normal) var(--ease-default);
-}
-
-.palette-node:hover {
-    background: var(--bg-hover);
-}
-
-.palette-node:active {
-    cursor: grabbing;
-}
-
-.node-icon {
-    font-size: var(--font-size-2xl);
-    width: 32px;
-    height: 32px;
+/* Extend v-palette-item from components.css */
+.palette-item-icon {
+    width: 28px;
+    height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--bg-input);
+    background: var(--bg-hover);
     border-radius: var(--radius-md);
+    font-size: var(--font-size-lg);
+    flex-shrink: 0;
 }
 
-.node-info {
+.palette-item-info {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 1px;
     overflow: hidden;
+    min-width: 0;
 }
 
-.node-name {
+.palette-item-name {
     display: flex;
     align-items: center;
-    font-size: var(--font-size-base);
+    gap: var(--space-1);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
     color: var(--text-primary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.node-description {
-    font-size: var(--font-size-sm);
+.palette-item-desc {
+    font-size: var(--font-size-xs);
     color: var(--text-muted);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-/* Plugin node styling */
-.palette-node.plugin-node {
+/* Plugin indicator */
+.palette-item--plugin {
     border-left: 2px solid var(--category-transform);
 }
 
-.palette-node.plugin-node:hover {
-    border-left-color: #ba68c8;
-}
-
-.plugin-badge {
-    font-size: var(--font-size-sm);
-    margin-left: var(--space-1);
+.plugin-indicator {
+    font-size: var(--font-size-xs);
+    color: var(--category-transform);
     opacity: var(--opacity-hover);
 }

@@ -1,44 +1,13 @@
-.page {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-}
+/* MainLayout — uses v-layout shell from components.css */
 
-main {
-    flex: 1;
-}
-
-.top-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: var(--header-height);
-    padding: 0 var(--space-5);
-    background: var(--bg-elevated);
-    border-bottom: 1px solid var(--border-color);
-    flex-shrink: 0;
-}
-
-.top-bar-brand {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-3);
-    font-size: var(--font-size-xl);
-    font-weight: var(--font-weight-semibold);
-    color: var(--accent);
-    text-decoration: none;
-    transition: color var(--duration-normal) var(--ease-default);
-}
-
-.top-bar-brand:hover {
-    color: var(--accent-hover);
-}
-
-.top-bar-logo {
+.brand-icon {
     height: 28px;
     width: 28px;
 }
 
-.content {
-    padding-top: var(--space-4);
+.toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-shrink: 0;
 }

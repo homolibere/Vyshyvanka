@@ -1,24 +1,8 @@
-.designer-layout {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    overflow: hidden;
-}
+/* DesignerLayout — extends v-designer-layout from components.css */
 
-.designer-header {
-    display: flex;
-    align-items: center;
-    height: var(--header-height);
-    padding: 0 var(--space-4);
-    background: var(--bg-elevated);
-    color: var(--text-primary);
-    border-bottom: 1px solid var(--border-color);
-    flex-shrink: 0;
-    gap: var(--space-3);
-}
-
-.header-left {
-    flex-shrink: 0;
+.brand-icon {
+    height: 24px;
+    width: 24px;
 }
 
 .header-toolbar {
@@ -28,16 +12,12 @@
     gap: var(--space-1);
     min-width: 0;
     overflow-x: auto;
-}
-
-/* Hide scrollbar on toolbar but allow scroll */
-.header-toolbar::-webkit-scrollbar {
-    display: none;
-}
-
-.header-toolbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
+}
+
+.header-toolbar::-webkit-scrollbar {
+    display: none;
 }
 
 .header-right {
@@ -45,31 +25,4 @@
     display: flex;
     align-items: center;
     gap: var(--space-3);
-}
-
-.brand {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-    font-size: var(--font-size-2xl);
-    font-weight: var(--font-weight-semibold);
-    color: var(--accent);
-    text-decoration: none;
-    transition: color var(--duration-normal) var(--ease-default);
-}
-
-.brand:hover {
-    color: var(--accent-hover);
-}
-
-.brand-icon {
-    height: 28px;
-    width: 28px;
-}
-
-.designer-main {
-    flex: 1;
-    display: flex;
-    overflow: hidden;
-    background: var(--bg-canvas);
 }

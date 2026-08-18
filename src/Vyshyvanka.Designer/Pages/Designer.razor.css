@@ -1,4 +1,4 @@
-/* Designer page layout — refactored with tokens */
+/* Designer page — Activity Bar + Context Panel + Canvas + Config layout */
 
 .designer-container {
     display: flex;
@@ -6,29 +6,32 @@
     overflow: hidden;
 }
 
-.node-palette {
+/* ── Context Panel (left, 240px, switches content via activity bar) ── */
+
+.context-panel {
     width: var(--sidebar-width);
     background: var(--bg-surface);
     border-right: 1px solid var(--border-color);
     overflow-y: auto;
     flex-shrink: 0;
-    transition: width var(--duration-slow) var(--ease-default);
+    display: flex;
+    flex-direction: column;
 }
 
-.node-palette.collapsed {
-    width: var(--sidebar-collapsed-width);
-    overflow: hidden;
-}
+/* ── Canvas Area (center, fills remaining space) ──────────────────── */
 
 .canvas-area {
     flex: 1;
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    background: var(--bg-canvas);
 }
 
+/* ── Config Panel (right, 300px) ──────────────────────────────────── */
+
 .config-panel {
-    width: var(--panel-width);
+    width: var(--config-panel-width);
     background: var(--bg-surface);
     border-left: 1px solid var(--border-color);
     overflow-y: auto;
@@ -41,21 +44,8 @@
     overflow: hidden;
 }
 
-.history-panel {
-    width: 280px;
-    background: var(--bg-surface);
-    border-left: 1px solid var(--border-color);
-    overflow-y: auto;
-    flex-shrink: 0;
-    transition: width var(--duration-slow) var(--ease-default);
-}
+/* ── Panel Toggle Button ──────────────────────────────────────────── */
 
-.history-panel.collapsed {
-    width: var(--sidebar-collapsed-width);
-    overflow: hidden;
-}
-
-/* Panel toggle buttons */
 .panel-toggle {
     display: flex;
     align-items: center;
@@ -97,10 +87,12 @@
     border-bottom: none;
 }
 
-/* Validation panel */
+/* ── Validation Panel ─────────────────────────────────────────────── */
+
 .validation-panel {
     background: var(--danger-bg);
     border-bottom: 1px solid var(--danger);
+    flex-shrink: 0;
 }
 
 .validation-header {
@@ -110,16 +102,13 @@
     padding: var(--space-2) var(--space-4);
     cursor: pointer;
     color: var(--danger);
-    font-size: var(--font-size-base);
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-medium);
     transition: background var(--duration-normal) var(--ease-default);
 }
 
 .validation-header:hover {
     background: var(--bg-hover);
-}
-
-.validation-icon {
-    font-size: var(--font-size-lg);
 }
 
 .validation-toggle {

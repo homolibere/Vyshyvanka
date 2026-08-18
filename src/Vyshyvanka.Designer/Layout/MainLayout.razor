@@ -1,18 +1,20 @@
 ﻿@inherits LayoutComponentBase
-<div class="page">
-    <header class="top-bar">
-        <a href="/" class="top-bar-brand">
-            <img src="images/logo-icon.svg" alt="" class="top-bar-logo"/>
+
+<div class="v-layout">
+    <header class="v-toolbar">
+        <a href="/" class="v-toolbar__brand">
+            <img src="images/logo-icon.svg" alt="" class="brand-icon"/>
             <span>Vyshyvanka</span>
         </a>
-        <div style="display:flex;align-items:center;gap:8px;">
+        <div class="v-toolbar__spacer"></div>
+        <div class="toolbar-actions">
             <ThemeSelector/>
             <UserMenu/>
         </div>
     </header>
-    <main>
-        <article class="content px-4">
+    <div class="v-layout__body">
+        <main class="v-layout__content">
             @Body
-        </article>
-    </main>
+        </main>
+    </div>
 </div>

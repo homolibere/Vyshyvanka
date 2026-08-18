@@ -157,14 +157,30 @@ Before writing custom CSS, check if a shared `v-*` class already covers the need
 | Button (filled) | `v-btn v-btn--primary` |
 | Button (outline) | `v-btn v-btn--secondary` |
 | Button (minimal) | `v-btn v-btn--ghost` |
+| Button (danger) | `v-btn v-btn--danger` |
 | Icon button | `v-btn v-btn--icon v-btn--ghost` |
 | Toolbar button | `v-toolbar__btn` |
 | Text input / textarea | `v-input` / `v-input v-textarea` |
 | Dropdown | `v-input v-select` |
+| Form group (label + input) | `v-form-group` with `v-label`, `v-input` |
+| Checkbox | `v-checkbox v-checkbox--checked` with `v-checkbox__box`, `v-checkbox__label` |
+| Toggle switch | `v-toggle v-toggle--on` with `v-toggle__track`, `v-toggle__knob` |
 | Card | `v-card` with `v-card__header`, `v-card__body`, `v-card__footer` |
+| Workflow card | `v-card v-card--interactive v-card--workflow` |
 | Modal | `v-overlay` + `v-modal v-modal--md` |
+| Confirm dialog | `v-overlay` + `v-dialog` with `v-dialog__title`, `v-dialog__body`, `v-dialog__actions` |
 | Badge/pill | `v-badge v-badge--success` |
+| Toast | `v-toast v-toast--success` with `v-toast__icon`, `v-toast__message` |
 | Panel | `v-panel` with `v-panel__header`, `v-panel__body` |
+| Node palette panel | `v-panel v-panel--palette` |
+| Config panel | `v-panel v-panel--config` |
+| Palette draggable item | `v-palette-item` with `v-palette-item__indicator--trigger` |
+| Sidebar | `v-sidebar` with `v-sidebar__nav`, `v-sidebar__item` |
+| Toolbar (light 56px) | `v-toolbar` |
+| Toolbar (dark 48px) | `v-toolbar v-toolbar--dark` |
+| Activity bar (designer) | `v-activity-bar` with `v-activity-bar__top`, `v-activity-bar__bottom`, `v-activity-bar__item` |
+| Management layout shell | `v-layout` → `v-layout__body` → `v-layout__content` |
+| Designer layout shell | `v-designer-layout` → `v-designer-layout__body` → `v-designer-layout__canvas` |
 | Empty state | `v-empty` with `v-empty__icon`, `v-empty__title` |
 | Spinner | `v-spinner` |
 | Status dot | `v-status-dot v-status-dot--active` |

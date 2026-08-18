@@ -4,63 +4,88 @@
    Foundation layer: spacing, typography, radii, 
    transitions, z-index, and layout primitives.
    
+   Source of truth: /docs/design/ (01-colors through 07-screen-layouts)
+   
    These tokens complement the color tokens in theme.css
    and are NOT theme-dependent (they don't change per theme).
    ============================================ */
 
 :root {
     /* ── Spacing Scale (4px base) ──────────────────────────────────── */
+    /* Maps to core/spacing tokens from design system */
     --space-0: 0;
-    --space-1: 4px;
-    --space-2: 8px;
-    --space-3: 12px;
-    --space-4: 16px;
-    --space-5: 20px;
-    --space-6: 24px;
-    --space-7: 32px;
-    --space-8: 40px;
-    --space-9: 48px;
-    --space-10: 64px;
-    --space-11: 80px;
-    --space-12: 96px;
+    --space-05: 2px;       /* spacing.2xs — hairline gaps, icon-to-text micro */
+    --space-1: 4px;        /* spacing.xs — tight padding (port labels, badge internal) */
+    --space-2: 8px;        /* spacing.sm — compact spacing (related items, icon gaps) */
+    --space-3: 12px;       /* spacing.md — default inner padding, form field internal */
+    --space-4: 16px;       /* spacing.lg — standard padding, cards, panels, buttons */
+    --space-5: 20px;       /* spacing.xl — comfortable padding, section content inset */
+    --space-6: 24px;       /* spacing.2xl — panel padding, form group spacing */
+    --space-7: 32px;       /* spacing.3xl — section spacing */
+    --space-8: 40px;       /* spacing.4xl — component group spacing */
+    --space-9: 48px;       /* spacing.5xl — toolbar height (designer), large sections */
+    --space-10: 64px;      /* spacing.6xl — hero spacing, modal content padding */
+    --space-11: 80px;      /* spacing.7xl — page-level spacing */
+    --space-12: 96px;      /* spacing.8xl — maximum spacing */
 
     /* ── Typography Scale ──────────────────────────────────────────── */
-    --font-family-base: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    --font-family-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    /* Source: docs/design/02-typography.md */
+    --font-family-base: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-family-mono: 'JetBrains Mono', ui-monospace, monospace;
 
-    --font-size-xs: 0.6875rem;    /* 11px */
-    --font-size-sm: 0.75rem;      /* 12px */
-    --font-size-md: 0.8125rem;    /* 13px */
-    --font-size-base: 0.875rem;   /* 14px */
-    --font-size-lg: 1rem;         /* 16px */
-    --font-size-xl: 1.125rem;     /* 18px */
-    --font-size-2xl: 1.25rem;     /* 20px */
-    --font-size-3xl: 1.5rem;      /* 24px */
-    --font-size-4xl: 2rem;        /* 32px */
-    --font-size-5xl: 2.5rem;      /* 40px */
+    /* Font sizes — matches fontSize.* tokens exactly */
+    --font-size-xs: 0.6875rem;    /* 11px — captions, port labels, timestamps */
+    --font-size-sm: 0.75rem;      /* 12px — helper text, node headers, small badges */
+    --font-size-md: 0.875rem;     /* 14px — body text, form labels, buttons */
+    --font-size-base: 0.875rem;   /* 14px — alias for md (default reading size) */
+    --font-size-lg: 1rem;         /* 16px — lead paragraphs, card titles */
+    --font-size-xl: 1.125rem;     /* 18px — H4, subsection headers */
+    --font-size-2xl: 1.25rem;     /* 20px — H3, panel headers */
+    --font-size-3xl: 1.5rem;      /* 24px — H2, section headers */
+    --font-size-4xl: 1.875rem;    /* 30px — H1, page titles */
+    --font-size-5xl: 2.25rem;     /* 36px — large headings */
+    --font-size-6xl: 3rem;        /* 48px — Display, hero text */
 
+    /* Font weights */
     --font-weight-regular: 400;
     --font-weight-medium: 500;
     --font-weight-semibold: 600;
     --font-weight-bold: 700;
 
-    --line-height-tight: 1.2;
-    --line-height-normal: 1.5;
-    --line-height-relaxed: 1.625;
+    /* Line heights */
+    --line-height-display: 1.1;    /* Display headings */
+    --line-height-heading: 1.2;    /* H1 */
+    --line-height-subheading: 1.3; /* H2 */
+    --line-height-tight: 1.4;      /* H3, H4, body medium, small medium */
+    --line-height-normal: 1.5;     /* Body, small text */
+    --line-height-code: 1.6;       /* Code blocks */
+    --line-height-relaxed: 1.625;  /* Extended reading */
 
-    --letter-spacing-tight: -0.01em;
-    --letter-spacing-normal: 0;
-    --letter-spacing-wide: 0.025em;
-    --letter-spacing-wider: 0.05em;
+    /* Letter spacing */
+    --letter-spacing-tight: -0.02em;  /* Display (48px+) */
+    --letter-spacing-heading: -0.01em; /* H1, H2 (24px+) */
+    --letter-spacing-normal: 0;        /* Body text — never add extra */
+    --letter-spacing-wide: 0.01em;     /* Captions */
+    --letter-spacing-wider: 0.05em;    /* Uppercase labels */
 
     /* ── Border Radius Scale ──────────────────────────────────────── */
+    /* Source: docs/design/03-tokens.md — core/radius */
     --radius-none: 0;
-    --radius-sm: 4px;
-    --radius-md: 6px;
-    --radius-lg: 8px;
-    --radius-xl: 12px;
-    --radius-2xl: 16px;
-    --radius-full: 9999px;
+    --radius-sm: 4px;      /* badges, tags, inline code */
+    --radius-md: 6px;      /* buttons, inputs, selects, icon buttons */
+    --radius-lg: 8px;      /* cards, nodes, panels, toasts */
+    --radius-xl: 12px;     /* modals, large cards, toggle tracks */
+    --radius-2xl: 16px;    /* large overlays, feature cards */
+    --radius-full: 9999px; /* pills, circular avatars, rounded toggles */
+
+    /* ── Shadow Scale ─────────────────────────────────────────────── */
+    /* Source: docs/design/04-shadows.md */
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.10);
+    --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.10);
+    --shadow-lg: 0 8px 24px -4px rgba(0, 0, 0, 0.12);
+    --shadow-xl: 0 16px 40px -6px rgba(0, 0, 0, 0.15);
+    --shadow-node: 0 4px 12px -2px rgba(0, 0, 0, 0.30);
+    --shadow-modal: 0 20px 60px -12px rgba(0, 0, 0, 0.30);
 
     /* ── Transition Presets ────────────────────────────────────────── */
     --duration-fast: 100ms;
@@ -85,30 +110,40 @@
     --transition-shadow: box-shadow var(--duration-normal) var(--ease-default);
 
     /* ── Z-Index Layers ───────────────────────────────────────────── */
+    /* Source: docs/design/07-screen-layouts.md — Z-Index Layers */
     --z-base: 0;
+    --z-sidebar: 10;
+    --z-toolbar: 20;
+    --z-canvas-nodes: 30;
     --z-dropdown: 100;
-    --z-sticky: 200;
-    --z-overlay: 300;
-    --z-modal: 1000;
-    --z-popover: 1100;
-    --z-toast: 1200;
-    --z-tooltip: 1300;
+    --z-modal-backdrop: 200;
+    --z-modal: 210;
+    --z-toast: 300;
+    --z-tooltip: 400;
 
     /* ── Layout Constants ─────────────────────────────────────────── */
-    --header-height: 48px;
-    --sidebar-width: 260px;
-    --sidebar-collapsed-width: 48px;
-    --panel-width: 320px;
-    --toolbar-height: 36px;
+    /* Source: docs/design/07-screen-layouts.md */
+    --toolbar-height-light: 56px;      /* Management screens toolbar */
+    --toolbar-height-dark: 48px;       /* Designer toolbar */
+    --header-height: 56px;             /* Alias for light toolbar */
+    --activity-bar-width: 48px;        /* Designer activity bar (left edge) */
+    --sidebar-width: 240px;            /* Sidebar (light + designer context panel) */
+    --sidebar-collapsed-width: 64px;   /* Sidebar collapsed (icon-only) */
+    --config-panel-width: 300px;       /* Designer right config panel */
+    --nav-item-width: 224px;           /* Sidebar nav item */
+    --nav-item-height: 36px;           /* Sidebar nav item height */
 
     /* ── Component Sizes ──────────────────────────────────────────── */
-    --input-height-sm: 28px;
-    --input-height-md: 36px;
-    --input-height-lg: 44px;
+    /* Source: docs/design/05-components.md */
+    --btn-height-sm: 32px;
+    --btn-height-md: 40px;             /* All standard buttons (design spec: 140×40) */
+    --btn-height-lg: 48px;
 
-    --btn-height-sm: 28px;
-    --btn-height-md: 36px;
-    --btn-height-lg: 44px;
+    --input-height-sm: 32px;
+    --input-height-md: 40px;           /* Standard field height (design spec: 40px) */
+    --input-height-lg: 48px;
+
+    --icon-btn-size: 36px;             /* Icon button (design spec: 36×36) */
 
     --icon-size-xs: 12px;
     --icon-size-sm: 14px;
@@ -117,17 +152,58 @@
     --icon-size-xl: 24px;
 
     /* ── Canvas Tokens ────────────────────────────────────────────── */
-    --node-width: 200px;
-    --node-header-height: 32px;
-    --node-border-radius: var(--radius-lg);
-    --port-size: 12px;
-    --port-hit-area: 20px;
+    /* Source: docs/design/06-node-system.md */
+    --node-width: 220px;               /* Fixed for all nodes */
+    --node-min-height: 80px;           /* 1 output port, no inputs */
+    --node-header-height: 36px;        /* Category-colored header */
+    --node-border-radius: var(--radius-lg); /* 8px */
+    --port-size: 10px;                 /* Port ellipse inside node components */
+    --port-interactive-size: 12px;     /* Port interactive state on canvas */
+    --port-hit-area: 20px;             /* Invisible hit target */
+    --port-spacing-vertical: 28px;     /* Vertical gap between ports */
+    --port-start-offset: 48px;         /* First port offset from top */
     --connection-width: 2px;
     --connection-width-hover: 3px;
+    --connection-width-selected: 3px;
+    --grid-spacing: 20px;              /* Dot grid interval */
 
     /* ── Opacity Scale ────────────────────────────────────────────── */
     --opacity-disabled: 0.5;
     --opacity-muted: 0.6;
     --opacity-hover: 0.8;
     --opacity-full: 1;
+
+    /* ── Toast ────────────────────────────────────────────────────── */
+    --toast-width: 320px;
+    --toast-height: 48px;
+
+    /* ── Workflow Card ─────────────────────────────────────────────── */
+    --card-width: 320px;
+    --card-height: 160px;
+
+    /* ── Modal Sizes ──────────────────────────────────────────────── */
+    --modal-sm: 420px;
+    --modal-md: 640px;
+    --modal-lg: 900px;
+    --modal-xl: 1200px;
+    --modal-node-editor: 1200px;       /* Node editor specific */
+
+    /* ── Confirm Dialog ───────────────────────────────────────────── */
+    --dialog-width: 420px;
+    --dialog-height: 220px;
+
+    /* ── Search Box ───────────────────────────────────────────────── */
+    --search-width: 240px;
+    --search-height: 32px;
+
+    /* ── Avatar ───────────────────────────────────────────────────── */
+    --avatar-size: 32px;
+
+    /* ── Toggle ───────────────────────────────────────────────────── */
+    --toggle-width: 44px;
+    --toggle-height: 24px;
+    --toggle-knob-size: 20px;
+
+    /* ── Checkbox ─────────────────────────────────────────────────── */
+    --checkbox-size: 18px;
 }

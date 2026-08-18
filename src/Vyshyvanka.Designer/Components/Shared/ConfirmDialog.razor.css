@@ -1,128 +1,56 @@
-/* ConfirmDialog — uses v-overlay + v-modal from components.css */
+/* ConfirmDialog — extends v-overlay + v-dialog from components.css */
 
-.modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: var(--overlay-bg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: var(--z-popover);
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity var(--duration-slow) var(--ease-default),
-                visibility var(--duration-slow) var(--ease-default);
-}
-
-.modal-overlay.open {
-    opacity: 1;
-    visibility: visible;
-}
-
-.modal-content.confirm-dialog {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-xl);
-    width: 100%;
-    max-width: 420px;
-    max-height: 80vh;
-    display: flex;
-    flex-direction: column;
-    box-shadow: var(--shadow-lg);
-    transform: scale(0.95);
-    transition: transform var(--duration-slow) var(--ease-out);
-}
-
-.modal-overlay.open .modal-content {
-    transform: scale(1);
-}
-
-.modal-header {
+.dialog-header {
     display: flex;
     align-items: center;
     gap: var(--space-3);
-    padding: var(--space-4) var(--space-5);
-    border-bottom: 1px solid var(--border-color);
+    margin-bottom: var(--space-3);
 }
 
-.modal-header h3 {
-    margin: 0;
+.dialog-header-icon {
     font-size: var(--font-size-xl);
-    font-weight: var(--font-weight-semibold);
-    color: var(--text-primary);
-    flex: 1;
-}
-
-.modal-header.header-warning {
-    border-bottom-color: var(--warning-bg);
-}
-
-.modal-header.header-warning h3 {
-    color: var(--warning);
-}
-
-.modal-header.header-danger {
-    border-bottom-color: var(--danger-bg);
-}
-
-.modal-header.header-danger h3 {
-    color: var(--danger);
-}
-
-.dialog-icon {
-    font-size: var(--font-size-2xl);
     flex-shrink: 0;
 }
 
-.btn-close {
-    background: transparent;
-    border: none;
-    color: var(--text-muted);
-    font-size: 1.5rem;
-    cursor: pointer;
-    padding: 0;
-    line-height: 1;
-    transition: color var(--duration-normal) var(--ease-default);
-    margin-left: auto;
-}
-
-.btn-close:hover:not(:disabled) {
-    color: var(--text-primary);
-}
-
-.btn-close:disabled {
-    opacity: var(--opacity-disabled);
-    cursor: not-allowed;
-}
-
-.modal-body {
-    padding: var(--space-5);
-    overflow-y: auto;
+.dialog-header .v-dialog__title {
     flex: 1;
 }
 
 .dialog-message {
-    margin: 0 0 var(--space-4) 0;
-    font-size: var(--font-size-base);
+    margin: 0;
+    font-size: var(--font-size-md);
     color: var(--text-secondary);
     line-height: var(--line-height-normal);
 }
 
-.dialog-message:last-child {
-    margin-bottom: 0;
+/* Variant styling */
+.v-dialog--warning .dialog-header-icon {
+    color: var(--warning);
 }
 
-.affected-items-section {
-    background: var(--danger-bg);
-    border: 1px solid var(--danger-bg);
-    border-radius: var(--radius-lg);
-    padding: var(--space-3) var(--space-4);
+.v-dialog--warning .v-dialog__title {
+    color: var(--warning);
+}
+
+.v-dialog--danger .dialog-header-icon {
+    color: var(--danger);
+}
+
+.v-dialog--danger .v-dialog__title {
+    color: var(--danger);
+}
+
+/* Affected items */
+.affected-items {
     margin-top: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: var(--danger-bg);
+    border-radius: var(--radius-lg);
 }
 
 .affected-items-label {
     display: block;
-    font-size: var(--font-size-md);
+    font-size: var(--font-size-sm);
     font-weight: var(--font-weight-medium);
     color: var(--danger);
     margin-bottom: var(--space-2);
@@ -135,84 +63,7 @@
 }
 
 .affected-items-list li {
-    font-size: var(--font-size-base);
+    font-size: var(--font-size-md);
     color: var(--text-secondary);
     padding: 2px 0;
-}
-
-.modal-footer {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: var(--space-3);
-    padding: var(--space-4) var(--space-5);
-    border-top: 1px solid var(--border-color);
-}
-
-.btn {
-    padding: var(--space-3) var(--space-5);
-    font-size: var(--font-size-base);
-    font-weight: var(--font-weight-medium);
-    border: none;
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    transition: background var(--duration-normal) var(--ease-default),
-                opacity var(--duration-normal) var(--ease-default);
-}
-
-.btn:disabled {
-    opacity: var(--opacity-disabled);
-    cursor: not-allowed;
-}
-
-.btn-primary {
-    background: var(--accent);
-    color: var(--bg-primary);
-}
-
-.btn-primary:hover:not(:disabled) {
-    background: var(--accent-hover);
-}
-
-.btn-secondary {
-    background: var(--bg-hover);
-    color: var(--text-primary);
-}
-
-.btn-secondary:hover:not(:disabled) {
-    background: var(--border-hover);
-}
-
-.btn-warning {
-    background: var(--warning);
-    color: var(--bg-primary);
-}
-
-.btn-warning:hover:not(:disabled) {
-    filter: brightness(1.1);
-}
-
-.btn-danger {
-    background: var(--danger);
-    color: var(--btn-primary-text);
-}
-
-.btn-danger:hover:not(:disabled) {
-    filter: brightness(1.1);
-}
-
-.processing-indicator {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-}
-
-.processing-indicator::before {
-    content: "";
-    width: var(--icon-size-sm);
-    height: var(--icon-size-sm);
-    border: 2px solid transparent;
-    border-top-color: currentColor;
-    border-radius: var(--radius-full);
-    animation: v-spin 0.8s linear infinite;
 }

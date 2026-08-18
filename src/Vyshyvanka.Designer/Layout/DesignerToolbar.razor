@@ -1,12 +1,5 @@
 @namespace Vyshyvanka.Designer.Layout
 
-<button class="v-toolbar__btn" @onclick="OnOpen" title="Open Workflow" aria-label="Open Workflow">
-    <i class="fa-solid fa-folder-open v-icon v-icon--sm"></i>
-    <span>Open</span>
-</button>
-
-<span class="v-toolbar__separator"></span>
-
 <button class="v-toolbar__btn" @onclick="Undo" disabled="@(!CanvasState.CanUndo)" title="Undo (Ctrl+Z)" aria-label="Undo">
     <i class="fa-solid fa-rotate-left v-icon v-icon--sm"></i>
 </button>
@@ -36,18 +29,20 @@
     </span>
 }
 
-<button class="v-toolbar__btn v-toolbar__btn--primary" @onclick="OnSave" disabled="@(!IsValid)" title="@SaveTitle" aria-label="Save Workflow">
-    <i class="fa-solid fa-floppy-disk v-icon v-icon--sm"></i>
-    <span>Save</span>
-</button>
 <button class="v-toolbar__btn @(Store.Workflow.IsActive ? "v-toolbar__btn--active" : "")"
         @onclick="OnToggleActive"
         title="@ActiveTitle"
         aria-label="@ActiveTitle"
-        aria-pressed="@Store.Workflow.IsActive.ToString().ToLower()">
+        aria-pressed="@Store.Workflow.IsActive.ToString().ToLowerInvariant()">
     <span class="v-status-dot @(Store.Workflow.IsActive ? "v-status-dot--active" : "v-status-dot--inactive")"></span>
     <span>@(Store.Workflow.IsActive ? "Active" : "Inactive")</span>
 </button>
+
+<button class="v-toolbar__btn v-toolbar__btn--primary" @onclick="OnSave" disabled="@(!IsValid)" title="@SaveTitle" aria-label="Save Workflow">
+    <i class="fa-solid fa-floppy-disk v-icon v-icon--sm"></i>
+    <span>Save</span>
+</button>
+
 <button class="v-toolbar__btn v-toolbar__btn--success" @onclick="OnExecute" disabled="@(!CanExecute)" title="@RunTitle" aria-label="Run Workflow">
     <i class="fa-solid fa-play v-icon v-icon--xs"></i>
     <span>Run</span>
@@ -60,21 +55,3 @@
         <span>Stop</span>
     </button>
 }
-
-<span class="v-toolbar__separator"></span>
-
-<button class="v-toolbar__btn" @onclick="OnOpenPlugins" title="Plugin Manager" aria-label="Plugin Manager">
-    <i class="fa-solid fa-box v-icon v-icon--sm"></i>
-    <span>Plugins</span>
-</button>
-<button class="v-toolbar__btn" @onclick="OnOpenCredentials" title="Credential Manager" aria-label="Credential Manager">
-    <i class="fa-solid fa-shield-halved v-icon v-icon--sm"></i>
-    <span>Credentials</span>
-</button>
-
-<span class="v-toolbar__separator"></span>
-
-<button class="v-toolbar__btn @(!IsHistoryCollapsed ? "v-toolbar__btn--active" : "")" @onclick="OnToggleHistory" title="Execution History" aria-label="Toggle Execution History" aria-pressed="@(!IsHistoryCollapsed ? "true" : "false")">
-    <i class="fa-solid fa-clock-rotate-left v-icon v-icon--sm"></i>
-    <span>History</span>
-</button>

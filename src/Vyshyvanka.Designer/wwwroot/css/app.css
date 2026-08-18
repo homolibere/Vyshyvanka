@@ -5,8 +5,11 @@
    Uses design tokens from design-tokens.css.
    Uses color tokens from theme.css.
    
+   Source of truth: /docs/design/06-node-system.md, /docs/design/07-screen-layouts.md
    Load order: design-tokens.css → theme.css → components.css → app.css
    ============================================ */
+
+/* ── Global Reset & Typography ────────────────────────────────────── */
 
 html, body {
     font-family: var(--font-family-base);
@@ -20,8 +23,42 @@ html, body {
     -moz-osx-font-smoothing: grayscale;
 }
 
-h1:focus {
-    outline: none;
+h1, h2, h3, h4, h5, h6 {
+    margin: 0;
+    color: var(--text-primary);
+}
+
+h1 {
+    font-size: var(--font-size-4xl);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-heading);
+    letter-spacing: var(--letter-spacing-heading);
+}
+
+h2 {
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-subheading);
+    letter-spacing: var(--letter-spacing-heading);
+}
+
+h3 {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-tight);
+}
+
+h4 {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-tight);
+}
+
+h1:focus { outline: none; }
+
+p {
+    margin: 0;
+    line-height: var(--line-height-normal);
 }
 
 a, .btn-link {
@@ -169,8 +206,12 @@ code {
     text-align: start;
 }
 
-/* ── SVG Canvas Styles ────────────────────────────────────────────── */
-/* Must be global because scoped CSS doesn't work well with SVG */
+/* ============================================
+   SVG CANVAS — WORKFLOW DESIGNER
+   Source: /docs/design/06-node-system.md
+   ============================================ */
+
+/* ── Canvas Container ─────────────────────────────────────────────── */
 
 .canvas-container {
     flex: 1;
@@ -203,6 +244,8 @@ code {
 }
 
 /* ── Canvas Nodes ─────────────────────────────────────────────────── */
+/* Design spec: 220px wide, 8px radius, Neutral-800 bg, Neutral-700 border */
+/* Shadow: 0 4px 12px -2px rgba(0,0,0,0.3) on dark canvas */
 
 .canvas-node {
     cursor: move;
@@ -214,9 +257,15 @@ code {
     pointer-events: auto;
 }
 
+/* Selected state: 2px Primary border */
 .canvas-node.selected .node-bg {
     stroke: var(--node-selected);
-    stroke-width: var(--connection-width);
+    stroke-width: 2;
+}
+
+/* Hover state: slightly lighter border */
+.canvas-node:hover:not(.selected) .node-bg {
+    stroke: var(--border-hover);
 }
 
 .node-bg {
@@ -225,6 +274,9 @@ code {
     stroke-width: 1;
     transition: stroke var(--duration-normal) var(--ease-default);
 }
+
+/* ── Node Header ──────────────────────────────────────────────────── */
+/* Design spec: 36px height, full width, 8px top corners, category-colored */
 
 .node-header {
     fill: var(--node-header-bg);
@@ -239,15 +291,18 @@ code {
     fill: var(--node-bg);
 }
 
+/* 8×8 white circle icon at 70% opacity */
 .node-icon {
     font-size: var(--icon-size-sm);
     fill: white;
+    opacity: 0.7;
     pointer-events: none;
 }
 
+/* 12px/600 Inter white title */
 .node-title {
     font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-medium);
+    font-weight: var(--font-weight-semibold);
     fill: white;
     pointer-events: none;
 }
@@ -264,6 +319,10 @@ code {
 }
 
 /* ── Ports ────────────────────────────────────────────────────────── */
+/* Interactive states from design spec:
+   Default: 12×12, node-bg fill, Neutral-400 stroke, 1.5px
+   Hover/Active: 12×12, Primary fill, Primary stroke, 1.5px
+   Connected: 12×12, Neutral-500 fill, Neutral-500 stroke, 1.5px */
 
 .port {
     cursor: crosshair;
@@ -273,33 +332,47 @@ code {
 .port-circle {
     fill: var(--port-fill);
     stroke: var(--port-stroke);
-    stroke-width: 2;
-    transition: fill var(--duration-normal) var(--ease-default);
+    stroke-width: 1.5;
+    transition: fill var(--duration-normal) var(--ease-default),
+                stroke var(--duration-normal) var(--ease-default);
 }
 
 .port:hover .port-circle {
-    fill: var(--port-stroke);
+    fill: var(--port-hover);
+    stroke: var(--port-hover);
 }
 
+.port.connected .port-circle {
+    fill: var(--port-connected);
+    stroke: var(--port-connected);
+}
+
+/* Port labels: 12px/400 Inter, Neutral-400 */
 .port-label {
-    font-size: var(--font-size-xs);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-regular);
     fill: var(--port-label);
     pointer-events: none;
 }
 
-/* Port type colors */
-.port-string { stroke: #4caf50; }
-.port-number { stroke: #2196f3; }
-.port-boolean { stroke: #ff9800; }
-.port-array { stroke: #9c27b0; }
-.port-object { stroke: #00bcd4; }
-.port-any { stroke: #9e9e9e; }
+/* Port type colors (category-based coloring for port circles within nodes) */
+.port-string { stroke: #16A34A; }
+.port-number { stroke: #2563EB; }
+.port-boolean { stroke: #D97706; }
+.port-array { stroke: #7C3AED; }
+.port-object { stroke: #0891B2; }
+.port-any { stroke: #78716C; }
 
 /* ── Connections ──────────────────────────────────────────────────── */
+/* Design spec:
+   Default: Neutral-500, 2px solid
+   Hover: Primary, 2px solid
+   Selected: Warning/amber, 3px solid
+   Drawing: Neutral-400, 2px dashed */
 
 .pending-connection {
     fill: none;
-    stroke: var(--connection-color);
+    stroke: var(--port-stroke);         /* Neutral-400 */
     stroke-width: var(--connection-width);
     stroke-dasharray: 5, 5;
     pointer-events: none;
@@ -307,7 +380,7 @@ code {
 
 .connection-line {
     fill: none;
-    stroke: var(--connection-color);
+    stroke: var(--connection-color);    /* Neutral-500 */
     stroke-width: var(--connection-width);
     pointer-events: stroke;
     cursor: pointer;
@@ -316,13 +389,13 @@ code {
 }
 
 .connection-line:hover {
-    stroke: var(--connection-hover);
+    stroke: var(--connection-hover);    /* Primary */
     stroke-width: var(--connection-width-hover);
 }
 
 .connection-line.selected {
-    stroke: var(--connection-selected);
-    stroke-width: var(--connection-width-hover);
+    stroke: var(--connection-selected); /* Warning/amber */
+    stroke-width: var(--connection-width-selected);
 }
 
 .connection {
@@ -342,8 +415,8 @@ code {
 }
 
 .connection.selected .connection-line {
-    stroke: var(--text-on-accent);
-    stroke-width: var(--connection-width-hover);
+    stroke: var(--connection-selected);
+    stroke-width: var(--connection-width-selected);
 }
 
 .connection-arrow {
@@ -357,10 +430,16 @@ code {
 }
 
 .connection.selected .connection-arrow {
-    fill: var(--text-on-accent);
+    fill: var(--connection-selected);
 }
 
-/* ── Execution Status ─────────────────────────────────────────────── */
+/* ── Execution Status Indicators ──────────────────────────────────── */
+/* Design spec:
+   Pending: Amber dot/ring
+   Running: Blue dot/ring, animated
+   Completed: Green dot/checkmark
+   Failed: Red dot/X
+   Cancelled: Gray dot */
 
 .canvas-node.executing .node-bg {
     animation: pulse-running 1.5s ease-in-out infinite;
@@ -368,12 +447,17 @@ code {
 
 .canvas-node.executed-success .node-bg {
     stroke: var(--success);
-    stroke-width: var(--connection-width);
+    stroke-width: 2;
 }
 
 .canvas-node.executed-failed .node-bg {
     stroke: var(--danger);
-    stroke-width: var(--connection-width);
+    stroke-width: 2;
+}
+
+.canvas-node.executed-cancelled .node-bg {
+    stroke: var(--text-muted);
+    stroke-width: 2;
 }
 
 .indicator-running {
@@ -384,6 +468,7 @@ code {
 .indicator-completed { stroke: var(--success); }
 .indicator-failed { stroke: var(--danger); }
 .indicator-pending { stroke: var(--warning); }
+.indicator-cancelled { stroke: var(--text-muted); }
 
 .execution-badge,
 .execution-duration {
@@ -403,4 +488,39 @@ code {
 @keyframes pulse-indicator {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
+}
+
+/* ── Canvas Grid ──────────────────────────────────────────────────── */
+/* Design spec: dot grid, #292524 dots on #1C1917 bg, 20px intervals */
+
+.canvas-grid-pattern {
+    fill: var(--grid-color);
+}
+
+/* ── Selection Box ────────────────────────────────────────────────── */
+
+.selection-box {
+    fill: rgba(198, 40, 40, 0.05);
+    stroke: var(--accent);
+    stroke-width: 1;
+    stroke-dasharray: 4 2;
+    pointer-events: none;
+}
+
+/* ── Minimap ──────────────────────────────────────────────────────── */
+
+.minimap {
+    position: absolute;
+    bottom: var(--space-4);
+    right: var(--space-4);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    opacity: 0.9;
+}
+
+.minimap:hover {
+    opacity: 1;
 }

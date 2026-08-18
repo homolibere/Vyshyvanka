@@ -1,3 +1,5 @@
+/* Home page — design system aligned */
+
 .home-container {
     max-width: 800px;
     margin: 0 auto;
@@ -17,37 +19,11 @@ h1 {
     font-size: var(--font-size-2xl);
     color: var(--text-muted);
     margin-bottom: var(--space-7);
-    line-height: var(--line-height-relaxed);
+    line-height: var(--line-height-normal);
 }
 
 .home-actions {
     margin-bottom: var(--space-9);
-}
-
-.btn-primary {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-    padding: var(--space-3) var(--space-6);
-    background: var(--btn-primary-bg);
-    color: var(--btn-primary-text);
-    text-decoration: none;
-    border-radius: var(--radius-lg);
-    font-size: var(--font-size-lg);
-    font-weight: var(--font-weight-medium);
-    transition: background var(--duration-normal) var(--ease-default),
-                transform var(--duration-normal) var(--ease-out),
-                box-shadow var(--duration-normal) var(--ease-default);
-}
-
-.btn-primary:hover {
-    background: var(--btn-primary-hover);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
-}
-
-.btn-icon {
-    font-size: var(--font-size-2xl);
 }
 
 .features {
@@ -59,35 +35,25 @@ h1 {
 
 .feature {
     padding: var(--space-6);
-    background: var(--bg-surface);
-    border-radius: var(--radius-xl);
-    border: 1px solid var(--border-color);
-    transition: border-color var(--duration-normal) var(--ease-default),
-                box-shadow var(--duration-normal) var(--ease-default),
-                transform var(--duration-normal) var(--ease-out);
-}
-
-.feature:hover {
-    border-color: var(--border-hover);
-    box-shadow: var(--shadow-sm);
-    transform: translateY(-2px);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
 }
 
 .feature-icon {
-    font-size: var(--font-size-4xl);
-    display: block;
-    margin-bottom: var(--space-3);
+    font-size: var(--font-size-3xl);
+    color: var(--accent);
+    margin-bottom: var(--space-2);
 }
 
 .feature h3 {
     font-size: var(--font-size-lg);
     font-weight: var(--font-weight-semibold);
     color: var(--text-primary);
-    margin-bottom: var(--space-2);
 }
 
 .feature p {
-    font-size: var(--font-size-base);
+    font-size: var(--font-size-md);
     color: var(--text-muted);
     margin: 0;
     line-height: var(--line-height-normal);

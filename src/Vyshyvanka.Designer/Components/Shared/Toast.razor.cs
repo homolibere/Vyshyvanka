@@ -50,13 +50,13 @@ public partial class Toast : IDisposable
         _ => "toast-info"
     };
 
-    private string GetIcon() => Type switch
+    private string GetIconClass() => Type switch
     {
-        ToastType.Success => "✓",
-        ToastType.Error => "✕",
-        ToastType.Warning => "⚠",
-        ToastType.Info => "ℹ",
-        _ => "ℹ"
+        ToastType.Success => "fa-circle-check",
+        ToastType.Error => "fa-circle-xmark",
+        ToastType.Warning => "fa-triangle-exclamation",
+        ToastType.Info => "fa-circle-info",
+        _ => "fa-circle-info"
     };
 
     private async Task Dismiss()

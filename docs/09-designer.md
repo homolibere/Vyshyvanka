@@ -250,11 +250,11 @@ Authentication page. When the built-in provider is active, shows an email/passwo
 ### Designer
 
 The main workspace containing:
-- Workflow canvas (center)
-- Node palette (left sidebar)
-- Node configuration panel (right sidebar)
-- Workflow browser (top bar — open, import, per-workflow export and delete)
-- Plugin manager (accessible from toolbar)
+- Activity bar (far left, 48px) — switches context panel between Nodes, Workflows, History, Credentials, Plugins
+- Context panel (left, 240px) — content depends on active activity bar tab
+- Workflow canvas (center) — infinite pan/zoom workspace
+- Node configuration panel (right sidebar, 300px) — selected node properties
+- Toolbar (top) — workflow name, undo/redo, zoom, save, run
 
 ### NotFound
 
