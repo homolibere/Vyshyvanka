@@ -11,6 +11,7 @@ public partial class ExecutionHistoryPanel : IDisposable
     [Inject] private WorkflowStore Store { get; set; } = null!;
     [Inject] private ExecutionStateService ExecutionState { get; set; } = null!;
     [Inject] private NavigationManager Navigation { get; set; } = null!;
+    [Inject] private AuthStateService AuthState { get; set; } = null!;
 
     /// <summary>Raised when the user selects an execution to inspect.</summary>
     [Parameter] public EventCallback<ExecutionResponse> OnExecutionSelected { get; set; }
@@ -18,11 +19,17 @@ public partial class ExecutionHistoryPanel : IDisposable
     /// <summary>Raised when the user deselects the current execution.</summary>
     [Parameter] public EventCallback OnExecutionCleared { get; set; }
 
+    /// <summary>When true, loads all executions regardless of current workflow. Use on Home page.</summary>
+    [Parameter] public bool ShowAll { get; set; }
+
     private List<ExecutionSummaryResponse> _executions = [];
     private int _totalCount;
     private bool _isLoading;
+    private string? _loadError;
     private Guid? _selectedExecutionId;
     private const int PageSize = 50;
+
+    private bool _hasLoadedInitial;
 
     protected override async Task OnInitializedAsync()
     {
@@ -42,19 +49,21 @@ public partial class ExecutionHistoryPanel : IDisposable
         var workflowId = Store.Workflow.Id;
 
         _isLoading = true;
+        _loadError = null;
         StateHasChanged();
 
         try
         {
-            var result = workflowId == Guid.Empty
+            var result = (ShowAll || workflowId == Guid.Empty)
                 ? await ApiClient.GetExecutionHistoryAsync(skip: 0, take: PageSize)
                 : await ApiClient.GetExecutionHistoryAsync(workflowId, skip: 0, take: PageSize);
             _executions = result.Items.ToList();
             _totalCount = result.TotalCount;
         }
-        catch
+        catch (Exception ex)
         {
-            // Silently handle — panel remains empty
+            _loadError = $"{ex.GetType().Name}: {ex.Message}";
+            System.Console.WriteLine($"[ExecutionHistoryPanel] LoadHistoryAsync failed: {_loadError}");
         }
         finally
         {
@@ -72,7 +81,7 @@ public partial class ExecutionHistoryPanel : IDisposable
 
         try
         {
-            var result = workflowId == Guid.Empty
+            var result = (ShowAll || workflowId == Guid.Empty)
                 ? await ApiClient.GetExecutionHistoryAsync(skip: _executions.Count, take: PageSize)
                 : await ApiClient.GetExecutionHistoryAsync(workflowId, skip: _executions.Count, take: PageSize);
             _executions.AddRange(result.Items);

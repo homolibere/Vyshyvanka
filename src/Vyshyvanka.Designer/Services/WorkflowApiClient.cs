@@ -131,7 +131,9 @@ public class WorkflowApiClient(HttpClient httpClient) : ApiClientBase(httpClient
         Guid workflowId, int skip = 0, int take = 20, CancellationToken cancellationToken = default)
     {
         var url = $"api/execution?workflowId={workflowId}&skip={skip}&take={take}";
-        var response = await Http.GetFromJsonAsync<PagedResponse<ExecutionSummaryResponse>>(url, JsonOptions, cancellationToken);
+        var httpResponse = await Http.GetAsync(url, cancellationToken);
+        await EnsureSuccessAsync(httpResponse, cancellationToken);
+        var response = await httpResponse.Content.ReadFromJsonAsync<PagedResponse<ExecutionSummaryResponse>>(JsonOptions, cancellationToken);
         return response ?? new PagedResponse<ExecutionSummaryResponse>();
     }
 
@@ -139,7 +141,9 @@ public class WorkflowApiClient(HttpClient httpClient) : ApiClientBase(httpClient
         int skip = 0, int take = 20, CancellationToken cancellationToken = default)
     {
         var url = $"api/execution?skip={skip}&take={take}";
-        var response = await Http.GetFromJsonAsync<PagedResponse<ExecutionSummaryResponse>>(url, JsonOptions, cancellationToken);
+        var httpResponse = await Http.GetAsync(url, cancellationToken);
+        await EnsureSuccessAsync(httpResponse, cancellationToken);
+        var response = await httpResponse.Content.ReadFromJsonAsync<PagedResponse<ExecutionSummaryResponse>>(JsonOptions, cancellationToken);
         return response ?? new PagedResponse<ExecutionSummaryResponse>();
     }
 

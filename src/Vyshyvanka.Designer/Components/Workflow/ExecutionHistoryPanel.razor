@@ -15,6 +15,15 @@
             <span>Loading history...</span>
         </div>
     }
+    else if (!string.IsNullOrEmpty(_loadError))
+    {
+        <div class="panel-empty">
+            <span class="empty-icon">⚠️</span>
+            <p>Failed to load</p>
+            <p class="empty-hint">@_loadError</p>
+            <button class="btn-retry" @onclick="RefreshAsync">Retry</button>
+        </div>
+    }
     else if (_executions.Count == 0)
     {
         <div class="panel-empty">
