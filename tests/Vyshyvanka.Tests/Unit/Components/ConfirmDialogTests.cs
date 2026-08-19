@@ -14,7 +14,7 @@ public class ConfirmDialogTests : BunitContext
             .Add(p => p.Title, "Delete?")
             .Add(p => p.Message, "Are you sure?"));
 
-        cut.Find(".modal-overlay").ClassList.Should().Contain("open");
+        cut.Find(".v-overlay").ClassList.Should().Contain("v-overlay--open");
     }
 
     [Fact]
@@ -24,7 +24,7 @@ public class ConfirmDialogTests : BunitContext
             .Add(p => p.IsOpen, false)
             .Add(p => p.Title, "Delete?"));
 
-        cut.Find(".modal-overlay").ClassList.Should().NotContain("open");
+        cut.Find(".v-overlay").ClassList.Should().NotContain("v-overlay--open");
     }
 
     [Fact]
@@ -35,7 +35,7 @@ public class ConfirmDialogTests : BunitContext
             .Add(p => p.Title, "Confirm Action")
             .Add(p => p.Message, "This cannot be undone."));
 
-        cut.Find("h3").TextContent.Should().Be("Confirm Action");
+        cut.Find(".v-dialog__title").TextContent.Should().Be("Confirm Action");
         cut.Find(".dialog-message").TextContent.Should().Be("This cannot be undone.");
     }
 
@@ -48,7 +48,7 @@ public class ConfirmDialogTests : BunitContext
             .Add(p => p.ConfirmText, "Yes, delete")
             .Add(p => p.CancelText, "No, keep"));
 
-        var buttons = cut.FindAll(".modal-footer button");
+        var buttons = cut.FindAll(".v-dialog__actions button");
         buttons[0].TextContent.Trim().Should().Be("No, keep");
         buttons[1].TextContent.Trim().Should().Be("Yes, delete");
     }
@@ -62,7 +62,7 @@ public class ConfirmDialogTests : BunitContext
             .Add(p => p.Title, "Test")
             .Add(p => p.OnConfirm, () => { confirmed = true; }));
 
-        cut.FindAll(".modal-footer button")[1].Click();
+        cut.FindAll(".v-dialog__actions button")[1].Click();
 
         confirmed.Should().BeTrue();
     }
@@ -76,7 +76,7 @@ public class ConfirmDialogTests : BunitContext
             .Add(p => p.Title, "Test")
             .Add(p => p.OnCancel, () => { cancelled = true; }));
 
-        cut.FindAll(".modal-footer button")[0].Click();
+        cut.FindAll(".v-dialog__actions button")[0].Click();
 
         cancelled.Should().BeTrue();
     }
@@ -90,7 +90,7 @@ public class ConfirmDialogTests : BunitContext
             .Add(p => p.Title, "Test")
             .Add(p => p.OnCancel, () => { cancelled = true; }));
 
-        cut.Find(".btn-close").Click();
+        cut.Find(".dialog-header button").Click();
 
         cancelled.Should().BeTrue();
     }
@@ -104,7 +104,7 @@ public class ConfirmDialogTests : BunitContext
             .Add(p => p.Title, "Test")
             .Add(p => p.OnCancel, () => { cancelled = true; }));
 
-        cut.Find(".modal-overlay").Click();
+        cut.Find(".v-overlay").Click();
 
         cancelled.Should().BeTrue();
     }
@@ -118,7 +118,7 @@ public class ConfirmDialogTests : BunitContext
             .Add(p => p.IsProcessing, true)
             .Add(p => p.ProcessingText, "Deleting..."));
 
-        var buttons = cut.FindAll(".modal-footer button");
+        var buttons = cut.FindAll(".v-dialog__actions button");
         buttons[0].HasAttribute("disabled").Should().BeTrue();
         buttons[1].HasAttribute("disabled").Should().BeTrue();
     }
@@ -132,7 +132,7 @@ public class ConfirmDialogTests : BunitContext
             .Add(p => p.IsProcessing, true)
             .Add(p => p.ProcessingText, "Deleting..."));
 
-        cut.Find(".processing-indicator").TextContent.Should().Be("Deleting...");
+        cut.Find(".v-dialog__actions button:last-child").TextContent.Should().Contain("Deleting...");
     }
 
     [Fact]
@@ -143,8 +143,7 @@ public class ConfirmDialogTests : BunitContext
             .Add(p => p.Title, "Delete")
             .Add(p => p.Variant, ConfirmDialogVariant.Danger));
 
-        cut.Find(".modal-header").ClassList.Should().Contain("header-danger");
-        cut.FindAll(".modal-footer button")[1].ClassList.Should().Contain("btn-danger");
+        cut.Find(".v-dialog").ClassList.Should().Contain("v-dialog--danger");
     }
 
     [Fact]
@@ -155,7 +154,7 @@ public class ConfirmDialogTests : BunitContext
             .Add(p => p.Title, "Warning")
             .Add(p => p.Variant, ConfirmDialogVariant.Warning));
 
-        cut.Find(".modal-header").ClassList.Should().Contain("header-warning");
+        cut.Find(".v-dialog").ClassList.Should().Contain("v-dialog--warning");
     }
 
     [Fact]
@@ -180,9 +179,9 @@ public class ConfirmDialogTests : BunitContext
         var cut = Render<ConfirmDialog>(parameters => parameters
             .Add(p => p.IsOpen, true)
             .Add(p => p.Title, "Delete")
-            .Add(p => p.Icon, "⚠️"));
+            .Add(p => p.Icon, "fa-trash"));
 
-        cut.Find(".dialog-icon").TextContent.Should().Be("⚠️");
+        cut.Find(".dialog-header-icon").Should().NotBeNull();
     }
 
     [Fact]

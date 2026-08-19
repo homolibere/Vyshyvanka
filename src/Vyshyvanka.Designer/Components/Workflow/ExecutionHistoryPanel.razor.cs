@@ -29,8 +29,6 @@ public partial class ExecutionHistoryPanel : IDisposable
     private Guid? _selectedExecutionId;
     private const int PageSize = 50;
 
-    private bool _hasLoadedInitial;
-
     protected override async Task OnInitializedAsync()
     {
         ExecutionState.OnExecutionChanged += HandleExecutionChanged;
