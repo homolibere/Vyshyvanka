@@ -35,6 +35,10 @@
                               title="@execution.Status.ToString()">
                             @GetStatusIcon(execution.Status)
                         </span>
+                        @if (!string.IsNullOrEmpty(execution.WorkflowName))
+                        {
+                            <span class="execution-workflow-name">@execution.WorkflowName</span>
+                        }
                         <span class="execution-time" title="@execution.StartedAt.ToString("yyyy-MM-dd HH:mm:ss")">
                             @FormatRelativeTime(execution.StartedAt)
                         </span>

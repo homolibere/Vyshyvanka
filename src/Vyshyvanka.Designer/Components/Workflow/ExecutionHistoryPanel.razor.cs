@@ -22,7 +22,7 @@ public partial class ExecutionHistoryPanel : IDisposable
     private int _totalCount;
     private bool _isLoading;
     private Guid? _selectedExecutionId;
-    private const int PageSize = 20;
+    private const int PageSize = 50;
 
     protected override async Task OnInitializedAsync()
     {

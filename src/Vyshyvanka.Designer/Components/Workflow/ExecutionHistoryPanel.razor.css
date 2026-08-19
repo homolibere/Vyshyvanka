@@ -141,10 +141,20 @@
 .status-pending { color: var(--text-muted); }
 .status-cancelled { color: var(--text-muted); }
 
-.execution-time {
+.execution-workflow-name {
     flex: 1;
     font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
     color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.execution-time {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    white-space: nowrap;
 }
 
 .execution-mode {
