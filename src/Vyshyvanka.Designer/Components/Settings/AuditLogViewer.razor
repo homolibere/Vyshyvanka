@@ -1,0 +1,98 @@
+@namespace Vyshyvanka.Designer.Components
+
+<div class="audit-log-viewer">
+    <div class="section-header">
+        <div>
+            <h2>📋 Audit Logs</h2>
+            <p class="section-desc">View authentication, authorization, and system events.</p>
+        </div>
+        <button class="v-btn v-btn--ghost v-btn--icon" title="Refresh" aria-label="Refresh" @onclick="RefreshAsync">
+            <i class="fa-solid fa-arrows-rotate"></i>
+        </button>
+    </div>
+
+    <div class="filter-bar">
+        <select class="v-input v-input--sm filter-select" @bind="_selectedEventType" @bind:after="LoadLogsAsync">
+            <option value="">All Events</option>
+            <option value="Authentication">Authentication</option>
+            <option value="Authorization">Authorization</option>
+            <option value="WorkflowOperation">Workflow</option>
+            <option value="ExecutionOperation">Execution</option>
+            <option value="CredentialOperation">Credential</option>
+            <option value="ApiKeyOperation">API Key</option>
+            <option value="UserOperation">User</option>
+        </select>
+        <select class="v-input v-input--sm filter-select" @bind="_selectedStatus" @bind:after="LoadLogsAsync">
+            <option value="">All Status</option>
+            <option value="true">Success</option>
+            <option value="false">Failed</option>
+        </select>
+    </div>
+
+    @if (_isLoading)
+    {
+        <div class="loading-state">Loading audit logs…</div>
+    }
+    else if (_logs.Count == 0)
+    {
+        <div class="empty-state">
+            <span class="empty-icon"><i class="fa-solid fa-clipboard-list"></i></span>
+            <p>No audit log entries found</p>
+            <p class="empty-hint">Events will appear here as users interact with the system.</p>
+        </div>
+    }
+    else
+    {
+        <div class="log-list">
+            @foreach (var log in _logs)
+            {
+                <div class="log-item @(log.Success ? "" : "log-item--failed")">
+                    <div class="log-icon">
+                        <i class="fa-solid @GetEventIcon(log.EventType) @(log.Success ? "icon-success" : "icon-failure")"></i>
+                    </div>
+                    <div class="log-content">
+                        <div class="log-primary">
+                            <span class="log-action">@log.Action</span>
+                            <span class="log-badge @GetEventBadgeClass(log.EventType)">@FormatEventType(log.EventType)</span>
+                            @if (!log.Success)
+                            {
+                                <span class="log-badge log-badge--failed">Failed</span>
+                            }
+                        </div>
+                        <div class="log-meta">
+                            <span>@(log.UserEmail ?? "System")</span>
+                            @if (!string.IsNullOrEmpty(log.IpAddress))
+                            {
+                                <span>· @log.IpAddress</span>
+                            }
+                            @if (log.ResourceId.HasValue)
+                            {
+                                <span class="log-resource-id" title="@log.ResourceId">· @log.ResourceId.Value.ToString()[..8]…</span>
+                            }
+                            <span class="log-time">· @FormatTimestamp(log.Timestamp)</span>
+                        </div>
+                        @if (!string.IsNullOrEmpty(log.ErrorMessage))
+                        {
+                            <div class="log-error">@log.ErrorMessage</div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        @if (_totalCount > _logs.Count || _skip > 0)
+        {
+            <div class="pagination">
+                <span class="page-info">Showing @_logs.Count of @_totalCount entries</span>
+                @if (_skip > 0)
+                {
+                    <button class="v-btn v-btn--secondary v-btn--sm" @onclick="PreviousPage">← Previous</button>
+                }
+                @if (_skip + PageSize < _totalCount)
+                {
+                    <button class="v-btn v-btn--secondary v-btn--sm" @onclick="NextPage">Next →</button>
+                }
+            </div>
+        }
+    }
+</div>

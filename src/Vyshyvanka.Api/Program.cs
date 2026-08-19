@@ -16,7 +16,11 @@ builder.Services.AddVyshyvankaServices(builder.Configuration);
 builder.Services.AddVyshyvankaRateLimiting();
 
 // Add API services
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<Vyshyvanka.Api.Middleware.AuditLogActionFilter>();
+});
+builder.Services.AddScoped<Vyshyvanka.Api.Middleware.AuditLogActionFilter>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {

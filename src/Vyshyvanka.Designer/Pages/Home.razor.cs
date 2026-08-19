@@ -38,6 +38,7 @@ public partial class Home
         Packages,
         Teams,
         Users,
+        AuditLogs,
         Settings
     }
 }

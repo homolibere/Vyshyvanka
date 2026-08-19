@@ -157,7 +157,7 @@ public class ExecutionController : VyshyvankaControllerBase
                 "Workflow {WorkflowId} execution {ExecutionId} completed with status {Status}",
                 workflow.Id, execution.Id, execution.Status);
 
-            return Accepted(execution.ToResponse());
+            return Accepted(execution.ToResponse() with { WorkflowName = workflow.Name });
         }
         catch (Exception ex)
         {

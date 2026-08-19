@@ -1,0 +1,76 @@
+@namespace Vyshyvanka.Designer.Components
+@* Full-screen overlay shown when the Designer cannot connect to the API server. *@
+
+@if (IsVisible)
+{
+    <div class="connection-overlay">
+        <div class="connection-card">
+            <div class="connection-brand">
+                <img src="images/logo-icon.svg" alt="Vyshyvanka" class="brand-logo" />
+                <h1 class="brand-title">Vyshyvanka</h1>
+            </div>
+
+            @if (ConnectionService.State == ApiConnectionState.Connecting)
+            {
+                <div class="status-banner status-banner--info">
+                    <i class="fa-solid fa-circle-notch fa-spin"></i>
+                    <span>Connecting to API server…</span>
+                </div>
+            }
+            else if (ConnectionService.State == ApiConnectionState.Disconnected)
+            {
+                <div class="status-banner status-banner--error">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <div class="status-banner__content">
+                        <span class="status-banner__title">Cannot connect to API server</span>
+                        @if (!string.IsNullOrEmpty(ConnectionService.ErrorMessage))
+                        {
+                            <span class="status-banner__detail">@ConnectionService.ErrorMessage</span>
+                        }
+                    </div>
+                </div>
+            }
+
+            <div class="connection-form">
+                <label class="form-label" for="api-url-input">API Server URL</label>
+                <input id="api-url-input"
+                       type="url"
+                       class="v-input"
+                       placeholder="http://localhost:5288"
+                       @bind="UrlInput"
+                       @bind:event="oninput"
+                       @onkeydown="HandleKeyDown"
+                       disabled="@IsConnecting" />
+                <span class="form-hint">Enter the full URL including protocol and port</span>
+            </div>
+
+            <button class="v-btn v-btn--primary connection-submit"
+                    @onclick="HandleConnect"
+                    disabled="@IsConnecting">
+                @if (IsConnecting)
+                {
+                    <i class="fa-solid fa-circle-notch fa-spin"></i>
+                    <span>Connecting…</span>
+                }
+                else
+                {
+                    <i class="fa-solid fa-plug"></i>
+                    <span>Connect</span>
+                }
+            </button>
+
+            @if (ConnectionService.State == ApiConnectionState.Disconnected)
+            {
+                <div class="retry-info">
+                    Auto-retrying in <strong>@(ConnectionService.RetryCountdown)s</strong>
+                    · <button class="retry-link" @onclick="HandleRetry">Retry now</button>
+                </div>
+            }
+        </div>
+
+        <div class="connection-footer">
+            <i class="fa-solid fa-floppy-disk"></i>
+            URL is saved to browser storage for next visit
+        </div>
+    </div>
+}

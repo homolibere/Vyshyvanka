@@ -29,6 +29,7 @@ public class PackageSearchService(
             {
                 var repository = sourceService.GetRepository(source);
                 var searchResource = await repository.GetResourceAsync<PackageSearchResource>(cancellationToken);
+                if (searchResource is null) continue;
 
                 var searchFilter = new SearchFilter(options.IncludePrerelease);
                 var results = await searchResource.SearchAsync(
@@ -97,6 +98,7 @@ public class PackageSearchService(
             {
                 var repository = sourceService.GetRepository(source);
                 var metadataResource = await repository.GetResourceAsync<PackageMetadataResource>(cancellationToken);
+                if (metadataResource is null) continue;
 
                 var metadata = await metadataResource.GetMetadataAsync(
                     packageId, includePrerelease: true, includeUnlisted: false,
@@ -184,6 +186,8 @@ public class PackageSearchService(
             {
                 var repository = sourceService.GetRepository(source);
                 var resource = await repository.GetResourceAsync<FindPackageByIdResource>(cancellationToken);
+                if (resource is null) continue;
+
                 var versions = await resource.GetAllVersionsAsync(
                     packageId, new SourceCacheContext(), NullLogger.Instance, cancellationToken);
 
@@ -213,6 +217,8 @@ public class PackageSearchService(
             {
                 var repository = sourceService.GetRepository(source);
                 var resource = await repository.GetResourceAsync<FindPackageByIdResource>(cancellationToken);
+                if (resource is null) continue;
+
                 var exists = await resource.DoesPackageExistAsync(
                     packageId, version, new SourceCacheContext(), NullLogger.Instance, cancellationToken);
 

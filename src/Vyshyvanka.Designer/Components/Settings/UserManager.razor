@@ -132,8 +132,22 @@
                         <button class="btn-icon" title="Add to team" @onclick="() => ShowTeamAssign(user)">
                             <i class="fa-solid fa-people-group"></i>
                         </button>
+                        <button class="btn-icon btn-danger" title="Delete user" @onclick="() => RequestDeleteUser(user.Id)" disabled="@(_currentUserId == user.Id)">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
                     </div>
                 </div>
+
+                @if (_confirmDeleteUserId == user.Id)
+                {
+                    <div class="confirm-bar confirm-danger">
+                        <span>Permanently delete "<strong>@(user.DisplayName ?? user.Email)</strong>"? This cannot be undone.</span>
+                        <div class="confirm-actions">
+                            <button class="btn btn-secondary btn-sm" @onclick="CancelDeleteUser">Cancel</button>
+                            <button class="btn btn-danger-solid btn-sm" @onclick="ConfirmDeleteUser">Delete</button>
+                        </div>
+                    </div>
+                }
             }
         </div>
 

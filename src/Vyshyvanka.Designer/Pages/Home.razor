@@ -62,6 +62,14 @@
                 <i class="fa-solid fa-user-gear sidebar-nav-icon"></i>
                 <span>Users</span>
             </div>
+            <div class="sidebar-nav-item @(_activeSection == ManagementSection.AuditLogs ? "sidebar-nav-item--active" : "")"
+                 @onclick="() => SetActiveSection(ManagementSection.AuditLogs)"
+                 role="button"
+                 tabindex="0"
+                 aria-current="@(_activeSection == ManagementSection.AuditLogs ? "page" : null)">
+                <i class="fa-solid fa-clipboard-list sidebar-nav-icon"></i>
+                <span>Audit Logs</span>
+            </div>
             <div class="sidebar-nav-item @(_activeSection == ManagementSection.Settings ? "sidebar-nav-item--active" : "")"
                  @onclick="() => SetActiveSection(ManagementSection.Settings)"
                  role="button"
@@ -96,6 +104,9 @@
                 break;
             case ManagementSection.Users:
                 <UserManager />
+                break;
+            case ManagementSection.AuditLogs:
+                <AuditLogViewer />
                 break;
             case ManagementSection.Settings:
                 <SettingsPanel />

@@ -36,6 +36,14 @@ builder.Services.AddScoped(sp =>
     return new HttpClient(handler) { BaseAddress = new Uri(apiBaseAddress) };
 });
 
+// Register ApiConnectionService for health-check and URL management
+builder.Services.AddScoped<ApiConnectionService>(sp =>
+    new ApiConnectionService(
+        sp.GetRequiredService<HttpClient>(),
+        sp.GetRequiredService<BrowserStorageService>(),
+        apiBaseAddress));
+
+
 // Register AuthService as scoped (depends on HttpClient and AuthStateService)
 builder.Services.AddScoped<AuthService>();
 
@@ -48,6 +56,7 @@ builder.Services.AddScoped<FolderApiClient>(sp => new FolderApiClient(sp.GetRequ
 builder.Services.AddScoped<TeamApiClient>(sp => new TeamApiClient(sp.GetRequiredService<HttpClient>()));
 builder.Services.AddScoped<UserApiClient>(sp => new UserApiClient(sp.GetRequiredService<HttpClient>()));
 builder.Services.AddScoped<SharingApiClient>(sp => new SharingApiClient(sp.GetRequiredService<HttpClient>()));
+builder.Services.AddScoped<AuditLogApiClient>(sp => new AuditLogApiClient(sp.GetRequiredService<HttpClient>()));
 builder.Services.AddScoped<WorkflowStore>();
 builder.Services.AddScoped<CanvasStateService>();
 builder.Services.AddScoped<WorkflowValidationService>();

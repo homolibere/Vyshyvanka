@@ -39,7 +39,8 @@ public class PackageCache : IPackageCache
         _logger?.LogInformation("Downloading {PackageId} v{Version} from {Source}", packageId, version,
             source.PackageSource.Source);
 
-        var findResource = await source.GetResourceAsync<FindPackageByIdResource>(cancellationToken);
+        var findResource = await source.GetResourceAsync<FindPackageByIdResource>(cancellationToken)
+            ?? throw new InvalidOperationException($"Source {source.PackageSource.Source} does not support package download");
         Directory.CreateDirectory(Path.GetDirectoryName(nupkgPath)!);
 
         await using var stream = File.Create(nupkgPath);

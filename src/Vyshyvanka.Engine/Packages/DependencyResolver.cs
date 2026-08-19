@@ -185,6 +185,8 @@ public class DependencyResolver : IDependencyResolver
             {
                 var repository = _sourceService.GetRepository(source);
                 var resource = await repository.GetResourceAsync<DependencyInfoResource>(cancellationToken);
+                if (resource is null) continue;
+
                 var identity = new PackageIdentity(packageId, version);
                 var info = await resource.ResolvePackage(
                     identity, TargetFramework, new SourceCacheContext(), NullLogger.Instance, cancellationToken);

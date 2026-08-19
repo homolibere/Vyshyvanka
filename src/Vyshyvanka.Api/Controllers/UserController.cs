@@ -235,6 +235,43 @@ public class UserController(
     }
 
     /// <summary>
+    /// Permanently deletes a user. Admins cannot delete themselves.
+    /// </summary>
+    [HttpDelete("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ApiError), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiError), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Delete(
+        Guid id,
+        [FromServices] ICurrentUserService currentUserService,
+        CancellationToken cancellationToken = default)
+    {
+        if (currentUserService.UserId == id)
+        {
+            return BadRequest(new ApiError
+            {
+                Code = "CANNOT_DELETE_SELF",
+                Message = "You cannot delete your own account"
+            });
+        }
+
+        var user = await userRepository.GetByIdAsync(id, cancellationToken);
+        if (user is null)
+        {
+            return NotFound(new ApiError
+            {
+                Code = "USER_NOT_FOUND",
+                Message = $"User with ID '{id}' was not found"
+            });
+        }
+
+        await userRepository.DeleteAsync(id, cancellationToken);
+
+        logger.LogInformation("Admin deleted user {Email} (ID: {UserId})", user.Email, id);
+        return NoContent();
+    }
+
+    /// <summary>
     /// Activates or deactivates a user.
     /// </summary>
     [HttpPut("{id:guid}/status")]

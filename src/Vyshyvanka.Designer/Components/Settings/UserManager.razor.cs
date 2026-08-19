@@ -20,6 +20,9 @@ public partial class UserManager
     [Inject]
     private ToastService ToastService { get; set; } = null!;
 
+    [Inject]
+    private AuthStateService AuthState { get; set; } = null!;
+
     private List<AdminUserResponse> _users = [];
     private int _totalCount;
     private bool _isLoading;
@@ -45,6 +48,10 @@ public partial class UserManager
     private string _editDisplayName = "";
     private string? _editError;
 
+    // Delete user
+    private Guid? _confirmDeleteUserId;
+    private Guid _currentUserId;
+
     // Team assignment
     private AdminUserResponse? _teamAssignUser;
     private List<TeamResponse> _teams = [];
@@ -52,6 +59,7 @@ public partial class UserManager
 
     protected override async Task OnInitializedAsync()
     {
+        _currentUserId = AuthState.CurrentUser?.Id ?? Guid.Empty;
         await LoadAuthConfigAsync();
         await LoadUsersAsync();
     }
@@ -317,6 +325,38 @@ public partial class UserManager
         catch (ApiException ex)
         {
             _teamError = ex.Message;
+        }
+    }
+
+    // Delete user
+    private void RequestDeleteUser(Guid id)
+    {
+        _confirmDeleteUserId = id;
+    }
+
+    private void CancelDeleteUser()
+    {
+        _confirmDeleteUserId = null;
+    }
+
+    private async Task ConfirmDeleteUser()
+    {
+        if (_confirmDeleteUserId is null) return;
+
+        var id = _confirmDeleteUserId.Value;
+        var user = _users.FirstOrDefault(u => u.Id == id);
+        var name = user?.DisplayName ?? user?.Email ?? "user";
+        _confirmDeleteUserId = null;
+
+        try
+        {
+            await UserClient.DeleteUserAsync(id);
+            ToastService.ShowSuccess($"User '{name}' deleted");
+            await LoadUsersAsync();
+        }
+        catch (ApiException ex)
+        {
+            ToastService.ShowError($"Failed to delete user: {ex.Message}");
         }
     }
 }

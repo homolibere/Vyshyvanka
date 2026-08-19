@@ -66,4 +66,11 @@ public class UserApiClient(HttpClient httpClient) : ApiClientBase(httpClient)
         await EnsureSuccessAsync(response, cancellationToken);
         return await response.Content.ReadFromJsonAsync<AdminUserResponse>(JsonOptions, cancellationToken);
     }
+
+    /// <summary>Permanently deletes a user.</summary>
+    public async Task DeleteUserAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var response = await Http.DeleteAsync($"api/user/{userId}", cancellationToken);
+        await EnsureSuccessAsync(response, cancellationToken);
+    }
 }

@@ -79,7 +79,7 @@ public class PackageSearchServiceTests
 
         var repository = Substitute.For<SourceRepository>();
         _sourceService.GetRepository(source).Returns(repository);
-        repository.GetResourceAsync<PackageSearchResource>(Arg.Any<CancellationToken>())
+        repository.GetResourceAsync<PackageSearchResource>(Arg.Any<CancellationToken>())!
             .Returns<PackageSearchResource>(_ => throw new HttpRequestException("Connection refused"));
 
         var result = await _sut.SearchPackagesAsync("test");
@@ -112,7 +112,7 @@ public class PackageSearchServiceTests
 
         var repository = Substitute.For<SourceRepository>();
         _sourceService.GetRepository(source).Returns(repository);
-        repository.GetResourceAsync<PackageMetadataResource>(Arg.Any<CancellationToken>())
+        repository.GetResourceAsync<PackageMetadataResource>(Arg.Any<CancellationToken>())!
             .Returns<PackageMetadataResource>(_ => throw new Exception("Network error"));
 
         var result = await _sut.GetPackageDetailsAsync("SomePackage");
@@ -142,8 +142,8 @@ public class PackageSearchServiceTests
         _sourceService.GetRepository(source).Returns(repository);
 
         var findResource = Substitute.For<FindPackageByIdResource>();
-        repository.GetResourceAsync<FindPackageByIdResource>(Arg.Any<CancellationToken>())
-            .Returns(findResource);
+        repository.GetResourceAsync<FindPackageByIdResource>(Arg.Any<CancellationToken>())!
+                    .Returns(findResource);
 
         findResource.GetAllVersionsAsync("TestPackage", Arg.Any<SourceCacheContext>(),
                 Arg.Any<NuGetLogger>(), Arg.Any<CancellationToken>())
@@ -169,8 +169,8 @@ public class PackageSearchServiceTests
         _sourceService.GetRepository(source).Returns(repository);
 
         var findResource = Substitute.For<FindPackageByIdResource>();
-        repository.GetResourceAsync<FindPackageByIdResource>(Arg.Any<CancellationToken>())
-            .Returns(findResource);
+        repository.GetResourceAsync<FindPackageByIdResource>(Arg.Any<CancellationToken>())!
+                    .Returns(findResource);
 
         findResource.GetAllVersionsAsync("TestPackage", Arg.Any<SourceCacheContext>(),
                 Arg.Any<NuGetLogger>(), Arg.Any<CancellationToken>())
@@ -193,8 +193,8 @@ public class PackageSearchServiceTests
         _sourceService.GetRepository(source).Returns(repository);
 
         var findResource = Substitute.For<FindPackageByIdResource>();
-        repository.GetResourceAsync<FindPackageByIdResource>(Arg.Any<CancellationToken>())
-            .Returns(findResource);
+        repository.GetResourceAsync<FindPackageByIdResource>(Arg.Any<CancellationToken>())!
+                    .Returns(findResource);
 
         // First package throws
         findResource.GetAllVersionsAsync("FailingPackage", Arg.Any<SourceCacheContext>(),
@@ -228,8 +228,8 @@ public class PackageSearchServiceTests
         _sourceService.GetRepository(source).Returns(repository);
 
         var findResource = Substitute.For<FindPackageByIdResource>();
-        repository.GetResourceAsync<FindPackageByIdResource>(Arg.Any<CancellationToken>())
-            .Returns(findResource);
+        repository.GetResourceAsync<FindPackageByIdResource>(Arg.Any<CancellationToken>())!
+                    .Returns(findResource);
 
         findResource.GetAllVersionsAsync("TestPackage", Arg.Any<SourceCacheContext>(),
                 Arg.Any<NuGetLogger>(), Arg.Any<CancellationToken>())
@@ -257,8 +257,8 @@ public class PackageSearchServiceTests
         _sourceService.GetRepository(source).Returns(repository);
 
         var findResource = Substitute.For<FindPackageByIdResource>();
-        repository.GetResourceAsync<FindPackageByIdResource>(Arg.Any<CancellationToken>())
-            .Returns(findResource);
+        repository.GetResourceAsync<FindPackageByIdResource>(Arg.Any<CancellationToken>())!
+                    .Returns(findResource);
 
         findResource.GetAllVersionsAsync("TestPackage", Arg.Any<SourceCacheContext>(),
                 Arg.Any<NuGetLogger>(), Arg.Any<CancellationToken>())
@@ -279,8 +279,8 @@ public class PackageSearchServiceTests
         _sourceService.GetRepository(source).Returns(repository);
 
         var findResource = Substitute.For<FindPackageByIdResource>();
-        repository.GetResourceAsync<FindPackageByIdResource>(Arg.Any<CancellationToken>())
-            .Returns(findResource);
+        repository.GetResourceAsync<FindPackageByIdResource>(Arg.Any<CancellationToken>())!
+                    .Returns(findResource);
 
         findResource.GetAllVersionsAsync("TestPackage", Arg.Any<SourceCacheContext>(),
                 Arg.Any<NuGetLogger>(), Arg.Any<CancellationToken>())
@@ -301,8 +301,8 @@ public class PackageSearchServiceTests
         _sourceService.GetRepository(source).Returns(repository);
 
         var findResource = Substitute.For<FindPackageByIdResource>();
-        repository.GetResourceAsync<FindPackageByIdResource>(Arg.Any<CancellationToken>())
-            .Returns(findResource);
+        repository.GetResourceAsync<FindPackageByIdResource>(Arg.Any<CancellationToken>())!
+                    .Returns(findResource);
 
         findResource.GetAllVersionsAsync("NonExistent", Arg.Any<SourceCacheContext>(),
                 Arg.Any<NuGetLogger>(), Arg.Any<CancellationToken>())
@@ -322,14 +322,14 @@ public class PackageSearchServiceTests
 
         var failingRepo = Substitute.For<SourceRepository>();
         _sourceService.GetRepository(source1).Returns(failingRepo);
-        failingRepo.GetResourceAsync<FindPackageByIdResource>(Arg.Any<CancellationToken>())
-            .Returns<FindPackageByIdResource>(_ => throw new Exception("Source down"));
+        failingRepo.GetResourceAsync<FindPackageByIdResource>(Arg.Any<CancellationToken>())!
+                    .Returns<FindPackageByIdResource>(_ => throw new Exception("Source down"));
 
         var goodRepo = Substitute.For<SourceRepository>();
         _sourceService.GetRepository(source2).Returns(goodRepo);
         var findResource = Substitute.For<FindPackageByIdResource>();
-        goodRepo.GetResourceAsync<FindPackageByIdResource>(Arg.Any<CancellationToken>())
-            .Returns(findResource);
+        goodRepo.GetResourceAsync<FindPackageByIdResource>(Arg.Any<CancellationToken>())!
+                    .Returns(findResource);
         findResource.GetAllVersionsAsync("TestPackage", Arg.Any<SourceCacheContext>(),
                 Arg.Any<NuGetLogger>(), Arg.Any<CancellationToken>())
             .Returns([new NuGetVersion("1.0.0")]);
@@ -353,8 +353,8 @@ public class PackageSearchServiceTests
         _sourceService.GetRepository(source).Returns(repository);
 
         var findResource = Substitute.For<FindPackageByIdResource>();
-        repository.GetResourceAsync<FindPackageByIdResource>(Arg.Any<CancellationToken>())
-            .Returns(findResource);
+        repository.GetResourceAsync<FindPackageByIdResource>(Arg.Any<CancellationToken>())!
+                    .Returns(findResource);
 
         findResource.DoesPackageExistAsync("TestPackage", new NuGetVersion("1.0.0"),
                 Arg.Any<SourceCacheContext>(), Arg.Any<NuGetLogger>(), Arg.Any<CancellationToken>())
@@ -377,8 +377,8 @@ public class PackageSearchServiceTests
         _sourceService.GetRepository(source).Returns(repository);
 
         var findResource = Substitute.For<FindPackageByIdResource>();
-        repository.GetResourceAsync<FindPackageByIdResource>(Arg.Any<CancellationToken>())
-            .Returns(findResource);
+        repository.GetResourceAsync<FindPackageByIdResource>(Arg.Any<CancellationToken>())!
+                    .Returns(findResource);
 
         findResource.DoesPackageExistAsync("NonExistent", new NuGetVersion("1.0.0"),
                 Arg.Any<SourceCacheContext>(), Arg.Any<NuGetLogger>(), Arg.Any<CancellationToken>())
@@ -399,14 +399,14 @@ public class PackageSearchServiceTests
 
         var failingRepo = Substitute.For<SourceRepository>();
         _sourceService.GetRepository(source1).Returns(failingRepo);
-        failingRepo.GetResourceAsync<FindPackageByIdResource>(Arg.Any<CancellationToken>())
-            .Returns<FindPackageByIdResource>(_ => throw new Exception("Timeout"));
+        failingRepo.GetResourceAsync<FindPackageByIdResource>(Arg.Any<CancellationToken>())!
+                    .Returns<FindPackageByIdResource>(_ => throw new Exception("Timeout"));
 
         var workingRepo = Substitute.For<SourceRepository>();
         _sourceService.GetRepository(source2).Returns(workingRepo);
         var findResource = Substitute.For<FindPackageByIdResource>();
-        workingRepo.GetResourceAsync<FindPackageByIdResource>(Arg.Any<CancellationToken>())
-            .Returns(findResource);
+        workingRepo.GetResourceAsync<FindPackageByIdResource>(Arg.Any<CancellationToken>())!
+                    .Returns(findResource);
         findResource.DoesPackageExistAsync("TestPackage", new NuGetVersion("1.0.0"),
                 Arg.Any<SourceCacheContext>(), Arg.Any<NuGetLogger>(), Arg.Any<CancellationToken>())
             .Returns(true);
@@ -429,8 +429,8 @@ public class PackageSearchServiceTests
         _sourceService.GetRepository(enabledSource).Returns(repository);
 
         var findResource = Substitute.For<FindPackageByIdResource>();
-        repository.GetResourceAsync<FindPackageByIdResource>(Arg.Any<CancellationToken>())
-            .Returns(findResource);
+        repository.GetResourceAsync<FindPackageByIdResource>(Arg.Any<CancellationToken>())!
+                    .Returns(findResource);
         findResource.DoesPackageExistAsync("TestPackage", new NuGetVersion("1.0.0"),
                 Arg.Any<SourceCacheContext>(), Arg.Any<NuGetLogger>(), Arg.Any<CancellationToken>())
             .Returns(true);

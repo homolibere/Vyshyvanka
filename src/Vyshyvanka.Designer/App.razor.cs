@@ -15,12 +15,16 @@ public partial class App
     [Inject]
     private ThemeService ThemeService { get; set; } = null!;
 
+    [Inject]
+    private ApiConnectionService ConnectionService { get; set; } = null!;
+
     private static readonly HashSet<string> PublicRoutes = ["/login"];
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
+            await ConnectionService.InitializeAsync();
             await ThemeService.InitializeAsync();
         }
     }
