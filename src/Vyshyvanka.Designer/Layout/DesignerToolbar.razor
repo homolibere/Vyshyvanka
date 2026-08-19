@@ -1,24 +1,28 @@
 @namespace Vyshyvanka.Designer.Layout
 
-<button class="v-toolbar__btn" @onclick="Undo" disabled="@(!CanvasState.CanUndo)" title="Undo (Ctrl+Z)" aria-label="Undo">
-    <i class="fa-solid fa-rotate-left v-icon v-icon--sm"></i>
-</button>
-<button class="v-toolbar__btn" @onclick="Redo" disabled="@(!CanvasState.CanRedo)" title="Redo (Ctrl+Y)" aria-label="Redo">
-    <i class="fa-solid fa-rotate-right v-icon v-icon--sm"></i>
-</button>
+<div class="toolbar-group">
+    <button class="v-toolbar__btn toolbar-group__btn" @onclick="Undo" disabled="@(!CanvasState.CanUndo)" title="Undo (Ctrl+Z)" aria-label="Undo">
+        <i class="fa-solid fa-rotate-left v-icon v-icon--sm"></i>
+    </button>
+    <button class="v-toolbar__btn toolbar-group__btn" @onclick="Redo" disabled="@(!CanvasState.CanRedo)" title="Redo (Ctrl+Y)" aria-label="Redo">
+        <i class="fa-solid fa-rotate-right v-icon v-icon--sm"></i>
+    </button>
+</div>
 
 <span class="v-toolbar__separator"></span>
 
-<button class="v-toolbar__btn" @onclick="ZoomIn" title="Zoom In" aria-label="Zoom In">
-    <i class="fa-solid fa-magnifying-glass-plus v-icon v-icon--sm"></i>
-</button>
-<span class="zoom-level" aria-label="Zoom level">@ZoomPercent</span>
-<button class="v-toolbar__btn" @onclick="ZoomOut" title="Zoom Out" aria-label="Zoom Out">
-    <i class="fa-solid fa-magnifying-glass-minus v-icon v-icon--sm"></i>
-</button>
-<button class="v-toolbar__btn" @onclick="ResetView" title="Reset View" aria-label="Reset View">
-    <i class="fa-solid fa-expand v-icon v-icon--sm"></i>
-</button>
+<div class="toolbar-group">
+    <button class="v-toolbar__btn toolbar-group__btn" @onclick="ZoomOut" title="Zoom Out" aria-label="Zoom Out">
+        <i class="fa-solid fa-magnifying-glass-minus v-icon v-icon--sm"></i>
+    </button>
+    <span class="zoom-level" aria-label="Zoom level">@ZoomPercent</span>
+    <button class="v-toolbar__btn toolbar-group__btn" @onclick="ZoomIn" title="Zoom In" aria-label="Zoom In">
+        <i class="fa-solid fa-magnifying-glass-plus v-icon v-icon--sm"></i>
+    </button>
+    <button class="v-toolbar__btn toolbar-group__btn" @onclick="ResetView" title="Fit to Screen" aria-label="Fit to Screen">
+        <i class="fa-solid fa-expand v-icon v-icon--sm"></i>
+    </button>
+</div>
 
 <span class="v-toolbar__separator"></span>
 

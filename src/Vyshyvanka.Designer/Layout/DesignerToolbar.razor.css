@@ -1,6 +1,22 @@
 /* DesignerToolbar — uses shared .v-toolbar__btn from components.css */
 /* Only component-specific overrides here */
 
+/* Pill group containers for related toolbar buttons */
+.toolbar-group {
+    display: flex;
+    align-items: center;
+    gap: var(--space-half, 2px);
+    padding: var(--space-1);
+    background: color-mix(in srgb, var(--bg-canvas) 60%, transparent);
+    border-radius: var(--radius-md);
+}
+
+/* Buttons inside pill groups are slightly compact */
+.toolbar-group__btn {
+    height: 28px;
+    padding-inline: var(--space-1);
+}
+
 .zoom-level {
     color: var(--text-muted);
     font-size: var(--font-size-xs);

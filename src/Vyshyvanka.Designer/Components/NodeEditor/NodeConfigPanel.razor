@@ -1,4 +1,6 @@
 @namespace Vyshyvanka.Designer.Components
+@* Node configuration panel — card-based section layout *@
+
 <div class="config-container">
     @if (CanvasState.SelectedNodeId is not null)
     {
@@ -8,30 +10,36 @@
 
         @if (node is not null)
         {
-            <div class="config-header">
-                <span class="config-icon">
-                    <NodeIcon Icon="@definition?.Icon"/>
-                </span>
-                <h3>@node.Name</h3>
-                <button class="run-to-node-btn"
-                        title="Run workflow up to this node"
-                        disabled="@_isRunningToNode"
-                        @onclick="RunUpToNode">
-                    @if (_isRunningToNode)
-                    {
-                        <span class="run-icon spinning">⟳</span>
-                    }
-                    else
-                    {
-                        <span class="run-icon">▶</span>
-                    }
-                </button>
+            <div class="config-card config-card--header">
+                <div class="config-header">
+                    <span class="config-icon">
+                        <NodeIcon Icon="@definition?.Icon"/>
+                    </span>
+                    <div class="config-header__text">
+                        <h3>@node.Name</h3>
+                        <span class="config-header__type">@node.Type</span>
+                    </div>
+                    <button class="run-to-node-btn"
+                            title="Run workflow up to this node"
+                            disabled="@_isRunningToNode"
+                            @onclick="RunUpToNode">
+                        @if (_isRunningToNode)
+                        {
+                            <span class="run-icon spinning">⟳</span>
+                        }
+                        else
+                        {
+                            <span class="run-icon">▶</span>
+                        }
+                    </button>
+                </div>
             </div>
 
             @* Execution status section *@
             @if (execState is not null)
             {
-                <div class="execution-section">
+                <div class="config-card">
+                    <label class="config-card__label">Execution</label>
                     <div class="execution-status @GetExecutionStatusClass(execState.Status)">
                         <span class="status-icon">@GetStatusIcon(execState.Status)</span>
                         <span class="status-text">@execState.Status</span>
@@ -43,7 +51,7 @@
 
                     @if (execState.ErrorMessage is not null)
                     {
-                        <div class="execution-error">
+                        <div class="execution-data">
                             <label class="config-label">Error</label>
                             <div class="error-message">@execState.ErrorMessage</div>
                         </div>
@@ -67,8 +75,8 @@
                 </div>
             }
 
-            <div class="config-section">
-                <label class="config-label">Name</label>
+            <div class="config-card">
+                <label class="config-card__label">Name</label>
                 <input type="text"
                        class="config-input"
                        value="@_nodeName"
@@ -76,22 +84,17 @@
                        @onblur="@(() => UpdateNodeName(node.Id))"/>
             </div>
 
-            <div class="config-section">
-                <label class="config-label">Type</label>
-                <div class="config-value">@node.Type</div>
-            </div>
-
             @if (definition is not null)
             {
-                <div class="config-section">
-                    <label class="config-label">Description</label>
+                <div class="config-card">
+                    <label class="config-card__label">Description</label>
                     <div class="config-description">@definition.Description</div>
                 </div>
 
                 @if (definition.Inputs.Count > 0)
                 {
-                    <div class="config-section">
-                        <label class="config-label">Inputs</label>
+                    <div class="config-card">
+                        <label class="config-card__label">Inputs</label>
                         <div class="port-list">
                             @foreach (var port in definition.Inputs)
                             {
@@ -111,8 +114,8 @@
 
                 @if (definition.Outputs.Count > 0)
                 {
-                    <div class="config-section">
-                        <label class="config-label">Outputs</label>
+                    <div class="config-card">
+                        <label class="config-card__label">Outputs</label>
                         <div class="port-list">
                             @foreach (var port in definition.Outputs)
                             {
@@ -127,12 +130,12 @@
                 }
             }
 
-            <div class="config-section">
-                <label class="config-label">Configuration</label>
+            <div class="config-card">
+                <label class="config-card__label">Configuration</label>
                 <div class="config-hint">
                     Use <code>@("{{ nodes.nodeName.output.field }}")</code> for expressions
                 </div>
-                <textarea class="config-textarea" 
+                <textarea class="config-textarea"
                           placeholder="Enter JSON configuration..."
                           @bind="_configJson"
                           @bind:event="oninput"></textarea>
@@ -143,8 +146,8 @@
                 <button class="config-btn" @onclick="ApplyConfiguration">Apply</button>
             </div>
 
-            <div class="config-section">
-                <label class="config-label">Position</label>
+            <div class="config-card">
+                <label class="config-card__label">Position</label>
                 <div class="position-inputs">
                     <div class="position-field">
                         <label>X</label>
@@ -165,13 +168,15 @@
     else
     {
         <div class="workflow-properties">
-            <div class="config-header">
-                <span class="config-icon">⚙️</span>
-                <h3>Workflow Properties</h3>
+            <div class="config-card config-card--header">
+                <div class="config-header">
+                    <span class="config-icon">⚙️</span>
+                    <h3>Workflow Properties</h3>
+                </div>
             </div>
 
-            <div class="config-section">
-                <label class="config-label">Name</label>
+            <div class="config-card">
+                <label class="config-card__label">Name</label>
                 <input type="text"
                        class="config-input"
                        value="@_workflowName"
@@ -180,8 +185,8 @@
                        placeholder="Enter workflow name..."/>
             </div>
 
-            <div class="config-section">
-                <label class="config-label">Description</label>
+            <div class="config-card">
+                <label class="config-card__label">Description</label>
                 <textarea class="config-textarea description-textarea"
                           placeholder="Enter workflow description..."
                           @bind="_workflowDescription"
@@ -189,8 +194,8 @@
                           @onblur="UpdateWorkflowDescription"></textarea>
             </div>
 
-            <div class="config-section">
-                <label class="config-label">Status</label>
+            <div class="config-card">
+                <label class="config-card__label">Status</label>
                 <div class="config-value">
                     <span class="status-indicator @(Store.Workflow.IsActive ? "active" : "inactive")">
                         @(Store.Workflow.IsActive ? "🟢 Active" : "⚪ Inactive")
@@ -198,13 +203,13 @@
                 </div>
             </div>
 
-            <div class="config-section">
-                <label class="config-label">Version</label>
+            <div class="config-card">
+                <label class="config-card__label">Version</label>
                 <div class="config-value">v@(Store.Workflow.Version)</div>
             </div>
 
-            <div class="config-section">
-                <label class="config-label">Statistics</label>
+            <div class="config-card">
+                <label class="config-card__label">Statistics</label>
                 <div class="stats-grid">
                     <div class="stat-item">
                         <span class="stat-value">@Store.Workflow.Nodes.Count</span>

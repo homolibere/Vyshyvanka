@@ -1,6 +1,7 @@
 /* WorkflowCanvas — refactored with design tokens */
 
 .canvas-container {
+    position: relative;
     flex: 1;
     overflow: hidden;
     cursor: default;

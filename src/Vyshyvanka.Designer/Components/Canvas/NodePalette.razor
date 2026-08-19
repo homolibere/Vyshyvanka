@@ -24,7 +24,7 @@
                     <div class="category-nodes">
                         @foreach (var node in category)
                         {
-                            <div class="v-palette-item @(node.IsPluginNode ? "palette-item--plugin" : "")"
+                            <div class="v-palette-item palette-item--@(GetCategoryClass(category.Key)) @(node.IsPluginNode ? "palette-item--plugin" : "")"
                                  draggable="true"
                                  @ondragstart="() => OnDragStart(node)"
                                  @ondragend="OnDragEnd"
@@ -37,7 +37,9 @@
                                         @node.Name
                                         @if (node.IsPluginNode)
                                         {
-                                            <i class="fa-solid fa-plug plugin-indicator" title="Plugin: @node.SourcePackage"></i>
+                                            <span class="plugin-badge" title="Plugin: @node.SourcePackage">
+                                                <i class="fa-solid fa-plug"></i>
+                                            </span>
                                         }
                                     </span>
                                     <span class="palette-item-desc">@node.Description</span>
