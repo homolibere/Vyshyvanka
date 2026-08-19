@@ -312,9 +312,22 @@ public class ExecutionController : VyshyvankaControllerBase
 
         var executions = await _executionRepository.QueryAsync(executionQuery, cancellationToken);
 
+        // Resolve workflow names for the summary
+        var workflowIds = executions.Select(e => e.WorkflowId).Distinct().ToList();
+        var workflowNames = new Dictionary<Guid, string>();
+        foreach (var wfId in workflowIds)
+        {
+            var wf = await _workflowRepository.GetByIdAsync(wfId, cancellationToken);
+            if (wf is not null)
+                workflowNames[wfId] = wf.Name;
+        }
+
         var response = new PagedResponse<ExecutionSummaryResponse>
         {
-            Items = executions.Select(e => e.ToSummaryResponse()).ToList(),
+            Items = executions.Select(e => e.ToSummaryResponse() with
+            {
+                WorkflowName = workflowNames.GetValueOrDefault(e.WorkflowId)
+            }).ToList(),
             Skip = query.Skip,
             Take = query.Take,
             TotalCount = executions.Count

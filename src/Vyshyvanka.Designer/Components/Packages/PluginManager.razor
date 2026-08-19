@@ -1,12 +1,15 @@
 @namespace Vyshyvanka.Designer.Components
 @* Main Plugin Manager component with tab navigation *@
 
-<div class="modal-overlay @(IsOpen ? "open" : "")" @onclick="HandleOverlayClick">
-    <div class="plugin-manager-modal" @onclick:stopPropagation="true">
-        <div class="modal-header">
-            <h2>Plugin Manager</h2>
-            <button class="btn-close" @onclick="Close" disabled="@PluginState.IsLoading">×</button>
-        </div>
+<div class="@GetWrapperClass()" @onclick="HandleOverlayClickIfModal">
+    <div class="@GetContentClass()" @onclick:stopPropagation="true">
+        @if (!Embedded)
+        {
+            <div class="modal-header">
+                <h2>Plugin Manager</h2>
+                <button class="btn-close" @onclick="Close" disabled="@PluginState.IsLoading">×</button>
+            </div>
+        }
 
         <div class="plugin-manager-tabs">
             <button class="tab @(IsInstalledTabActive ? "active" : "")"

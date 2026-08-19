@@ -15,21 +15,11 @@ public partial class DesignerToolbar
 
     [Inject] private WorkflowEditService EditService { get; set; } = null!;
 
-    [Parameter] public bool IsHistoryCollapsed { get; set; } = true;
-
-    [Parameter] public EventCallback OnOpen { get; set; }
-
     [Parameter] public EventCallback OnSave { get; set; }
 
     [Parameter] public EventCallback OnExecute { get; set; }
 
     [Parameter] public EventCallback OnStop { get; set; }
-
-    [Parameter] public EventCallback OnOpenPlugins { get; set; }
-
-    [Parameter] public EventCallback OnOpenCredentials { get; set; }
-
-    [Parameter] public EventCallback OnToggleHistory { get; set; }
 
     private bool IsValid => ValidationService.ValidationResult.IsValid;
 

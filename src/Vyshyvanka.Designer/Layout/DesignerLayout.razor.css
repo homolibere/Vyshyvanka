@@ -1,64 +1,28 @@
-.designer-layout {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    overflow: hidden;
-}
+/* DesignerLayout — extends v-designer-layout from components.css */
 
-.designer-header {
-    display: flex;
-    align-items: center;
-    height: 48px;
-    padding: 0 16px;
-    background: var(--bg-elevated);
-    color: var(--text-primary);
-    border-bottom: 1px solid var(--border-color);
-    flex-shrink: 0;
-    gap: 12px;
-}
-
-.header-left {
-    flex-shrink: 0;
+.brand-icon {
+    height: 24px;
+    width: 24px;
 }
 
 .header-toolbar {
     flex: 1;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-1);
     min-width: 0;
     overflow-x: auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.header-toolbar::-webkit-scrollbar {
+    display: none;
 }
 
 .header-right {
     flex-shrink: 0;
     display: flex;
     align-items: center;
-    gap: 12px;
-}
-
-.brand {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--accent);
-    text-decoration: none;
-}
-
-.brand:hover {
-    color: var(--accent-hover);
-}
-
-.brand-icon {
-    height: 28px;
-    width: 28px;
-}
-
-.designer-main {
-    flex: 1;
-    display: flex;
-    overflow: hidden;
-    background: var(--bg-canvas);
+    gap: var(--space-3);
 }

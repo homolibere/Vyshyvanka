@@ -1,18 +1,76 @@
+/* ============================================
+   Vyshyvanka Designer — Application Styles
+   
+   Global styles that apply to the entire app.
+   Uses design tokens from design-tokens.css.
+   Uses color tokens from theme.css.
+   
+   Source of truth: /docs/design/06-node-system.md, /docs/design/07-screen-layouts.md
+   Load order: design-tokens.css → theme.css → components.css → app.css
+   ============================================ */
+
+/* ── Global Reset & Typography ────────────────────────────────────── */
+
 html, body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-normal);
     background: var(--bg-primary);
     color: var(--text-primary);
     margin: 0;
     padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-h1:focus {
-    outline: none;
+h1, h2, h3, h4, h5, h6 {
+    margin: 0;
+    color: var(--text-primary);
+}
+
+h1 {
+    font-size: var(--font-size-4xl);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-heading);
+    letter-spacing: var(--letter-spacing-heading);
+}
+
+h2 {
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-subheading);
+    letter-spacing: var(--letter-spacing-heading);
+}
+
+h3 {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-tight);
+}
+
+h4 {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-tight);
+}
+
+h1:focus { outline: none; }
+
+p {
+    margin: 0;
+    line-height: var(--line-height-normal);
 }
 
 a, .btn-link {
     color: var(--link-color);
+    transition: color var(--duration-normal) var(--ease-default);
 }
+
+a:hover, .btn-link:hover {
+    color: var(--link-hover);
+}
+
+/* ── Bootstrap Overrides ──────────────────────────────────────────── */
 
 .btn-primary {
     --bs-btn-color: var(--btn-primary-text);
@@ -33,13 +91,15 @@ a, .btn-link {
     border-color: var(--btn-primary-border);
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem var(--focus-ring-outer), 0 0 0 0.25rem var(--focus-ring-inner);
+.btn:focus,
+.btn:active:focus,
+.btn-link.nav-link:focus,
+.form-control:focus,
+.form-check-input:focus {
+    box-shadow: 0 0 0 2px var(--focus-ring-outer), 0 0 0 4px var(--focus-ring-inner);
 }
 
-.content {
-    padding-top: 1.1rem;
-}
+/* ── Form Validation ──────────────────────────────────────────────── */
 
 .valid.modified:not([type=checkbox]) {
     outline: 1px solid var(--success);
@@ -51,7 +111,11 @@ a, .btn-link {
 
 .validation-message {
     color: var(--danger);
+    font-size: var(--font-size-sm);
+    margin-top: var(--space-1);
 }
+
+/* ── Blazor Chrome ────────────────────────────────────────────────── */
 
 #blazor-error-ui {
     color-scheme: light only;
@@ -61,28 +125,31 @@ a, .btn-link {
     box-sizing: border-box;
     display: none;
     left: 0;
-    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    padding: var(--space-3) var(--space-5);
     position: fixed;
     width: 100%;
-    z-index: 1000;
+    z-index: var(--z-toast);
 }
 
-    #blazor-error-ui .dismiss {
-        cursor: pointer;
-        position: absolute;
-        right: 0.75rem;
-        top: 0.5rem;
-    }
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    position: absolute;
+    right: var(--space-3);
+    top: var(--space-2);
+}
 
 .blazor-error-boundary {
     background: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTYiIGhlaWdodD0iNDkiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIG92ZXJmbG93PSJoaWRkZW4iPjxkZWZzPjxjbGlwUGF0aCBpZD0iY2xpcDAiPjxyZWN0IHg9IjIzNSIgeT0iNTEiIHdpZHRoPSI1NiIgaGVpZ2h0PSI0OSIvPjwvY2xpcFBhdGg+PC9kZWZzPjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwMCkiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0yMzUgLTUxKSI+PHBhdGggZD0iTTI2My41MDYgNTFDMjY0LjcxNyA1MSAyNjUuODEzIDUxLjQ4MzcgMjY2LjYwNiA1Mi4yNjU4TDI2Ny4wNTIgNTIuNzk4NyAyNjcuNTM5IDUzLjYyODMgMjkwLjE4NSA5Mi4xODMxIDI5MC41NDUgOTIuNzk1IDI5MC42NTYgOTIuOTk2QzI5MC44NzcgOTMuNTEzIDI5MSA5NC4wODE1IDI5MSA5NC42NzgyIDI5MSA5Ny4wNjUxIDI4OS4wMzggOTkgMjg2LjYxNyA5OUwyNDAuMzgzIDk5QzIzNy45NjMgOTkgMjM2IDk3LjA2NTEgMjM2IDk0LjY3ODIgMjM2IDk0LjM3OTkgMjM2LjAzMSA5NC4wODg2IDIzNi4wODkgOTMuODA3MkwyMzYuMzM4IDkzLjAxNjIgMjM2Ljg1OCA5Mi4xMzE0IDI1OS40NzMgNTMuNjI5NCAyNTkuOTYxIDUyLjc5ODUgMjYwLjQwNyA1Mi4yNjU4QzI2MS4yIDUxLjQ4MzcgMjYyLjI5NiA1MSAyNjMuNTA2IDUxWk0yNjMuNTg2IDY2LjAxODNDMjYwLjczNyA2Ni4wMTgzIDI1OS4zMTMgNjcuMTI0NSAyNTkuMzEzIDY5LjMzNyAyNTkuMzEzIDY5LjYxMDIgMjU5LjMzMiA2OS44NjA4IDI1OS4zNzEgNzAuMDg4N0wyNjEuNzk1IDg0LjAxNjEgMjY1LjM4IDg0LjAxNjEgMjY3LjgyMSA2OS43NDc1QzI2Ny44NiA2OS43MzA5IDI2Ny44NzkgNjkuNTg3NyAyNjcuODc5IDY5LjMxNzkgMjY3Ljg3OSA2Ny4xMTgyIDI2Ni40NDggNjYuMDE4MyAyNjMuNTg2IDY2LjAxODNaTTI2My41NzYgODYuMDU0N0MyNjEuMDQ5IDg2LjA1NDcgMjU5Ljc4NiA4Ny4zMDA1IDI1OS43ODYgODkuNzkyMSAyNTkuNzg2IDkyLjI4MzcgMjYxLjA0OSA5My41Mjk1IDI2My41NzYgOTMuNTI5NSAyNjYuMTE2IDkzLjUyOTUgMjY3LjM4NyA5Mi4yODM3IDI2Ny4zODcgODkuNzkyMSAyNjcuMzg3IDg3LjMwMDUgMjY2LjExNiA4Ni4wNTQ3IDI2My41NzYgODYuMDU0N1oiIGZpbGw9IiNGRkU1MDAiIGZpbGwtcnVsZT0iZXZlbm9kZCIvPjwvZz48L3N2Zz4=) no-repeat 1rem/1.8rem, #b32121;
     padding: 1rem 1rem 1rem 3.7rem;
     color: white;
+    border-radius: var(--radius-md);
 }
 
-    .blazor-error-boundary::after {
-        content: "An error has occurred."
-    }
+.blazor-error-boundary::after {
+    content: "An error has occurred."
+}
+
+/* ── Loading Progress ─────────────────────────────────────────────── */
 
 .loading-progress {
     position: absolute;
@@ -90,49 +157,62 @@ a, .btn-link {
     width: 8rem;
     height: 8rem;
     inset: 20vh 0 auto 0;
-    margin: 0 auto 0 auto;
+    margin: 0 auto;
 }
 
-    .loading-progress circle {
-        fill: none;
-        stroke: var(--text-primary);
-        stroke-width: 0.6rem;
-        transform-origin: 50% 50%;
-        transform: rotate(-90deg);
-    }
+.loading-progress circle {
+    fill: none;
+    stroke: var(--text-primary);
+    stroke-width: 0.6rem;
+    transform-origin: 50% 50%;
+    transform: rotate(-90deg);
+}
 
-        .loading-progress circle:last-child {
-            stroke: var(--accent);
-            stroke-dasharray: calc(3.141 * var(--blazor-load-percentage, 0%) * 0.8), 500%;
-            transition: stroke-dasharray 0.05s ease-in-out;
-        }
+.loading-progress circle:last-child {
+    stroke: var(--accent);
+    stroke-dasharray: calc(3.141 * var(--blazor-load-percentage, 0%) * 0.8), 500%;
+    transition: stroke-dasharray 0.05s ease-in-out;
+}
 
 .loading-progress-text {
     position: absolute;
     text-align: center;
-    font-weight: bold;
+    font-weight: var(--font-weight-bold);
     inset: calc(20vh + 3.25rem) 0 auto 0.2rem;
 }
 
-    .loading-progress-text:after {
-        content: var(--blazor-load-percentage-text, "Loading");
-    }
+.loading-progress-text:after {
+    content: var(--blazor-load-percentage-text, "Loading");
+}
+
+/* ── Code ─────────────────────────────────────────────────────────── */
 
 code {
     color: var(--accent);
+    font-family: var(--font-family-mono);
+    font-size: 0.9em;
 }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
+/* ── Form Floating Labels ─────────────────────────────────────────── */
+
+.form-floating > .form-control-plaintext::placeholder,
+.form-floating > .form-control::placeholder {
     color: var(--bs-secondary-color);
     text-align: end;
 }
 
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
+.form-floating > .form-control-plaintext:focus::placeholder,
+.form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
 
+/* ============================================
+   SVG CANVAS — WORKFLOW DESIGNER
+   Source: /docs/design/06-node-system.md
+   ============================================ */
 
-/* SVG Canvas Styles - must be global because scoped CSS doesn't work well with SVG */
+/* ── Canvas Container ─────────────────────────────────────────────── */
+
 .canvas-container {
     flex: 1;
     overflow: hidden;
@@ -163,6 +243,10 @@ code {
     pointer-events: auto;
 }
 
+/* ── Canvas Nodes ─────────────────────────────────────────────────── */
+/* Design spec: 220px wide, 8px radius, Neutral-800 bg, Neutral-700 border */
+/* Shadow: 0 4px 12px -2px rgba(0,0,0,0.3) on dark canvas */
+
 .canvas-node {
     cursor: move;
     pointer-events: auto;
@@ -173,63 +257,72 @@ code {
     pointer-events: auto;
 }
 
+/* Selected state: 2px Primary border */
 .canvas-node.selected .node-bg {
     stroke: var(--node-selected);
     stroke-width: 2;
+}
+
+/* Hover state: slightly lighter border */
+.canvas-node:hover:not(.selected) .node-bg {
+    stroke: var(--border-hover);
 }
 
 .node-bg {
     fill: var(--node-bg);
     stroke: var(--node-border);
     stroke-width: 1;
+    transition: stroke var(--duration-normal) var(--ease-default);
 }
+
+/* ── Node Header ──────────────────────────────────────────────────── */
+/* Design spec: 36px height, full width, 8px top corners, category-colored */
 
 .node-header {
     fill: var(--node-header-bg);
 }
 
-.node-header.category-trigger {
-    fill: var(--category-trigger);
-}
-
-.node-header.category-action {
-    fill: var(--category-action);
-}
-
-.node-header.category-logic {
-    fill: var(--category-logic);
-}
-
-.node-header.category-transform {
-    fill: var(--category-transform);
-}
+.node-header.category-trigger { fill: var(--category-trigger); }
+.node-header.category-action { fill: var(--category-action); }
+.node-header.category-logic { fill: var(--category-logic); }
+.node-header.category-transform { fill: var(--category-transform); }
 
 .node-header-bottom {
     fill: var(--node-bg);
 }
 
+/* 8×8 white circle icon at 70% opacity */
 .node-icon {
-    font-size: 14px;
+    font-size: var(--icon-size-sm);
     fill: white;
+    opacity: 0.7;
     pointer-events: none;
 }
 
+/* 12px/600 Inter white title */
 .node-title {
-    font-size: 12px;
-    font-weight: 500;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
     fill: white;
     pointer-events: none;
 }
 
 .delete-btn {
     cursor: pointer;
-    opacity: 0.8;
+    opacity: var(--opacity-hover);
     pointer-events: auto;
+    transition: opacity var(--duration-fast) var(--ease-default);
 }
 
 .delete-btn:hover {
-    opacity: 1;
+    opacity: var(--opacity-full);
 }
+
+/* ── Ports ────────────────────────────────────────────────────────── */
+/* Interactive states from design spec:
+   Default: 12×12, node-bg fill, Neutral-400 stroke, 1.5px
+   Hover/Active: 12×12, Primary fill, Primary stroke, 1.5px
+   Connected: 12×12, Neutral-500 fill, Neutral-500 stroke, 1.5px */
 
 .port {
     cursor: crosshair;
@@ -239,54 +332,115 @@ code {
 .port-circle {
     fill: var(--port-fill);
     stroke: var(--port-stroke);
-    stroke-width: 2;
-    transition: all 0.15s ease;
+    stroke-width: 1.5;
+    transition: fill var(--duration-normal) var(--ease-default),
+                stroke var(--duration-normal) var(--ease-default);
 }
 
 .port:hover .port-circle {
-    fill: var(--port-stroke);
+    fill: var(--port-hover);
+    stroke: var(--port-hover);
 }
 
+.port.connected .port-circle {
+    fill: var(--port-connected);
+    stroke: var(--port-connected);
+}
+
+/* Port labels: 12px/400 Inter, Neutral-400 */
 .port-label {
-    font-size: 10px;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-regular);
     fill: var(--port-label);
     pointer-events: none;
 }
 
-.port-string { stroke: #4caf50; }
-.port-number { stroke: #2196f3; }
-.port-boolean { stroke: #ff9800; }
-.port-array { stroke: #9c27b0; }
-.port-object { stroke: #00bcd4; }
-.port-any { stroke: #9e9e9e; }
+/* Port type colors (category-based coloring for port circles within nodes) */
+.port-string { stroke: #16A34A; }
+.port-number { stroke: #2563EB; }
+.port-boolean { stroke: #D97706; }
+.port-array { stroke: #7C3AED; }
+.port-object { stroke: #0891B2; }
+.port-any { stroke: #78716C; }
+
+/* ── Connections ──────────────────────────────────────────────────── */
+/* Design spec:
+   Default: Neutral-500, 2px solid
+   Hover: Primary, 2px solid
+   Selected: Warning/amber, 3px solid
+   Drawing: Neutral-400, 2px dashed */
 
 .pending-connection {
     fill: none;
-    stroke: var(--connection-color);
-    stroke-width: 2;
+    stroke: var(--port-stroke);         /* Neutral-400 */
+    stroke-width: var(--connection-width);
     stroke-dasharray: 5, 5;
     pointer-events: none;
 }
 
 .connection-line {
     fill: none;
-    stroke: var(--connection-color);
-    stroke-width: 2;
+    stroke: var(--connection-color);    /* Neutral-500 */
+    stroke-width: var(--connection-width);
     pointer-events: stroke;
     cursor: pointer;
+    transition: stroke var(--duration-normal) var(--ease-default),
+                stroke-width var(--duration-fast) var(--ease-default);
 }
 
 .connection-line:hover {
-    stroke: var(--connection-hover);
-    stroke-width: 3;
+    stroke: var(--connection-hover);    /* Primary */
+    stroke-width: var(--connection-width-hover);
 }
 
 .connection-line.selected {
-    stroke: var(--connection-selected);
-    stroke-width: 3;
+    stroke: var(--connection-selected); /* Warning/amber */
+    stroke-width: var(--connection-width-selected);
 }
 
-/* Execution status styles */
+.connection {
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+.connection-hitarea {
+    fill: none;
+    stroke: transparent;
+    stroke-width: var(--port-hit-area);
+    pointer-events: stroke;
+}
+
+.connection:hover .connection-line {
+    stroke: var(--connection-hover);
+}
+
+.connection.selected .connection-line {
+    stroke: var(--connection-selected);
+    stroke-width: var(--connection-width-selected);
+}
+
+.connection-arrow {
+    fill: var(--connection-color);
+    pointer-events: none;
+    transition: fill var(--duration-normal) var(--ease-default);
+}
+
+.connection:hover .connection-arrow {
+    fill: var(--connection-hover);
+}
+
+.connection.selected .connection-arrow {
+    fill: var(--connection-selected);
+}
+
+/* ── Execution Status Indicators ──────────────────────────────────── */
+/* Design spec:
+   Pending: Amber dot/ring
+   Running: Blue dot/ring, animated
+   Completed: Green dot/checkmark
+   Failed: Red dot/X
+   Cancelled: Gray dot */
+
 .canvas-node.executing .node-bg {
     animation: pulse-running 1.5s ease-in-out infinite;
 }
@@ -301,6 +455,11 @@ code {
     stroke-width: 2;
 }
 
+.canvas-node.executed-cancelled .node-bg {
+    stroke: var(--text-muted);
+    stroke-width: 2;
+}
+
 .indicator-running {
     stroke: var(--info);
     animation: pulse-indicator 1s ease-in-out infinite;
@@ -309,6 +468,7 @@ code {
 .indicator-completed { stroke: var(--success); }
 .indicator-failed { stroke: var(--danger); }
 .indicator-pending { stroke: var(--warning); }
+.indicator-cancelled { stroke: var(--text-muted); }
 
 .execution-badge,
 .execution-duration {
@@ -316,7 +476,7 @@ code {
 }
 
 .execution-duration {
-    font-size: 10px;
+    font-size: var(--font-size-xs);
     fill: var(--text-muted);
 }
 
@@ -330,38 +490,37 @@ code {
     50% { opacity: 0.5; }
 }
 
+/* ── Canvas Grid ──────────────────────────────────────────────────── */
+/* Design spec: dot grid, #292524 dots on #1C1917 bg, 20px intervals */
 
-/* Connection line styles */
-.connection {
-    cursor: pointer;
-    pointer-events: auto;
+.canvas-grid-pattern {
+    fill: var(--grid-color);
 }
 
-.connection-hitarea {
-    fill: none;
-    stroke: transparent;
-    stroke-width: 20;
-    pointer-events: stroke;
-}
+/* ── Selection Box ────────────────────────────────────────────────── */
 
-.connection:hover .connection-line {
-    stroke: var(--connection-hover);
-}
-
-.connection.selected .connection-line {
-    stroke: var(--text-on-accent);
-    stroke-width: 3;
-}
-
-.connection-arrow {
-    fill: var(--connection-color);
+.selection-box {
+    fill: rgba(198, 40, 40, 0.05);
+    stroke: var(--accent);
+    stroke-width: 1;
+    stroke-dasharray: 4 2;
     pointer-events: none;
 }
 
-.connection:hover .connection-arrow {
-    fill: var(--connection-hover);
+/* ── Minimap ──────────────────────────────────────────────────────── */
+
+.minimap {
+    position: absolute;
+    bottom: var(--space-4);
+    right: var(--space-4);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    opacity: 0.9;
 }
 
-.connection.selected .connection-arrow {
-    fill: var(--text-on-accent);
+.minimap:hover {
+    opacity: 1;
 }

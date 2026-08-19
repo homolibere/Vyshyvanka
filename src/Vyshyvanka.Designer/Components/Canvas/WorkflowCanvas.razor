@@ -10,6 +10,11 @@
      @ondragover="OnDragOver"
      @ondragover:preventDefault>
 
+    @if (Store.Workflow?.Nodes?.Count == 0)
+    {
+        <CanvasEmptyState />
+    }
+
     <svg class="canvas-svg"
          width="100%"
          height="100%"
@@ -17,6 +22,14 @@
 
         <!-- Canvas background pattern -->
         <defs>
+            <pattern id="dot-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                <circle cx="1" cy="1" r="1.5" fill="var(--grid-motif)" opacity="0.3"/>
+            </pattern>
+            <pattern id="dot-grid-large" width="100" height="100" patternUnits="userSpaceOnUse">
+                <rect width="100" height="100" fill="url(#dot-grid)"/>
+                <circle cx="0" cy="0" r="2" fill="var(--grid-motif)" opacity="0.2"/>
+            </pattern>
+
             @if (ThemeService.IsVyshyvankaPattern)
             {
                 <pattern id="vyshyvanka-tile" width="80" height="80" patternUnits="userSpaceOnUse">
@@ -71,16 +84,6 @@
                     <rect x="48" y="56" width="2" height="2" fill="var(--grid-motif)" opacity="0.12"/>
                 </pattern>
             }
-            else
-            {
-                <pattern id="dot-grid" width="20" height="20" patternUnits="userSpaceOnUse">
-                    <circle cx="1" cy="1" r="1" fill="var(--grid-motif)" opacity="0.3"/>
-                </pattern>
-                <pattern id="dot-grid-large" width="100" height="100" patternUnits="userSpaceOnUse">
-                    <rect width="100" height="100" fill="url(#dot-grid)"/>
-                    <circle cx="0" cy="0" r="2" fill="var(--grid-motif)" opacity="0.2"/>
-                </pattern>
-            }
         </defs>
 
         <!-- Background -->
@@ -90,7 +93,7 @@
 
         <!-- Connections layer -->
         <g class="connections-layer">
-            @foreach (var connection in Store.Workflow.Connections)
+            @foreach (var connection in (Store.Workflow?.Connections ?? []))
             {
                 var coords = GetConnectionCoordinates(connection);
                 <ConnectionLine
@@ -115,7 +118,7 @@
 
         <!-- Nodes layer -->
         <g class="nodes-layer">
-            @foreach (var node in Store.Workflow.Nodes)
+            @foreach (var node in (Store.Workflow?.Nodes ?? []))
             {
                 <CanvasNodeComponent
                     Node="@node"

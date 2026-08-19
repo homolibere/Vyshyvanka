@@ -1,33 +1,35 @@
+/* Settings — refactored with design tokens */
+
 .settings-container {
     max-width: 720px;
     margin: 0 auto;
-    padding: 32px 20px;
+    padding: var(--space-7) var(--space-5);
 }
 
 .settings-nav {
     display: flex;
     align-items: center;
-    gap: 16px;
-    margin-bottom: 28px;
+    gap: var(--space-4);
+    margin-bottom: var(--space-7);
 }
 
 .settings-nav h1 {
     margin: 0;
-    font-size: 1.5rem;
-    font-weight: 600;
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-semibold);
     color: var(--text-primary);
 }
 
 .back-link {
-    font-size: 0.8rem;
+    font-size: var(--font-size-sm);
     color: var(--link-color);
     text-decoration: none;
-    padding: 4px 10px;
+    padding: var(--space-1) var(--space-3);
     border: 1px solid var(--border-color);
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     background: transparent;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: var(--transition-color);
 }
 
 .back-link:hover {
@@ -36,15 +38,15 @@
 }
 
 .settings-section {
-    margin-bottom: 32px;
+    margin-bottom: var(--space-7);
 }
 
 .section-title {
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
     color: var(--text-primary);
-    margin: 0 0 16px;
-    padding-bottom: 8px;
+    margin: 0 0 var(--space-4);
+    padding-bottom: var(--space-2);
     border-bottom: 1px solid var(--border-color);
 }
 
@@ -52,8 +54,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
-    padding: 12px 0;
+    gap: var(--space-4);
+    padding: var(--space-3) 0;
 }
 
 .setting-info {
@@ -63,20 +65,20 @@
 }
 
 .setting-label {
-    font-size: 0.875rem;
-    font-weight: 500;
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
     color: var(--text-primary);
 }
 
 .setting-hint {
-    font-size: 0.75rem;
+    font-size: var(--font-size-sm);
     color: var(--text-muted);
 }
 
 .setting-value {
-    font-size: 0.8rem;
+    font-size: var(--font-size-sm);
     color: var(--text-secondary);
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
     text-transform: capitalize;
 }
 
@@ -84,20 +86,20 @@
 .theme-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 12px;
-    margin-bottom: 16px;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
 }
 
 .theme-card {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    padding: 12px;
+    gap: var(--space-2);
+    padding: var(--space-3);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: var(--radius-lg);
     background: var(--bg-surface);
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: var(--transition-color), var(--transition-shadow);
 }
 
 .theme-card:hover {
@@ -112,30 +114,30 @@
 
 .theme-card-preview {
     display: flex;
-    gap: 4px;
+    gap: var(--space-1);
 }
 
 .theme-card-preview .preview-swatch {
     width: 100%;
-    height: 24px;
-    border-radius: 4px;
+    height: var(--space-6);
+    border-radius: var(--radius-sm);
     border: 1px solid var(--border-subtle);
 }
 
 .theme-card-info {
     display: flex;
     align-items: baseline;
-    gap: 8px;
+    gap: var(--space-2);
 }
 
 .theme-card-name {
-    font-size: 0.85rem;
-    font-weight: 600;
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
     color: var(--text-primary);
 }
 
 .theme-card-mode {
-    font-size: 0.7rem;
+    font-size: var(--font-size-xs);
     color: var(--text-muted);
     text-transform: capitalize;
 }
@@ -143,28 +145,28 @@
 .theme-card-actions {
     display: flex;
     align-items: center;
-    gap: 6px;
-    margin-top: 4px;
+    gap: var(--space-2);
+    margin-top: var(--space-1);
 }
 
 .theme-card-actions .active-check {
     color: var(--accent);
-    font-size: 0.8rem;
+    font-size: var(--font-size-sm);
 }
 
 .btn-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 24px;
-    height: 24px;
+    width: var(--icon-size-xl);
+    height: var(--icon-size-xl);
     border: none;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     background: transparent;
     color: var(--text-muted);
     cursor: pointer;
-    font-size: 0.7rem;
-    transition: all 0.1s ease;
+    font-size: var(--font-size-xs);
+    transition: var(--transition-color);
 }
 
 .btn-icon:hover {
@@ -181,20 +183,20 @@
 .theme-upload {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--space-2);
 }
 
 .upload-area {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 16px;
+    gap: var(--space-3);
+    padding: var(--space-4);
     border: 2px dashed var(--border-color);
-    border-radius: 8px;
+    border-radius: var(--radius-lg);
     color: var(--text-muted);
-    font-size: 0.85rem;
+    font-size: var(--font-size-md);
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: var(--transition-color);
 }
 
 .upload-area:hover {
@@ -204,15 +206,15 @@
 }
 
 .upload-area i {
-    font-size: 1.2rem;
+    font-size: var(--font-size-2xl);
 }
 
 .upload-error {
-    font-size: 0.75rem;
+    font-size: var(--font-size-sm);
     color: var(--danger);
 }
 
 .upload-success {
-    font-size: 0.75rem;
+    font-size: var(--font-size-sm);
     color: var(--success);
 }

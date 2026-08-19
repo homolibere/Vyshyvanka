@@ -1,8 +1,11 @@
+/* WorkflowCanvas — refactored with design tokens */
+
 .canvas-container {
+    position: relative;
     flex: 1;
     overflow: hidden;
     cursor: default;
-    background: var(--bg-input);
+    background: var(--bg-canvas);
     user-select: none;
     -webkit-user-select: none;
 }
@@ -18,7 +21,7 @@
 .pending-connection {
     fill: none;
     stroke: var(--accent);
-    stroke-width: 2;
+    stroke-width: var(--connection-width);
     stroke-dasharray: 5, 5;
     pointer-events: none;
 }

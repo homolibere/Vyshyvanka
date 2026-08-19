@@ -8,7 +8,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    z-index: var(--z-modal);
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.2s ease, visibility 0.2s ease;
@@ -22,7 +22,7 @@
 .modal-content {
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
+    border-radius: var(--radius-xl);
     width: 100%;
     max-width: 480px;
     max-height: 90vh;
@@ -41,14 +41,14 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 16px 20px;
+    padding: var(--space-4) var(--space-5);
     border-bottom: 1px solid var(--border-color);
 }
 
 .modal-header h3 {
     margin: 0;
-    font-size: 1.125rem;
-    font-weight: 600;
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
     color: var(--text-primary);
 }
 
@@ -56,11 +56,11 @@
     background: transparent;
     border: none;
     color: var(--text-muted);
-    font-size: 1.5rem;
+    font-size: var(--font-size-3xl);
     cursor: pointer;
     padding: 0;
     line-height: 1;
-    transition: color 0.15s ease;
+    transition: color var(--duration-normal) var(--ease-default);
 }
 
 .btn-close:hover:not(:disabled) {
@@ -68,18 +68,18 @@
 }
 
 .btn-close:disabled {
-    opacity: 0.5;
+    opacity: var(--opacity-disabled);
     cursor: not-allowed;
 }
 
 .modal-body {
-    padding: 20px;
+    padding: var(--space-5);
     overflow-y: auto;
     flex: 1;
 }
 
 .form-group {
-    margin-bottom: 16px;
+    margin-bottom: var(--space-4);
 }
 
 .form-group:last-child {
@@ -88,8 +88,8 @@
 
 .form-group label {
     display: block;
-    font-size: 0.875rem;
-    font-weight: 500;
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
     color: var(--text-primary);
     margin-bottom: 6px;
 }
@@ -102,11 +102,11 @@
 .form-group input[type="password"] {
     width: 100%;
     padding: 10px 12px;
-    font-size: 0.875rem;
+    font-size: var(--font-size-base);
     color: var(--text-primary);
     background: var(--bg-input);
     border: 1px solid var(--border-color);
-    border-radius: 6px;
+    border-radius: var(--radius-md);
     outline: none;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
     box-sizing: border-box;
@@ -138,14 +138,14 @@
 
 .field-error {
     display: block;
-    font-size: 0.75rem;
+    font-size: var(--font-size-sm);
     color: var(--danger);
     margin-top: 4px;
 }
 
 .field-hint {
     display: block;
-    font-size: 0.75rem;
+    font-size: var(--font-size-sm);
     color: var(--text-muted);
     margin-top: 4px;
 }
@@ -153,17 +153,17 @@
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 16px;
+    gap: var(--space-4);
 }
 
 .checkbox-group {
-    margin-bottom: 12px;
+    margin-bottom: var(--space-3);
 }
 
 .checkbox-label {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-2);
     cursor: pointer;
 }
 
@@ -179,7 +179,7 @@
 }
 
 .checkbox-text {
-    font-size: 0.875rem;
+    font-size: var(--font-size-base);
     color: var(--text-primary);
 }
 
@@ -192,14 +192,14 @@
 .credentials-toggle {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-2);
     background: transparent;
     border: none;
     color: var(--text-muted);
-    font-size: 0.875rem;
+    font-size: var(--font-size-base);
     cursor: pointer;
-    padding: 8px 0;
-    transition: color 0.15s ease;
+    padding: var(--space-2) 0;
+    transition: color var(--duration-normal) var(--ease-default);
 }
 
 .credentials-toggle:hover:not(:disabled) {
@@ -211,19 +211,19 @@
 }
 
 .toggle-icon {
-    font-size: 0.625rem;
+    font-size: var(--font-size-xs);
     transition: transform 0.15s ease;
 }
 
 .credentials-fields {
-    margin-top: 12px;
-    padding: 16px;
+    margin-top: var(--space-3);
+    padding: var(--space-4);
     background: rgba(13, 13, 26, 0.5);
-    border-radius: 8px;
+    border-radius: var(--radius-lg);
 }
 
 .credentials-fields .form-group {
-    margin-bottom: 12px;
+    margin-bottom: var(--space-3);
 }
 
 .credentials-fields .form-group:last-child {
@@ -233,13 +233,13 @@
 .credentials-note {
     display: flex;
     align-items: flex-start;
-    gap: 8px;
+    gap: var(--space-2);
     padding: 10px 12px;
     background: var(--accent-light);
-    border-radius: 6px;
-    font-size: 0.75rem;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
     color: var(--accent);
-    margin-top: 12px;
+    margin-top: var(--space-3);
 }
 
 .note-icon {
@@ -249,12 +249,12 @@
 .general-error {
     display: flex;
     align-items: flex-start;
-    gap: 8px;
-    padding: 12px;
+    gap: var(--space-2);
+    padding: var(--space-3);
     background: var(--danger-bg);
     border: 1px solid rgba(239, 83, 80, 0.3);
-    border-radius: 6px;
-    font-size: 0.875rem;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-base);
     color: var(--danger);
     margin-top: 16px;
 }
@@ -267,23 +267,23 @@
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 12px;
-    padding: 16px 20px;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-5);
     border-top: 1px solid var(--border-color);
 }
 
 .btn {
     padding: 10px 20px;
-    font-size: 0.875rem;
-    font-weight: 500;
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
     border: none;
-    border-radius: 6px;
+    border-radius: var(--radius-md);
     cursor: pointer;
-    transition: background 0.15s ease, opacity 0.15s ease;
+    transition: background var(--duration-normal) var(--ease-default), opacity 0.15s ease;
 }
 
 .btn:disabled {
-    opacity: 0.5;
+    opacity: var(--opacity-disabled);
     cursor: not-allowed;
 }
 
@@ -308,7 +308,7 @@
 .saving-indicator {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-2);
 }
 
 .saving-indicator::before {
@@ -317,7 +317,7 @@
     height: 12px;
     border: 2px solid transparent;
     border-top-color: currentColor;
-    border-radius: 50%;
+    border-radius: var(--radius-full);
     animation: spin 0.8s linear infinite;
 }
 

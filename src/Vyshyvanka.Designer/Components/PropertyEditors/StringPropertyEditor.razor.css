@@ -1,27 +1,29 @@
+/* StringPropertyEditor — refactored with design tokens */
+
 .property-editor {
-    margin-bottom: 16px;
+    margin-bottom: var(--space-4);
 }
 
 .property-label {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 0.75rem;
-    font-weight: 500;
+    gap: var(--space-2);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
     color: var(--text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 8px;
+    letter-spacing: var(--letter-spacing-wide);
+    margin-bottom: var(--space-2);
 }
 
 .required-indicator {
     color: var(--danger);
-    font-weight: bold;
+    font-weight: var(--font-weight-bold);
 }
 
 .expression-indicator {
     color: var(--accent);
-    font-size: 0.875rem;
+    font-size: var(--font-size-base);
     cursor: help;
 }
 
@@ -31,13 +33,13 @@
 
 .property-input {
     width: 100%;
-    padding: 8px 12px;
+    padding: var(--space-2) var(--space-3);
     background: var(--bg-input);
     border: 1px solid var(--border-color);
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     color: var(--text-primary);
-    font-size: 0.875rem;
-    transition: border-color 0.15s ease;
+    font-size: var(--font-size-base);
+    transition: border-color var(--duration-normal) var(--ease-default);
 }
 
 .property-input:focus {
@@ -47,7 +49,7 @@
 
 .property-input.has-expression {
     border-color: var(--accent);
-    background: rgba(79, 195, 247, 0.05);
+    background: var(--accent-light);
 }
 
 .property-input.has-error {
@@ -56,8 +58,8 @@
 
 .property-input.drag-over {
     border-color: var(--accent);
-    background: rgba(79, 195, 247, 0.1);
-    box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.2);
+    background: var(--accent-light);
+    box-shadow: 0 0 0 2px var(--accent-light);
 }
 
 .property-input::placeholder {
@@ -65,33 +67,33 @@
 }
 
 .property-description {
-    font-size: 0.75rem;
+    font-size: var(--font-size-sm);
     color: var(--text-muted);
-    margin-top: 6px;
-    line-height: 1.4;
+    margin-top: var(--space-2);
+    line-height: var(--line-height-normal);
 }
 
 .validation-error {
-    margin-top: 6px;
-    padding: 6px 8px;
+    margin-top: var(--space-2);
+    padding: var(--space-2) var(--space-2);
     background: var(--danger-bg);
     border: 1px solid var(--danger);
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     color: var(--danger);
-    font-size: 0.75rem;
+    font-size: var(--font-size-sm);
 }
 
 .expression-hint {
-    margin-top: 6px;
-    padding: 8px 10px;
+    margin-top: var(--space-2);
+    padding: var(--space-2) var(--space-3);
     background: var(--accent-light);
     border: 1px solid var(--accent-border);
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     color: var(--accent);
-    font-size: 0.75rem;
+    font-size: var(--font-size-sm);
     display: flex;
     align-items: flex-start;
-    gap: 6px;
+    gap: var(--space-2);
 }
 
 .expression-hint-icon {
@@ -99,23 +101,23 @@
 }
 
 .expression-hint code {
-    background: rgba(79, 195, 247, 0.15);
-    padding: 2px 4px;
-    border-radius: 3px;
-    font-family: 'Consolas', 'Monaco', monospace;
-    font-size: 0.7rem;
+    background: var(--accent-light);
+    padding: 2px var(--space-1);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-xs);
 }
 
 .expression-syntax-hint {
-    margin-top: 6px;
-    font-size: 0.7rem;
+    margin-top: var(--space-2);
+    font-size: var(--font-size-xs);
     color: var(--text-muted);
 }
 
 .expression-syntax-hint code {
-    background: rgba(255, 255, 255, 0.05);
-    padding: 2px 4px;
-    border-radius: 3px;
-    font-family: 'Consolas', 'Monaco', monospace;
+    background: var(--bg-hover);
+    padding: 2px var(--space-1);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-family-mono);
     color: var(--text-muted);
 }

@@ -1,5 +1,8 @@
 {
   "mcpServers": {
+    "penpot": {
+      "url": "https://design.penpot.app/mcp/stream?userToken=eyJhbGciOiJBMjU2S1ciLCJlbmMiOiJBMjU2R0NNIn0.LxJZ_Jjt1i8uCedCvjm6ry5-Ii5cOIKesCYDvQcAEH-Wek2pZNTfZQ.bG68krNCVASYKMoA.cLzu8Du2Zg0E8NJk6Q-bfCutjLzSFj0CQeMEb-XYCV4rlEivZF4YVNFmSFrKTR4HnFiNSowrMcwxYJcaAwTVJgP49V3HgNb2YQmEx4613aWQDtVDEi3_2jhHbSgi2vbUjnXIryFiGO8mlR8IRNTm7rbRSDL35fyIgah2IFPVCP3UgGc9TCsrMOIH06MfEmKM8M0sP4y-AvBS.WkmUn0xEtkXbqPIgnL7bsQ"
+    },
     "playwright": {
       "command": "npx",
       "args": [

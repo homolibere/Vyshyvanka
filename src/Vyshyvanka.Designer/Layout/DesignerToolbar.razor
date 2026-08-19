@@ -1,68 +1,61 @@
 @namespace Vyshyvanka.Designer.Layout
 
-<button class="toolbar-btn" @onclick="OnOpen" title="Open Workflow">
-    📂 Open
-</button>
+<div class="toolbar-group">
+    <button class="v-toolbar__btn toolbar-group__btn" @onclick="Undo" disabled="@(!CanvasState.CanUndo)" title="Undo (Ctrl+Z)" aria-label="Undo">
+        <i class="fa-solid fa-rotate-left v-icon v-icon--sm"></i>
+    </button>
+    <button class="v-toolbar__btn toolbar-group__btn" @onclick="Redo" disabled="@(!CanvasState.CanRedo)" title="Redo (Ctrl+Y)" aria-label="Redo">
+        <i class="fa-solid fa-rotate-right v-icon v-icon--sm"></i>
+    </button>
+</div>
 
-<span class="toolbar-separator"></span>
+<span class="v-toolbar__separator"></span>
 
-<button class="toolbar-btn" @onclick="Undo" disabled="@(!CanvasState.CanUndo)" title="Undo">
-    ↶
-</button>
-<button class="toolbar-btn" @onclick="Redo" disabled="@(!CanvasState.CanRedo)" title="Redo">
-    ↷
-</button>
+<div class="toolbar-group">
+    <button class="v-toolbar__btn toolbar-group__btn" @onclick="ZoomOut" title="Zoom Out" aria-label="Zoom Out">
+        <i class="fa-solid fa-magnifying-glass-minus v-icon v-icon--sm"></i>
+    </button>
+    <span class="zoom-level" aria-label="Zoom level">@ZoomPercent</span>
+    <button class="v-toolbar__btn toolbar-group__btn" @onclick="ZoomIn" title="Zoom In" aria-label="Zoom In">
+        <i class="fa-solid fa-magnifying-glass-plus v-icon v-icon--sm"></i>
+    </button>
+    <button class="v-toolbar__btn toolbar-group__btn" @onclick="ResetView" title="Fit to Screen" aria-label="Fit to Screen">
+        <i class="fa-solid fa-expand v-icon v-icon--sm"></i>
+    </button>
+</div>
 
-<span class="toolbar-separator"></span>
-
-<button class="toolbar-btn" @onclick="ZoomIn" title="Zoom In">
-    +
-</button>
-<span class="zoom-level">@ZoomPercent</span>
-<button class="toolbar-btn" @onclick="ZoomOut" title="Zoom Out">
-    −
-</button>
-<button class="toolbar-btn" @onclick="ResetView" title="Reset View">
-    ⟲
-</button>
-
-<span class="toolbar-separator"></span>
+<span class="v-toolbar__separator"></span>
 
 @if (Store.IsDirty)
 {
-    <span class="dirty-indicator" title="Unsaved changes">●</span>
+    <span class="dirty-indicator" title="Unsaved changes" aria-label="Unsaved changes">
+        <i class="fa-solid fa-circle v-icon v-icon--xs"></i>
+    </span>
 }
 
-<button class="toolbar-btn primary" @onclick="OnSave" disabled="@(!IsValid)" title="@SaveTitle">
-    💾 Save
-</button>
-<button class="toolbar-btn @(Store.Workflow.IsActive ? "active" : "")"
+<button class="v-toolbar__btn @(Store.Workflow.IsActive ? "v-toolbar__btn--active" : "")"
         @onclick="OnToggleActive"
-        title="@ActiveTitle">
-    @(Store.Workflow.IsActive ? "🟢 Active" : "⚪ Inactive")
+        title="@ActiveTitle"
+        aria-label="@ActiveTitle"
+        aria-pressed="@Store.Workflow.IsActive.ToString().ToLowerInvariant()">
+    <span class="v-status-dot @(Store.Workflow.IsActive ? "v-status-dot--active" : "v-status-dot--inactive")"></span>
+    <span>@(Store.Workflow.IsActive ? "Active" : "Inactive")</span>
 </button>
-<button class="toolbar-btn" @onclick="OnExecute" disabled="@(!CanExecute)" title="@RunTitle">
-    ▶ Run
+
+<button class="v-toolbar__btn v-toolbar__btn--primary" @onclick="OnSave" disabled="@(!IsValid)" title="@SaveTitle" aria-label="Save Workflow">
+    <i class="fa-solid fa-floppy-disk v-icon v-icon--sm"></i>
+    <span>Save</span>
+</button>
+
+<button class="v-toolbar__btn v-toolbar__btn--success" @onclick="OnExecute" disabled="@(!CanExecute)" title="@RunTitle" aria-label="Run Workflow">
+    <i class="fa-solid fa-play v-icon v-icon--xs"></i>
+    <span>Run</span>
 </button>
 
 @if (ExecutionState.IsExecutionActive)
 {
-    <button class="toolbar-btn" @onclick="OnStop" title="Stop Execution">
-        ⏹ Stop
+    <button class="v-toolbar__btn v-toolbar__btn--danger" @onclick="OnStop" title="Stop Execution" aria-label="Stop Execution">
+        <i class="fa-solid fa-stop v-icon v-icon--xs"></i>
+        <span>Stop</span>
     </button>
 }
-
-<span class="toolbar-separator"></span>
-
-<button class="toolbar-btn" @onclick="OnOpenPlugins" title="Plugin Manager">
-    📦 Plugins
-</button>
-<button class="toolbar-btn" @onclick="OnOpenCredentials" title="Credential Manager">
-    🔑 Credentials
-</button>
-
-<span class="toolbar-separator"></span>
-
-<button class="toolbar-btn @(!IsHistoryCollapsed ? "active" : "")" @onclick="OnToggleHistory" title="Execution History">
-    📜 History
-</button>

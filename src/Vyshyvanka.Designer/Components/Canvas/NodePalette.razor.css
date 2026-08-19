@@ -1,153 +1,185 @@
-.palette-container {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
+/* NodePalette — extends v-panel--palette from components.css */
 
-.palette-header {
-    padding: 16px;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.palette-header h3 {
-    margin: 0;
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
+/* ─── Search ─── */
 .palette-search {
-    padding: 12px 16px;
+    padding: var(--space-2) var(--space-3);
     border-bottom: 1px solid var(--border-color);
 }
 
-.palette-search input {
-    width: 100%;
-    padding: 8px 12px;
-    background: var(--bg-input);
+.palette-search .v-input {
+    background: var(--bg-canvas);
     border: 1px solid var(--border-color);
-    border-radius: 4px;
-    color: var(--text-primary);
-    font-size: 0.875rem;
+    border-radius: var(--radius-lg);
+    transition: border-color var(--duration-normal) var(--ease-default),
+                box-shadow var(--duration-normal) var(--ease-default);
 }
 
-.palette-search input:focus {
-    outline: none;
+.palette-search .v-input:focus {
     border-color: var(--accent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 15%, transparent);
 }
 
-.palette-search input::placeholder {
-    color: var(--text-muted);
-}
-
+/* ─── Category ─── */
 .palette-category {
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-subtle);
 }
 
 .category-header {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 12px 16px;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    margin-top: var(--space-4);
     cursor: pointer;
-    transition: background 0.15s ease;
+    transition: background var(--duration-normal) var(--ease-default);
+}
+
+.palette-category:first-child .category-header {
+    margin-top: var(--space-2);
 }
 
 .category-header:hover {
     background: var(--bg-hover);
 }
 
-.category-icon {
-    font-size: 1rem;
-}
-
 .category-name {
     flex: 1;
-    font-size: 0.875rem;
-    font-weight: 500;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
     color: var(--text-primary);
+    text-transform: capitalize;
 }
 
-.category-toggle {
-    font-size: 0.625rem;
+.category-chevron {
+    font-size: var(--font-size-xs);
     color: var(--text-muted);
+    transition: transform var(--duration-normal) var(--ease-default);
 }
 
 .category-nodes {
-    padding: 4px 0;
+    padding: var(--space-1) 0;
 }
 
-.palette-node {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 16px 10px 24px;
-    cursor: grab;
-    transition: background 0.15s ease;
+/* ─── Palette Item (base) ─── */
+.v-palette-item {
+    border-radius: var(--radius-md);
+    margin: var(--space-1) var(--space-2);
+    padding: var(--space-2);
+    border-left: 2px solid transparent;
+    transition: background var(--duration-normal) var(--ease-default),
+                border-color var(--duration-normal) var(--ease-default);
 }
 
-.palette-node:hover {
+.v-palette-item:hover {
     background: var(--bg-hover);
 }
 
-.palette-node:active {
-    cursor: grabbing;
+/* Category hover border colors */
+.v-palette-item.palette-item--trigger:hover {
+    border-left-color: var(--category-trigger);
 }
 
-.node-icon {
-    font-size: 1.25rem;
+.v-palette-item.palette-item--action:hover {
+    border-left-color: var(--category-action);
+}
+
+.v-palette-item.palette-item--logic:hover {
+    border-left-color: var(--category-logic);
+}
+
+.v-palette-item.palette-item--transform:hover {
+    border-left-color: var(--category-transform);
+}
+
+/* ─── Palette Item Icon (32x32 rounded square with category-tinted bg) ─── */
+.palette-item-icon {
     width: 32px;
     height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--bg-input);
-    border-radius: 6px;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-lg);
+    flex-shrink: 0;
+    transition: background var(--duration-normal) var(--ease-default);
 }
 
-.node-info {
+/* Category-colored icon backgrounds at 12% opacity */
+.palette-item--trigger .palette-item-icon {
+    background: color-mix(in srgb, var(--category-trigger) 12%, transparent);
+    color: var(--category-trigger);
+}
+
+.palette-item--action .palette-item-icon {
+    background: color-mix(in srgb, var(--category-action) 12%, transparent);
+    color: var(--category-action);
+}
+
+.palette-item--logic .palette-item-icon {
+    background: color-mix(in srgb, var(--category-logic) 12%, transparent);
+    color: var(--category-logic);
+}
+
+.palette-item--transform .palette-item-icon {
+    background: color-mix(in srgb, var(--category-transform) 12%, transparent);
+    color: var(--category-transform);
+}
+
+/* ─── Palette Item Info ─── */
+.palette-item-info {
     display: flex;
     flex-direction: column;
     gap: 2px;
     overflow: hidden;
+    min-width: 0;
 }
 
-.node-name {
-    font-size: 0.875rem;
+.palette-item-name {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
     color: var(--text-primary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.node-description {
-    font-size: 0.75rem;
+.palette-item-desc {
+    font-size: var(--font-size-xs);
     color: var(--text-muted);
-    white-space: nowrap;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     overflow: hidden;
-    text-overflow: ellipsis;
+    line-height: 1.4;
 }
 
-
-/* Plugin node styling */
-.palette-node.plugin-node {
-    border-left: 2px solid var(--category-transform);
-}
-
-.palette-node.plugin-node:hover {
-    background: var(--bg-hover);
-    border-left-color: #ba68c8;
+/* ─── Plugin Indicator (badge style) ─── */
+.palette-item--plugin {
+    border-left-color: var(--category-transform);
 }
 
 .plugin-badge {
-    font-size: 0.75rem;
-    margin-left: 4px;
-    opacity: 0.8;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--category-transform) 15%, transparent);
+    font-size: 9px;
+    color: var(--category-transform);
+    flex-shrink: 0;
 }
 
-.node-name {
-    display: flex;
-    align-items: center;
+/* ─── Drag state ─── */
+.v-palette-item[draggable="true"] {
+    cursor: grab;
+}
+
+.v-palette-item[draggable="true"]:active {
+    cursor: grabbing;
+    opacity: 0.7;
 }

@@ -61,18 +61,18 @@ public partial class ConfirmDialog
     [Parameter]
     public EventCallback OnCancel { get; set; }
 
-    private string GetHeaderClass() => Variant switch
+    private string GetVariantClass() => Variant switch
     {
-        ConfirmDialogVariant.Warning => "header-warning",
-        ConfirmDialogVariant.Danger => "header-danger",
+        ConfirmDialogVariant.Warning => "v-dialog--warning",
+        ConfirmDialogVariant.Danger => "v-dialog--danger",
         _ => ""
     };
 
     private string GetConfirmButtonClass() => Variant switch
     {
-        ConfirmDialogVariant.Warning => "btn-warning",
-        ConfirmDialogVariant.Danger => "btn-danger",
-        _ => "btn-primary"
+        ConfirmDialogVariant.Warning => "v-btn--primary",
+        ConfirmDialogVariant.Danger => "v-btn--danger",
+        _ => "v-btn--primary"
     };
 
     private async Task HandleConfirm()

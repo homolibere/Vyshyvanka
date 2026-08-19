@@ -1,49 +1,54 @@
 @namespace Vyshyvanka.Designer.Components
-<div class="palette-container">
-    <div class="palette-header">
-        <h3>Nodes</h3>
+
+<div class="v-panel v-panel--palette">
+    <div class="v-panel__header">
+        <span class="v-panel__title">Nodes</span>
     </div>
 
     <div class="palette-search">
-        <input type="text" placeholder="Search nodes..." @bind="_searchText" @bind:event="oninput"/>
+        <input type="text" class="v-input v-input--sm" placeholder="Search nodes..." @bind="_searchText" @bind:event="oninput" aria-label="Search nodes"/>
     </div>
 
-    @foreach (var category in GetGroupedNodes())
-    {
-        <div class="palette-category">
-            <div class="category-header" @onclick="() => ToggleCategory(category.Key)">
-                <span class="category-icon">@GetCategoryIcon(category.Key)</span>
-                <span class="category-name">@category.Key</span>
-                <span class="category-toggle">@(_expandedCategories.Contains(category.Key) ? "▼" : "▶")</span>
-            </div>
-
-            @if (_expandedCategories.Contains(category.Key))
-            {
-                <div class="category-nodes">
-                    @foreach (var node in category)
-                    {
-                        <div class="palette-node @(node.IsPluginNode ? "plugin-node" : "")"
-                             draggable="true"
-                             @ondragstart="() => OnDragStart(node)"
-                             @ondragend="OnDragEnd"
-                             title="@GetNodeTooltip(node)">
-                            <span class="node-icon">
-                                <NodeIcon Icon="@node.Icon"/>
-                            </span>
-                            <div class="node-info">
-                                <span class="node-name">
-                                    @node.Name
-                                    @if (node.IsPluginNode)
-                                    {
-                                        <span class="plugin-badge" title="Plugin: @node.SourcePackage">🔌</span>
-                                    }
-                                </span>
-                                <span class="node-description">@node.Description</span>
-                            </div>
-                        </div>
-                    }
+    <div class="v-panel__body v-scrollbar">
+        @foreach (var category in GetGroupedNodes())
+        {
+            <div class="palette-category">
+                <div class="category-header" @onclick="() => ToggleCategory(category.Key)" role="button" aria-expanded="@_expandedCategories.Contains(category.Key)">
+                    <span class="v-palette-item__indicator v-palette-item__indicator--@(GetCategoryClass(category.Key))"></span>
+                    <span class="category-name">@category.Key</span>
+                    <i class="fa-solid @(_expandedCategories.Contains(category.Key) ? "fa-chevron-down" : "fa-chevron-right") category-chevron"></i>
                 </div>
-            }
-        </div>
-    }
+
+                @if (_expandedCategories.Contains(category.Key))
+                {
+                    <div class="category-nodes">
+                        @foreach (var node in category)
+                        {
+                            <div class="v-palette-item palette-item--@(GetCategoryClass(category.Key)) @(node.IsPluginNode ? "palette-item--plugin" : "")"
+                                 draggable="true"
+                                 @ondragstart="() => OnDragStart(node)"
+                                 @ondragend="OnDragEnd"
+                                 title="@GetNodeTooltip(node)">
+                                <span class="palette-item-icon">
+                                    <NodeIcon Icon="@node.Icon"/>
+                                </span>
+                                <div class="palette-item-info">
+                                    <span class="palette-item-name">
+                                        @node.Name
+                                        @if (node.IsPluginNode)
+                                        {
+                                            <span class="plugin-badge" title="Plugin: @node.SourcePackage">
+                                                <i class="fa-solid fa-plug"></i>
+                                            </span>
+                                        }
+                                    </span>
+                                    <span class="palette-item-desc">@node.Description</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </div>
 </div>

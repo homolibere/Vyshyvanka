@@ -54,3 +54,4 @@ src/Vyshyvanka.Api/packages/*
 .playwright-mcp
 .llm
 samples/
+test-results/.last-run.json

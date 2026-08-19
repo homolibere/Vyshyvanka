@@ -51,11 +51,20 @@ public partial class NodePalette : IDisposable
 
     private static string GetCategoryIcon(NodeCategory category) => category switch
     {
-        NodeCategory.Trigger => "⚡",
-        NodeCategory.Action => "⚙",
-        NodeCategory.Logic => "⑂",
-        NodeCategory.Transform => "🔄",
-        _ => "📦"
+        NodeCategory.Trigger => "fa-bolt",
+        NodeCategory.Action => "fa-cog",
+        NodeCategory.Logic => "fa-code-branch",
+        NodeCategory.Transform => "fa-shuffle",
+        _ => "fa-cube"
+    };
+
+    private static string GetCategoryClass(NodeCategory category) => category switch
+    {
+        NodeCategory.Trigger => "trigger",
+        NodeCategory.Action => "action",
+        NodeCategory.Logic => "logic",
+        NodeCategory.Transform => "transform",
+        _ => "action"
     };
 
     private static string GetNodeTooltip(NodeDefinition node)

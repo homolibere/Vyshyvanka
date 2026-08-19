@@ -126,27 +126,69 @@ public class CanvasStateService(WorkflowStore store)
         store.NotifyStateChanged();
     }
 
-    /// <summary>Resets the canvas view to zoom 1.0, centered on the first node (or origin if no nodes).</summary>
+    /// <summary>Fits all nodes into the viewport with appropriate zoom and centering.</summary>
     public void ResetView()
     {
-        var firstNode = store.Workflow.Nodes.FirstOrDefault();
-        if (firstNode is not null)
+        var nodes = store.Workflow.Nodes;
+        if (nodes.Count == 0)
         {
-            var panX = -firstNode.Position.X + _canvasState.Width / 2;
-            var panY = -firstNode.Position.Y + _canvasState.Height / 2;
+            _canvasState = new CanvasState { Width = _canvasState.Width, Height = _canvasState.Height };
+            store.NotifyStateChanged();
+            return;
+        }
+
+        // Node dimensions (matching CSS --node-width: 220px, --node-min-height: 80px)
+        const double nodeWidth = 220;
+        const double nodeHeight = 80;
+        const double padding = 60; // padding around the bounding box
+
+        // Calculate bounding box of all nodes
+        var minX = nodes.Min(n => n.Position.X);
+        var minY = nodes.Min(n => n.Position.Y);
+        var maxX = nodes.Max(n => n.Position.X + nodeWidth);
+        var maxY = nodes.Max(n => n.Position.Y + nodeHeight);
+
+        var contentWidth = maxX - minX + padding * 2;
+        var contentHeight = maxY - minY + padding * 2;
+
+        var viewWidth = _canvasState.Width;
+        var viewHeight = _canvasState.Height;
+
+        if (viewWidth <= 0 || viewHeight <= 0)
+        {
+            // Canvas size not yet known, fall back to centering first node
+            var first = nodes[0];
             _canvasState = new CanvasState
             {
-                PanX = panX,
-                PanY = panY,
+                PanX = -first.Position.X + 400,
+                PanY = -first.Position.Y + 300,
                 Zoom = 1.0,
                 Width = _canvasState.Width,
                 Height = _canvasState.Height
             };
+            store.NotifyStateChanged();
+            return;
         }
-        else
+
+        // Calculate zoom to fit all content, clamped between 0.25 and 1.0
+        var zoomX = viewWidth / contentWidth;
+        var zoomY = viewHeight / contentHeight;
+        var zoom = Math.Clamp(Math.Min(zoomX, zoomY), 0.25, 1.0);
+
+        // Center the bounding box in the viewport
+        var centerX = (minX + maxX) / 2;
+        var centerY = (minY + maxY) / 2;
+        var panX = viewWidth / 2 / zoom - centerX;
+        var panY = viewHeight / 2 / zoom - centerY;
+
+        _canvasState = new CanvasState
         {
-            _canvasState = new CanvasState { Width = _canvasState.Width, Height = _canvasState.Height };
-        }
+            PanX = panX,
+            PanY = panY,
+            Zoom = zoom,
+            Width = viewWidth,
+            Height = viewHeight
+        };
 
         store.NotifyStateChanged();
     }

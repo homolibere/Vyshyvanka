@@ -1,56 +1,49 @@
+/* CanvasNodeComponent — refactored with design tokens */
+
 .canvas-node {
     cursor: move;
 }
 
 .canvas-node.selected .node-bg {
     stroke: var(--accent);
-    stroke-width: 2;
+    stroke-width: var(--connection-width);
 }
 
 .node-bg {
     fill: var(--bg-surface);
     stroke: var(--border-color);
     stroke-width: 1;
+    transition: stroke var(--duration-normal) var(--ease-default);
 }
 
 .node-header {
     fill: var(--border-color);
 }
 
-.node-header.category-trigger {
-    fill: var(--category-trigger);
-}
-
-.node-header.category-action {
-    fill: var(--category-action);
-}
-
-.node-header.category-logic {
-    fill: var(--category-logic);
-}
-
-.node-header.category-transform {
-    fill: var(--category-transform);
-}
+.node-header.category-trigger { fill: var(--category-trigger); }
+.node-header.category-action { fill: var(--category-action); }
+.node-header.category-logic { fill: var(--category-logic); }
+.node-header.category-transform { fill: var(--category-transform); }
 
 .node-icon {
-    font-size: 14px;
+    font-size: var(--icon-size-sm);
     fill: white;
 }
 
 .node-title {
-    font-size: 12px;
-    font-weight: 500;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
     fill: white;
 }
 
 .delete-btn {
     cursor: pointer;
-    opacity: 0.8;
+    opacity: var(--opacity-hover);
+    transition: opacity var(--duration-fast) var(--ease-default);
 }
 
 .delete-btn:hover {
-    opacity: 1;
+    opacity: var(--opacity-full);
 }
 
 .port {
@@ -61,7 +54,8 @@
     fill: var(--bg-surface);
     stroke: var(--accent);
     stroke-width: 2;
-    transition: all 0.15s ease;
+    transition: fill var(--duration-normal) var(--ease-default),
+                transform var(--duration-normal) var(--ease-default);
 }
 
 .port:hover .port-circle {
@@ -70,107 +64,64 @@
 }
 
 .port-label {
-    font-size: 10px;
+    font-size: var(--font-size-xs);
     fill: var(--text-muted);
     pointer-events: none;
 }
 
 /* Port type colors */
-.port-string {
-    stroke: var(--category-trigger);
-}
+.port-string { stroke: var(--category-trigger); }
+.port-number { stroke: var(--category-action); }
+.port-boolean { stroke: var(--category-logic); }
+.port-array { stroke: var(--category-transform); }
+.port-object { stroke: var(--info); }
+.port-any { stroke: var(--text-muted); }
 
-.port-number {
-    stroke: var(--category-action);
-}
-
-.port-boolean {
-    stroke: var(--category-logic);
-}
-
-.port-array {
-    stroke: var(--category-transform);
-}
-
-.port-object {
-    stroke: var(--info);
-}
-
-.port-any {
-    stroke: var(--text-muted);
-}
-
-/* Execution status styles */
+/* Execution status */
 .canvas-node.executing .node-bg {
     animation: pulse-running 1.5s ease-in-out infinite;
 }
 
 .canvas-node.executed-success .node-bg {
     stroke: var(--success);
-    stroke-width: 2;
+    stroke-width: var(--connection-width);
 }
 
 .canvas-node.executed-failed .node-bg {
     stroke: var(--danger);
-    stroke-width: 2;
+    stroke-width: var(--connection-width);
 }
 
 .canvas-node.execution-pending .node-bg {
     stroke: var(--warning);
-    stroke-width: 2;
+    stroke-width: var(--connection-width);
 }
 
-.indicator-running {
-    stroke: var(--btn-primary-bg);
-    animation: pulse-indicator 1s ease-in-out infinite;
-}
+.indicator-running { stroke: var(--btn-primary-bg); animation: pulse-indicator 1s ease-in-out infinite; }
+.indicator-completed { stroke: var(--success); }
+.indicator-failed { stroke: var(--danger); }
+.indicator-pending { stroke: var(--warning); }
 
-.indicator-completed {
-    stroke: var(--success);
-}
-
-.indicator-failed {
-    stroke: var(--danger);
-}
-
-.indicator-pending {
-    stroke: var(--warning);
-}
-
-.execution-badge {
-    pointer-events: none;
-}
+.execution-badge { pointer-events: none; }
 
 .execution-duration {
-    font-size: 10px;
+    font-size: var(--font-size-xs);
     fill: var(--text-muted);
     pointer-events: none;
 }
 
 @keyframes pulse-running {
-    0%, 100% {
-        stroke: var(--btn-primary-bg);
-        stroke-width: 2;
-    }
-    50% {
-        stroke: var(--accent);
-        stroke-width: 3;
-    }
+    0%, 100% { stroke: var(--btn-primary-bg); stroke-width: 2; }
+    50% { stroke: var(--accent); stroke-width: 3; }
 }
 
 @keyframes pulse-indicator {
-    0%, 100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.5;
-    }
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
 }
 
-/* ── Routing summary for loop iterations ───────────────────────────── */
-
 .routing-summary {
-    fill: var(--text-secondary, #aaa);
-    font-family: var(--font-mono, monospace);
-    opacity: 0.8;
+    fill: var(--text-secondary);
+    font-family: var(--font-family-mono);
+    opacity: var(--opacity-hover);
 }

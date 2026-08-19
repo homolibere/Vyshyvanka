@@ -1,0 +1,56 @@
+@namespace Vyshyvanka.Designer.Components
+
+<div class="settings-panel">
+    <div class="settings-section">
+        <h2 class="section-title">Themes</h2>
+
+        <div class="theme-grid">
+            @foreach (var theme in ThemeService.AvailableThemes)
+            {
+                var isActive = theme.Id == ThemeService.CurrentThemeId;
+                <div class="theme-card @(isActive ? "active" : "")" @onclick="() => ApplyTheme(theme.Id)">
+                    <div class="theme-card-preview">
+                        <span class="preview-swatch" style="background: @theme.Preview.Bg;"></span>
+                        <span class="preview-swatch" style="background: @theme.Preview.Accent;"></span>
+                        <span class="preview-swatch" style="background: @theme.Preview.Surface;"></span>
+                    </div>
+                    <div class="theme-card-info">
+                        <span class="theme-card-name">@theme.Name</span>
+                        <span class="theme-card-mode">@theme.BaseMode</span>
+                    </div>
+                    <div class="theme-card-actions">
+                        @if (isActive)
+                        {
+                            <i class="fa-solid fa-check active-check"></i>
+                        }
+                        <button class="btn-icon" title="Export" @onclick:stopPropagation="true" @onclick="() => ExportTheme(theme.Id)">
+                            <i class="fa-solid fa-download"></i>
+                        </button>
+                        @if (!theme.IsBuiltIn)
+                        {
+                            <button class="btn-icon danger" title="Delete" @onclick:stopPropagation="true" @onclick="() => DeleteTheme(theme.Id)">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="theme-upload">
+            <label class="upload-area" for="theme-file-input">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <span>Upload custom theme JSON</span>
+                <InputFile id="theme-file-input" OnChange="OnThemeFileSelected" accept=".json" style="display:none;" />
+            </label>
+            @if (!string.IsNullOrEmpty(_uploadError))
+            {
+                <span class="upload-error">@_uploadError</span>
+            }
+            @if (!string.IsNullOrEmpty(_uploadSuccess))
+            {
+                <span class="upload-success">@_uploadSuccess</span>
+            }
+        </div>
+    </div>
+</div>

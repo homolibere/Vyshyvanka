@@ -1,18 +1,20 @@
 @namespace Vyshyvanka.Designer.Components
 @* Reusable confirmation dialog component *@
 
-<div class="modal-overlay @(IsOpen ? "open" : "")" @onclick="HandleOverlayClick">
-    <div class="modal-content confirm-dialog" @onclick:stopPropagation="true">
-        <div class="modal-header @GetHeaderClass()">
+<div class="v-overlay @(IsOpen ? "v-overlay--open" : "")" @onclick="HandleOverlayClick" role="dialog" aria-modal="true" aria-labelledby="confirm-dialog-title">
+    <div class="v-dialog @GetVariantClass()" @onclick:stopPropagation="true">
+        <div class="dialog-header">
             @if (!string.IsNullOrEmpty(Icon))
             {
-                <span class="dialog-icon">@Icon</span>
+                <i class="fa-solid @Icon dialog-header-icon"></i>
             }
-            <h3>@Title</h3>
-            <button class="btn-close" @onclick="HandleCancel" disabled="@IsProcessing">×</button>
+            <h3 id="confirm-dialog-title" class="v-dialog__title">@Title</h3>
+            <button class="v-btn v-btn--icon v-btn--ghost v-btn--sm" @onclick="HandleCancel" disabled="@IsProcessing" aria-label="Close">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
         </div>
 
-        <div class="modal-body">
+        <div class="v-dialog__body">
             @if (!string.IsNullOrEmpty(Message))
             {
                 <p class="dialog-message">@Message</p>
@@ -20,7 +22,7 @@
 
             @if (AffectedItems.Count > 0)
             {
-                <div class="affected-items-section">
+                <div class="affected-items">
                     @if (!string.IsNullOrEmpty(AffectedItemsLabel))
                     {
                         <span class="affected-items-label">@AffectedItemsLabel</span>
@@ -40,14 +42,15 @@
             }
         </div>
 
-        <div class="modal-footer">
-            <button class="btn btn-secondary" @onclick="HandleCancel" disabled="@IsProcessing">
+        <div class="v-dialog__actions">
+            <button class="v-btn v-btn--ghost" @onclick="HandleCancel" disabled="@IsProcessing">
                 @CancelText
             </button>
-            <button class="btn @GetConfirmButtonClass()" @onclick="HandleConfirm" disabled="@IsProcessing">
+            <button class="v-btn @GetConfirmButtonClass()" @onclick="HandleConfirm" disabled="@IsProcessing">
                 @if (IsProcessing)
                 {
-                    <span class="processing-indicator">@ProcessingText</span>
+                    <span class="v-spinner v-spinner--sm"></span>
+                    <span>@ProcessingText</span>
                 }
                 else
                 {

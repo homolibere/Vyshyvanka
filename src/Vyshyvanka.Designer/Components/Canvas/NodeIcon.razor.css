@@ -1,3 +1,5 @@
+/* NodeIcon — refactored with design tokens */
+
 .node-icon-img {
     object-fit: contain;
     vertical-align: middle;

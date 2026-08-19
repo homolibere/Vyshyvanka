@@ -9,28 +9,41 @@
 }
 
 <div class="designer-container">
-    <aside class="node-palette @(_isPaletteCollapsed ? "collapsed" : "")">
-        <div class="panel-toggle" @onclick="TogglePalette" title="@(_isPaletteCollapsed ? "Show Nodes" : "Hide Nodes")">
-            <span class="toggle-icon">@(_isPaletteCollapsed ? "▶" : "◀")</span>
-            @if (_isPaletteCollapsed)
-            {
-                <span class="toggle-label-vertical">Nodes</span>
-            }
-        </div>
-        @if (!_isPaletteCollapsed)
+    @* ── Context Panel (240px, content switches based on active tab) ── *@
+    <aside class="context-panel">
+        @switch (_activePanel)
         {
-            <NodePalette/>
+            case DesignerPanel.Nodes:
+                <NodePalette/>
+                break;
+            case DesignerPanel.Workflows:
+                <WorkflowBrowser IsOpen="true"
+                                 CurrentWorkflowId="@WorkflowId"
+                                 OnClose="() => SetActivePanel(DesignerPanel.Nodes)"/>
+                break;
+            case DesignerPanel.History:
+                <ExecutionHistoryPanel @ref="_historyPanel"
+                                       OnExecutionSelected="OnExecutionSelected"
+                                       OnExecutionCleared="OnExecutionCleared"/>
+                break;
+            case DesignerPanel.Credentials:
+                <CredentialManager IsOpen="true" OnClose="() => SetActivePanel(DesignerPanel.Nodes)"/>
+                break;
+            case DesignerPanel.Plugins:
+                <PluginManager IsOpen="true" OnClose="() => SetActivePanel(DesignerPanel.Nodes)"/>
+                break;
         }
     </aside>
 
+    @* ── Canvas Area (fills remaining space) ──────────────────────── *@
     <div class="canvas-area">
         @if (!ValidationService.ValidationResult.IsValid)
         {
             <div class="validation-panel">
                 <div class="validation-header" @onclick="ToggleValidationPanel">
-                    <span class="validation-icon">⚠️</span>
+                    <i class="fa-solid fa-triangle-exclamation"></i>
                     <span>@ValidationService.ValidationResult.Errors.Count validation error(s)</span>
-                    <span class="validation-toggle">@(_isValidationPanelExpanded ? "▼" : "▶")</span>
+                    <i class="fa-solid @(_isValidationPanelExpanded ? "fa-chevron-down" : "fa-chevron-right") validation-toggle"></i>
                 </div>
                 @if (_isValidationPanelExpanded)
                 {
@@ -55,50 +68,23 @@
         }
     </div>
 
+    @* ── Config Panel (right, 300px) ──────────────────────────────── *@
     <aside class="config-panel @(_isConfigCollapsed ? "collapsed" : "")">
-        <div class="panel-toggle" @onclick="ToggleConfig" title="@(_isConfigCollapsed ? "Show Properties" : "Hide Properties")">
+        <div class="panel-toggle" @onclick="ToggleConfig" title="@(_isConfigCollapsed ? "Show Properties" : "Hide Properties")" aria-label="Toggle properties panel">
             @if (_isConfigCollapsed)
             {
                 <span class="toggle-label-vertical">Properties</span>
             }
-            <span class="toggle-icon">@(_isConfigCollapsed ? "◀" : "▶")</span>
+            <i class="fa-solid @(_isConfigCollapsed ? "fa-chevron-left" : "fa-chevron-right") toggle-icon"></i>
         </div>
         @if (!_isConfigCollapsed)
         {
             <NodeConfigPanel/>
         }
     </aside>
-
-    <aside class="history-panel @(_isHistoryCollapsed ? "collapsed" : "")">
-        <div class="panel-toggle" @onclick="ToggleHistory"
-             title="@(_isHistoryCollapsed ? "Show History" : "Hide History")">
-            @if (_isHistoryCollapsed)
-            {
-                <span class="toggle-label-vertical">History</span>
-            }
-            <span class="toggle-icon">@(_isHistoryCollapsed ? "◀" : "▶")</span>
-        </div>
-        @if (!_isHistoryCollapsed)
-        {
-            <ExecutionHistoryPanel @ref="_historyPanel"
-                                   OnExecutionSelected="OnExecutionSelected"
-                                   OnExecutionCleared="OnExecutionCleared"/>
-        }
-    </aside>
 </div>
 
-@* Plugin Manager Modal *@
-<PluginManager IsOpen="@_isPluginManagerOpen" OnClose="ClosePluginManager"/>
-
-@* Credential Manager Modal *@
-<CredentialManager IsOpen="@_isCredentialManagerOpen" OnClose="CloseCredentialManager"/>
-
-@* Workflow Browser Modal *@
-<WorkflowBrowser IsOpen="@_isWorkflowBrowserOpen"
-                 CurrentWorkflowId="@WorkflowId"
-                 OnClose="CloseWorkflowBrowser"/>
-
-@* Node Editor Modal *@
+@* Node Editor Modal (only modal remaining) *@
 <NodeEditorModal IsOpen="@_isNodeEditorOpen"
                  NodeId="@_editingNodeId"
                  OnClose="CloseNodeEditor"

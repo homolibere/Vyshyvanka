@@ -4,201 +4,229 @@
    These values are used as initial fallback before ThemeService
    loads and applies the active theme JSON via JS interop.
    The actual theme colors are set dynamically from JSON files.
+   
+   Source of truth: /docs/design/01-colors.md
+   Light mode: Stone neutral palette for management screens
+   Dark mode: Deep neutrals for the workflow designer canvas
    ============================================ */
 
 :root,
 [data-theme="light"] {
-    /* Backgrounds */
-    --bg-primary: #f8f5f0;
-    --bg-surface: #ffffff;
-    --bg-elevated: #ffffff;
-    --bg-input: #f0ebe4;
-    --bg-canvas: #ede8e1;
-    --bg-code: #f0ebe4;
-    --bg-hover: #ede8e1;
-    --bg-gradient-start: #f8f5f0;
-    --bg-gradient-end: #ede8e1;
+    /* ── Backgrounds ──────────────────────────────────────────────── */
+    --bg-primary: #FAFAF9;           /* Neutral-50 — page background */
+    --bg-surface: #FFFFFF;           /* White — card/panel/toolbar bg */
+    --bg-elevated: #FFFFFF;          /* White — elevated surfaces */
+    --bg-input: #FFFFFF;             /* White — input field background */
+    --bg-canvas: #FAFAF9;            /* Neutral-50 — canvas for light mode */
+    --bg-code: #F5F5F4;             /* Neutral-100 — code block bg */
+    --bg-hover: #F5F5F4;            /* Neutral-100 — hover state */
+    --bg-gradient-start: #FAFAF9;
+    --bg-gradient-end: #F5F5F4;
 
-    /* Borders */
-    --border-color: #d4c9bc;
-    --border-hover: #bfb2a3;
-    --border-active: #a89888;
-    --border-subtle: #e8e0d6;
+    /* ── Borders ──────────────────────────────────────────────────── */
+    --border-color: #E7E5E4;         /* Neutral-200 — primary border */
+    --border-hover: #D6D3D1;         /* Neutral-300 — hover border */
+    --border-active: #A8A29E;        /* Neutral-400 — active/focused border */
+    --border-subtle: #F5F5F4;        /* Neutral-100 — subtle dividers */
 
-    /* Text */
-    --text-primary: #1a1a2e;
-    --text-secondary: #555555;
-    --text-muted: #888888;
-    --text-on-accent: #ffffff;
-    --text-on-surface-dark: #ffffff;
+    /* ── Text ─────────────────────────────────────────────────────── */
+    --text-primary: #1C1917;         /* Neutral-900 — headings, primary text */
+    --text-secondary: #57534E;       /* Neutral-600 — secondary text */
+    --text-muted: #78716C;           /* Neutral-500 — muted text, hints */
+    --text-on-accent: #FFFFFF;       /* White — text on primary buttons */
+    --text-on-surface-dark: #FFFFFF;
 
-    /* Accent — vyshyvanka red */
-    --accent: #c62828;
-    --accent-hover: #b71c1c;
-    --accent-light: rgba(198, 40, 40, 0.1);
+    /* ── Brand / Accent ───────────────────────────────────────────── */
+    --accent: #C62828;               /* Primary brand red */
+    --accent-hover: #A51C1C;         /* Primary hover */
+    --accent-light: #FFEBEE;         /* Primary light background */
     --accent-border: rgba(198, 40, 40, 0.3);
 
-    /* Links */
-    --link-color: #c62828;
-    --link-hover: #b71c1c;
+    /* ── Links ────────────────────────────────────────────────────── */
+    --link-color: #C62828;
+    --link-hover: #A51C1C;
 
-    /* Buttons */
-    --btn-primary-bg: #c62828;
-    --btn-primary-border: #b71c1c;
-    --btn-primary-hover: #b71c1c;
-    --btn-primary-text: #ffffff;
-    --btn-secondary-bg: #e8e0d6;
-    --btn-secondary-border: #d4c9bc;
-    --btn-secondary-hover: #d4c9bc;
-    --btn-secondary-text: #1a1a2e;
+    /* ── Buttons ──────────────────────────────────────────────────── */
+    --btn-primary-bg: #C62828;
+    --btn-primary-border: #C62828;
+    --btn-primary-hover: #A51C1C;
+    --btn-primary-text: #FFFFFF;
+    --btn-secondary-bg: #FFFFFF;
+    --btn-secondary-border: #D6D3D1;  /* Neutral-300 */
+    --btn-secondary-hover: #F5F5F4;   /* Neutral-100 */
+    --btn-secondary-text: #292524;    /* Neutral-800 */
+    --btn-danger-bg: #DC2626;
+    --btn-danger-border: #DC2626;
+    --btn-danger-hover: #B91C1C;
 
-    /* Status */
-    --success: #2e7d32;
-    --success-bg: rgba(46, 125, 50, 0.1);
-    --danger: #c62828;
-    --danger-bg: rgba(198, 40, 40, 0.1);
-    --warning: #e65100;
-    --warning-bg: rgba(230, 81, 0, 0.1);
-    --info: #1565c0;
-    --info-bg: rgba(21, 101, 192, 0.1);
+    /* ── Semantic Status ──────────────────────────────────────────── */
+    --success: #16A34A;
+    --success-bg: #DCFCE7;
+    --danger: #DC2626;
+    --danger-bg: #FEE2E2;
+    --warning: #D97706;
+    --warning-bg: #FEF3C7;
+    --info: #2563EB;
+    --info-bg: #DBEAFE;
 
-    /* Shadows */
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
-    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
-    --overlay-bg: rgba(0, 0, 0, 0.3);
+    /* ── Shadows (light mode — standard opacity) ──────────────────── */
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.10);
+    --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.10);
+    --shadow-lg: 0 8px 24px -4px rgba(0, 0, 0, 0.12);
+    --shadow-xl: 0 16px 40px -6px rgba(0, 0, 0, 0.15);
+    --overlay-bg: rgba(0, 0, 0, 0.5);
 
-    /* Canvas / SVG nodes */
-    --node-bg: #ffffff;
-    --node-border: #d4c9bc;
-    --node-header-bg: #e8e0d6;
-    --node-selected: #c62828;
-    --connection-color: #c62828;
-    --connection-hover: #b71c1c;
-    --connection-selected: #e65100;
-    --port-fill: #ffffff;
-    --port-stroke: #c62828;
-    --port-label: #888888;
+    /* ── Canvas / SVG Nodes (light mode) ──────────────────────────── */
+    --node-bg: #FFFFFF;
+    --node-border: #E7E5E4;          /* Neutral-200 */
+    --node-header-bg: #F5F5F4;       /* Neutral-100 */
+    --node-selected: #C62828;        /* Primary */
+    --connection-color: #78716C;     /* Neutral-500 */
+    --connection-hover: #C62828;     /* Primary */
+    --connection-selected: #D97706;  /* Warning/amber */
+    --port-fill: #FFFFFF;
+    --port-stroke: #A8A29E;          /* Neutral-400 */
+    --port-hover: #C62828;           /* Primary */
+    --port-connected: #78716C;       /* Neutral-500 */
+    --port-label: #78716C;           /* Neutral-500 */
     --grid-color: rgba(0, 0, 0, 0.05);
-    --grid-motif: #c62828;
-    --grid-accent: #1a1a2e;
+    --grid-motif: #C62828;
+    --grid-accent: #1C1917;
 
-    /* Node category colors */
-    --category-trigger: #4caf50;
-    --category-action: #2196f3;
-    --category-logic: #ff9800;
-    --category-transform: #9c27b0;
+    /* ── Node Category Colors ─────────────────────────────────────── */
+    --category-trigger: #16A34A;     /* Green */
+    --category-action: #2563EB;      /* Blue */
+    --category-logic: #D97706;       /* Amber */
+    --category-transform: #7C3AED;   /* Purple */
 
-    /* Spinner */
-    --spinner-track: #d4c9bc;
-    --spinner-fill: #c62828;
+    /* ── Spinner ──────────────────────────────────────────────────── */
+    --spinner-track: #E7E5E4;        /* Neutral-200 */
+    --spinner-fill: #C62828;
 
-    /* Focus ring */
-    --focus-ring-outer: #f8f5f0;
-    --focus-ring-inner: #c62828;
+    /* ── Focus Ring ───────────────────────────────────────────────── */
+    --focus-ring-outer: #FAFAF9;
+    --focus-ring-inner: #C62828;
 
-    /* Scrollbar */
+    /* ── Scrollbar ────────────────────────────────────────────────── */
     --scrollbar-track: transparent;
-    --scrollbar-thumb: #d4c9bc;
-    --scrollbar-thumb-hover: #bfb2a3;
+    --scrollbar-thumb: #D6D3D1;      /* Neutral-300 */
+    --scrollbar-thumb-hover: #A8A29E; /* Neutral-400 */
+
+    /* ── Sidebar ──────────────────────────────────────────────────── */
+    --nav-item-bg: transparent;
+    --nav-item-bg-active: #FFEBEE;   /* Primary light */
+    --nav-item-text: #44403C;        /* Neutral-700 */
+    --nav-item-text-active: #C62828; /* Primary */
 
     color-scheme: light;
 }
 
 [data-theme="dark"] {
-    /* Backgrounds — deep red base */
-    --bg-primary: #1a0a0a;
-    --bg-surface: #2b1111;
-    --bg-elevated: #2b1111;
-    --bg-input: #1a0a0a;
-    --bg-canvas: #1a0a0a;
-    --bg-code: #220e0e;
-    --bg-hover: #3d1a1a;
-    --bg-gradient-start: #2b1111;
-    --bg-gradient-end: #1a0a0a;
+    /* ── Backgrounds ──────────────────────────────────────────────── */
+    --bg-primary: #1C1917;           /* Neutral-900 — canvas/page bg */
+    --bg-surface: #292524;           /* Neutral-800 — panels, toolbars, node bodies */
+    --bg-elevated: #292524;          /* Neutral-800 — elevated surfaces */
+    --bg-input: #1C1917;             /* Neutral-900 — input fields */
+    --bg-canvas: #1C1917;            /* Neutral-900 — canvas background */
+    --bg-code: #292524;              /* Neutral-800 */
+    --bg-hover: #44403C;            /* Neutral-700 — hover states */
+    --bg-gradient-start: #292524;
+    --bg-gradient-end: #1C1917;
 
-    /* Borders */
-    --border-color: #4a2020;
-    --border-hover: #5c2a2a;
-    --border-active: #6e3535;
-    --border-subtle: #3a1616;
+    /* ── Borders ──────────────────────────────────────────────────── */
+    --border-color: #44403C;         /* Neutral-700 — node border, panels */
+    --border-hover: #57534E;         /* Neutral-600 */
+    --border-active: #78716C;        /* Neutral-500 */
+    --border-subtle: #292524;        /* Neutral-800 */
 
-    /* Text */
-    --text-primary: #f0d8d8;
-    --text-secondary: #c9a8a8;
-    --text-muted: #9a7777;
-    --text-on-accent: #1a0a0a;
-    --text-on-surface-dark: #ffffff;
+    /* ── Text ─────────────────────────────────────────────────────── */
+    --text-primary: #FAFAF9;         /* Neutral-50 */
+    --text-secondary: #D6D3D1;       /* Neutral-300 */
+    --text-muted: #A8A29E;           /* Neutral-400 */
+    --text-on-accent: #FFFFFF;
+    --text-on-surface-dark: #FFFFFF;
 
-    /* Accent — warm gold/cream to contrast the red */
-    --accent: #f5c16c;
-    --accent-hover: #f7d08a;
-    --accent-light: rgba(245, 193, 108, 0.15);
-    --accent-border: rgba(245, 193, 108, 0.4);
+    /* ── Brand / Accent ───────────────────────────────────────────── */
+    --accent: #C62828;               /* Primary red (same as light) */
+    --accent-hover: #A51C1C;
+    --accent-light: rgba(198, 40, 40, 0.2);
+    --accent-border: rgba(198, 40, 40, 0.4);
 
-    /* Links */
-    --link-color: #f5c16c;
-    --link-hover: #f7d08a;
+    /* ── Links ────────────────────────────────────────────────────── */
+    --link-color: #C62828;
+    --link-hover: #EF5350;
 
-    /* Buttons */
-    --btn-primary-bg: #c62828;
-    --btn-primary-border: #a12020;
-    --btn-primary-hover: #a12020;
-    --btn-primary-text: #ffffff;
-    --btn-secondary-bg: #3d1a1a;
-    --btn-secondary-border: #4a2020;
-    --btn-secondary-hover: #5c2a2a;
-    --btn-secondary-text: #f0d8d8;
+    /* ── Buttons ──────────────────────────────────────────────────── */
+    --btn-primary-bg: #C62828;
+    --btn-primary-border: #C62828;
+    --btn-primary-hover: #A51C1C;
+    --btn-primary-text: #FFFFFF;
+    --btn-secondary-bg: #44403C;     /* Neutral-700 */
+    --btn-secondary-border: #57534E; /* Neutral-600 */
+    --btn-secondary-hover: #57534E;
+    --btn-secondary-text: #FAFAF9;   /* Neutral-50 */
+    --btn-danger-bg: #DC2626;
+    --btn-danger-border: #DC2626;
+    --btn-danger-hover: #EF4444;
 
-    /* Status */
-    --success: #66bb6a;
-    --success-bg: rgba(102, 187, 106, 0.2);
-    --danger: #ef5350;
-    --danger-bg: rgba(239, 83, 80, 0.2);
-    --warning: #ffb74d;
-    --warning-bg: rgba(255, 183, 77, 0.2);
-    --info: #64b5f6;
-    --info-bg: rgba(100, 181, 246, 0.2);
+    /* ── Semantic Status ──────────────────────────────────────────── */
+    --success: #16A34A;
+    --success-bg: rgba(22, 163, 74, 0.15);
+    --danger: #DC2626;
+    --danger-bg: rgba(220, 38, 38, 0.15);
+    --warning: #D97706;
+    --warning-bg: rgba(217, 119, 6, 0.15);
+    --info: #2563EB;
+    --info-bg: rgba(37, 99, 235, 0.15);
 
-    /* Shadows */
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
-    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+    /* ── Shadows (dark mode — higher opacity for visibility) ──────── */
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.30);
+    --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.30);
+    --shadow-lg: 0 8px 24px -4px rgba(0, 0, 0, 0.35);
+    --shadow-xl: 0 16px 40px -6px rgba(0, 0, 0, 0.40);
     --overlay-bg: rgba(0, 0, 0, 0.6);
 
-    /* Canvas / SVG nodes */
-    --node-bg: #2b1111;
-    --node-border: #4a2020;
-    --node-header-bg: #3d1a1a;
-    --node-selected: #f5c16c;
-    --connection-color: #f5c16c;
-    --connection-hover: #f7d08a;
-    --connection-selected: #ef5350;
-    --port-fill: #2b1111;
-    --port-stroke: #f5c16c;
-    --port-label: #9a7777;
-    --grid-color: rgba(255, 255, 255, 0.03);
-    --grid-motif: #f5c16c;
-    --grid-accent: #ef5350;
+    /* ── Canvas / SVG Nodes ───────────────────────────────────────── */
+    --node-bg: #292524;              /* Neutral-800 — node body */
+    --node-border: #44403C;          /* Neutral-700 — node default border */
+    --node-header-bg: #44403C;       /* Neutral-700 — fallback (overridden by category) */
+    --node-selected: #C62828;        /* Primary — selected node border */
+    --connection-color: #78716C;     /* Neutral-500 — default connection */
+    --connection-hover: #C62828;     /* Primary — hovered connection */
+    --connection-selected: #D97706;  /* Warning — selected connection */
+    --port-fill: #292524;            /* Neutral-800 — port background */
+    --port-stroke: #A8A29E;          /* Neutral-400 — port default stroke */
+    --port-hover: #C62828;           /* Primary — port hover/active */
+    --port-connected: #78716C;       /* Neutral-500 — connected port */
+    --port-label: #A8A29E;           /* Neutral-400 — port labels */
+    --grid-color: #292524;           /* Neutral-800 — dot grid on dark bg */
+    --grid-motif: #C62828;
+    --grid-accent: #44403C;
 
-    /* Node category colors — brighter for dark red bg */
-    --category-trigger: #66bb6a;
-    --category-action: #64b5f6;
-    --category-logic: #ffb74d;
-    --category-transform: #ce93d8;
+    /* ── Node Category Colors ─────────────────────────────────────── */
+    --category-trigger: #16A34A;     /* Green — same in both modes */
+    --category-action: #2563EB;      /* Blue */
+    --category-logic: #D97706;       /* Amber */
+    --category-transform: #7C3AED;   /* Purple */
 
-    /* Spinner */
-    --spinner-track: #4a2020;
-    --spinner-fill: #f5c16c;
+    /* ── Spinner ──────────────────────────────────────────────────── */
+    --spinner-track: #44403C;
+    --spinner-fill: #C62828;
 
-    /* Focus ring */
-    --focus-ring-outer: #1a0a0a;
-    --focus-ring-inner: #f5c16c;
+    /* ── Focus Ring ───────────────────────────────────────────────── */
+    --focus-ring-outer: #1C1917;
+    --focus-ring-inner: #C62828;
 
-    /* Scrollbar */
+    /* ── Scrollbar ────────────────────────────────────────────────── */
     --scrollbar-track: transparent;
-    --scrollbar-thumb: #4a2020;
-    --scrollbar-thumb-hover: #5c2a2a;
+    --scrollbar-thumb: #44403C;      /* Neutral-700 */
+    --scrollbar-thumb-hover: #57534E; /* Neutral-600 */
+
+    /* ── Sidebar / Nav ────────────────────────────────────────────── */
+    --nav-item-bg: transparent;
+    --nav-item-bg-active: rgba(198, 40, 40, 0.15);
+    --nav-item-text: #D6D3D1;        /* Neutral-300 */
+    --nav-item-text-active: #C62828;
 
     color-scheme: dark;
 }

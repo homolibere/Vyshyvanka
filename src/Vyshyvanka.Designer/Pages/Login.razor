@@ -1,52 +1,61 @@
 @page "/login"
 
-<div class="login-container">
-    <div class="login-card">
-        <div class="login-logo">
-            <img src="images/logo-light.svg" alt="Vyshyvanka"/>
-        </div>
-        <p class="subtitle">Sign in to continue</p>
+<div class="login-page">
+    <div class="login-brand">
+        <img src="images/logo-light.svg" alt="Vyshyvanka" class="login-brand-logo"/>
+        <p class="login-brand-tagline">Workflow Automation Platform</p>
+    </div>
 
-        @if (!string.IsNullOrEmpty(_errorMessage))
-        {
-            <div class="alert alert-danger">@_errorMessage</div>
-        }
+    <div class="login-form-panel">
+        <div class="login-card">
+            <h2>Sign In</h2>
+            <p class="login-subtitle">Enter your credentials to continue</p>
 
-        <EditForm Model="_model" OnValidSubmit="HandleLogin">
-            <div class="form-group">
-                <label for="email">Email</label>
-                <InputText id="email" class="form-control" @bind-Value="_model.Email" placeholder="Enter your email"/>
-            </div>
+            @if (!string.IsNullOrEmpty(_errorMessage))
+            {
+                <div class="login-alert" role="alert">
+                    <i class="fa-solid fa-circle-exclamation v-icon v-icon--sm"></i>
+                    <span>@_errorMessage</span>
+                </div>
+            }
 
-            <div class="form-group">
-                <label for="password">Password</label>
-                <InputText id="password" type="password" class="form-control" @bind-Value="_model.Password" placeholder="Enter your password"/>
-            </div>
+            <EditForm Model="_model" OnValidSubmit="HandleLogin">
+                <div class="v-form-group">
+                    <label class="v-label" for="email">Email</label>
+                    <InputText id="email" class="v-input" @bind-Value="_model.Email" placeholder="Enter your email"/>
+                </div>
 
-            <button type="submit" class="btn btn-primary btn-block" disabled="@_isLoading">
-                @if (_isLoading)
-                {
-                    <span class="spinner-border spinner-border-sm me-2"></span>
-                }
-                Sign In
-            </button>
-        </EditForm>
+                <div class="v-form-group">
+                    <label class="v-label" for="password">Password</label>
+                    <InputText id="password" type="password" class="v-input" @bind-Value="_model.Password" placeholder="Enter your password"/>
+                </div>
 
-        <div class="dev-credentials">
-            <p>
-                <strong>Development credentials:</strong>
-            </p>
-            <div class="dev-credential-item" @onclick="@(() => PrefillCredentials("admin"))">
-                <span class="dev-credential-role">Admin</span>
-                <code>admin@vyshyvanka.local / Admin123!</code>
-            </div>
-            <div class="dev-credential-item" @onclick="@(() => PrefillCredentials("editor"))">
-                <span class="dev-credential-role">Editor</span>
-                <code>editor@vyshyvanka.local / Editor123!</code>
-            </div>
-            <div class="dev-credential-item" @onclick="@(() => PrefillCredentials("viewer"))">
-                <span class="dev-credential-role">Viewer</span>
-                <code>viewer@vyshyvanka.local / Viewer123!</code>
+                <button type="submit" class="v-btn v-btn--primary login-submit" disabled="@_isLoading">
+                    @if (_isLoading)
+                    {
+                        <span class="v-spinner v-spinner--sm"></span>
+                    }
+                    <span>Sign In</span>
+                </button>
+            </EditForm>
+
+            <div class="dev-credentials">
+                <p class="dev-credentials-title">
+                    <i class="fa-solid fa-flask v-icon v-icon--sm"></i>
+                    Development credentials
+                </p>
+                <div class="dev-credential-item" @onclick="@(() => PrefillCredentials("admin"))">
+                    <span class="v-badge v-badge--accent">Admin</span>
+                    <code>admin@vyshyvanka.local / Admin123!</code>
+                </div>
+                <div class="dev-credential-item" @onclick="@(() => PrefillCredentials("editor"))">
+                    <span class="v-badge v-badge--info">Editor</span>
+                    <code>editor@vyshyvanka.local / Editor123!</code>
+                </div>
+                <div class="dev-credential-item" @onclick="@(() => PrefillCredentials("viewer"))">
+                    <span class="v-badge v-badge--default">Viewer</span>
+                    <code>viewer@vyshyvanka.local / Viewer123!</code>
+                </div>
             </div>
         </div>
     </div>

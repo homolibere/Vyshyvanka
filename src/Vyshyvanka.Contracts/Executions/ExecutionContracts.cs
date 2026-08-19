@@ -80,6 +80,7 @@ public record ExecutionSummaryResponse
 {
     public Guid Id { get; init; }
     public Guid WorkflowId { get; init; }
+    public string? WorkflowName { get; init; }
     public int WorkflowVersion { get; init; }
     public ExecutionStatus Status { get; init; }
     public ExecutionMode Mode { get; init; }

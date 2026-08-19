@@ -1,3 +1,16 @@
+.embedded-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.embedded-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
 .modal-overlay {
     position: fixed;
     top: 0;

@@ -1,3 +1,5 @@
+/* ThemeSelector — refactored with design tokens */
+
 .theme-selector {
     position: relative;
     display: inline-block;
@@ -6,16 +8,16 @@
 .theme-selector-trigger {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
+    gap: var(--space-2);
+    padding: var(--space-1) var(--space-3);
     background: none;
     border: 1px solid var(--border-color);
-    border-radius: 6px;
+    border-radius: var(--radius-md);
     color: var(--text-secondary);
     cursor: pointer;
-    font-size: 0.8rem;
+    font-size: var(--font-size-sm);
     height: 30px;
-    transition: all 0.15s ease;
+    transition: var(--transition-color);
 }
 
 .theme-selector-trigger:hover {
@@ -25,9 +27,9 @@
 }
 
 .theme-swatch {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+    border-radius: var(--radius-full);
     flex-shrink: 0;
 }
 
@@ -39,22 +41,22 @@
 }
 
 .theme-chevron {
-    font-size: 0.6rem;
-    opacity: 0.6;
-    transition: transform 0.15s ease;
+    font-size: var(--font-size-xs);
+    opacity: var(--opacity-muted);
+    transition: transform var(--duration-normal) var(--ease-default);
 }
 
 .theme-dropdown {
     position: absolute;
-    top: calc(100% + 4px);
+    top: calc(100% + var(--space-1));
     right: 0;
-    z-index: 1000;
+    z-index: var(--z-dropdown);
     min-width: 220px;
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
-    padding: 4px;
+    padding: var(--space-1);
     display: flex;
     flex-direction: column;
     gap: 2px;
@@ -63,15 +65,15 @@
 .theme-option {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 8px 10px;
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-3);
     border: none;
     background: none;
-    border-radius: 6px;
+    border-radius: var(--radius-md);
     cursor: pointer;
     width: 100%;
     text-align: left;
-    transition: background 0.1s ease;
+    transition: background var(--duration-fast) var(--ease-default);
 }
 
 .theme-option:hover {
@@ -89,9 +91,9 @@
 }
 
 .theme-option-swatches span {
-    width: 14px;
-    height: 14px;
-    border-radius: 3px;
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+    border-radius: var(--radius-sm);
     border: 1px solid var(--border-subtle);
 }
 
@@ -104,8 +106,8 @@
 }
 
 .theme-option-name {
-    font-size: 0.8rem;
-    font-weight: 500;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
     color: var(--text-primary);
     white-space: nowrap;
     overflow: hidden;
@@ -113,13 +115,13 @@
 }
 
 .theme-option-mode {
-    font-size: 0.65rem;
+    font-size: var(--font-size-xs);
     color: var(--text-muted);
     text-transform: capitalize;
 }
 
 .theme-option-check {
     color: var(--accent);
-    font-size: 0.75rem;
+    font-size: var(--font-size-sm);
     flex-shrink: 0;
 }

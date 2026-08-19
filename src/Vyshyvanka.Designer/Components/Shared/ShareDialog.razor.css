@@ -1,3 +1,5 @@
+/* ShareDialog — refactored with design tokens */
+
 .share-overlay {
     position: absolute;
     inset: 0;
@@ -5,14 +7,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 12px;
-    z-index: 20;
+    border-radius: var(--radius-xl);
+    z-index: var(--z-dropdown);
 }
 
 .share-dialog {
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
-    border-radius: 10px;
+    border-radius: var(--radius-xl);
     width: 90%;
     max-width: 480px;
     max-height: 80%;
@@ -26,14 +28,14 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 16px 20px;
+    padding: var(--space-4) var(--space-5);
     border-bottom: 1px solid var(--border-color);
 }
 
 .share-header h3 {
     margin: 0;
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
     color: var(--text-primary);
     white-space: nowrap;
     overflow: hidden;
@@ -48,6 +50,7 @@
     cursor: pointer;
     padding: 0;
     line-height: 1;
+    transition: color var(--duration-normal) var(--ease-default);
 }
 
 .btn-close:hover {
@@ -55,46 +58,47 @@
 }
 
 .share-body {
-    padding: 20px;
+    padding: var(--space-5);
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: var(--space-5);
 }
 
 .share-form {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: var(--space-3);
 }
 
 .form-row {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: var(--space-2);
 }
 
 .form-row label {
-    font-size: 0.75rem;
-    font-weight: 600;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: var(--letter-spacing-wide);
     color: var(--text-muted);
 }
 
 .share-target-row {
     display: flex;
-    gap: 8px;
+    gap: var(--space-2);
 }
 
 .share-select {
-    padding: 8px 12px;
+    padding: var(--space-2) var(--space-3);
     background: var(--bg-input);
     border: 1px solid var(--border-color);
-    border-radius: 6px;
+    border-radius: var(--radius-md);
     color: var(--text-primary);
-    font-size: 0.8125rem;
+    font-size: var(--font-size-md);
     cursor: pointer;
+    transition: border-color var(--duration-normal) var(--ease-default);
 }
 
 .share-select:focus {
@@ -108,12 +112,13 @@
 
 .share-input {
     flex: 1;
-    padding: 8px 12px;
+    padding: var(--space-2) var(--space-3);
     background: var(--bg-input);
     border: 1px solid var(--border-color);
-    border-radius: 6px;
+    border-radius: var(--radius-md);
     color: var(--text-primary);
-    font-size: 0.8125rem;
+    font-size: var(--font-size-md);
+    transition: border-color var(--duration-normal) var(--ease-default);
 }
 
 .share-input:focus {
@@ -128,18 +133,18 @@
 .credential-options {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--space-2);
 }
 
 .radio-option {
     display: flex;
     align-items: flex-start;
-    gap: 10px;
-    padding: 10px 12px;
+    gap: var(--space-3);
+    padding: var(--space-3);
     border: 1px solid var(--border-color);
-    border-radius: 6px;
+    border-radius: var(--radius-md);
     cursor: pointer;
-    transition: border-color 0.15s ease;
+    transition: border-color var(--duration-normal) var(--ease-default);
 }
 
 .radio-option:hover {
@@ -158,26 +163,26 @@
 }
 
 .radio-label strong {
-    font-size: 0.8125rem;
+    font-size: var(--font-size-md);
     color: var(--text-primary);
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
 }
 
 .radio-label small {
-    font-size: 0.75rem;
+    font-size: var(--font-size-sm);
     color: var(--text-muted);
 }
 
 .btn-share-action {
-    padding: 10px 20px;
+    padding: var(--space-3) var(--space-5);
     background: var(--btn-primary-bg);
     border: none;
-    border-radius: 6px;
+    border-radius: var(--radius-md);
     color: white;
-    font-size: 0.875rem;
-    font-weight: 500;
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
     cursor: pointer;
-    transition: background 0.15s ease;
+    transition: background var(--duration-normal) var(--ease-default);
     align-self: flex-end;
 }
 
@@ -186,22 +191,22 @@
 }
 
 .btn-share-action:disabled {
-    opacity: 0.5;
+    opacity: var(--opacity-disabled);
     cursor: not-allowed;
 }
 
-/* Existing shares list */
+/* Existing shares */
 .existing-shares {
     border-top: 1px solid var(--border-color);
-    padding-top: 16px;
+    padding-top: var(--space-4);
 }
 
 .existing-shares h4 {
-    margin: 0 0 12px;
-    font-size: 0.75rem;
-    font-weight: 600;
+    margin: 0 0 var(--space-3);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: var(--letter-spacing-wide);
     color: var(--text-muted);
 }
 
@@ -209,7 +214,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 0;
+    padding: var(--space-2) 0;
     border-bottom: 1px solid var(--border-color);
 }
 
@@ -220,37 +225,37 @@
 .share-entry-info {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-2);
 }
 
 .share-entry-icon {
-    font-size: 0.875rem;
+    font-size: var(--font-size-base);
 }
 
 .share-entry-name {
-    font-size: 0.8125rem;
+    font-size: var(--font-size-md);
     color: var(--text-primary);
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
 }
 
 .share-entry-level {
-    font-size: 0.6875rem;
-    padding: 2px 6px;
+    font-size: var(--font-size-xs);
+    padding: 2px var(--space-2);
     background: var(--bg-hover);
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     color: var(--text-muted);
     text-transform: uppercase;
 }
 
 .btn-revoke {
-    padding: 4px 10px;
+    padding: var(--space-1) var(--space-3);
     background: transparent;
     border: 1px solid var(--danger);
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     color: var(--danger);
-    font-size: 0.75rem;
+    font-size: var(--font-size-sm);
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: var(--transition-color);
 }
 
 .btn-revoke:hover {
@@ -258,10 +263,10 @@
 }
 
 .share-error {
-    padding: 10px 12px;
+    padding: var(--space-3);
     background: var(--danger-bg);
     border: 1px solid var(--danger);
-    border-radius: 6px;
+    border-radius: var(--radius-md);
     color: var(--danger);
-    font-size: 0.8125rem;
+    font-size: var(--font-size-md);
 }

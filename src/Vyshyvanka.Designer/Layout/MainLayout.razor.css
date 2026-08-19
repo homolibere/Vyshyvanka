@@ -1,43 +1,13 @@
-.page {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-}
+/* MainLayout — uses v-layout shell from components.css */
 
-main {
-    flex: 1;
-}
-
-.top-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 48px;
-    padding: 0 20px;
-    background: var(--bg-elevated);
-    border-bottom: 1px solid var(--border-color);
-    flex-shrink: 0;
-}
-
-.top-bar-brand {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 1.15rem;
-    font-weight: 600;
-    color: var(--accent);
-    text-decoration: none;
-}
-
-.top-bar-brand:hover {
-    color: var(--accent-hover);
-}
-
-.top-bar-logo {
+.brand-icon {
     height: 28px;
     width: 28px;
 }
 
-.content {
-    padding-top: 1.1rem;
+.toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-shrink: 0;
 }

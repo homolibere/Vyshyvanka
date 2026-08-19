@@ -28,44 +28,44 @@ public partial class Designer : IAsyncDisposable
 
     [Inject] private ILogger<Designer> Logger { get; set; } = null!;
 
+    [Inject] private BrowserStorageService Storage { get; set; } = null!;
+
     [Parameter] public Guid? WorkflowId { get; set; }
+
+    [SupplyParameterFromQuery(Name = "execution")]
+    private string? ExecutionIdQuery { get; set; }
 
     [CascadingParameter] private Vyshyvanka.Designer.Layout.DesignerLayout? Layout { get; set; }
 
     private RenderFragment ToolbarFragment => builder =>
     {
         builder.OpenComponent<Vyshyvanka.Designer.Layout.DesignerToolbar>(0);
-        builder.AddAttribute(1, nameof(DesignerToolbar.IsHistoryCollapsed), _isHistoryCollapsed);
-        builder.AddAttribute(2, nameof(DesignerToolbar.OnOpen), EventCallback.Factory.Create(this, OpenWorkflowBrowser));
-        builder.AddAttribute(3, nameof(DesignerToolbar.OnSave), EventCallback.Factory.Create(this, SaveWorkflow));
-        builder.AddAttribute(4, nameof(DesignerToolbar.OnExecute), EventCallback.Factory.Create(this, ExecuteWorkflow));
-        builder.AddAttribute(5, nameof(DesignerToolbar.OnStop), EventCallback.Factory.Create(this, StopExecution));
-        builder.AddAttribute(6, nameof(DesignerToolbar.OnOpenPlugins), EventCallback.Factory.Create(this, OpenPluginManager));
-        builder.AddAttribute(7, nameof(DesignerToolbar.OnOpenCredentials), EventCallback.Factory.Create(this, OpenCredentialManager));
-        builder.AddAttribute(8, nameof(DesignerToolbar.OnToggleHistory), EventCallback.Factory.Create(this, ToggleHistory));
+        builder.AddAttribute(1, nameof(DesignerToolbar.OnSave), EventCallback.Factory.Create(this, SaveWorkflow));
+        builder.AddAttribute(2, nameof(DesignerToolbar.OnExecute), EventCallback.Factory.Create(this, ExecuteWorkflow));
+        builder.AddAttribute(3, nameof(DesignerToolbar.OnStop), EventCallback.Factory.Create(this, StopExecution));
         builder.CloseComponent();
     };
 
     private bool _isValidationPanelExpanded = true;
-    private bool _isPluginManagerOpen;
-    private bool _isCredentialManagerOpen;
-    private bool _isWorkflowBrowserOpen;
     private bool _isNodeEditorOpen;
     private string? _editingNodeId;
     private CancellationTokenSource? _pollCts;
     private int _consecutivePollFailures;
     private const int MaxPollFailures = 5;
     private Guid? _loadedWorkflowId;
-    private bool _isPaletteCollapsed;
     private bool _isConfigCollapsed;
-    private bool _isHistoryCollapsed = true;
     private bool _isExecutionViewActive;
     private ExecutionHistoryPanel? _historyPanel;
+    private DesignerPanel _activePanel = DesignerPanel.Nodes;
 
     protected override async Task OnInitializedAsync()
     {
         Store.OnStateChanged += StateHasChanged;
         ExecutionState.OnExecutionChanged += OnExecutionChanged;
+
+        // Restore config panel collapsed state
+        var collapsed = await Storage.GetItemAsync("designer:configCollapsed");
+        _isConfigCollapsed = collapsed == "true";
 
         // Load node definitions
         try
@@ -141,17 +141,32 @@ public partial class Designer : IAsyncDisposable
             {
                 await _historyPanel.RefreshAsync();
             }
+
+            // If navigated with execution query param, load that execution for debug view
+            if (Guid.TryParse(ExecutionIdQuery, out var executionId))
+            {
+                try
+                {
+                    var execution = await ApiClient.GetExecutionAsync(executionId);
+                    if (execution is not null)
+                    {
+                        ExecutionState.SetCurrentExecution(execution);
+                        _isExecutionViewActive = true;
+                    }
+                }
+                catch
+                {
+                    // Ignore — execution may have been deleted
+                }
+            }
         }
     }
 
-    private void OpenPluginManager() => _isPluginManagerOpen = true;
-    private void ClosePluginManager() => _isPluginManagerOpen = false;
-
-    private void OpenCredentialManager() => _isCredentialManagerOpen = true;
-    private void CloseCredentialManager() => _isCredentialManagerOpen = false;
-
-    private void OpenWorkflowBrowser() => _isWorkflowBrowserOpen = true;
-    private void CloseWorkflowBrowser() => _isWorkflowBrowserOpen = false;
+    private void SetActivePanel(DesignerPanel panel)
+    {
+        // Toggle off if clicking the same panel
+        _activePanel = _activePanel == panel ? DesignerPanel.Nodes : panel;
+    }
 
     private void OpenNodeEditor(string nodeId)
     {
@@ -167,11 +182,11 @@ public partial class Designer : IAsyncDisposable
 
     private void ToggleValidationPanel() => _isValidationPanelExpanded = !_isValidationPanelExpanded;
 
-    private void TogglePalette() => _isPaletteCollapsed = !_isPaletteCollapsed;
-
-    private void ToggleConfig() => _isConfigCollapsed = !_isConfigCollapsed;
-
-    private void ToggleHistory() => _isHistoryCollapsed = !_isHistoryCollapsed;
+    private async Task ToggleConfig()
+    {
+        _isConfigCollapsed = !_isConfigCollapsed;
+        await Storage.SetItemAsync("designer:configCollapsed", _isConfigCollapsed ? "true" : "false");
+    }
 
     private void OnExecutionSelected(ExecutionResponse execution)
     {
@@ -475,4 +490,13 @@ public partial class Designer : IAsyncDisposable
         StopExecutionPolling();
         return ValueTask.CompletedTask;
     }
+}
+
+public enum DesignerPanel
+{
+    Nodes,
+    Workflows,
+    History,
+    Credentials,
+    Plugins
 }

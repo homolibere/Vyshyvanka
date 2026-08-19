@@ -18,3 +18,17 @@ Comprehensive business requirements and architectural documentation for the Vysh
 | 10 | [Observability and Testing](10-observability-and-testing.md) | OpenTelemetry, health checks, test strategy, property-based testing, integration tests |
 | 11 | [Custom Themes](11-custom-themes.md) | Theme JSON format, all color variables, icons, canvas patterns, creating custom themes |
 | 12 | [Folders & Sharing](12-folders-and-sharing.md) | Workflow folders, team-based and user-based sharing, permission levels, credential policies |
+
+## Design System
+
+The visual design system is documented in [`docs/design/`](design/README.md). It contains the complete Penpot-sourced specification for the UI redesign:
+
+- **Colors** — brand, neutral scale, semantic, node category, and canvas palette
+- **Typography** — Inter + JetBrains Mono type scale with usage guidelines
+- **Tokens** — spacing, radius, font sizes/weights/families
+- **Shadows** — 4-level elevation system
+- **Components** — buttons, inputs, toggles, toasts, dialogs, layout shells
+- **Node System** — node anatomy, states, ports, connections, execution indicators
+- **Screen Layouts** — 8 screen templates with dimensions and layout diagrams
+
+Refer to the design system docs when implementing or modifying any UI component.
