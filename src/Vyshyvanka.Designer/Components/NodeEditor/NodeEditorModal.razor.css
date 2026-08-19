@@ -24,10 +24,10 @@
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-xl);
-    width: 95%;
-    max-width: 1400px;
-    height: 85vh;
-    max-height: 900px;
+    width: 92%;
+    max-width: none;
+    height: 90vh;
+    max-height: none;
     display: flex;
     flex-direction: column;
     box-shadow: var(--shadow-lg);

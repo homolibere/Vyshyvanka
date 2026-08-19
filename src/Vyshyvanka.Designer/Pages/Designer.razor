@@ -9,49 +9,6 @@
 }
 
 <div class="designer-container">
-    @* ── Activity Bar (far left, 48px) ─────────────────────────────── *@
-    <nav class="v-activity-bar" aria-label="Designer panels">
-        <div class="v-activity-bar__top">
-            <button class="v-activity-bar__item @(_activePanel == DesignerPanel.Nodes ? "v-activity-bar__item--active" : "")"
-                    @onclick="() => SetActivePanel(DesignerPanel.Nodes)"
-                    title="Nodes"
-                    aria-label="Node palette"
-                    aria-pressed="@(_activePanel == DesignerPanel.Nodes)">
-                <i class="fa-solid fa-cube"></i>
-            </button>
-            <button class="v-activity-bar__item @(_activePanel == DesignerPanel.Workflows ? "v-activity-bar__item--active" : "")"
-                    @onclick="() => SetActivePanel(DesignerPanel.Workflows)"
-                    title="Workflows"
-                    aria-label="Workflow browser"
-                    aria-pressed="@(_activePanel == DesignerPanel.Workflows)">
-                <i class="fa-solid fa-folder-open"></i>
-            </button>
-            <button class="v-activity-bar__item @(_activePanel == DesignerPanel.History ? "v-activity-bar__item--active" : "")"
-                    @onclick="() => SetActivePanel(DesignerPanel.History)"
-                    title="History"
-                    aria-label="Execution history"
-                    aria-pressed="@(_activePanel == DesignerPanel.History)">
-                <i class="fa-solid fa-clock-rotate-left"></i>
-            </button>
-        </div>
-        <div class="v-activity-bar__bottom">
-            <button class="v-activity-bar__item @(_activePanel == DesignerPanel.Credentials ? "v-activity-bar__item--active" : "")"
-                    @onclick="() => SetActivePanel(DesignerPanel.Credentials)"
-                    title="Credentials"
-                    aria-label="Credential manager"
-                    aria-pressed="@(_activePanel == DesignerPanel.Credentials)">
-                <i class="fa-solid fa-shield-halved"></i>
-            </button>
-            <button class="v-activity-bar__item @(_activePanel == DesignerPanel.Plugins ? "v-activity-bar__item--active" : "")"
-                    @onclick="() => SetActivePanel(DesignerPanel.Plugins)"
-                    title="Plugins"
-                    aria-label="Plugin manager"
-                    aria-pressed="@(_activePanel == DesignerPanel.Plugins)">
-                <i class="fa-solid fa-box"></i>
-            </button>
-        </div>
-    </nav>
-
     @* ── Context Panel (240px, content switches based on active tab) ── *@
     <aside class="context-panel">
         @switch (_activePanel)

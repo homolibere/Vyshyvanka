@@ -17,7 +17,6 @@
     display: flex;
     flex-direction: column;
     box-shadow: 4px 0 12px rgba(0, 0, 0, 0.15);
-    z-index: 1;
 }
 
 /* ── Canvas Area (center, fills remaining space) ──────────────────── */
@@ -40,7 +39,6 @@
     flex-shrink: 0;
     transition: width var(--duration-slow) var(--ease-default);
     box-shadow: -4px 0 12px rgba(0, 0, 0, 0.15);
-    z-index: 1;
 }
 
 .config-panel.collapsed {
