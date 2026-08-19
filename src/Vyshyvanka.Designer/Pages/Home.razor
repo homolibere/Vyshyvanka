@@ -54,6 +54,14 @@
                 <i class="fa-solid fa-users sidebar-nav-icon"></i>
                 <span>Teams</span>
             </div>
+            <div class="sidebar-nav-item @(_activeSection == ManagementSection.Users ? "sidebar-nav-item--active" : "")"
+                 @onclick="() => SetActiveSection(ManagementSection.Users)"
+                 role="button"
+                 tabindex="0"
+                 aria-current="@(_activeSection == ManagementSection.Users ? "page" : null)">
+                <i class="fa-solid fa-user-gear sidebar-nav-icon"></i>
+                <span>Users</span>
+            </div>
             <div class="sidebar-nav-item @(_activeSection == ManagementSection.Settings ? "sidebar-nav-item--active" : "")"
                  @onclick="() => SetActiveSection(ManagementSection.Settings)"
                  role="button"
@@ -69,33 +77,28 @@
         @switch (_activeSection)
         {
             case ManagementSection.Workflows:
-                <WorkflowBrowser IsOpen="true" />
+                <WorkflowBrowser Embedded="@true" IsOpen="@true" />
                 break;
             case ManagementSection.Executions:
                 <ExecutionHistoryPanel />
                 break;
             case ManagementSection.Credentials:
-                <CredentialManager IsOpen="true" />
+                <CredentialManager Embedded="@true" IsOpen="@true" />
                 break;
             case ManagementSection.ApiKeys:
                 <ApiKeyManager />
                 break;
             case ManagementSection.Packages:
-                <PluginManager IsOpen="true" />
+                <PluginManager Embedded="@true" IsOpen="@true" />
                 break;
             case ManagementSection.Teams:
                 <TeamManager />
                 break;
+            case ManagementSection.Users:
+                <UserManager />
+                break;
             case ManagementSection.Settings:
-                <div class="settings-placeholder">
-                    <i class="fa-solid fa-gear settings-placeholder-icon"></i>
-                    <h2>Settings</h2>
-                    <p>Configure your Vyshyvanka instance.</p>
-                    <a href="/settings" class="v-btn v-btn--primary">
-                        <i class="fa-solid fa-arrow-right v-icon v-icon--sm"></i>
-                        <span>Go to Settings</span>
-                    </a>
-                </div>
+                <SettingsPanel />
                 break;
         }
     </div>

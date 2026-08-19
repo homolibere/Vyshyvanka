@@ -17,9 +17,24 @@ public partial class CredentialManager
     [Parameter]
     public bool IsOpen { get; set; }
 
+    /// <summary>When true, renders without modal overlay — for embedded use in pages.</summary>
+    [Parameter]
+    public bool Embedded { get; set; }
+
     /// <summary>Callback when the Credential Manager is closed.</summary>
     [Parameter]
     public EventCallback OnClose { get; set; }
+
+    private string GetWrapperClass()
+        => Embedded ? "embedded-wrapper" : $"modal-overlay {(IsOpen ? "open" : "")}";
+
+    private string GetContentClass()
+        => Embedded ? "embedded-content" : "credential-manager-modal";
+
+    private async Task HandleOverlayClickIfModal()
+    {
+        if (!Embedded) await Close();
+    }
 
     private List<CredentialResponse> _credentials = [];
     private bool _isLoading;

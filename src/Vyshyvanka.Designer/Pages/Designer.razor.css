@@ -42,7 +42,7 @@
 }
 
 .config-panel.collapsed {
-    width: var(--sidebar-collapsed-width);
+    width: 25px;
     overflow: hidden;
 }
 

@@ -135,6 +135,14 @@ public class WorkflowApiClient(HttpClient httpClient) : ApiClientBase(httpClient
         return response ?? new PagedResponse<ExecutionSummaryResponse>();
     }
 
+    public async Task<PagedResponse<ExecutionSummaryResponse>> GetExecutionHistoryAsync(
+        int skip = 0, int take = 20, CancellationToken cancellationToken = default)
+    {
+        var url = $"api/execution?skip={skip}&take={take}";
+        var response = await Http.GetFromJsonAsync<PagedResponse<ExecutionSummaryResponse>>(url, JsonOptions, cancellationToken);
+        return response ?? new PagedResponse<ExecutionSummaryResponse>();
+    }
+
     private static CreateWorkflowRequest MapToCreateRequest(Workflow workflow) => new()
     {
         Name = workflow.Name,

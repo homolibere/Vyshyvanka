@@ -1,10 +1,14 @@
 @namespace Vyshyvanka.Designer.Components
-<div class="modal-overlay @(IsOpen ? "open" : "")" @onclick="HandleOverlayClick">
-    <div class="workflow-browser-modal" @onclick:stopPropagation="true">
-        <div class="modal-header">
-            <h2>Workflows</h2>
-            <button class="btn-close" @onclick="Close" disabled="@_isLoading">×</button>
-        </div>
+
+<div class="@GetWrapperClass()" @onclick="HandleOverlayClickIfModal">
+    <div class="@GetContentClass()" @onclick:stopPropagation="true">
+        @if (!Embedded)
+        {
+            <div class="modal-header">
+                <h2>Workflows</h2>
+                <button class="btn-close" @onclick="Close" disabled="@_isLoading">×</button>
+            </div>
+        }
 
         <div class="browser-body">
             <!-- Folder Sidebar -->

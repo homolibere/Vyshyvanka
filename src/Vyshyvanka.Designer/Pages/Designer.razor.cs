@@ -28,7 +28,12 @@ public partial class Designer : IAsyncDisposable
 
     [Inject] private ILogger<Designer> Logger { get; set; } = null!;
 
+    [Inject] private BrowserStorageService Storage { get; set; } = null!;
+
     [Parameter] public Guid? WorkflowId { get; set; }
+
+    [SupplyParameterFromQuery(Name = "execution")]
+    private string? ExecutionIdQuery { get; set; }
 
     [CascadingParameter] private Vyshyvanka.Designer.Layout.DesignerLayout? Layout { get; set; }
 
@@ -57,6 +62,10 @@ public partial class Designer : IAsyncDisposable
     {
         Store.OnStateChanged += StateHasChanged;
         ExecutionState.OnExecutionChanged += OnExecutionChanged;
+
+        // Restore config panel collapsed state
+        var collapsed = await Storage.GetItemAsync("designer:configCollapsed");
+        _isConfigCollapsed = collapsed == "true";
 
         // Load node definitions
         try
@@ -132,6 +141,24 @@ public partial class Designer : IAsyncDisposable
             {
                 await _historyPanel.RefreshAsync();
             }
+
+            // If navigated with execution query param, load that execution for debug view
+            if (Guid.TryParse(ExecutionIdQuery, out var executionId))
+            {
+                try
+                {
+                    var execution = await ApiClient.GetExecutionAsync(executionId);
+                    if (execution is not null)
+                    {
+                        ExecutionState.SetCurrentExecution(execution);
+                        _isExecutionViewActive = true;
+                    }
+                }
+                catch
+                {
+                    // Ignore — execution may have been deleted
+                }
+            }
         }
     }
 
@@ -155,7 +182,11 @@ public partial class Designer : IAsyncDisposable
 
     private void ToggleValidationPanel() => _isValidationPanelExpanded = !_isValidationPanelExpanded;
 
-    private void ToggleConfig() => _isConfigCollapsed = !_isConfigCollapsed;
+    private async Task ToggleConfig()
+    {
+        _isConfigCollapsed = !_isConfigCollapsed;
+        await Storage.SetItemAsync("designer:configCollapsed", _isConfigCollapsed ? "true" : "false");
+    }
 
     private void OnExecutionSelected(ExecutionResponse execution)
     {

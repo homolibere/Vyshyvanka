@@ -52,8 +52,20 @@ public partial class WorkflowBrowser
     private Guid? _actionMenuWorkflowId;
 
     [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public bool Embedded { get; set; }
     [Parameter] public Guid? CurrentWorkflowId { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
+
+    private string GetWrapperClass()
+        => Embedded ? "embedded-wrapper" : $"modal-overlay {(IsOpen ? "open" : "")}";
+
+    private string GetContentClass()
+        => Embedded ? "embedded-content" : "workflow-browser-modal";
+
+    private async Task HandleOverlayClickIfModal()
+    {
+        if (!Embedded) await Close();
+    }
 
     private IEnumerable<WorkflowSummary> DisplayedWorkflows
     {
