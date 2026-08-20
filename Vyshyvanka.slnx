@@ -5,7 +5,6 @@
     <Project Path="src/Vyshyvanka.Engine/Vyshyvanka.Engine.csproj" />
     <Project Path="src/Vyshyvanka.Api/Vyshyvanka.Api.csproj" />
     <Project Path="src/Vyshyvanka.Designer/Vyshyvanka.Designer.csproj" />
-    <Project Path="src/Vyshyvanka.ServiceDefaults/Vyshyvanka.ServiceDefaults.csproj" />
     <Project Path="src/Vyshyvanka.AppHost/Vyshyvanka.AppHost.csproj" />
   </Folder>
   <Folder Name="/plugins/">

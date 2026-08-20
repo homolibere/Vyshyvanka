@@ -1,11 +1,7 @@
-namespace Vyshyvanka.ServiceDefaults;
+namespace Vyshyvanka.Api.Extensions;
 
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
@@ -14,7 +10,12 @@ using OpenTelemetry.Trace;
 /// Provides extension methods for configuring common service defaults including
 /// OpenTelemetry, health checks, and service discovery.
 /// </summary>
-public static class Extensions
+/// <remarks>
+/// Originally the standalone <c>Vyshyvanka.ServiceDefaults</c> Aspire shared project.
+/// Merged into the API since it is the solution's only hostable service. If a second
+/// hostable service is added, consider re-extracting this into a shared project.
+/// </remarks>
+public static class ServiceDefaultsExtensions
 {
     /// <summary>
     /// Adds common service defaults including OpenTelemetry, health checks,

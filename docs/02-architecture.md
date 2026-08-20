@@ -26,7 +26,6 @@ graph TD
     Engine["Vyshyvanka.Engine<br/><i>Execution, Persistence, Plugins</i>"]
     Contracts["Vyshyvanka.Contracts<br/><i>Shared API DTOs</i>"]
     Core["Vyshyvanka.Core<br/><i>Domain Models, Interfaces</i>"]
-    ServiceDefaults["Vyshyvanka.ServiceDefaults<br/><i>Aspire Shared Config</i>"]
     Plugin["Vyshyvanka.Plugin.*<br/><i>Extension Packages</i>"]
     Tests["Vyshyvanka.Tests<br/><i>Unit, Property, Integration</i>"]
 
@@ -37,7 +36,6 @@ graph TD
     Api --> Contracts
     Api --> Engine
     Api --> Core
-    Api --> ServiceDefaults
     Contracts --> Core
     Engine --> Core
     Plugin --> Core
@@ -46,7 +44,6 @@ graph TD
     Tests --> Core
     Tests --> Designer
     Tests --> Contracts
-    Tests --> ServiceDefaults
 ```
 
 ## Dependency Rules
@@ -58,7 +55,7 @@ Dependencies flow strictly downward. Violations cause circular reference build e
 | Core | Nothing | Any other project |
 | Contracts | Core | Engine, Api, Designer |
 | Engine | Core | Api, Designer, Contracts |
-| Api | Core, Engine, Contracts, ServiceDefaults | Designer |
+| Api | Core, Engine, Contracts | Designer |
 | Designer | Contracts | Core (directly), Engine, Api |
 | Plugin.* | Core | Engine, Api, Designer, Contracts |
 | Tests | All projects | — |

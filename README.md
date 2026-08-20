@@ -117,7 +117,6 @@ dotnet test
 | `Vyshyvanka.Api` | `src/` | REST API controllers, middleware, authentication, DTOs. |
 | `Vyshyvanka.Designer` | `src/` | Blazor WebAssembly visual workflow editor. |
 | `Vyshyvanka.AppHost` | `src/` | .NET Aspire host for orchestrating services. |
-| `Vyshyvanka.ServiceDefaults` | `src/` | Shared Aspire service configuration (OpenTelemetry, resilience). |
 | `Vyshyvanka.Plugin.AdvancedHttp` | `plugins/` | HTTP retry, polling, batch, and GraphQL nodes. |
 | `Vyshyvanka.Plugin.GitLab` | `plugins/` | GitLab issues, merge requests, pipelines, files, tags, releases. |
 | `Vyshyvanka.Plugin.Jira` | `plugins/` | Jira issues, comments, users, and JQL search. |

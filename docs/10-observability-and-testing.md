@@ -4,7 +4,7 @@
 
 ### OpenTelemetry Integration
 
-Vyshyvanka uses OpenTelemetry for distributed tracing, metrics, and logging, configured through the `Vyshyvanka.ServiceDefaults` shared project.
+Vyshyvanka uses OpenTelemetry for distributed tracing, metrics, and logging, configured through the service-defaults extensions in the `Vyshyvanka.Api` project (`Extensions/ServiceDefaultsExtensions.cs`).
 
 ```mermaid
 flowchart LR
@@ -42,7 +42,7 @@ flowchart LR
 
 ### Service Defaults
 
-The `ServiceDefaults` project provides shared configuration applied to all services:
+The service-defaults extensions (`Vyshyvanka.Api/Extensions/ServiceDefaultsExtensions.cs`) provide shared host configuration applied to the API via `builder.AddServiceDefaults()`:
 
 | Feature | Description |
 |---------|------------|

@@ -19,13 +19,21 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
+
+    <!-- Aspire service defaults (OpenTelemetry, health checks, service discovery, HTTP resilience) -->
+    <PackageReference Include="Microsoft.Extensions.Http.Resilience" />
+    <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Vyshyvanka.Contracts\Vyshyvanka.Contracts.csproj" />
     <ProjectReference Include="..\Vyshyvanka.Core\Vyshyvanka.Core.csproj" />
     <ProjectReference Include="..\Vyshyvanka.Engine\Vyshyvanka.Engine.csproj" />
-    <ProjectReference Include="..\Vyshyvanka.ServiceDefaults\Vyshyvanka.ServiceDefaults.csproj" />
   </ItemGroup>
 
 </Project>
