@@ -103,7 +103,7 @@ public sealed class VaultClient : IVaultClient, IDisposable
     private record VaultWriteRequest
     {
         [JsonPropertyName("data")]
-        public Dictionary<string, string> Data { get; init; } = new();
+        public Dictionary<string, string> Data { get; init; } = [];
     }
 
     private record VaultReadResponse

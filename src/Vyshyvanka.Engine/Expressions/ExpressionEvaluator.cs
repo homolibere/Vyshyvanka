@@ -52,7 +52,7 @@ public partial class ExpressionEvaluator : IExpressionEvaluator
 
         try
         {
-            // Collect all matches once and reuse
+            // Collect all matches at once and reuse
             var matches = ExpressionPattern.Matches(expression);
             if (matches.Count == 0)
             {
@@ -226,12 +226,12 @@ public partial class ExpressionEvaluator : IExpressionEvaluator
         }
 
         // Parse arguments
-        var args = ParseFunctionArguments(argsString, context, originalPath);
+        var args = ParseFunctionArguments(argsString, context);
 
         return ExpressionFunctions.Invoke(funcName, args);
     }
 
-    private static object?[] ParseFunctionArguments(string argsString, IExecutionContext context, string originalPath)
+    private static object?[] ParseFunctionArguments(string argsString, IExecutionContext context)
     {
         if (string.IsNullOrWhiteSpace(argsString))
         {
@@ -285,7 +285,7 @@ public partial class ExpressionEvaluator : IExpressionEvaluator
             else if (c == ',' && depth == 0)
             {
                 // Argument separator at top level
-                args.Add(EvaluateArgument(currentArg.ToString().Trim(), context, originalPath));
+                args.Add(EvaluateArgument(currentArg.ToString().Trim(), context));
                 currentArg.Clear();
             }
             else
@@ -298,13 +298,13 @@ public partial class ExpressionEvaluator : IExpressionEvaluator
         var lastArg = currentArg.ToString().Trim();
         if (!string.IsNullOrEmpty(lastArg))
         {
-            args.Add(EvaluateArgument(lastArg, context, originalPath));
+            args.Add(EvaluateArgument(lastArg, context));
         }
 
         return [.. args];
     }
 
-    private static object? EvaluateArgument(string arg, IExecutionContext context, string originalPath)
+    private static object? EvaluateArgument(string arg, IExecutionContext context)
     {
         if (string.IsNullOrWhiteSpace(arg))
         {
@@ -323,7 +323,7 @@ public partial class ExpressionEvaluator : IExpressionEvaluator
                 System.Globalization.CultureInfo.InvariantCulture, out var numValue))
         {
             // Return as int if it's a whole number
-            if (numValue == Math.Floor(numValue) && numValue >= int.MinValue && numValue <= int.MaxValue)
+            if (numValue == Math.Floor(numValue) && numValue is >= int.MinValue and <= int.MaxValue)
             {
                 return (int)numValue;
             }
@@ -386,7 +386,7 @@ public partial class ExpressionEvaluator : IExpressionEvaluator
         }
 
         // Navigate through the JSON structure
-        return NavigateJson(output.Value, parts[1..], originalPath);
+        return NavigateJson(output.Value, parts[1..]);
     }
 
     private static object? EvaluateVariablePath(string[] parts, IExecutionContext context, string originalPath)
@@ -412,11 +412,11 @@ public partial class ExpressionEvaluator : IExpressionEvaluator
         // If value is JsonElement, navigate through it
         if (value is JsonElement jsonElement)
         {
-            return NavigateJson(jsonElement, parts[1..], originalPath);
+            return NavigateJson(jsonElement, parts[1..]);
         }
 
         throw new ExpressionEvaluationException(
-            $"Cannot access property '{parts[1]}' on variable '{variableName}' of type {value?.GetType().Name ?? "null"}",
+            $"Cannot access property '{parts[1]}' on variable '{variableName}' of type {value.GetType().Name}",
             originalPath);
     }
 
@@ -439,18 +439,14 @@ public partial class ExpressionEvaluator : IExpressionEvaluator
             return ConvertJsonElement(inputData);
         }
 
-        return NavigateJson(inputData, parts, originalPath);
+        return NavigateJson(inputData, parts);
     }
 
-    private static object? NavigateJson(JsonElement element, string[] path, string originalPath)
+    private static object? NavigateJson(JsonElement element, string[] path)
     {
         var current = element;
-        var currentPath = new List<string>();
-
         foreach (var part in path)
         {
-            currentPath.Add(part);
-
             // Null-safe navigation: if current value is null/undefined, short-circuit to null
             if (current.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
             {
@@ -461,7 +457,7 @@ public partial class ExpressionEvaluator : IExpressionEvaluator
             {
                 if (!current.TryGetProperty(part, out current))
                 {
-                    // Property not found — return null instead of throwing
+                    // Property isn't found — return null instead of throwing
                     return null;
                 }
             }

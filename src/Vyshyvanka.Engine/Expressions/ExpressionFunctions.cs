@@ -137,16 +137,15 @@ public static class ExpressionFunctions
         {
             null => 0,
             string s => s.Length,
-            JsonElement je when je.ValueKind == JsonValueKind.Array => je.GetArrayLength(),
-            JsonElement je when je.ValueKind == JsonValueKind.String => je.GetString()?.Length ?? 0,
+            JsonElement { ValueKind: JsonValueKind.Array } je => je.GetArrayLength(),
+            JsonElement { ValueKind: JsonValueKind.String } je => je.GetString()?.Length ?? 0,
             _ => ConvertToString(value)?.Length ?? 0
         };
     }
 
-    private static object? Concat(object?[] args)
+    private static object Concat(object?[] args)
     {
-        if (args.Length == 0) return string.Empty;
-        return string.Concat(args.Select(a => ConvertToString(a) ?? string.Empty));
+        return args.Length == 0 ? string.Empty : string.Concat(args.Select(a => ConvertToString(a) ?? string.Empty));
     }
 
     private static object? Replace(object?[] args)
@@ -158,40 +157,51 @@ public static class ExpressionFunctions
         return value?.Replace(oldValue, newValue);
     }
 
-    private static object? Contains(object?[] args)
+    private static object Contains(object?[] args)
     {
         ValidateArgCount("contains", args, 2);
         var value = ConvertToString(args[0]);
         var search = ConvertToString(args[1]);
-        if (value is null || search is null) return false;
+        if (value is null || search is null)
+        {
+            return false;
+        }
+
         return value.Contains(search, StringComparison.OrdinalIgnoreCase);
     }
 
-    private static object? StartsWith(object?[] args)
+    private static object StartsWith(object?[] args)
     {
         ValidateArgCount("startsWith", args, 2);
         var value = ConvertToString(args[0]);
         var prefix = ConvertToString(args[1]);
-        if (value is null || prefix is null) return false;
+        if (value is null || prefix is null)
+        {
+            return false;
+        }
+
         return value.StartsWith(prefix, StringComparison.OrdinalIgnoreCase);
     }
 
-    private static object? EndsWith(object?[] args)
+    private static object EndsWith(object?[] args)
     {
         ValidateArgCount("endsWith", args, 2);
         var value = ConvertToString(args[0]);
         var suffix = ConvertToString(args[1]);
-        if (value is null || suffix is null) return false;
+        if (value is null || suffix is null)
+        {
+            return false;
+        }
+
         return value.EndsWith(suffix, StringComparison.OrdinalIgnoreCase);
     }
 
-    private static object? Split(object?[] args)
+    private static object Split(object?[] args)
     {
         ValidateArgCount("split", args, 2);
         var value = ConvertToString(args[0]);
         var separator = ConvertToString(args[1]) ?? string.Empty;
-        if (value is null) return Array.Empty<string>();
-        return value.Split(separator);
+        return value is null ? [] : value.Split(separator);
     }
 
     #endregion
@@ -256,19 +266,22 @@ public static class ExpressionFunctions
     {
         ValidateArgCount("addMinutes", args, 2);
         var date = ConvertToDateTime(args[0], "addMinutes");
-        if (date is null) return null;
+        if (date is null)
+        {
+            return null;
+        }
 
         var minutes = ConvertToDouble(args[1], "addMinutes", "minutes");
         return date.Value.AddMinutes(minutes);
     }
 
-    private static object? Now(object?[] args)
+    private static object Now(object?[] args)
     {
         ValidateArgCount("now", args, 0);
         return DateTime.Now;
     }
 
-    private static object? UtcNow(object?[] args)
+    private static object UtcNow(object?[] args)
     {
         ValidateArgCount("utcNow", args, 0);
         return DateTime.UtcNow;
@@ -353,9 +366,8 @@ public static class ExpressionFunctions
             double d => d,
             decimal dec => (double)dec,
             string s when double.TryParse(s, CultureInfo.InvariantCulture, out var d) => d,
-            JsonElement je when je.ValueKind == JsonValueKind.Number => je.GetDouble(),
-            JsonElement je when je.ValueKind == JsonValueKind.String &&
-                double.TryParse(je.GetString(), CultureInfo.InvariantCulture, out var d) => d,
+            JsonElement { ValueKind: JsonValueKind.Number } je => je.GetDouble(),
+            JsonElement { ValueKind: JsonValueKind.String } je when double.TryParse(je.GetString(), CultureInfo.InvariantCulture, out var d) => d,
             _ => throw new ExpressionEvaluationException($"Cannot convert '{value}' to number", "toNumber")
         };
     }
@@ -375,10 +387,10 @@ public static class ExpressionFunctions
             string s => !string.IsNullOrWhiteSpace(s) &&
                 !s.Equals("false", StringComparison.OrdinalIgnoreCase) &&
                 !s.Equals("0", StringComparison.Ordinal),
-            JsonElement je when je.ValueKind == JsonValueKind.True => true,
-            JsonElement je when je.ValueKind == JsonValueKind.False => false,
-            JsonElement je when je.ValueKind == JsonValueKind.Number => je.GetDouble() != 0,
-            JsonElement je when je.ValueKind == JsonValueKind.String =>
+            JsonElement { ValueKind: JsonValueKind.True } => true,
+            JsonElement { ValueKind: JsonValueKind.False } => false,
+            JsonElement { ValueKind: JsonValueKind.Number } je => je.GetDouble() != 0,
+            JsonElement { ValueKind: JsonValueKind.String } je =>
                 !string.IsNullOrWhiteSpace(je.GetString()) &&
                 !je.GetString()!.Equals("false", StringComparison.OrdinalIgnoreCase),
             _ => true
@@ -449,8 +461,8 @@ public static class ExpressionFunctions
         {
             null => null,
             string s => s,
-            JsonElement je when je.ValueKind == JsonValueKind.String => je.GetString(),
-            JsonElement je when je.ValueKind == JsonValueKind.Null => null,
+            JsonElement { ValueKind: JsonValueKind.String } je => je.GetString(),
+            JsonElement { ValueKind: JsonValueKind.Null } => null,
             JsonElement je => je.GetRawText(),
             DateTime dt => dt.ToString("O", CultureInfo.InvariantCulture),
             _ => value.ToString()
@@ -466,7 +478,7 @@ public static class ExpressionFunctions
             double d => (int)d,
             decimal dec => (int)dec,
             string s when int.TryParse(s, out var i) => i,
-            JsonElement je when je.ValueKind == JsonValueKind.Number => je.GetInt32(),
+            JsonElement { ValueKind: JsonValueKind.Number } je => je.GetInt32(),
             _ => throw new ExpressionEvaluationException(
                 $"Function '{funcName}' parameter '{paramName}' must be an integer", funcName)
         };
@@ -482,7 +494,7 @@ public static class ExpressionFunctions
             double d => d,
             decimal dec => (double)dec,
             string s when double.TryParse(s, CultureInfo.InvariantCulture, out var d) => d,
-            JsonElement je when je.ValueKind == JsonValueKind.Number => je.GetDouble(),
+            JsonElement { ValueKind: JsonValueKind.Number } je => je.GetDouble(),
             _ => throw new ExpressionEvaluationException(
                 $"Function '{funcName}' parameter '{paramName}' must be a number", funcName)
         };
@@ -496,8 +508,7 @@ public static class ExpressionFunctions
             DateTime dt => dt,
             DateTimeOffset dto => dto.DateTime,
             string s when DateTime.TryParse(s, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt) => dt,
-            JsonElement je when je.ValueKind == JsonValueKind.String &&
-                DateTime.TryParse(je.GetString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt) => dt,
+            JsonElement { ValueKind: JsonValueKind.String } je when DateTime.TryParse(je.GetString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt) => dt,
             _ => throw new ExpressionEvaluationException(
                 $"Function '{funcName}' requires a date value", funcName)
         };
@@ -515,8 +526,8 @@ public static class ExpressionFunctions
             string s => !string.IsNullOrWhiteSpace(s) &&
                 !s.Equals("false", StringComparison.OrdinalIgnoreCase) &&
                 !s.Equals("0", StringComparison.Ordinal),
-            JsonElement je when je.ValueKind == JsonValueKind.True => true,
-            JsonElement je when je.ValueKind == JsonValueKind.False => false,
+            JsonElement { ValueKind: JsonValueKind.True } => true,
+            JsonElement { ValueKind: JsonValueKind.False } => false,
             _ => true
         };
     }

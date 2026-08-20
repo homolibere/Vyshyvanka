@@ -109,7 +109,7 @@ public class VaultCredentialService(
 
     public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        // Delete from Vault first
+        // Delete it from Vault first
         await vaultClient.DeleteSecretAsync(id.ToString(), cancellationToken);
 
         // Then remove metadata from DB

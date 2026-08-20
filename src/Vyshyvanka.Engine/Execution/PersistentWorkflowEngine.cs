@@ -196,23 +196,13 @@ public class PersistentWorkflowEngine(IWorkflowEngine innerEngine, IExecutionRep
     /// </summary>
     private static JsonElement? SerializeOutputData(object? outputData)
     {
-        if (outputData is null)
+        return outputData switch
         {
-            return null;
-        }
+            // Handle JsonElement with undefined value kind (default value)
+            null or JsonElement { ValueKind: JsonValueKind.Undefined } => null,
+            JsonElement jsonElement => jsonElement,
+            _ => JsonSerializer.SerializeToElement(outputData)
+        };
 
-        // Handle JsonElement with undefined value kind (default value)
-        if (outputData is JsonElement jsonElement)
-        {
-            if (jsonElement.ValueKind == JsonValueKind.Undefined)
-            {
-                return null;
-            }
-
-            return jsonElement;
-        }
-
-        // Serialize other object types
-        return JsonSerializer.SerializeToElement(outputData);
     }
 }

@@ -20,10 +20,10 @@ public class WorkflowEngine : IWorkflowEngine
     private readonly IExpressionEvaluator _expressionEvaluator;
     private readonly IPluginHost? _pluginHost;
     private readonly ILogger<WorkflowEngine> _logger;
-    private readonly ConcurrentDictionary<Guid, CancellationTokenSource> _activeExecutions = new();
+    private readonly ConcurrentDictionary<Guid, CancellationTokenSource> _activeExecutions = [];
 
     /// <summary>
-    /// Cached empty JSON object element to avoid repeated allocations.
+    /// Cached an empty JSON object element to avoid repeated allocations.
     /// </summary>
     private static readonly JsonElement EmptyObjectElement = JsonDocument.Parse("{}").RootElement.Clone();
 
@@ -107,7 +107,7 @@ public class WorkflowEngine : IWorkflowEngine
 
     /// <summary>
     /// Iterates through execution levels, running nodes and processing loop iterations.
-    /// Returns an <see cref="ExecutionResult"/> for early termination (StopOnFirstError), or null if all levels complete.
+    /// Returns an <see cref="ExecutionResult"/> for early termination (StopOnFirstError), or null if all levels are complete.
     /// </summary>
     private async Task<ExecutionResult?> ExecuteLevelsAsync(
         Workflow workflow,
@@ -223,7 +223,7 @@ public class WorkflowEngine : IWorkflowEngine
 
     /// <summary>
     /// Executes the loop subgraph for each item, setting per-iteration context.
-    /// Returns an <see cref="ExecutionResult"/> for early termination, or null if all iterations complete.
+    /// Returns an <see cref="ExecutionResult"/> for early termination, or null if all iterations are complete.
     /// </summary>
     private async Task<ExecutionResult?> ExecuteLoopSubgraphAsync(
         Workflow workflow,
@@ -516,12 +516,11 @@ public class WorkflowEngine : IWorkflowEngine
         if (terminalNodeIds.Count > 0)
         {
             outputData = resultList
-                .Where(r => r.Success && terminalNodeIds.Contains(r.NodeId) && r.OutputData is not null)
-                .LastOrDefault()?.OutputData;
+                .LastOrDefault(r => r.Success && terminalNodeIds.Contains(r.NodeId) && r.OutputData is not null)?.OutputData;
         }
 
         // Fallback: last successful node result with non-null output
-        outputData ??= resultList.LastOrDefault(r => r.Success && r.OutputData is not null)?.OutputData;
+        outputData ??= resultList.LastOrDefault(r => r is { Success: true, OutputData: not null })?.OutputData;
 
         return new ExecutionResult
         {
@@ -601,7 +600,7 @@ public class WorkflowEngine : IWorkflowEngine
                 };
             }
 
-            // Gather input data first so expressions in config can reference it via "input."
+            // Gather input data first, so expressions in config can reference it via "input."
             var inputData = GatherInputData(workflow, nodeId, context);
 
             // If this node is marked as "gather input only", record input and stop without executing
@@ -744,8 +743,7 @@ public class WorkflowEngine : IWorkflowEngine
             if (!string.IsNullOrEmpty(connection.SourcePort))
             {
                 var defaultOutput = context.NodeOutputs.Get(connection.SourceNodeId);
-                if (defaultOutput.HasValue &&
-                    defaultOutput.Value.ValueKind == JsonValueKind.Object &&
+                if (defaultOutput is { ValueKind: JsonValueKind.Object } &&
                     defaultOutput.Value.TryGetProperty("outputPort", out var routedPort) &&
                     routedPort.ValueKind == JsonValueKind.String)
                 {
@@ -770,8 +768,7 @@ public class WorkflowEngine : IWorkflowEngine
             if (!string.IsNullOrEmpty(connection.SourcePort))
             {
                 var defaultOutput = context.NodeOutputs.Get(connection.SourceNodeId);
-                if (defaultOutput.HasValue &&
-                    defaultOutput.Value.ValueKind == JsonValueKind.Object &&
+                if (defaultOutput is { ValueKind: JsonValueKind.Object } &&
                     defaultOutput.Value.TryGetProperty("outputPort", out var routedPort) &&
                     routedPort.ValueKind == JsonValueKind.String)
                 {
@@ -813,7 +810,7 @@ public class WorkflowEngine : IWorkflowEngine
     /// <summary>
     /// Checks whether a node sits on an inactive branch. A node is inactive when
     /// every incoming connection originates from a source port that was not the
-    /// active output port of its source node (e.g. the "true" branch of an If
+    /// active output port of its source node (e.g., the "true" branch of an If
     /// node whose condition evaluated to false).
     /// </summary>
     private static bool IsOnInactiveBranch(Workflow workflow, string nodeId, IExecutionContext context)
@@ -853,7 +850,7 @@ public class WorkflowEngine : IWorkflowEngine
 
     private static List<List<string>> BuildExecutionLevels(Workflow workflow)
     {
-        return BuildExecutionLevelsForNodes(workflow, workflow.Nodes.Select(n => n.Id).ToHashSet());
+        return BuildExecutionLevelsForNodes(workflow);
     }
 
     /// <summary>
@@ -971,19 +968,21 @@ public class WorkflowEngine : IWorkflowEngine
         return levels;
     }
 
-    private static List<List<string>> BuildExecutionLevelsForNodes(Workflow workflow, HashSet<string> nodeIds)
+    private static List<List<string>> BuildExecutionLevelsForNodes(Workflow workflow)
     {
         var inDegree = workflow.Nodes.ToDictionary(n => n.Id, _ => 0);
         var adjacency = workflow.Nodes.ToDictionary(n => n.Id, _ => new List<string>());
 
         foreach (var connection in workflow.Connections)
         {
-            if (adjacency.TryGetValue(connection.SourceNodeId, out var neighbors) &&
-                inDegree.ContainsKey(connection.TargetNodeId))
+            if (!adjacency.TryGetValue(connection.SourceNodeId, out var neighbors) ||
+                !inDegree.ContainsKey(connection.TargetNodeId))
             {
-                neighbors.Add(connection.TargetNodeId);
-                inDegree[connection.TargetNodeId]++;
+                continue;
             }
+
+            neighbors.Add(connection.TargetNodeId);
+            inDegree[connection.TargetNodeId]++;
         }
 
         var levels = new List<List<string>>();
@@ -997,27 +996,20 @@ public class WorkflowEngine : IWorkflowEngine
 
             var nextLevel = new List<string>();
 
-            foreach (var nodeId in currentLevel)
+            foreach (var neighbor in currentLevel.SelectMany(nodeId => adjacency[nodeId]))
             {
-                foreach (var neighbor in adjacency[nodeId])
+                inDegree[neighbor]--;
+                if (inDegree[neighbor] == 0)
                 {
-                    inDegree[neighbor]--;
-                    if (inDegree[neighbor] == 0)
-                    {
-                        nextLevel.Add(neighbor);
-                    }
+                    nextLevel.Add(neighbor);
                 }
             }
 
             currentLevel = nextLevel;
         }
 
-        if (processedCount != workflow.Nodes.Count)
-        {
-            throw new InvalidOperationException("Workflow contains a cycle");
-        }
+        return processedCount != workflow.Nodes.Count ? throw new InvalidOperationException("Workflow contains a cycle") : levels;
 
-        return levels;
     }
 
     private JsonElement EvaluateConfiguration(JsonElement configuration, IExecutionContext context, string nodeId)

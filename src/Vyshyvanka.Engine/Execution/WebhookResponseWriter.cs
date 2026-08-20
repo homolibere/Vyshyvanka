@@ -3,7 +3,7 @@ using Vyshyvanka.Core.Interfaces;
 namespace Vyshyvanka.Engine.Execution;
 
 /// <summary>
-/// Holds a pending webhook HTTP response until the HTTP Response node writes to it,
+/// Holds a pending webhook HTTP response until the HTTP Response node writes to it
 /// or until the timeout expires. The WebhookController awaits <see cref="WaitForResponseAsync"/>
 /// while the workflow engine executes nodes in parallel.
 /// </summary>
@@ -32,7 +32,7 @@ public sealed class WebhookResponseWriter : IWebhookResponseWriter
     }
 
     /// <summary>
-    /// Waits for the HTTP Response node to write a response, or returns null on timeout.
+    /// Waits for the HTTP Response node to write a response or returns null on timeout.
     /// Called by the WebhookController to hold the connection open.
     /// </summary>
     /// <param name="timeout">Maximum time to wait for the workflow to produce a response.</param>
