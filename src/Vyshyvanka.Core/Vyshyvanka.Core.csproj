@@ -17,7 +17,6 @@
 
     <!-- Generate XML docs for IntelliSense in consuming projects -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);CS1591</NoWarn>
 
     <!-- Pack settings -->
     <IsPackable>true</IsPackable>

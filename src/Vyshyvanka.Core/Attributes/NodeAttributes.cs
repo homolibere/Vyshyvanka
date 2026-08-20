@@ -36,6 +36,8 @@ public class NodeInputAttribute : Attribute
     /// <summary>Whether this input is required.</summary>
     public bool IsRequired { get; set; }
 
+    /// <summary>Initializes the input port attribute.</summary>
+    /// <param name="name">Internal name of the port.</param>
     public NodeInputAttribute(string name)
     {
         Name = name;
@@ -57,6 +59,8 @@ public class NodeOutputAttribute : Attribute
     /// <summary>Data type of the port.</summary>
     public PortType Type { get; set; } = PortType.Any;
 
+    /// <summary>Initializes the output port attribute.</summary>
+    /// <param name="name">Internal name of the port.</param>
     public NodeOutputAttribute(string name)
     {
         Name = name;
@@ -93,6 +97,9 @@ public class ConfigurationPropertyAttribute : Attribute
     /// </summary>
     public string? Options { get; set; }
 
+    /// <summary>Initializes the configuration property attribute.</summary>
+    /// <param name="name">Property name.</param>
+    /// <param name="propertyType">Property type (string, number, boolean, object, array).</param>
     public ConfigurationPropertyAttribute(string name, string propertyType)
     {
         Name = name;
@@ -109,6 +116,8 @@ public class RequiresCredentialAttribute : Attribute
     /// <summary>Type of credential required.</summary>
     public CredentialType CredentialType { get; }
 
+    /// <summary>Initializes the attribute with the required credential type.</summary>
+    /// <param name="credentialType">Type of credential the node requires.</param>
     public RequiresCredentialAttribute(CredentialType credentialType)
     {
         CredentialType = credentialType;

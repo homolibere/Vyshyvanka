@@ -7,13 +7,28 @@ namespace Vyshyvanka.Core.Models;
 /// </summary>
 public record User
 {
+    /// <summary>Unique identifier of the user.</summary>
     public Guid Id { get; init; }
+
+    /// <summary>Email address, used as the login identifier. Unique across users.</summary>
     public string Email { get; init; } = string.Empty;
+
+    /// <summary>Optional display name shown in the UI. Null when the user has not set one.</summary>
     public string? DisplayName { get; init; }
+
+    /// <summary>Hash of the user's password (never the plain text). Empty for externally-authenticated users.</summary>
     public string PasswordHash { get; init; } = string.Empty;
+
+    /// <summary>Role that determines the user's permissions across the system.</summary>
     public UserRole Role { get; init; }
+
+    /// <summary>Whether the account is active and permitted to sign in.</summary>
     public bool IsActive { get; init; }
+
+    /// <summary>UTC timestamp when the account was created.</summary>
     public DateTime CreatedAt { get; init; }
+
+    /// <summary>UTC timestamp of the user's most recent successful login. Null if never logged in.</summary>
     public DateTime? LastLoginAt { get; init; }
 
     /// <summary>Number of consecutive failed login attempts.</summary>

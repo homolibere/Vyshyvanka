@@ -94,6 +94,8 @@ public class PluginAttribute : Attribute
     /// <summary>Author of the plugin.</summary>
     public string Author { get; set; } = string.Empty;
 
+    /// <summary>Initializes the plugin attribute with its unique identifier.</summary>
+    /// <param name="id">Unique identifier for the plugin. Must not be null or whitespace.</param>
     public PluginAttribute(string id)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);

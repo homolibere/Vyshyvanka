@@ -19,7 +19,12 @@ public interface ILdapAuthenticationService
 /// </summary>
 public record LdapAuthResult
 {
+    /// <summary>Whether authentication succeeded.</summary>
     public bool Success { get; init; }
+
+    /// <summary>The authenticated (and provisioned) user when successful; otherwise null.</summary>
     public User? User { get; init; }
+
+    /// <summary>Error message when authentication failed. Null on success.</summary>
     public string? ErrorMessage { get; init; }
 }
