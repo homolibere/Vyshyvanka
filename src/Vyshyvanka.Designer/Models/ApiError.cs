@@ -11,7 +11,9 @@ public static class ApiErrorExtensions
     public static string GetFullMessage(this ApiError error)
     {
         if (error.Details is null || error.Details.Count == 0)
+        {
             return error.Message;
+        }
 
         var detailMessages = error.Details
             .SelectMany(kvp => kvp.Value.Select(v => $"{kvp.Key}: {v}"))

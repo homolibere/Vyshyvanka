@@ -60,10 +60,14 @@ public class GraphQLNode : BasePluginNode
             var requestBody = new Dictionary<string, object?> { ["query"] = query };
 
             if (variables is not null && variables.Count > 0)
+            {
                 requestBody["variables"] = variables;
+            }
 
             if (!string.IsNullOrWhiteSpace(operationName))
+            {
                 requestBody["operationName"] = operationName;
+            }
 
             var request = new HttpRequestMessage(HttpMethod.Post, endpoint)
             {
@@ -76,11 +80,15 @@ public class GraphQLNode : BasePluginNode
             if (headers is not null)
             {
                 foreach (var (key, value) in headers)
+                {
                     request.Headers.TryAddWithoutValidation(key, value);
+                }
             }
 
             if (input.CredentialId.HasValue)
+            {
                 await ApplyCredentialsAsync(request, input.CredentialId.Value, context);
+            }
 
             var response = await client.SendAsync(request, context.CancellationToken);
             var responseBody = await response.Content.ReadAsStringAsync(context.CancellationToken);
@@ -100,11 +108,15 @@ public class GraphQLNode : BasePluginNode
             var hasErrors = graphqlResponse?.Errors is { Count: > 0 };
 
             if (hasErrors)
+            {
                 logger.LogWarning("GraphQL response from {Endpoint} contains {ErrorCount} error(s)", endpoint,
                     graphqlResponse!.Errors!.Count);
+            }
             else
+            {
                 logger.LogDebug("GraphQL request to {Endpoint} completed with status {StatusCode}", endpoint,
                     (int)response.StatusCode);
+            }
 
             return SuccessOutput(new
             {
@@ -133,7 +145,10 @@ public class GraphQLNode : BasePluginNode
         IExecutionContext context)
     {
         var credentials = await context.Credentials.GetCredentialAsync(credentialId, context.CancellationToken);
-        if (credentials is null) return;
+        if (credentials is null)
+        {
+            return;
+        }
 
         if (credentials.TryGetValue("apiKey", out var apiKey))
         {

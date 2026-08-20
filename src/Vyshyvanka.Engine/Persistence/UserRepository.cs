@@ -1,7 +1,7 @@
+using Microsoft.EntityFrameworkCore;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Core.Models;
 using Vyshyvanka.Engine.Persistence.Entities;
-using Microsoft.EntityFrameworkCore;
 
 namespace Vyshyvanka.Engine.Persistence;
 

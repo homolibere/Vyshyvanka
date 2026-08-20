@@ -1,7 +1,7 @@
 using System.Text.Json;
-using Vyshyvanka.Core.Interfaces;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Vyshyvanka.Core.Interfaces;
 
 namespace Vyshyvanka.Designer.Components;
 
@@ -36,7 +36,9 @@ public partial class NodeEditorOutputPanel : ComponentBase
     protected override void OnParametersSet()
     {
         if (Ports is not { Count: > 0 })
+        {
             return;
+        }
 
         // Auto-select the active output port based on the execution result's outputPort field
         if (OutputData.HasValue &&
@@ -76,10 +78,14 @@ public partial class NodeEditorOutputPanel : ComponentBase
         get
         {
             if (!OutputData.HasValue || OutputData.Value.ValueKind == JsonValueKind.Undefined)
+            {
                 return null;
+            }
 
             if (!HasMultiplePorts || SelectedPort is null)
+            {
                 return OutputData;
+            }
 
             // If the output has port-keyed data (e.g. {"true": {...}, "false": {...}}), extract it
             if (OutputData.Value.ValueKind == JsonValueKind.Object &&
@@ -110,7 +116,9 @@ public partial class NodeEditorOutputPanel : ComponentBase
         get
         {
             if (!HasOutputData)
+            {
                 return string.Empty;
+            }
 
             try
             {

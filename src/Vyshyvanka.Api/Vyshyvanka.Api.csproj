@@ -18,6 +18,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
+    <PackageReference Include="StyleCop.Analyzers" PrivateAssets="all" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
 
     <!-- Aspire service defaults (OpenTelemetry, health checks, service discovery, HTTP resilience) -->

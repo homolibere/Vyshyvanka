@@ -1,6 +1,6 @@
+using Microsoft.AspNetCore.Components;
 using Vyshyvanka.Designer.Models;
 using Vyshyvanka.Designer.Services;
-using Microsoft.AspNetCore.Components;
 
 namespace Vyshyvanka.Designer.Components;
 
@@ -39,11 +39,16 @@ public partial class PluginManager : IDisposable
 
     private async Task HandleOverlayClickIfModal()
     {
-        if (!Embedded) await Close();
+        if (!Embedded)
+        {
+            await Close();
+        }
     }
 
     private bool IsInstalledTabActive => _activeTab == InstalledTab;
+
     private bool IsBrowseTabActive => _activeTab == BrowseTab;
+
     private bool IsSourcesTabActive => _activeTab == SourcesTab;
 
     protected override void OnInitialized()
@@ -75,7 +80,9 @@ public partial class PluginManager : IDisposable
     }
 
     private void SelectInstalledTab() => _activeTab = InstalledTab;
+
     private void SelectBrowseTab() => _activeTab = BrowseTab;
+
     private void SelectSourcesTab() => _activeTab = SourcesTab;
 
     private void NavigateToBrowse()

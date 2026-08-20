@@ -1,6 +1,6 @@
-using Vyshyvanka.Core.Interfaces;
 using Microsoft.Extensions.Logging;
 using NuGet.Versioning;
+using Vyshyvanka.Core.Interfaces;
 
 namespace Vyshyvanka.Engine.Packages;
 
@@ -29,7 +29,10 @@ public class PluginLoadingService(
             var plugins = pluginLoader.LoadPlugins(installPath);
             foreach (var plugin in plugins)
             {
-                if (plugin.Assembly is null) continue;
+                if (plugin.Assembly is null)
+                {
+                    continue;
+                }
 
                 var validation = pluginValidator.ValidatePlugin(plugin.Assembly);
                 if (!validation.IsValid)
@@ -100,7 +103,9 @@ public class PluginLoadingService(
             try
             {
                 if (Activator.CreateInstance(nodeType) is INode nodeInstance)
+                {
                     identifiers.Add(nodeInstance.Type);
+                }
             }
             catch
             {

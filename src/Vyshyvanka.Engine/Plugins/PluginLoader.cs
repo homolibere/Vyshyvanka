@@ -1,8 +1,8 @@
 using System.Collections.Concurrent;
 using System.Reflection;
 using System.Runtime.Loader;
-using Vyshyvanka.Core.Interfaces;
 using Microsoft.Extensions.Logging;
+using Vyshyvanka.Core.Interfaces;
 
 namespace Vyshyvanka.Engine.Plugins;
 

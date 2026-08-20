@@ -1,9 +1,9 @@
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Core.Models;
 using Vyshyvanka.Designer.Services;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 
 namespace Vyshyvanka.Designer.Components;
 
@@ -36,6 +36,7 @@ public partial class CanvasNodeComponent
     public EventCallback OnDoubleClick { get; set; }
 
     private double ComputedWidth => NodeLayout.GetWidth(Node.Name);
+
     private double ComputedHeight => NodeLayout.GetHeight(
         Definition?.Inputs?.Count ?? 0,
         EffectiveOutputs.Count);
@@ -104,9 +105,15 @@ public partial class CanvasNodeComponent
     private static string FormatDuration(double ms)
     {
         if (ms < 1000)
+        {
             return FormattableString.Invariant($"{ms:F0}ms");
+        }
+
         if (ms < 60000)
+        {
             return FormattableString.Invariant($"{ms / 1000:F1}s");
+        }
+
         return FormattableString.Invariant($"{ms / 60000:F1}m");
     }
 

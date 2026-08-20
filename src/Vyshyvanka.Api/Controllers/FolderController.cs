@@ -1,11 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Vyshyvanka.Api.Authorization;
 using Vyshyvanka.Api.Models;
 using Vyshyvanka.Contracts;
 using Vyshyvanka.Contracts.Folders;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Core.Models;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Vyshyvanka.Api.Controllers;
 
@@ -30,7 +30,9 @@ public class FolderController(
     {
         var userId = currentUserService.UserId;
         if (userId is null)
+        {
             return Unauthorized();
+        }
 
         var folders = await folderRepository.GetByOwnerAsync(userId.Value, cancellationToken);
         return Ok(folders.Select(f => f.ToResponse()).ToList());
@@ -157,7 +159,9 @@ public class FolderController(
     private bool IsOwnerOrAdmin(Folder folder)
     {
         if (User.IsInRole(Roles.Admin))
+        {
             return true;
+        }
 
         var userId = currentUserService.UserId;
         return userId is not null && folder.OwnerId == userId;

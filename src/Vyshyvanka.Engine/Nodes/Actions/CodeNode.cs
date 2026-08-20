@@ -220,7 +220,9 @@ public class CodeNode : BaseActionNode
         engine.SetValue("getItems", (Func<JsValue>)(() =>
         {
             if (jsInput is { Type: Jint.Runtime.Types.Object } && jsInput.IsArray())
+            {
                 return jsInput;
+            }
 
             var arr = engine.Intrinsics.Array.Construct(1);
             arr.Set(0, jsInput);
@@ -310,22 +312,32 @@ public class CodeNode : BaseActionNode
     private static object? ConvertJsValue(JsValue value, JintEngine engine)
     {
         if (value is null || value.IsNull() || value.IsUndefined())
+        {
             return null;
+        }
 
         if (value.IsBoolean())
+        {
             return value.AsBoolean();
+        }
 
         if (value.IsNumber())
+        {
             return value.AsNumber();
+        }
 
         if (value.IsString())
+        {
             return value.AsString();
+        }
 
         // For objects/arrays, serialize to JSON then deserialize to get .NET types
         var serializer = new Jint.Native.Json.JsonSerializer(engine);
         var json = serializer.Serialize(value, JsValue.Undefined, JsValue.Undefined);
         if (json is null || json.IsNull() || json.IsUndefined())
+        {
             return null;
+        }
 
         var jsonString = json.AsString();
         return JsonSerializer.Deserialize<object>(jsonString);

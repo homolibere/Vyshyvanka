@@ -42,17 +42,23 @@ public class GitLabWebhookTriggerNode : ITriggerNode
     public Task<bool> ShouldTriggerAsync(TriggerContext context)
     {
         if (context.TriggerData.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
+        {
             return Task.FromResult(false);
+        }
 
         // Must be a webhook trigger
         var triggerType = GetTriggerValue<string>(context, "triggerType");
         if (triggerType != "webhook")
+        {
             return Task.FromResult(false);
+        }
 
         // Check for GitLab event header
         var headers = GetTriggerValue<JsonElement?>(context, "headers");
         if (headers is null || headers.Value.ValueKind != JsonValueKind.Object)
+        {
             return Task.FromResult(false);
+        }
 
         var hasGitLabHeader = headers.Value.TryGetProperty("X-Gitlab-Event", out _)
                            || headers.Value.TryGetProperty("x-gitlab-event", out _);
@@ -77,7 +83,9 @@ public class GitLabWebhookTriggerNode : ITriggerNode
             {
                 var receivedToken = GetHeader(headers, "X-Gitlab-Token");
                 if (receivedToken != expectedSecret)
+                {
                     return Task.FromResult(Failure("Secret token mismatch — webhook rejected."));
+                }
             }
 
             // ── Event type extraction & filtering ───────────────────
@@ -92,7 +100,9 @@ public class GitLabWebhookTriggerNode : ITriggerNode
                     .Select(e => e.ToLowerInvariant());
 
                 if (!allowed.Contains(eventKey))
+                {
                     return Task.FromResult(Failure($"Event '{eventKey}' not in allowed list."));
+                }
             }
 
             // ── Project filter ──────────────────────────────────────
@@ -110,7 +120,9 @@ public class GitLabWebhookTriggerNode : ITriggerNode
                         : null;
 
                 if (projectPath != projectFilter && projectId != projectFilter)
+                {
                     return Task.FromResult(Failure($"Event project does not match filter '{projectFilter}'."));
+                }
             }
 
             // ── Build output envelope ───────────────────────────────
@@ -149,7 +161,9 @@ public class GitLabWebhookTriggerNode : ITriggerNode
     private static T? GetConfigValue<T>(NodeInput input, string key)
     {
         if (input.Configuration.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
+        {
             return default;
+        }
 
         return input.Configuration.TryGetProperty(key, out var value)
             ? JsonSerializer.Deserialize<T>(value.GetRawText())
@@ -159,7 +173,9 @@ public class GitLabWebhookTriggerNode : ITriggerNode
     private static T? GetTriggerValue<T>(TriggerContext context, string key)
     {
         if (context.TriggerData.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
+        {
             return default;
+        }
 
         return context.TriggerData.TryGetProperty(key, out var value)
             ? JsonSerializer.Deserialize<T>(value.GetRawText())
@@ -174,14 +190,20 @@ public class GitLabWebhookTriggerNode : ITriggerNode
     private static string? GetHeader(JsonElement headers, string name)
     {
         if (headers.ValueKind != JsonValueKind.Object)
+        {
             return null;
+        }
 
         // Try exact case, then lowercase
         if (headers.TryGetProperty(name, out var val))
+        {
             return val.GetString();
+        }
 
         if (headers.TryGetProperty(name.ToLowerInvariant(), out val))
+        {
             return val.GetString();
+        }
 
         return null;
     }

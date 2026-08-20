@@ -1,9 +1,9 @@
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
+using Vyshyvanka.Core.Attributes;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Engine.Nodes.Base;
-using Vyshyvanka.Core.Attributes;
 
 namespace Vyshyvanka.Engine.Nodes.Actions;
 
@@ -40,33 +40,47 @@ public class ExecuteWorkflowNode : BaseActionNode
         var timeoutSeconds = GetConfigValue<int?>(input, "timeout") ?? 300;
 
         if (!Guid.TryParse(workflowIdStr, out var workflowId))
+        {
             return FailureOutput($"Invalid workflow ID: '{workflowIdStr}'");
+        }
 
         // Prevent infinite recursion — a workflow cannot execute itself
         if (workflowId == context.WorkflowId)
+        {
             return FailureOutput("A workflow cannot execute itself. This would cause infinite recursion.");
+        }
 
         // Resolve services from the execution context
         if (context.Services is null)
+        {
             return FailureOutput("Service provider is not available in the execution context");
+        }
 
         var workflowRepository = context.Services.GetService<IWorkflowRepository>();
         var workflowEngine = context.Services.GetService<IWorkflowEngine>();
 
         if (workflowRepository is null || workflowEngine is null)
+        {
             return FailureOutput("Required services (IWorkflowRepository, IWorkflowEngine) are not registered");
+        }
 
         // Load the target workflow
         var workflow = await workflowRepository.GetByIdAsync(workflowId, context.CancellationToken);
         if (workflow is null)
+        {
             return FailureOutput($"Workflow '{workflowId}' not found");
+        }
 
         if (!workflow.IsActive)
+        {
             return FailureOutput($"Workflow '{workflow.Name}' is not active");
+        }
 
         // Verify the executing user owns the target workflow (or is running without user context, e.g., webhooks)
         if (context.UserId is not null && workflow.CreatedBy != context.UserId)
+        {
             return FailureOutput($"Access denied: you do not have permission to execute workflow '{workflowId}'");
+        }
 
         // Create a child execution context
         var childExecutionId = Guid.NewGuid();

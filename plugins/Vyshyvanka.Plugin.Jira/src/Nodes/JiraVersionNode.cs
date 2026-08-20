@@ -53,7 +53,9 @@ public class JiraVersionNode : BaseJiraNode
                 await SendJiraRequestAsync(HttpMethod.Get, path, baseUrl, auth, null, context.CancellationToken);
 
             if (!response.IsSuccess)
+            {
                 return FailureOutput($"Fetch versions failed ({response.StatusCode}): {response.ErrorBody}");
+            }
 
             var versions = response.Data!.Value;
 

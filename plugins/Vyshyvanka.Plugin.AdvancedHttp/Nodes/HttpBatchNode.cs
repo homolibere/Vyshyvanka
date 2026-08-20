@@ -105,7 +105,9 @@ public class HttpBatchNode : BasePluginNode
             results.Add(result);
 
             if (!result.Success && stopOnError)
+            {
                 break;
+            }
         }
 
         return results;
@@ -150,7 +152,9 @@ public class HttpBatchNode : BasePluginNode
             if (config.Headers is not null)
             {
                 foreach (var (key, value) in config.Headers)
+                {
                     request.Headers.TryAddWithoutValidation(key, value);
+                }
             }
 
             if (config.Body is not null && config.Method is "POST" or "PUT" or "PATCH")
@@ -166,7 +170,9 @@ public class HttpBatchNode : BasePluginNode
             try
             {
                 if (!string.IsNullOrWhiteSpace(responseBody))
+                {
                     parsedBody = JsonSerializer.Deserialize<object>(responseBody);
+                }
             }
             catch (JsonException)
             {

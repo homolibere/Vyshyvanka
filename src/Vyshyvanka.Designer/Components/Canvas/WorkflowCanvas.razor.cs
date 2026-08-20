@@ -1,8 +1,8 @@
-using Vyshyvanka.Core.Models;
-using Vyshyvanka.Designer.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
+using Vyshyvanka.Core.Models;
+using Vyshyvanka.Designer.Services;
 
 namespace Vyshyvanka.Designer.Components;
 
@@ -76,12 +76,13 @@ public partial class WorkflowCanvas : IAsyncDisposable
         return FormattableString.Invariant($"{x} {y} {width} {height}");
     }
 
-
     private void OnCanvasMouseDown(MouseEventArgs e)
     {
         // Don't start canvas drag if we're drawing a connection
         if (CanvasState.PendingConnection is not null)
+        {
             return;
+        }
 
         if (e.Button == 1 || (e.Button == 0 && e.ShiftKey)) // Middle click or Shift+Left click - immediate pan
         {
@@ -184,7 +185,10 @@ public partial class WorkflowCanvas : IAsyncDisposable
 
     private void OnDrop(DragEventArgs e)
     {
-        if (CanvasState.DraggedNodeType is null) return;
+        if (CanvasState.DraggedNodeType is null)
+        {
+            return;
+        }
 
         var state = CanvasState.CanvasState;
         var x = (e.OffsetX - state.PanX) / state.Zoom;
@@ -220,7 +224,10 @@ public partial class WorkflowCanvas : IAsyncDisposable
     private (double X, double Y) GetPortPosition(string nodeId, string portName, bool isOutput)
     {
         var node = Store.GetNode(nodeId);
-        if (node is null) return (0, 0);
+        if (node is null)
+        {
+            return (0, 0);
+        }
 
         var definition = Store.GetNodeDefinition(node.Type);
         var nodeWidth = NodeLayout.GetWidth(node.Name);

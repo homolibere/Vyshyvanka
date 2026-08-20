@@ -112,19 +112,30 @@ public static class ExpressionFunctions
     {
         ValidateArgCount("substring", args, 2, 3);
         var value = ConvertToString(args[0]);
-        if (value is null) return null;
+        if (value is null)
+        {
+            return null;
+        }
 
         var start = ConvertToInt(args[1], "substring", "start");
 
         if (args.Length == 3)
         {
             var length = ConvertToInt(args[2], "substring", "length");
-            if (start >= value.Length) return string.Empty;
+            if (start >= value.Length)
+            {
+                return string.Empty;
+            }
+
             var actualLength = Math.Min(length, value.Length - start);
             return value.Substring(start, actualLength);
         }
 
-        if (start >= value.Length) return string.Empty;
+        if (start >= value.Length)
+        {
+            return string.Empty;
+        }
+
         return value[start..];
     }
 
@@ -212,7 +223,10 @@ public static class ExpressionFunctions
     {
         ValidateArgCount("format", args, 1, 2);
         var date = ConvertToDateTime(args[0], "format");
-        if (date is null) return null;
+        if (date is null)
+        {
+            return null;
+        }
 
         var formatString = args.Length > 1 ? ConvertToString(args[1]) ?? "yyyy-MM-dd" : "yyyy-MM-dd";
         return date.Value.ToString(formatString, CultureInfo.InvariantCulture);
@@ -222,7 +236,10 @@ public static class ExpressionFunctions
     {
         ValidateArgCount("parseDate", args, 1, 2);
         var value = ConvertToString(args[0]);
-        if (string.IsNullOrWhiteSpace(value)) return null;
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
 
         if (args.Length > 1)
         {
@@ -246,7 +263,10 @@ public static class ExpressionFunctions
     {
         ValidateArgCount("addDays", args, 2);
         var date = ConvertToDateTime(args[0], "addDays");
-        if (date is null) return null;
+        if (date is null)
+        {
+            return null;
+        }
 
         var days = ConvertToDouble(args[1], "addDays", "days");
         return date.Value.AddDays(days);
@@ -256,7 +276,10 @@ public static class ExpressionFunctions
     {
         ValidateArgCount("addHours", args, 2);
         var date = ConvertToDateTime(args[0], "addHours");
-        if (date is null) return null;
+        if (date is null)
+        {
+            return null;
+        }
 
         var hours = ConvertToDouble(args[1], "addHours", "hours");
         return date.Value.AddHours(hours);
@@ -410,6 +433,7 @@ public static class ExpressionFunctions
                 return arg;
             }
         }
+
         return null;
     }
 
@@ -423,6 +447,7 @@ public static class ExpressionFunctions
         {
             return defaultValue;
         }
+
         return value;
     }
 

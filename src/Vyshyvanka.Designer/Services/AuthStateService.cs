@@ -50,16 +50,26 @@ public class AuthStateService
     /// </summary>
     public async Task InitializeAsync()
     {
-        if (_initialized || _storage is null) return;
+        if (_initialized || _storage is null)
+        {
+            return;
+        }
+
         _initialized = true;
 
         try
         {
             var json = await _storage.GetItemAsync(StorageKey);
-            if (string.IsNullOrEmpty(json)) return;
+            if (string.IsNullOrEmpty(json))
+            {
+                return;
+            }
 
             var stored = JsonSerializer.Deserialize<StoredAuthState>(json);
-            if (stored is null) return;
+            if (stored is null)
+            {
+                return;
+            }
 
             // Check if token is still valid
             if (stored.ExpiresAt > DateTime.UtcNow)
@@ -148,7 +158,10 @@ public class AuthStateService
 
     private async Task PersistToStorageAsync()
     {
-        if (_storage is null || _accessToken is null) return;
+        if (_storage is null || _accessToken is null)
+        {
+            return;
+        }
 
         var state = new StoredAuthState
         {
@@ -165,8 +178,11 @@ public class AuthStateService
     private record StoredAuthState
     {
         public string? AccessToken { get; init; }
+
         public string? RefreshToken { get; init; }
+
         public DateTime? ExpiresAt { get; init; }
+
         public UserInfo? User { get; init; }
     }
 }

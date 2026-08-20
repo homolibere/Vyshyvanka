@@ -1,11 +1,11 @@
-using Vyshyvanka.Api.Authorization;
-using Vyshyvanka.Core.Enums;
-using Vyshyvanka.Core.Interfaces;
-using Vyshyvanka.Core.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Vyshyvanka.Api.Authorization;
 using Vyshyvanka.Api.Extensions;
+using Vyshyvanka.Core.Enums;
+using Vyshyvanka.Core.Interfaces;
+using Vyshyvanka.Core.Models;
 
 namespace Vyshyvanka.Api.Controllers;
 
@@ -192,21 +192,27 @@ public class AuthController(
 public record AuthConfigResponse
 {
     public string Provider { get; init; } = string.Empty;
+
     public string? Authority { get; init; }
+
     public string? ClientId { get; init; }
+
     public bool AllowRegistration { get; init; }
 }
 
 public record LoginRequest
 {
     public string Email { get; init; } = string.Empty;
+
     public string Password { get; init; } = string.Empty;
 }
 
 public record RegisterRequest
 {
     public string Email { get; init; } = string.Empty;
+
     public string Password { get; init; } = string.Empty;
+
     public string? DisplayName { get; init; }
 }
 
@@ -218,15 +224,21 @@ public record RefreshRequest
 public record LoginResponse
 {
     public string AccessToken { get; init; } = string.Empty;
+
     public string RefreshToken { get; init; } = string.Empty;
+
     public DateTime ExpiresAt { get; init; }
+
     public UserResponse User { get; init; } = null!;
 }
 
 public record UserResponse
 {
     public Guid Id { get; init; }
+
     public string Email { get; init; } = string.Empty;
+
     public string? DisplayName { get; init; }
+
     public string Role { get; init; } = string.Empty;
 }

@@ -1,7 +1,7 @@
+using Microsoft.AspNetCore.Components;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Designer.Models;
 using Vyshyvanka.Designer.Services;
-using Microsoft.AspNetCore.Components;
 
 namespace Vyshyvanka.Designer.Components;
 
@@ -33,7 +33,10 @@ public partial class CredentialManager
 
     private async Task HandleOverlayClickIfModal()
     {
-        if (!Embedded) await Close();
+        if (!Embedded)
+        {
+            await Close();
+        }
     }
 
     private List<CredentialResponse> _credentials = [];
@@ -172,7 +175,10 @@ public partial class CredentialManager
 
     private async Task HandleUpdate()
     {
-        if (_editingCredentialId is null) return;
+        if (_editingCredentialId is null)
+        {
+            return;
+        }
 
         if (string.IsNullOrWhiteSpace(_formName))
         {
@@ -221,7 +227,10 @@ public partial class CredentialManager
 
     private async Task ConfirmDelete()
     {
-        if (_confirmDeleteId is null) return;
+        if (_confirmDeleteId is null)
+        {
+            return;
+        }
 
         var id = _confirmDeleteId.Value;
         var name = _credentials.FirstOrDefault(c => c.Id == id)?.Name ?? "credential";
@@ -234,7 +243,9 @@ public partial class CredentialManager
             ToastService.ShowSuccess($"Credential '{name}' deleted");
 
             if (_editingCredentialId == id)
+            {
                 CloseForm();
+            }
         }
         catch (Exception ex)
         {

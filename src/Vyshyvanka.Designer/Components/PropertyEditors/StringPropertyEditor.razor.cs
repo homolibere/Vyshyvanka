@@ -1,8 +1,8 @@
-using Vyshyvanka.Designer.Models;
-using Vyshyvanka.Designer.Services;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
-using System.Text.RegularExpressions;
+using Vyshyvanka.Designer.Models;
+using Vyshyvanka.Designer.Services;
 
 namespace Vyshyvanka.Designer.Components;
 
@@ -32,8 +32,11 @@ public partial class StringPropertyEditor : ComponentBase
     public string? CurrentNodeId { get; set; }
 
     [Inject] private ExpressionAutocompleteService AutocompleteService { get; set; } = default!;
+
     [Inject] private CanvasStateService CanvasState { get; set; } = default!;
+
     [Inject] private ExpressionDragService DragService { get; set; } = default!;
+
     [Inject] private WorkflowStore Store { get; set; } = default!;
 
     private ElementReference _inputRef;
@@ -67,7 +70,10 @@ public partial class StringPropertyEditor : ComponentBase
     private string GetPlaceholder()
     {
         if (HasExpression)
+        {
             return "Expression value";
+        }
+
         return Property.IsRequired ? "Required" : "Optional";
     }
 
@@ -95,7 +101,10 @@ public partial class StringPropertyEditor : ComponentBase
 
     private async Task OnKeyDown(KeyboardEventArgs e)
     {
-        if (!_showAutocomplete || _autocomplete is null) return;
+        if (!_showAutocomplete || _autocomplete is null)
+        {
+            return;
+        }
 
         switch (e.Key)
         {
@@ -132,7 +141,9 @@ public partial class StringPropertyEditor : ComponentBase
         _isDragOver = false;
 
         if (!DragService.IsDragging || DragService.CurrentExpression is null)
+        {
             return;
+        }
 
         var expression = DragService.CurrentExpression;
         DragService.EndDrag();

@@ -1,16 +1,20 @@
+using Microsoft.AspNetCore.Components;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Designer.Models;
 using Vyshyvanka.Designer.Services;
-using Microsoft.AspNetCore.Components;
 
 namespace Vyshyvanka.Designer.Components;
 
 public partial class ExecutionHistoryPanel : IDisposable
 {
     [Inject] private WorkflowApiClient ApiClient { get; set; } = null!;
+
     [Inject] private WorkflowStore Store { get; set; } = null!;
+
     [Inject] private ExecutionStateService ExecutionState { get; set; } = null!;
+
     [Inject] private NavigationManager Navigation { get; set; } = null!;
+
     [Inject] private AuthStateService AuthState { get; set; } = null!;
 
     /// <summary>Raised when the user selects an execution to inspect.</summary>
@@ -106,6 +110,7 @@ public partial class ExecutionHistoryPanel : IDisposable
             {
                 Navigation.NavigateTo($"/designer/{execution.WorkflowId}?execution={executionId}");
             }
+
             return;
         }
 
@@ -189,11 +194,20 @@ public partial class ExecutionHistoryPanel : IDisposable
     private static string FormatDuration(TimeSpan duration)
     {
         if (duration.TotalMilliseconds < 1000)
+        {
             return $"{duration.TotalMilliseconds:0}ms";
+        }
+
         if (duration.TotalSeconds < 60)
+        {
             return $"{duration.TotalSeconds:0.#}s";
+        }
+
         if (duration.TotalMinutes < 60)
+        {
             return $"{duration.TotalMinutes:0.#}m";
+        }
+
         return $"{duration.TotalHours:0.#}h";
     }
 
@@ -201,10 +215,25 @@ public partial class ExecutionHistoryPanel : IDisposable
     {
         var elapsed = DateTime.UtcNow - utcTime;
 
-        if (elapsed.TotalSeconds < 60) return "just now";
-        if (elapsed.TotalMinutes < 60) return $"{(int)elapsed.TotalMinutes}m ago";
-        if (elapsed.TotalHours < 24) return $"{(int)elapsed.TotalHours}h ago";
-        if (elapsed.TotalDays < 7) return $"{(int)elapsed.TotalDays}d ago";
+        if (elapsed.TotalSeconds < 60)
+        {
+            return "just now";
+        }
+
+        if (elapsed.TotalMinutes < 60)
+        {
+            return $"{(int)elapsed.TotalMinutes}m ago";
+        }
+
+        if (elapsed.TotalHours < 24)
+        {
+            return $"{(int)elapsed.TotalHours}h ago";
+        }
+
+        if (elapsed.TotalDays < 7)
+        {
+            return $"{(int)elapsed.TotalDays}d ago";
+        }
 
         return utcTime.ToString("MMM dd, HH:mm");
     }

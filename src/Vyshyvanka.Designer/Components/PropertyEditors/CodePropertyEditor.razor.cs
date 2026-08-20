@@ -1,6 +1,6 @@
-using Vyshyvanka.Designer.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Vyshyvanka.Designer.Models;
 
 namespace Vyshyvanka.Designer.Components;
 
@@ -93,13 +93,21 @@ public partial class CodePropertyEditor : ComponentBase, IAsyncDisposable
     /// </summary>
     private async Task FormatCodeAsync()
     {
-        if (!_initialized) return;
+        if (!_initialized)
+        {
+            return;
+        }
+
         await JS.InvokeVoidAsync("codeEditorInterop.autoFormat", _editorId);
     }
 
     private async Task UpdateEditorLanguageAsync(string language)
     {
-        if (!_initialized) return;
+        if (!_initialized)
+        {
+            return;
+        }
+
         await JS.InvokeVoidAsync("codeEditorInterop.setLanguage", _editorId, language);
     }
 

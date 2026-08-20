@@ -1,10 +1,10 @@
 using System.Net;
 using System.Text.Json;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Vyshyvanka.Api.Middleware;
 using Vyshyvanka.Contracts;
 using Vyshyvanka.Core.Exceptions;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 
 namespace Vyshyvanka.Tests.Unit;
 

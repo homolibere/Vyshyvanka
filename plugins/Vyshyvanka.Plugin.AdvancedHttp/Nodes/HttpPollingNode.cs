@@ -79,11 +79,15 @@ public class HttpPollingNode : BasePluginNode
                 if (headers is not null)
                 {
                     foreach (var (key, value) in headers)
+                    {
                         request.Headers.TryAddWithoutValidation(key, value);
+                    }
                 }
 
                 if (body.HasValue && method is "POST" or "PUT" or "PATCH")
+                {
                     request.Content = new StringContent(body.Value.GetRawText(), Encoding.UTF8, "application/json");
+                }
 
                 var attemptStart = DateTime.UtcNow;
                 HttpResponseMessage response;
@@ -98,7 +102,10 @@ public class HttpPollingNode : BasePluginNode
                         (DateTime.UtcNow - attemptStart).TotalMilliseconds));
 
                     if (attempt < maxAttempts)
+                    {
                         await Task.Delay(intervalMs, context.CancellationToken);
+                    }
+
                     continue;
                 }
 
@@ -108,7 +115,9 @@ public class HttpPollingNode : BasePluginNode
                 try
                 {
                     if (!string.IsNullOrWhiteSpace(responseBody))
+                    {
                         parsedBody = JsonSerializer.Deserialize<JsonElement>(responseBody);
+                    }
                 }
                 catch (JsonException)
                 {
@@ -177,7 +186,9 @@ public class HttpPollingNode : BasePluginNode
                 }
 
                 if (attempt < maxAttempts)
+                {
                     await Task.Delay(intervalMs, context.CancellationToken);
+                }
             }
 
             return SuccessOutput(new
@@ -208,10 +219,14 @@ public class HttpPollingNode : BasePluginNode
         foreach (var part in parts)
         {
             if (current.ValueKind != JsonValueKind.Object)
+            {
                 return null;
+            }
 
             if (!current.TryGetProperty(part, out current))
+            {
                 return null;
+            }
         }
 
         return current.ValueKind switch

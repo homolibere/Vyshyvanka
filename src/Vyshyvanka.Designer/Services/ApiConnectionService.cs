@@ -72,7 +72,9 @@ public sealed class ApiConnectionService : IDisposable
     public async Task ConnectAsync(string url)
     {
         if (string.IsNullOrWhiteSpace(url))
+        {
             return;
+        }
 
         url = url.TrimEnd('/');
         CurrentUrl = url;

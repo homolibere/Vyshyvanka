@@ -87,7 +87,11 @@ public class CanvasStateService(WorkflowStore store)
     /// <summary>Updates the pending connection position.</summary>
     public void UpdatePendingConnection(double x, double y)
     {
-        if (_pendingConnection is null) return;
+        if (_pendingConnection is null)
+        {
+            return;
+        }
+
         _pendingConnection = _pendingConnection with { CurrentX = x, CurrentY = y };
         store.NotifyStateChanged();
     }
@@ -218,14 +222,18 @@ public class CanvasStateService(WorkflowStore store)
     internal void ClearSelectedNodeIfMatches(string nodeId)
     {
         if (_selectedNodeId == nodeId)
+        {
             _selectedNodeId = null;
+        }
     }
 
     /// <summary>Clears the selected connection if it matches.</summary>
     internal void ClearSelectedConnectionIfMatches(Connection connection)
     {
         if (_selectedConnection == connection)
+        {
             _selectedConnection = null;
+        }
     }
 
     /// <summary>Sets the selected node ID directly (used by edit service after adding a node).</summary>
@@ -250,18 +258,26 @@ public class CanvasStateService(WorkflowStore store)
     /// <summary>Discards the oldest entries when the stack exceeds the limit.</summary>
     private static void TrimStack(Stack<CanvasAction> stack, int maxSize)
     {
-        if (stack.Count <= maxSize) return;
+        if (stack.Count <= maxSize)
+        {
+            return;
+        }
 
         var keep = stack.ToArray().AsSpan(0, maxSize); // index 0 = top (newest)
         stack.Clear();
         for (var i = keep.Length - 1; i >= 0; i--)
+        {
             stack.Push(keep[i]);
+        }
     }
 
     /// <summary>Undoes the last action.</summary>
     public void Undo()
     {
-        if (!CanUndo) return;
+        if (!CanUndo)
+        {
+            return;
+        }
 
         using var _ = store.SuspendNotifications();
         var action = _undoStack.Pop();
@@ -282,7 +298,10 @@ public class CanvasStateService(WorkflowStore store)
     /// <summary>Redoes the last undone action.</summary>
     public void Redo()
     {
-        if (!CanRedo) return;
+        if (!CanRedo)
+        {
+            return;
+        }
 
         using var _ = store.SuspendNotifications();
         var action = _redoStack.Pop();

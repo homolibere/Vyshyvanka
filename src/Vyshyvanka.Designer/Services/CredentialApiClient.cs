@@ -14,7 +14,9 @@ public class CredentialApiClient(HttpClient httpClient) : ApiClientBase(httpClie
     {
         var response = await Http.GetAsync("api/credentials", cancellationToken);
         if (!response.IsSuccessStatusCode)
+        {
             return [];
+        }
 
         return await response.Content.ReadFromJsonAsync<List<CredentialResponse>>(JsonOptions, cancellationToken) ?? [];
     }
@@ -24,7 +26,9 @@ public class CredentialApiClient(HttpClient httpClient) : ApiClientBase(httpClie
     {
         var response = await Http.GetAsync($"api/credentials/{id}", cancellationToken);
         if (!response.IsSuccessStatusCode)
+        {
             return null;
+        }
 
         return await response.Content.ReadFromJsonAsync<CredentialResponse>(JsonOptions, cancellationToken);
     }

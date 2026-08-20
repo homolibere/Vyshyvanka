@@ -8,7 +8,9 @@ namespace Vyshyvanka.Designer.Pages;
 public partial class Settings : ComponentBase, IDisposable
 {
     [Inject] private IJSRuntime Js { get; set; } = null!;
+
     [Inject] private ThemeService ThemeService { get; set; } = null!;
+
     [Inject] private AuthStateService AuthState { get; set; } = null!;
 
     private string? _uploadError;
@@ -37,7 +39,11 @@ public partial class Settings : ComponentBase, IDisposable
     private async Task ExportTheme(string themeId)
     {
         var json = ThemeService.ExportThemeJson(themeId);
-        if (string.IsNullOrEmpty(json)) return;
+        if (string.IsNullOrEmpty(json))
+        {
+            return;
+        }
+
         await Js.InvokeVoidAsync("downloadFile", $"{themeId}.json", json, "application/json");
     }
 
@@ -52,7 +58,10 @@ public partial class Settings : ComponentBase, IDisposable
         _uploadSuccess = null;
 
         var file = e.File;
-        if (file is null) return;
+        if (file is null)
+        {
+            return;
+        }
 
         if (file.Size > 100 * 1024) // 100KB max
         {

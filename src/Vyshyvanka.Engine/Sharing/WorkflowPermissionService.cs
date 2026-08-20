@@ -23,11 +23,15 @@ public class WorkflowPermissionService(
     {
         // Admin always has access
         if (isAdmin)
+        {
             return true;
+        }
 
         // Owner always has full access
         if (workflowOwnerId == userId)
+        {
             return true;
+        }
 
         // Check shared permissions
         var teamIds = await GetUserTeamIdsAsync(userId, cancellationToken);
@@ -35,7 +39,9 @@ public class WorkflowPermissionService(
             workflowId, userId, teamIds, cancellationToken);
 
         if (effectivePermission is null)
+        {
             return false;
+        }
 
         // Permission levels are hierarchical: Edit > Execute > View
         return effectivePermission.PermissionLevel >= requiredLevel;

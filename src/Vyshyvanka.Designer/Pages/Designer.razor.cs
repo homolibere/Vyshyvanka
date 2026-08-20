@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Logging;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Core.Models;
@@ -5,8 +7,6 @@ using Vyshyvanka.Designer.Components;
 using Vyshyvanka.Designer.Layout;
 using Vyshyvanka.Designer.Models;
 using Vyshyvanka.Designer.Services;
-using Microsoft.AspNetCore.Components;
-using Microsoft.Extensions.Logging;
 
 namespace Vyshyvanka.Designer.Pages;
 
@@ -205,11 +205,12 @@ public partial class Designer : IAsyncDisposable
         _isExecutionViewActive = false;
     }
 
-
     private async Task SaveWorkflow()
     {
         if (!ValidationService.ValidationResult.IsValid)
+        {
             return;
+        }
 
         try
         {
@@ -258,7 +259,9 @@ public partial class Designer : IAsyncDisposable
     private async Task ExecuteWorkflow()
     {
         if (!ValidationService.ValidationResult.IsValid)
+        {
             return;
+        }
 
         try
         {
@@ -480,6 +483,7 @@ public partial class Designer : IAsyncDisposable
                     new PortDefinition { Name = "done", DisplayName = "Done", Type = PortType.Array }
                 ]
             }
+
         ];
     }
 

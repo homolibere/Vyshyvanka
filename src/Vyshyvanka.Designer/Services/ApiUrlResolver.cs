@@ -38,17 +38,23 @@ public static class ApiUrlResolver
         // Try service discovery HTTPS first
         var url = configuration[ServiceDiscoveryHttpsKey];
         if (!string.IsNullOrWhiteSpace(url))
+        {
             return url;
+        }
 
         // Try service discovery HTTP
         url = configuration[ServiceDiscoveryHttpKey];
         if (!string.IsNullOrWhiteSpace(url))
+        {
             return url;
+        }
 
         // Try appsettings value
         url = configuration[AppSettingsKey];
         if (!string.IsNullOrWhiteSpace(url))
+        {
             return url;
+        }
 
         // Use fallback
         return fallbackUrl;

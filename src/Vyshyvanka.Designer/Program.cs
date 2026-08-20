@@ -43,7 +43,6 @@ builder.Services.AddScoped<ApiConnectionService>(sp =>
         sp.GetRequiredService<BrowserStorageService>(),
         apiBaseAddress));
 
-
 // Register AuthService as scoped (depends on HttpClient and AuthStateService)
 builder.Services.AddScoped<AuthService>();
 

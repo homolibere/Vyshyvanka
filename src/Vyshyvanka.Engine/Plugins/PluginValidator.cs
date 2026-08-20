@@ -1,7 +1,7 @@
 using System.Reflection;
+using Vyshyvanka.Core.Attributes;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
-using Vyshyvanka.Core.Attributes;
 
 namespace Vyshyvanka.Engine.Plugins;
 

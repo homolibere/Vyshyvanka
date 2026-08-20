@@ -3,8 +3,8 @@ using System.Text.Json;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Engine.Credentials;
-using ExecutionContext = Vyshyvanka.Engine.Execution.ExecutionContext;
 using Vyshyvanka.Engine.Nodes.Actions;
+using ExecutionContext = Vyshyvanka.Engine.Execution.ExecutionContext;
 
 namespace Vyshyvanka.Tests.Unit.Nodes;
 
@@ -427,7 +427,9 @@ public class HttpRequestNodeTests
             _onRequest?.Invoke(request);
 
             if (_exception is not null)
+            {
                 throw _exception;
+            }
 
             return Task.FromResult(_response!);
         }

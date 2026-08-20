@@ -1,10 +1,10 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Vyshyvanka.Api.Authorization;
 using Vyshyvanka.Contracts;
 using Vyshyvanka.Contracts.Auth;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Core.Models;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Vyshyvanka.Api.Controllers;
 

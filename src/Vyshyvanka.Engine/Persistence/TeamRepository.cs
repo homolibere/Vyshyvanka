@@ -1,8 +1,8 @@
+using Microsoft.EntityFrameworkCore;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Core.Models;
 using Vyshyvanka.Engine.Persistence.Entities;
-using Microsoft.EntityFrameworkCore;
 
 namespace Vyshyvanka.Engine.Persistence;
 
@@ -102,7 +102,9 @@ public class TeamRepository(VyshyvankaDbContext context) : ITeamRepository
     {
         var entity = await context.Teams.FindAsync([id], cancellationToken);
         if (entity is null)
+        {
             return false;
+        }
 
         context.Teams.Remove(entity);
         await context.SaveChangesAsync(cancellationToken);

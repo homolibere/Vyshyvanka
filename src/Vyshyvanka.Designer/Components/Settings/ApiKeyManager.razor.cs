@@ -1,7 +1,7 @@
-using Vyshyvanka.Designer.Models;
-using Vyshyvanka.Designer.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Vyshyvanka.Designer.Models;
+using Vyshyvanka.Designer.Services;
 
 namespace Vyshyvanka.Designer.Components;
 
@@ -119,7 +119,10 @@ public partial class ApiKeyManager
 
     private async Task CopyKey()
     {
-        if (_createdKey is null) return;
+        if (_createdKey is null)
+        {
+            return;
+        }
 
         try
         {
@@ -158,7 +161,10 @@ public partial class ApiKeyManager
 
     private async Task ConfirmRevoke()
     {
-        if (_confirmRevokeId is null) return;
+        if (_confirmRevokeId is null)
+        {
+            return;
+        }
 
         var id = _confirmRevokeId.Value;
         var name = _keys.FirstOrDefault(k => k.Id == id)?.Name ?? "key";
@@ -178,7 +184,10 @@ public partial class ApiKeyManager
 
     private async Task ConfirmDelete()
     {
-        if (_confirmDeleteId is null) return;
+        if (_confirmDeleteId is null)
+        {
+            return;
+        }
 
         var id = _confirmDeleteId.Value;
         var name = _keys.FirstOrDefault(k => k.Id == id)?.Name ?? "key";

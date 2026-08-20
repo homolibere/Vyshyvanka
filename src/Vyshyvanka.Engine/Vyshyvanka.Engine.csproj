@@ -20,6 +20,7 @@
     <PackageReference Include="NuGet.Packaging" />
     <PackageReference Include="NuGet.Protocol" />
     <PackageReference Include="NuGet.Versioning" />
+    <PackageReference Include="StyleCop.Analyzers" PrivateAssets="all" />
     <PackageReference Include="System.DirectoryServices.Protocols" />
   </ItemGroup>
 

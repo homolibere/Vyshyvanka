@@ -1,7 +1,7 @@
-using Vyshyvanka.Core.Interfaces;
 using Microsoft.Extensions.Logging;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
+using Vyshyvanka.Core.Interfaces;
 using SourceRepository = NuGet.Protocol.Core.Types.SourceRepository;
 
 namespace Vyshyvanka.Engine.Packages;
@@ -14,7 +14,7 @@ public class PackageSourceService : IPackageSourceService
     private readonly IManifestManager _manifestManager;
     private readonly ICredentialEncryption? _credentialEncryption;
     private readonly ILogger<PackageSourceService>? _logger;
-    private List<PackageSource> _sources = [];
+    private readonly List<PackageSource> _sources = [];
 
     public PackageSourceService(
         IManifestManager manifestManager,

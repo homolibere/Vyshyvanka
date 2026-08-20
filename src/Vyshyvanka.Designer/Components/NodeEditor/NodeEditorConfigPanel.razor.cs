@@ -1,7 +1,7 @@
 using System.Text.Json;
+using Microsoft.AspNetCore.Components;
 using Vyshyvanka.Designer.Models;
 using Vyshyvanka.Designer.Services;
-using Microsoft.AspNetCore.Components;
 
 namespace Vyshyvanka.Designer.Components;
 
@@ -78,6 +78,7 @@ public partial class NodeEditorConfigPanel : ComponentBase
     private string? _jsonError;
 
     private bool HasJsonError => !string.IsNullOrEmpty(_jsonError);
+
     private bool HasValidationErrors => ShowValidationErrors && GetMissingRequiredFields().Any();
 
     protected override void OnParametersSet()
@@ -111,7 +112,9 @@ public partial class NodeEditorConfigPanel : ComponentBase
     internal bool ShouldShowValidationError(ConfigurationProperty property)
     {
         if (!ShowValidationErrors || !property.IsRequired)
+        {
             return false;
+        }
 
         var value = GetValue(property.Name);
         return IsValueEmpty(value);
@@ -159,7 +162,9 @@ public partial class NodeEditorConfigPanel : ComponentBase
     private async Task SetMode(bool jsonMode)
     {
         if (jsonMode == IsJsonMode)
+        {
             return;
+        }
 
         if (jsonMode)
         {
@@ -234,10 +239,14 @@ public partial class NodeEditorConfigPanel : ComponentBase
     private static bool IsValueEmpty(object? value)
     {
         if (value is null)
+        {
             return true;
+        }
 
         if (value is string s)
+        {
             return string.IsNullOrWhiteSpace(s);
+        }
 
         if (value is JsonElement element)
         {

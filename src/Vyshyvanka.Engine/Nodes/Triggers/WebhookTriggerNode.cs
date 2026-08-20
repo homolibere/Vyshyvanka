@@ -1,7 +1,7 @@
 using System.Text.Json;
+using Vyshyvanka.Core.Attributes;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Engine.Nodes.Base;
-using Vyshyvanka.Core.Attributes;
 
 namespace Vyshyvanka.Engine.Nodes.Triggers;
 
@@ -20,7 +20,7 @@ namespace Vyshyvanka.Engine.Nodes.Triggers;
     Options = "immediate,lastNode")]
 public class WebhookTriggerNode : BaseTriggerNode
 {
-    private string _id = Guid.NewGuid().ToString();
+    private readonly string _id = Guid.NewGuid().ToString();
 
     /// <inheritdoc />
     public override string Id => _id;
@@ -82,7 +82,9 @@ public class WebhookTriggerNode : BaseTriggerNode
     private static object? ExtractProperty(JsonElement element, string propertyName)
     {
         if (element.ValueKind != JsonValueKind.Object)
+        {
             return null;
+        }
 
         if (element.TryGetProperty(propertyName, out var value))
         {

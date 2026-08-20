@@ -53,7 +53,9 @@ public class WorkflowValidationService(WorkflowStore store)
 
         // Cannot connect a node to itself
         if (sourceNodeId == targetNodeId)
+        {
             return false;
+        }
 
         // Check if connection already exists
         if (workflow.Connections.Any(c =>
@@ -61,25 +63,33 @@ public class WorkflowValidationService(WorkflowStore store)
                 c.SourcePort == sourcePort &&
                 c.TargetNodeId == targetNodeId &&
                 c.TargetPort == targetPort))
+        {
             return false;
+        }
 
         // Get port definitions
         var sourceNode = store.GetNode(sourceNodeId);
         var targetNode = store.GetNode(targetNodeId);
         if (sourceNode is null || targetNode is null)
+        {
             return false;
+        }
 
         var sourceDefinition = store.GetNodeDefinition(sourceNode.Type);
         var targetDefinition = store.GetNodeDefinition(targetNode.Type);
         if (sourceDefinition is null || targetDefinition is null)
+        {
             return false;
+        }
 
         // Use effective outputs to account for dynamic ports (e.g., Switch cases)
         var effectiveOutputs = NodeLayout.GetEffectiveOutputs(sourceNode, sourceDefinition);
         var sourcePortDef = effectiveOutputs.FirstOrDefault(p => p.Name == sourcePort);
         var targetPortDef = targetDefinition.Inputs.FirstOrDefault(p => p.Name == targetPort);
         if (sourcePortDef is null || targetPortDef is null)
+        {
             return false;
+        }
 
         // Check port type compatibility
         return ArePortTypesCompatible(sourcePortDef.Type, targetPortDef.Type);
@@ -232,19 +242,27 @@ public class WorkflowValidationService(WorkflowStore store)
     {
         // Any type is compatible with everything
         if (sourceType == PortType.Any || targetType == PortType.Any)
+        {
             return true;
+        }
 
         // Same types are always compatible
         if (sourceType == targetType)
+        {
             return true;
+        }
 
         // Object can connect to most types (loose typing)
         if (sourceType == PortType.Object)
+        {
             return true;
+        }
 
         // Array can connect to Object
         if (sourceType == PortType.Array && targetType == PortType.Object)
+        {
             return true;
+        }
 
         return false;
     }

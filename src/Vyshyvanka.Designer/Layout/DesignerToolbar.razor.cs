@@ -39,8 +39,16 @@ public partial class DesignerToolbar
     {
         get
         {
-            if (!IsValid) return "Fix validation errors before running";
-            if (!Store.Workflow.IsActive) return "Activate workflow before running";
+            if (!IsValid)
+            {
+                return "Fix validation errors before running";
+            }
+
+            if (!Store.Workflow.IsActive)
+            {
+                return "Activate workflow before running";
+            }
+
             return "Execute workflow";
         }
     }

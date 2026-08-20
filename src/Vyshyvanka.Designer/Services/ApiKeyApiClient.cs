@@ -14,7 +14,9 @@ public class ApiKeyApiClient(HttpClient httpClient) : ApiClientBase(httpClient)
     {
         var response = await Http.GetAsync("api/apikeys", cancellationToken);
         if (!response.IsSuccessStatusCode)
+        {
             return [];
+        }
 
         return await response.Content.ReadFromJsonAsync<List<ApiKeyResponse>>(JsonOptions, cancellationToken) ?? [];
     }

@@ -24,7 +24,9 @@ public abstract class ApiClientBase(HttpClient httpClient)
         CancellationToken cancellationToken = default)
     {
         if (response.IsSuccessStatusCode)
+        {
             return;
+        }
 
         ApiError? error = null;
         try

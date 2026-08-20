@@ -1,11 +1,11 @@
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Vyshyvanka.Api.Authorization;
 using Vyshyvanka.Api.Models;
 using Vyshyvanka.Contracts;
 using Vyshyvanka.Contracts.Credentials;
 using Vyshyvanka.Core.Interfaces;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Vyshyvanka.Api.Controllers;
 
@@ -25,7 +25,10 @@ public class CredentialController(
     public async Task<IActionResult> List(CancellationToken cancellationToken)
     {
         var userId = GetCurrentUserId();
-        if (userId is null) return Unauthorized();
+        if (userId is null)
+        {
+            return Unauthorized();
+        }
 
         var credentials = await credentialService.ListAsync(userId.Value, cancellationToken);
         return Ok(credentials.Select(c => c.ToResponse()));
@@ -38,7 +41,10 @@ public class CredentialController(
     public async Task<IActionResult> Get(Guid id, CancellationToken cancellationToken)
     {
         var userId = GetCurrentUserId();
-        if (userId is null) return Unauthorized();
+        if (userId is null)
+        {
+            return Unauthorized();
+        }
 
         var credential = await credentialService.GetAsync(id, cancellationToken);
         if (credential is null || credential.OwnerId != userId)
@@ -72,7 +78,10 @@ public class CredentialController(
         CancellationToken cancellationToken)
     {
         var userId = GetCurrentUserId();
-        if (userId is null) return Unauthorized();
+        if (userId is null)
+        {
+            return Unauthorized();
+        }
 
         var validation = credentialService.ValidateCredentialData(dto.Type, dto.Data);
         if (!validation.IsValid)
@@ -106,7 +115,10 @@ public class CredentialController(
         CancellationToken cancellationToken)
     {
         var userId = GetCurrentUserId();
-        if (userId is null) return Unauthorized();
+        if (userId is null)
+        {
+            return Unauthorized();
+        }
 
         var existing = await credentialService.GetAsync(id, cancellationToken);
         if (existing is null || existing.OwnerId != userId)
@@ -143,7 +155,10 @@ public class CredentialController(
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
         var userId = GetCurrentUserId();
-        if (userId is null) return Unauthorized();
+        if (userId is null)
+        {
+            return Unauthorized();
+        }
 
         var existing = await credentialService.GetAsync(id, cancellationToken);
         if (existing is null || existing.OwnerId != userId)

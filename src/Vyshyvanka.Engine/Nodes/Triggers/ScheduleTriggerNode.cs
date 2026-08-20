@@ -1,7 +1,7 @@
 using System.Text.Json;
+using Vyshyvanka.Core.Attributes;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Engine.Nodes.Base;
-using Vyshyvanka.Core.Attributes;
 
 namespace Vyshyvanka.Engine.Nodes.Triggers;
 
@@ -18,7 +18,7 @@ namespace Vyshyvanka.Engine.Nodes.Triggers;
 [ConfigurationProperty("timezone", "string", Description = "Timezone for schedule evaluation")]
 public class ScheduleTriggerNode : BaseTriggerNode
 {
-    private string _id = Guid.NewGuid().ToString();
+    private readonly string _id = Guid.NewGuid().ToString();
 
     /// <inheritdoc />
     public override string Id => _id;
@@ -82,7 +82,9 @@ public class ScheduleTriggerNode : BaseTriggerNode
         // Format: minute hour day month dayOfWeek
         var parts = cronExpression.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         if (parts.Length < 5)
+        {
             return null;
+        }
 
         // For now, return a simple next minute calculation
         // A full implementation would parse the cron expression properly

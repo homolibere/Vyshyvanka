@@ -50,7 +50,9 @@ public class ExecutionStateService(WorkflowStore store)
     public void UpdateExecution(ExecutionResponse execution)
     {
         if (_currentExecution?.Id != execution.Id)
+        {
             return;
+        }
 
         using var _ = store.SuspendNotifications();
         _currentExecution = execution;
@@ -125,7 +127,9 @@ public class ExecutionStateService(WorkflowStore store)
         _nodeExecutionStates.Clear();
 
         if (_currentExecution is null)
+        {
             return;
+        }
 
         // Group executions by node ID to detect loop iterations
         var grouped = _currentExecution.NodeExecutions

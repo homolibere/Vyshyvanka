@@ -1,7 +1,7 @@
+using Microsoft.AspNetCore.Components;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Designer.Models;
 using Vyshyvanka.Designer.Services;
-using Microsoft.AspNetCore.Components;
 
 namespace Vyshyvanka.Designer.Components;
 
@@ -61,7 +61,11 @@ public partial class NodeConfigPanel : IDisposable
 
     private void UpdateWorkflowName()
     {
-        if (string.IsNullOrWhiteSpace(_workflowName)) return;
+        if (string.IsNullOrWhiteSpace(_workflowName))
+        {
+            return;
+        }
+
         if (_workflowName != Store.Workflow.Name)
         {
             EditService.UpdateWorkflowMetadata(_workflowName, Store.Workflow.Description);
@@ -79,14 +83,21 @@ public partial class NodeConfigPanel : IDisposable
 
     private void UpdateNodeName(string nodeId)
     {
-        if (string.IsNullOrWhiteSpace(_nodeName)) return;
+        if (string.IsNullOrWhiteSpace(_nodeName))
+        {
+            return;
+        }
+
         EditService.UpdateNodeName(nodeId, _nodeName);
     }
 
     private void ApplyConfiguration()
     {
         var node = CanvasState.GetSelectedNode();
-        if (node is null) return;
+        if (node is null)
+        {
+            return;
+        }
 
         try
         {
@@ -139,9 +150,15 @@ public partial class NodeConfigPanel : IDisposable
     private static string FormatDuration(double ms)
     {
         if (ms < 1000)
+        {
             return $"{ms:F0}ms";
+        }
+
         if (ms < 60000)
+        {
             return $"{ms / 1000:F1}s";
+        }
+
         return $"{ms / 60000:F1}m";
     }
 
@@ -163,7 +180,10 @@ public partial class NodeConfigPanel : IDisposable
     private async Task RunUpToNode()
     {
         var nodeId = CanvasState.SelectedNodeId;
-        if (nodeId is null || _isRunningToNode) return;
+        if (nodeId is null || _isRunningToNode)
+        {
+            return;
+        }
 
         _isRunningToNode = true;
         StateHasChanged();

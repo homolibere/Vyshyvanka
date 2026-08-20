@@ -13,7 +13,9 @@ public class TeamService(ITeamRepository teamRepository) : ITeamService
     public async Task<Team> CreateAsync(string name, string? description, Guid ownerId, CancellationToken cancellationToken = default)
     {
         if (await teamRepository.ExistsByNameAsync(ownerId, name, cancellationToken))
+        {
             throw new InvalidOperationException($"A team named '{name}' already exists");
+        }
 
         var team = new Team
         {
@@ -32,11 +34,15 @@ public class TeamService(ITeamRepository teamRepository) : ITeamService
     {
         var team = await teamRepository.GetByIdAsync(teamId, cancellationToken);
         if (team is null)
+        {
             return null;
+        }
 
         // Only members can see a team
         if (!team.Members.Any(m => m.UserId == requestingUserId))
+        {
             return null;
+        }
 
         return team;
     }
@@ -54,7 +60,9 @@ public class TeamService(ITeamRepository teamRepository) : ITeamService
             ?? throw new InvalidOperationException($"Team {teamId} not found");
 
         if (team.OwnerId != requestingUserId)
+        {
             throw new UnauthorizedAccessException("Only the team owner can update team settings");
+        }
 
         var updated = team with
         {
@@ -70,10 +78,14 @@ public class TeamService(ITeamRepository teamRepository) : ITeamService
     {
         var team = await teamRepository.GetByIdAsync(teamId, cancellationToken);
         if (team is null)
+        {
             return false;
+        }
 
         if (team.OwnerId != requestingUserId)
+        {
             throw new UnauthorizedAccessException("Only the team owner can delete the team");
+        }
 
         return await teamRepository.DeleteAsync(teamId, cancellationToken);
     }
@@ -85,10 +97,14 @@ public class TeamService(ITeamRepository teamRepository) : ITeamService
             ?? throw new InvalidOperationException($"Team {teamId} not found");
 
         if (team.OwnerId != requestingUserId)
+        {
             throw new UnauthorizedAccessException("Only the team owner can add members");
+        }
 
         if (await teamRepository.IsMemberAsync(teamId, userId, cancellationToken))
+        {
             throw new InvalidOperationException("User is already a member of this team");
+        }
 
         var member = new TeamMember
         {
@@ -108,11 +124,15 @@ public class TeamService(ITeamRepository teamRepository) : ITeamService
 
         // Owner can remove anyone; members can remove themselves
         if (team.OwnerId != requestingUserId && userId != requestingUserId)
+        {
             throw new UnauthorizedAccessException("Only the team owner can remove other members");
+        }
 
         // Owner cannot be removed
         if (userId == team.OwnerId)
+        {
             throw new InvalidOperationException("Cannot remove the team owner. Transfer ownership or delete the team instead.");
+        }
 
         await teamRepository.RemoveMemberAsync(teamId, userId, cancellationToken);
     }

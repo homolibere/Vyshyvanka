@@ -1,10 +1,10 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Vyshyvanka.Api.Authorization;
 using Vyshyvanka.Api.Models;
 using Vyshyvanka.Contracts;
 using Vyshyvanka.Contracts.Teams;
 using Vyshyvanka.Core.Interfaces;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Vyshyvanka.Api.Controllers;
 
@@ -29,7 +29,9 @@ public class TeamController(
     {
         var userId = currentUserService.UserId;
         if (userId is null)
+        {
             return Unauthorized();
+        }
 
         var teams = await teamService.GetUserTeamsAsync(userId.Value, cancellationToken);
         return Ok(teams.Select(t => t.ToResponse()).ToList());
@@ -46,7 +48,9 @@ public class TeamController(
     {
         var userId = currentUserService.UserId;
         if (userId is null)
+        {
             return Unauthorized();
+        }
 
         var team = await teamService.GetByIdAsync(id, userId.Value, cancellationToken);
         if (team is null)

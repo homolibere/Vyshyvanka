@@ -195,7 +195,11 @@ public class WorkflowApiClient(HttpClient httpClient) : ApiClientBase(httpClient
 
     private static WorkflowSettingsDto? MapToSettingsDto(WorkflowSettings? settings)
     {
-        if (settings is null) return null;
+        if (settings is null)
+        {
+            return null;
+        }
+
         return new WorkflowSettingsDto
         {
             TimeoutSeconds = settings.Timeout.HasValue ? (int)settings.Timeout.Value.TotalSeconds : null,

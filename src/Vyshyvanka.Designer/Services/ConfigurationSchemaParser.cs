@@ -22,7 +22,9 @@ public static class ConfigurationSchemaParser
     public static List<ConfigurationProperty> Parse(JsonElement? schema)
     {
         if (!schema.HasValue)
+        {
             return [];
+        }
 
         var properties = new List<ConfigurationProperty>();
 
@@ -32,7 +34,9 @@ public static class ConfigurationSchemaParser
 
             // Get the properties object
             if (!schemaObj.TryGetProperty("properties", out var propertiesElement))
+            {
                 return [];
+            }
 
             // Get required array
             var requiredSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -45,7 +49,9 @@ public static class ConfigurationSchemaParser
                     {
                         var name = item.GetString();
                         if (!string.IsNullOrEmpty(name))
+                        {
                             requiredSet.Add(name);
+                        }
                     }
                 }
             }
@@ -114,7 +120,9 @@ public static class ConfigurationSchemaParser
         foreach (var (key, value) in values)
         {
             if (value is null)
+            {
                 continue;
+            }
 
             configDict[key] = value;
         }
@@ -130,7 +138,9 @@ public static class ConfigurationSchemaParser
     public static string ToDisplayName(string name)
     {
         if (string.IsNullOrEmpty(name))
+        {
             return string.Empty;
+        }
 
         // Handle common abbreviations
         var result = new System.Text.StringBuilder();
@@ -184,10 +194,13 @@ public static class ConfigurationSchemaParser
                 {
                     var optionValue = item.GetString();
                     if (!string.IsNullOrEmpty(optionValue))
+                    {
                         options.Add(optionValue);
+                    }
                 }
             }
         }
+
         // Also check for "options" as an alternative
         else if (propSchema.TryGetProperty("options", out var optionsElement) &&
                  optionsElement.ValueKind == JsonValueKind.Array)
@@ -199,7 +212,9 @@ public static class ConfigurationSchemaParser
                 {
                     var optionValue = item.GetString();
                     if (!string.IsNullOrEmpty(optionValue))
+                    {
                         options.Add(optionValue);
+                    }
                 }
             }
         }

@@ -30,6 +30,7 @@ public partial class ApiConnectionOverlay : ComponentBase, IDisposable
             {
                 UrlInput = ConnectionService.CurrentUrl;
             }
+
             StateHasChanged();
         });
     }
@@ -37,7 +38,9 @@ public partial class ApiConnectionOverlay : ComponentBase, IDisposable
     private async Task HandleConnect()
     {
         if (string.IsNullOrWhiteSpace(UrlInput))
+        {
             return;
+        }
 
         await ConnectionService.ConnectAsync(UrlInput.Trim());
     }

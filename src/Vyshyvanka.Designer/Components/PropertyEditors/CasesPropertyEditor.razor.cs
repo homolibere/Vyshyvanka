@@ -1,6 +1,6 @@
 using System.Text.Json;
-using Vyshyvanka.Designer.Models;
 using Microsoft.AspNetCore.Components;
+using Vyshyvanka.Designer.Models;
 
 namespace Vyshyvanka.Designer.Components;
 
@@ -88,7 +88,10 @@ public partial class CasesPropertyEditor : ComponentBase
             {
                 var dict = new Dictionary<string, object?> { ["value"] = ParseTypedValue(c.Value) };
                 if (!string.IsNullOrWhiteSpace(c.Output))
+                {
                     dict["output"] = c.Output;
+                }
+
                 return dict;
             })
             .ToList();
@@ -102,7 +105,10 @@ public partial class CasesPropertyEditor : ComponentBase
 
     private static string SerializeIncoming(object? value)
     {
-        if (value is null) return "[]";
+        if (value is null)
+        {
+            return "[]";
+        }
 
         if (value is JsonElement je)
         {
@@ -123,24 +129,37 @@ public partial class CasesPropertyEditor : ComponentBase
     /// </summary>
     private static object? ParseTypedValue(string value)
     {
-        if (string.IsNullOrEmpty(value)) return value;
+        if (string.IsNullOrEmpty(value))
+        {
+            return value;
+        }
 
         // null
         if (value.Equals("null", StringComparison.OrdinalIgnoreCase))
+        {
             return null;
+        }
 
         // boolean
         if (value.Equals("true", StringComparison.OrdinalIgnoreCase))
+        {
             return true;
+        }
+
         if (value.Equals("false", StringComparison.OrdinalIgnoreCase))
+        {
             return false;
+        }
 
         // number
         if (decimal.TryParse(value, System.Globalization.CultureInfo.InvariantCulture, out var number))
         {
             // Return int if it's a whole number
             if (number == Math.Floor(number) && number is >= int.MinValue and <= int.MaxValue)
+            {
                 return (int)number;
+            }
+
             return number;
         }
 
@@ -150,7 +169,10 @@ public partial class CasesPropertyEditor : ComponentBase
 
     private static List<CaseEntry> ParseCases(object? value)
     {
-        if (value is null) return [];
+        if (value is null)
+        {
+            return [];
+        }
 
         try
         {
@@ -169,12 +191,18 @@ public partial class CasesPropertyEditor : ComponentBase
                 return [];
             }
 
-            if (element.ValueKind != JsonValueKind.Array) return [];
+            if (element.ValueKind != JsonValueKind.Array)
+            {
+                return [];
+            }
 
             var result = new List<CaseEntry>();
             foreach (var item in element.EnumerateArray())
             {
-                if (item.ValueKind != JsonValueKind.Object) continue;
+                if (item.ValueKind != JsonValueKind.Object)
+                {
+                    continue;
+                }
 
                 var caseValue = "";
                 var caseOutput = "";
@@ -211,6 +239,7 @@ public partial class CasesPropertyEditor : ComponentBase
     private record CaseEntry
     {
         public string Value { get; init; } = "";
+
         public string Output { get; init; } = "";
     }
 }

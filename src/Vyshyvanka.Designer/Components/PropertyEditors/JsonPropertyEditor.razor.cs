@@ -1,6 +1,6 @@
-using Vyshyvanka.Designer.Models;
-using Microsoft.AspNetCore.Components;
 using System.Text.Json;
+using Microsoft.AspNetCore.Components;
+using Vyshyvanka.Designer.Models;
 
 namespace Vyshyvanka.Designer.Components;
 
@@ -32,9 +32,15 @@ public partial class JsonPropertyEditor : ComponentBase
         get
         {
             if (!string.IsNullOrEmpty(_syntaxError))
+            {
                 return _syntaxError;
+            }
+
             if (ShowValidationError)
+            {
                 return "This field is required";
+            }
+
             return string.Empty;
         }
     }

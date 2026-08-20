@@ -24,7 +24,10 @@ public class WorkflowEditService(
         store.SetWorkflow(transform(store.Workflow));
         store.MarkDirty();
         if (validate)
+        {
             validationService.ValidateWorkflow();
+        }
+
         store.NotifyStateChanged();
     }
 
@@ -84,7 +87,10 @@ public class WorkflowEditService(
     public void MoveNode(string nodeId, double x, double y)
     {
         var node = store.GetNode(nodeId);
-        if (node is null) return;
+        if (node is null)
+        {
+            return;
+        }
 
         var updatedNode = node with { Position = new Position(x, y) };
         var nodes = store.Workflow.Nodes.Select(n => n.Id == nodeId ? updatedNode : n).ToList();
@@ -101,7 +107,10 @@ public class WorkflowEditService(
     public void UpdateNodeConfiguration(string nodeId, JsonElement configuration)
     {
         var node = store.GetNode(nodeId);
-        if (node is null) return;
+        if (node is null)
+        {
+            return;
+        }
 
         CommitChange("Update Node Configuration", w => w with
         {
@@ -119,7 +128,9 @@ public class WorkflowEditService(
                 c.SourcePort == connection.SourcePort &&
                 c.TargetNodeId == connection.TargetNodeId &&
                 c.TargetPort == connection.TargetPort))
+        {
             return;
+        }
 
         CommitChange("Add Connection", w => w with
         {
@@ -191,7 +202,10 @@ public class WorkflowEditService(
     /// <summary>Sets the workflow active state.</summary>
     public void SetWorkflowActive(bool isActive)
     {
-        if (store.Workflow.IsActive == isActive) return;
+        if (store.Workflow.IsActive == isActive)
+        {
+            return;
+        }
 
         CommitChange(isActive ? "Activate Workflow" : "Deactivate Workflow", w => w with
         {
@@ -204,7 +218,10 @@ public class WorkflowEditService(
     public void UpdateNodeName(string nodeId, string name)
     {
         var node = store.GetNode(nodeId);
-        if (node is null || string.IsNullOrWhiteSpace(name)) return;
+        if (node is null || string.IsNullOrWhiteSpace(name))
+        {
+            return;
+        }
 
         CommitChange("Update Node Name", w => w with
         {
@@ -217,7 +234,10 @@ public class WorkflowEditService(
     public void UpdateNodeCredential(string nodeId, Guid? credentialId)
     {
         var node = store.GetNode(nodeId);
-        if (node is null) return;
+        if (node is null)
+        {
+            return;
+        }
 
         CommitChange("Update Node Credential", w => w with
         {
@@ -230,7 +250,10 @@ public class WorkflowEditService(
     public void DropNodeFromPalette(double x, double y)
     {
         var draggedNodeType = canvasState.DraggedNodeType;
-        if (draggedNodeType is null) return;
+        if (draggedNodeType is null)
+        {
+            return;
+        }
 
         var definition = store.GetNodeDefinition(draggedNodeType);
         if (definition is null)

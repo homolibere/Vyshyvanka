@@ -1,6 +1,6 @@
-using Vyshyvanka.Designer.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Vyshyvanka.Designer.Services;
 
 namespace Vyshyvanka.Designer.Components;
 
@@ -12,7 +12,9 @@ namespace Vyshyvanka.Designer.Components;
 public partial class WebhookUrlHint : ComponentBase, IDisposable
 {
     [Inject] private HttpClient Http { get; set; } = null!;
+
     [Inject] private IJSRuntime JS { get; set; } = null!;
+
     [Inject] private WorkflowStore Store { get; set; } = null!;
 
     /// <summary>
@@ -47,9 +49,13 @@ public partial class WebhookUrlHint : ComponentBase, IDisposable
             await JS.InvokeVoidAsync("navigator.clipboard.writeText", url);
 
             if (url == PathUrl)
+            {
                 _copiedPath = true;
+            }
             else
+            {
                 _copiedId = true;
+            }
 
             StateHasChanged();
 

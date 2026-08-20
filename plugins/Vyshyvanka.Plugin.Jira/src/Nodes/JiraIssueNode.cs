@@ -98,21 +98,31 @@ public class JiraIssueNode : BaseJiraNode
         };
 
         if (!string.IsNullOrWhiteSpace(description))
+        {
             fields["description"] = ToAdf(description);
+        }
 
         if (!string.IsNullOrWhiteSpace(assignee))
+        {
             fields["assignee"] = new { accountId = assignee };
+        }
 
         if (labels is { Length: > 0 })
+        {
             fields["labels"] = labels;
+        }
 
         if (!string.IsNullOrWhiteSpace(priority))
+        {
             fields["priority"] = new { name = priority };
+        }
 
         if (additionalFields is not null)
         {
             foreach (var (key, value) in additionalFields)
+            {
                 fields[key] = value;
+            }
         }
 
         var body = new { fields };
@@ -137,24 +147,36 @@ public class JiraIssueNode : BaseJiraNode
         var fields = new Dictionary<string, object>();
 
         if (!string.IsNullOrWhiteSpace(summary))
+        {
             fields["summary"] = summary;
+        }
 
         if (!string.IsNullOrWhiteSpace(description))
+        {
             fields["description"] = ToAdf(description);
+        }
 
         if (!string.IsNullOrWhiteSpace(assignee))
+        {
             fields["assignee"] = new { accountId = assignee };
+        }
 
         if (labels is { Length: > 0 })
+        {
             fields["labels"] = labels;
+        }
 
         if (!string.IsNullOrWhiteSpace(priority))
+        {
             fields["priority"] = new { name = priority };
+        }
 
         if (additionalFields is not null)
         {
             foreach (var (key, value) in additionalFields)
+            {
                 fields[key] = value;
+            }
         }
 
         var body = new { fields };

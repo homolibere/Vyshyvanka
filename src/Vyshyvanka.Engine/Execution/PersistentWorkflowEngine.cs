@@ -87,7 +87,6 @@ public class PersistentWorkflowEngine(IWorkflowEngine innerEngine, IExecutionRep
         }
     }
 
-
     /// <inheritdoc />
     public async Task<ExecutionResult> ExecuteNodeAsync(
         WorkflowNode node,

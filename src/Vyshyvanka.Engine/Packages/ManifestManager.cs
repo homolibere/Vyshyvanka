@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Vyshyvanka.Core.Interfaces;
 using Microsoft.Extensions.Logging;
+using Vyshyvanka.Core.Interfaces;
 
 namespace Vyshyvanka.Engine.Packages;
 
@@ -123,6 +123,7 @@ public class ManifestManager : IManifestManager
                 IsEnabled = true,
                 IsTrusted = true
             }
+
         ]
     };
 }

@@ -118,4 +118,5 @@ public partial class PackageCard
         };
     }
 }
+
 /// 

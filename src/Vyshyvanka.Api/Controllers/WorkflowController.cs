@@ -1,4 +1,6 @@
 using System.Text.Json;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Vyshyvanka.Api.Authorization;
 using Vyshyvanka.Api.Models;
 using Vyshyvanka.Contracts;
@@ -8,8 +10,6 @@ using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Core.Models;
 using Vyshyvanka.Engine.Validation;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Vyshyvanka.Api.Controllers;
 
@@ -118,7 +118,6 @@ public class WorkflowController : VyshyvankaControllerBase
         return Ok(workflow.ToResponse());
     }
 
-
     /// <summary>
     /// Creates a new workflow.
     /// </summary>
@@ -151,7 +150,9 @@ public class WorkflowController : VyshyvankaControllerBase
         // Enforce webhook path uniqueness among active workflows
         var pathConflict = await ValidateWebhookPathUniquenessAsync(workflow, cancellationToken);
         if (pathConflict is not null)
+        {
             return pathConflict;
+        }
 
         var created = await _repository.CreateAsync(workflow, cancellationToken);
         _logger.LogInformation("Created workflow {WorkflowId}: {WorkflowName}", created.Id, created.Name);
@@ -218,14 +219,15 @@ public class WorkflowController : VyshyvankaControllerBase
         // Enforce webhook path uniqueness among active workflows
         var pathConflict = await ValidateWebhookPathUniquenessAsync(workflow, cancellationToken);
         if (pathConflict is not null)
+        {
             return pathConflict;
+        }
 
         var updated = await _repository.UpdateAsync(workflow, cancellationToken);
         _logger.LogInformation("Updated workflow {WorkflowId}: {WorkflowName}", updated.Id, updated.Name);
 
         return Ok(updated.ToResponse());
     }
-
 
     /// <summary>
     /// Checks if a webhook path is available (not used by another active workflow).
@@ -444,7 +446,9 @@ public class WorkflowController : VyshyvankaControllerBase
     private bool IsOwnerOrAdmin(Workflow workflow)
     {
         if (User.IsInRole("Admin"))
+        {
             return true;
+        }
 
         var userId = _currentUserService.UserId;
         return userId is not null && workflow.CreatedBy == userId;
@@ -459,13 +463,17 @@ public class WorkflowController : VyshyvankaControllerBase
     {
         // Only enforce uniqueness for active workflows
         if (!workflow.IsActive)
+        {
             return null;
+        }
 
         var webhookTrigger = workflow.Nodes.FirstOrDefault(n =>
             n.Type.Equals("webhook-trigger", StringComparison.OrdinalIgnoreCase));
 
         if (webhookTrigger is null)
+        {
             return null;
+        }
 
         // Extract the configured path
         if (webhookTrigger.Configuration.ValueKind != JsonValueKind.Object ||
@@ -477,7 +485,9 @@ public class WorkflowController : VyshyvankaControllerBase
 
         var path = pathProp.GetString();
         if (string.IsNullOrWhiteSpace(path))
+        {
             return null;
+        }
 
         // Check if another workflow already uses this path
         var existing = await _repository.GetByWebhookPathAsync(path, cancellationToken);

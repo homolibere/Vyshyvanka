@@ -1,6 +1,6 @@
+using Microsoft.AspNetCore.Components;
 using Vyshyvanka.Designer.Models;
 using Vyshyvanka.Designer.Services;
-using Microsoft.AspNetCore.Components;
 
 namespace Vyshyvanka.Designer.Components;
 
@@ -12,7 +12,7 @@ public partial class SourceManager : IDisposable
     [Inject]
     private ToastService ToastService { get; set; } = null!;
 
-    private Dictionary<string, SourceTestResultModel> _testResults = new();
+    private readonly Dictionary<string, SourceTestResultModel> _testResults = new();
 
     /// <summary>Callback when Add Source is clicked.</summary>
     [Parameter]

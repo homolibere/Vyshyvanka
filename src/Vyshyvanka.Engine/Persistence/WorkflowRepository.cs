@@ -1,8 +1,8 @@
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Core.Models;
 using Vyshyvanka.Engine.Persistence.Entities;
-using Microsoft.EntityFrameworkCore;
 
 namespace Vyshyvanka.Engine.Persistence;
 
@@ -66,7 +66,6 @@ public class WorkflowRepository(VyshyvankaDbContext context) : IWorkflowReposito
         await context.SaveChangesAsync(cancellationToken);
         return true;
     }
-
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<Workflow>> GetAllAsync(
@@ -157,7 +156,9 @@ public class WorkflowRepository(VyshyvankaDbContext context) : IWorkflowReposito
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(webhookPath))
+        {
             return null;
+        }
 
         // Use a SQL LIKE filter on the NodesJson column to narrow candidates,
         // then confirm in memory with exact path matching on the deserialized model.
@@ -178,7 +179,6 @@ public class WorkflowRepository(VyshyvankaDbContext context) : IWorkflowReposito
                 pathProp.GetString()?.TrimStart('/').Equals(
                     webhookPath.TrimStart('/'), StringComparison.OrdinalIgnoreCase) == true));
     }
-
 
     private static WorkflowEntity ToEntity(Workflow workflow)
     {
@@ -210,6 +210,7 @@ public class WorkflowRepository(VyshyvankaDbContext context) : IWorkflowReposito
         {
             return node with { Configuration = JsonDocument.Parse("{}").RootElement };
         }
+
         return node;
     }
 

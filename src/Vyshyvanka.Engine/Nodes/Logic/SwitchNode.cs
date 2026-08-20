@@ -1,8 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Vyshyvanka.Core.Attributes;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Engine.Nodes.Base;
-using Vyshyvanka.Core.Attributes;
 
 namespace Vyshyvanka.Engine.Nodes.Logic;
 
@@ -28,7 +28,7 @@ namespace Vyshyvanka.Engine.Nodes.Logic;
 [ConfigurationProperty("cases", "array", Description = "Array of case definitions with value and output", DataSource = "switch-cases")]
 public class SwitchNode : BaseLogicNode
 {
-    private string _id = Guid.NewGuid().ToString();
+    private readonly string _id = Guid.NewGuid().ToString();
 
     /// <inheritdoc />
     public override string Id => _id;
@@ -77,7 +77,9 @@ public class SwitchNode : BaseLogicNode
     private static bool ValuesMatch(JsonElement fieldValue, object? caseValue)
     {
         if (caseValue is null || (caseValue is JsonElement je && je.ValueKind == JsonValueKind.Null))
+        {
             return fieldValue.ValueKind == JsonValueKind.Null || fieldValue.ValueKind == JsonValueKind.Undefined;
+        }
 
         return fieldValue.ValueKind switch
         {

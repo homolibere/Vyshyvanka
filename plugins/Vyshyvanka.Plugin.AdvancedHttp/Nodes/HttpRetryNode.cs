@@ -77,7 +77,9 @@ public class HttpRetryNode : BasePluginNode
                 var request = CreateRequest(method, url, headers, body);
 
                 if (input.CredentialId.HasValue)
+                {
                     await ApplyCredentialsAsync(request, input.CredentialId.Value, context);
+                }
 
                 var attemptStart = DateTime.UtcNow;
                 try
@@ -126,7 +128,9 @@ public class HttpRetryNode : BasePluginNode
             }
 
             if (response is null)
+            {
                 return FailureOutput("No response received after all retry attempts");
+            }
 
             var responseBody = await response.Content.ReadAsStringAsync(context.CancellationToken);
             JsonElement? parsedBody = null;
@@ -134,7 +138,9 @@ public class HttpRetryNode : BasePluginNode
             try
             {
                 if (!string.IsNullOrWhiteSpace(responseBody))
+                {
                     parsedBody = JsonSerializer.Deserialize<JsonElement>(responseBody);
+                }
             }
             catch (JsonException)
             {
@@ -173,11 +179,15 @@ public class HttpRetryNode : BasePluginNode
         if (headers is not null)
         {
             foreach (var (key, value) in headers)
+            {
                 request.Headers.TryAddWithoutValidation(key, value);
+            }
         }
 
         if (body.HasValue && method is "POST" or "PUT" or "PATCH")
+        {
             request.Content = new StringContent(body.Value.GetRawText(), Encoding.UTF8, "application/json");
+        }
 
         return request;
     }
@@ -196,7 +206,10 @@ public class HttpRetryNode : BasePluginNode
         IExecutionContext context)
     {
         var credentials = await context.Credentials.GetCredentialAsync(credentialId, context.CancellationToken);
-        if (credentials is null) return;
+        if (credentials is null)
+        {
+            return;
+        }
 
         if (credentials.TryGetValue("apiKey", out var apiKey))
         {

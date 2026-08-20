@@ -1,7 +1,7 @@
+using Microsoft.AspNetCore.Components;
 using Vyshyvanka.Contracts.Auth;
 using Vyshyvanka.Designer.Models;
 using Vyshyvanka.Designer.Services;
-using Microsoft.AspNetCore.Components;
 
 namespace Vyshyvanka.Designer.Components;
 
@@ -106,10 +106,26 @@ public partial class AuditLogViewer
     private static string FormatTimestamp(DateTime timestamp)
     {
         var diff = DateTime.UtcNow - timestamp;
-        if (diff.TotalMinutes < 1) return "just now";
-        if (diff.TotalMinutes < 60) return $"{(int)diff.TotalMinutes}m ago";
-        if (diff.TotalHours < 24) return $"{(int)diff.TotalHours}h ago";
-        if (diff.TotalDays < 7) return $"{(int)diff.TotalDays}d ago";
+        if (diff.TotalMinutes < 1)
+        {
+            return "just now";
+        }
+
+        if (diff.TotalMinutes < 60)
+        {
+            return $"{(int)diff.TotalMinutes}m ago";
+        }
+
+        if (diff.TotalHours < 24)
+        {
+            return $"{(int)diff.TotalHours}h ago";
+        }
+
+        if (diff.TotalDays < 7)
+        {
+            return $"{(int)diff.TotalDays}d ago";
+        }
+
         return timestamp.ToString("MMM d, yyyy HH:mm");
     }
 }

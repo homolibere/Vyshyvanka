@@ -108,7 +108,9 @@ public class GitLabMergeRequestNode : BaseGitLabNode
 
         var reviewerIds = GetConfigValue<int[]>(input, "reviewerIds");
         if (reviewerIds is { Length: > 0 })
+        {
             body["reviewer_ids"] = reviewerIds;
+        }
 
         var response = await SendGitLabRequestAsync(
             HttpMethod.Post, $"projects/{projectId}/merge_requests", apiBase, token, body, ct);
@@ -170,7 +172,9 @@ public class GitLabMergeRequestNode : BaseGitLabNode
 
         var reviewerIds = GetConfigValue<int[]>(input, "reviewerIds");
         if (reviewerIds is { Length: > 0 })
+        {
             body["reviewer_ids"] = reviewerIds;
+        }
 
         var response = await SendGitLabRequestAsync(
             HttpMethod.Put, $"projects/{projectId}/merge_requests/{iid}", apiBase, token, body, ct);
@@ -231,6 +235,8 @@ public class GitLabMergeRequestNode : BaseGitLabNode
     {
         var value = GetConfigValue<object>(input, configKey);
         if (value is not null)
+        {
             body[apiKey ?? configKey] = value;
+        }
     }
 }

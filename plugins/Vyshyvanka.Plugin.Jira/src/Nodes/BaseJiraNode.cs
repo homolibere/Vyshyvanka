@@ -64,7 +64,10 @@ public abstract class BaseJiraNode : INode
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,
             Func<TState, Exception?, string> formatter)
         {
-            if (!IsEnabled(logLevel)) return;
+            if (!IsEnabled(logLevel))
+            {
+                return;
+            }
 
             var level = logLevel switch
             {
@@ -78,7 +81,9 @@ public abstract class BaseJiraNode : INode
 
             var message = formatter(state, exception);
             if (exception is not null)
+            {
                 message = $"{message} {exception.Message}";
+            }
 
             logAction(level, category, message);
         }
@@ -132,7 +137,9 @@ public abstract class BaseJiraNode : INode
     protected static T? GetConfigValue<T>(NodeInput input, string key)
     {
         if (input.Configuration.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
+        {
             return default;
+        }
 
         return input.Configuration.TryGetProperty(key, out var value)
             ? JsonSerializer.Deserialize<T>(value.GetRawText())
@@ -152,8 +159,10 @@ public abstract class BaseJiraNode : INode
         NodeInput input, IExecutionContext context)
     {
         if (!input.CredentialId.HasValue)
+        {
             throw new InvalidOperationException(
                 "Jira credential is required. Attach a BasicAuth credential with email, apiToken, and domain.");
+        }
 
         var creds = await context.Credentials.GetCredentialAsync(input.CredentialId.Value, context.CancellationToken)
                     ?? throw new InvalidOperationException("Credential not found.");
@@ -167,7 +176,9 @@ public abstract class BaseJiraNode : INode
             : throw new InvalidOperationException("Credential must contain 'apiToken' (or 'password').");
 
         if (!creds.TryGetValue("domain", out var domain) || string.IsNullOrWhiteSpace(domain))
+        {
             throw new InvalidOperationException("Credential must contain 'domain' (e.g. yourcompany.atlassian.net).");
+        }
 
         var baseUrl = domain.StartsWith("http", StringComparison.OrdinalIgnoreCase)
             ? domain.TrimEnd('/')

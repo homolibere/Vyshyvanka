@@ -1,10 +1,10 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Vyshyvanka.Api.Authorization;
 using Vyshyvanka.Api.Models;
 using Vyshyvanka.Contracts;
 using Vyshyvanka.Contracts.Packages;
 using Vyshyvanka.Core.Interfaces;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Vyshyvanka.Api.Controllers;
 
@@ -89,7 +89,6 @@ public class PackageSourceController : ControllerBase
             });
         }
     }
-
 
     /// <summary>
     /// Updates an existing package source.

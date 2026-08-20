@@ -1,7 +1,7 @@
+using Microsoft.AspNetCore.Components;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Designer.Models;
 using Vyshyvanka.Designer.Services;
-using Microsoft.AspNetCore.Components;
 
 namespace Vyshyvanka.Designer.Components;
 
@@ -45,7 +45,9 @@ public partial class CredentialPicker : ComponentBase
     {
         _selectedId = SelectedCredentialId?.ToString() ?? "";
         if (FilterType.HasValue)
+        {
             _newType = FilterType.Value;
+        }
     }
 
     private async Task LoadCredentialsAsync()

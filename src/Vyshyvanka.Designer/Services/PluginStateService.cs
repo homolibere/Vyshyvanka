@@ -326,7 +326,6 @@ public class PluginStateService : IDisposable
         }
     }
 
-
     /// <summary>
     /// Installs a package.
     /// </summary>
@@ -617,7 +616,6 @@ public class PluginStateService : IDisposable
             // Log but don't fail the operation
         }
     }
-
 
     /// <summary>
     /// Loads package sources from the API.
@@ -968,7 +966,10 @@ public class PluginStateService : IDisposable
     /// <param name="disposing">True if disposing managed resources.</param>
     protected virtual void Dispose(bool disposing)
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
 
         if (disposing)
         {

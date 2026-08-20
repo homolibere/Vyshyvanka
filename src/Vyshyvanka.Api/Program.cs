@@ -1,7 +1,7 @@
+using Microsoft.EntityFrameworkCore;
 using Vyshyvanka.Api.Extensions;
 using Vyshyvanka.Api.Middleware;
 using Vyshyvanka.Core.Interfaces;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 

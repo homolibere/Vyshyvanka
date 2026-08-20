@@ -1,8 +1,8 @@
+using Microsoft.AspNetCore.Mvc;
 using Vyshyvanka.Api.Authorization;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Core.Models;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Vyshyvanka.Api.Controllers;
 
@@ -26,7 +26,9 @@ public abstract class VyshyvankaControllerBase : ControllerBase
     {
         var userId = _currentUserService.UserId;
         if (userId is null)
+        {
             return false;
+        }
 
         var isAdmin = User.IsInRole(Roles.Admin);
         return await _permissionService.HasPermissionAsync(

@@ -76,7 +76,9 @@ public class AuthService
     public async Task<bool> RefreshTokenAsync(CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(_authState.RefreshToken))
+        {
             return false;
+        }
 
         try
         {

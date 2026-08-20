@@ -1,10 +1,11 @@
-namespace Vyshyvanka.Api.Extensions;
 
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+
+namespace Vyshyvanka.Api.Extensions;
 
 /// <summary>
 /// Provides extension methods for configuring common service defaults including

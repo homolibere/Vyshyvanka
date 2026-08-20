@@ -1,11 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using NuGet.Versioning;
 using Vyshyvanka.Api.Authorization;
 using Vyshyvanka.Api.Models;
 using Vyshyvanka.Contracts;
 using Vyshyvanka.Contracts.Packages;
 using Vyshyvanka.Core.Interfaces;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using NuGet.Versioning;
 
 namespace Vyshyvanka.Api.Controllers;
 
@@ -59,7 +59,6 @@ public class PackageController : ControllerBase
         var result = await _packageManager.SearchPackagesAsync(query, options, cancellationToken);
         return Ok(result.ToResponse());
     }
-
 
     /// <summary>
     /// Gets all installed packages.
@@ -115,7 +114,6 @@ public class PackageController : ControllerBase
 
         return Ok(details.ToResponse());
     }
-
 
     /// <summary>
     /// Installs a package and its dependencies.
@@ -225,7 +223,6 @@ public class PackageController : ControllerBase
             id, result.PreviousVersion, result.Package?.Version);
         return Ok(result.ToResponse());
     }
-
 
     /// <summary>
     /// Uninstalls a package.

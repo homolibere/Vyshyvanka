@@ -1,7 +1,7 @@
 using Bunit;
+using Microsoft.Extensions.DependencyInjection;
 using Vyshyvanka.Designer.Components;
 using Vyshyvanka.Designer.Services;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Vyshyvanka.Tests.Unit.Components;
 

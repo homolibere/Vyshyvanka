@@ -1,5 +1,5 @@
-using Vyshyvanka.Designer.Services;
 using Microsoft.AspNetCore.Components;
+using Vyshyvanka.Designer.Services;
 
 namespace Vyshyvanka.Designer.Components;
 
@@ -22,14 +22,21 @@ public partial class UserMenu : ComponentBase, IDisposable
     private string GetDisplayName()
     {
         var user = AuthService.CurrentUser;
-        if (user is null) return "";
+        if (user is null)
+        {
+            return "";
+        }
+
         return !string.IsNullOrWhiteSpace(user.DisplayName) ? user.DisplayName : user.Email;
     }
 
     private string GetInitials()
     {
         var name = GetDisplayName();
-        if (string.IsNullOrWhiteSpace(name)) return "?";
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return "?";
+        }
 
         var parts = name.Split(' ', '@');
         return parts.Length >= 2

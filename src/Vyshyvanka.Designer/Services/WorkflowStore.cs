@@ -92,7 +92,9 @@ public class WorkflowStore
     public static Workflow? DeserializeFromJson(string json)
     {
         if (string.IsNullOrWhiteSpace(json))
+        {
             return null;
+        }
 
         try
         {
@@ -148,7 +150,11 @@ public class WorkflowStore
 
         public void Dispose()
         {
-            if (_disposed) return;
+            if (_disposed)
+            {
+                return;
+            }
+
             _disposed = true;
             store.ResumeNotifications();
         }

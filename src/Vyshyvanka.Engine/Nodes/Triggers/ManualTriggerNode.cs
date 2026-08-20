@@ -1,7 +1,7 @@
 using System.Text.Json;
+using Vyshyvanka.Core.Attributes;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Engine.Nodes.Base;
-using Vyshyvanka.Core.Attributes;
 
 namespace Vyshyvanka.Engine.Nodes.Triggers;
 
@@ -19,7 +19,7 @@ namespace Vyshyvanka.Engine.Nodes.Triggers;
     Description = "Custom JSON payload to output when triggered. Leave empty to pass through trigger data.")]
 public class ManualTriggerNode : BaseTriggerNode
 {
-    private string _id = Guid.NewGuid().ToString();
+    private readonly string _id = Guid.NewGuid().ToString();
 
     /// <inheritdoc />
     public override string Id => _id;

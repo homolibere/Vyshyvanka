@@ -1,7 +1,5 @@
 using System.Security.Claims;
 using System.Text.Encodings.Web;
-using Vyshyvanka.Core.Enums;
-using Vyshyvanka.Engine.Persistence;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -11,6 +9,8 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Vyshyvanka.Core.Enums;
+using Vyshyvanka.Engine.Persistence;
 
 namespace Vyshyvanka.Tests.Integration.Fixtures;
 

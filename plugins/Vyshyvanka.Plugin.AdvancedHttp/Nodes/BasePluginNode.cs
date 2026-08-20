@@ -48,10 +48,14 @@ public abstract class BasePluginNode : INode
     protected static T? GetConfigValue<T>(NodeInput input, string key)
     {
         if (input.Configuration.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
+        {
             return default;
+        }
 
         if (input.Configuration.TryGetProperty(key, out var value))
+        {
             return JsonSerializer.Deserialize<T>(value.GetRawText());
+        }
 
         return default;
     }
@@ -60,7 +64,10 @@ public abstract class BasePluginNode : INode
     {
         var value = GetConfigValue<T>(input, key);
         if (value is null)
+        {
             throw new InvalidOperationException($"Required configuration '{key}' is missing");
+        }
+
         return value;
     }
 }

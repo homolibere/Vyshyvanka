@@ -1,7 +1,7 @@
+using Microsoft.EntityFrameworkCore;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Core.Models;
 using Vyshyvanka.Engine.Persistence.Entities;
-using Microsoft.EntityFrameworkCore;
 
 namespace Vyshyvanka.Engine.Persistence;
 
@@ -30,7 +30,9 @@ public class FolderRepository(VyshyvankaDbContext context) : IFolderRepository
             .FirstOrDefaultAsync(f => f.Id == id, cancellationToken);
 
         if (entity is null)
+        {
             return null;
+        }
 
         var workflowCount = await context.Workflows
             .CountAsync(w => w.FolderId == id, cancellationToken);
@@ -85,7 +87,9 @@ public class FolderRepository(VyshyvankaDbContext context) : IFolderRepository
     {
         var entity = await context.Folders.FindAsync([id], cancellationToken);
         if (entity is null)
+        {
             return false;
+        }
 
         // FolderId on workflows is set to null by cascade (SetNull), handled by EF/DB
         context.Folders.Remove(entity);

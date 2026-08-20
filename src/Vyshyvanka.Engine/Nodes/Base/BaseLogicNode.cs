@@ -46,7 +46,9 @@ public abstract class BaseLogicNode : BaseNode
     protected static JsonElement GetNestedProperty(JsonElement element, string propertyPath)
     {
         if (string.IsNullOrEmpty(propertyPath))
+        {
             return element;
+        }
 
         var parts = propertyPath.Split('.');
         var current = element;
@@ -54,7 +56,9 @@ public abstract class BaseLogicNode : BaseNode
         foreach (var part in parts)
         {
             if (current.ValueKind != JsonValueKind.Object)
+            {
                 return default;
+            }
 
             if (current.TryGetProperty(part, out var next))
             {
@@ -75,7 +79,9 @@ public abstract class BaseLogicNode : BaseNode
             }
 
             if (!found)
+            {
                 return default;
+            }
         }
 
         return current;
@@ -84,7 +90,9 @@ public abstract class BaseLogicNode : BaseNode
     private static bool JsonElementEquals(JsonElement a, JsonElement b)
     {
         if (a.ValueKind != b.ValueKind)
+        {
             return false;
+        }
 
         return a.ValueKind switch
         {
@@ -99,7 +107,9 @@ public abstract class BaseLogicNode : BaseNode
     private static int CompareNumbers(JsonElement a, JsonElement b)
     {
         if (a.ValueKind != JsonValueKind.Number || b.ValueKind != JsonValueKind.Number)
+        {
             return 0;
+        }
 
         return a.GetDecimal().CompareTo(b.GetDecimal());
     }
@@ -107,7 +117,9 @@ public abstract class BaseLogicNode : BaseNode
     private static bool StringContains(JsonElement element, JsonElement searchValue)
     {
         if (element.ValueKind != JsonValueKind.String || searchValue.ValueKind != JsonValueKind.String)
+        {
             return false;
+        }
 
         return element.GetString()?.Contains(searchValue.GetString() ?? "", StringComparison.OrdinalIgnoreCase) ?? false;
     }
@@ -115,7 +127,9 @@ public abstract class BaseLogicNode : BaseNode
     private static bool StringStartsWith(JsonElement element, JsonElement searchValue)
     {
         if (element.ValueKind != JsonValueKind.String || searchValue.ValueKind != JsonValueKind.String)
+        {
             return false;
+        }
 
         return element.GetString()?.StartsWith(searchValue.GetString() ?? "", StringComparison.OrdinalIgnoreCase) ?? false;
     }
@@ -123,7 +137,9 @@ public abstract class BaseLogicNode : BaseNode
     private static bool StringEndsWith(JsonElement element, JsonElement searchValue)
     {
         if (element.ValueKind != JsonValueKind.String || searchValue.ValueKind != JsonValueKind.String)
+        {
             return false;
+        }
 
         return element.GetString()?.EndsWith(searchValue.GetString() ?? "", StringComparison.OrdinalIgnoreCase) ?? false;
     }

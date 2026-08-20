@@ -23,5 +23,6 @@ public class FolderEntity
 
     // Navigation
     public UserEntity? Owner { get; set; }
+
     public ICollection<WorkflowEntity> Workflows { get; set; } = [];
 }

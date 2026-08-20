@@ -14,6 +14,7 @@ public abstract class BaseNode : INode
     {
         PropertyNameCaseInsensitive = true
     };
+
     /// <inheritdoc />
     public abstract string Id { get; }
 
@@ -93,6 +94,7 @@ public abstract class BaseNode : INode
         {
             throw new InvalidOperationException($"Required configuration '{key}' is missing");
         }
+
         return value;
     }
 }

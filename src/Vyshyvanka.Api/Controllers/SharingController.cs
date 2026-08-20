@@ -1,11 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Vyshyvanka.Api.Authorization;
 using Vyshyvanka.Api.Models;
 using Vyshyvanka.Contracts;
 using Vyshyvanka.Contracts.Sharing;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Vyshyvanka.Api.Controllers;
 
@@ -172,7 +172,9 @@ public class SharingController(
     private bool IsOwnerOrAdmin(Guid ownerId)
     {
         if (User.IsInRole(Roles.Admin))
+        {
             return true;
+        }
 
         var userId = currentUserService.UserId;
         return userId is not null && ownerId == userId;

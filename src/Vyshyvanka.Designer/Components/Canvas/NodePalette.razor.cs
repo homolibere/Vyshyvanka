@@ -1,7 +1,7 @@
+using Microsoft.AspNetCore.Components;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Designer.Services;
-using Microsoft.AspNetCore.Components;
 
 namespace Vyshyvanka.Designer.Components;
 
@@ -14,7 +14,7 @@ public partial class NodePalette : IDisposable
     private CanvasStateService CanvasState { get; set; } = null!;
 
     private string _searchText = string.Empty;
-    private HashSet<NodeCategory> _expandedCategories = [NodeCategory.Trigger, NodeCategory.Logic];
+    private readonly HashSet<NodeCategory> _expandedCategories = [NodeCategory.Trigger, NodeCategory.Logic];
 
     protected override void OnInitialized()
     {
@@ -44,9 +44,13 @@ public partial class NodePalette : IDisposable
     private void ToggleCategory(NodeCategory category)
     {
         if (_expandedCategories.Contains(category))
+        {
             _expandedCategories.Remove(category);
+        }
         else
+        {
             _expandedCategories.Add(category);
+        }
     }
 
     private static string GetCategoryIcon(NodeCategory category) => category switch

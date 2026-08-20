@@ -1,8 +1,8 @@
 using System.Security.Claims;
-using Vyshyvanka.Contracts.Auth;
-using Vyshyvanka.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Vyshyvanka.Contracts.Auth;
+using Vyshyvanka.Core.Interfaces;
 
 namespace Vyshyvanka.Api.Controllers;
 
@@ -162,6 +162,7 @@ public class ApiKeyController(IApiKeyService apiKeyService) : ControllerBase
         {
             return null;
         }
+
         return userId;
     }
 }

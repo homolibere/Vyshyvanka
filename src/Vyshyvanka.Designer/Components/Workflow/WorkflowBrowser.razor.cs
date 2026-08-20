@@ -1,11 +1,11 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Vyshyvanka.Core.Models;
-using Vyshyvanka.Designer.Models;
-using Vyshyvanka.Designer.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
+using Vyshyvanka.Core.Models;
+using Vyshyvanka.Designer.Models;
+using Vyshyvanka.Designer.Services;
 
 namespace Vyshyvanka.Designer.Components;
 
@@ -19,9 +19,13 @@ public partial class WorkflowBrowser
     };
 
     [Inject] private WorkflowApiClient ApiClient { get; set; } = null!;
+
     [Inject] private FolderApiClient FolderClient { get; set; } = null!;
+
     [Inject] private NavigationManager Navigation { get; set; } = null!;
+
     [Inject] private IJSRuntime JS { get; set; } = null!;
+
     [Inject] private ToastService Toast { get; set; } = null!;
 
     private List<WorkflowSummary> _workflows = [];
@@ -52,8 +56,11 @@ public partial class WorkflowBrowser
     private Guid? _actionMenuWorkflowId;
 
     [Parameter] public bool IsOpen { get; set; }
+
     [Parameter] public bool Embedded { get; set; }
+
     [Parameter] public Guid? CurrentWorkflowId { get; set; }
+
     [Parameter] public EventCallback OnClose { get; set; }
 
     private string GetWrapperClass()
@@ -64,7 +71,10 @@ public partial class WorkflowBrowser
 
     private async Task HandleOverlayClickIfModal()
     {
-        if (!Embedded) await Close();
+        if (!Embedded)
+        {
+            await Close();
+        }
     }
 
     private IEnumerable<WorkflowSummary> DisplayedWorkflows
@@ -74,7 +84,9 @@ public partial class WorkflowBrowser
             var source = _activeSection == BrowserSection.Shared ? _sharedWorkflows : GetFilteredByFolder();
 
             if (string.IsNullOrWhiteSpace(_searchQuery))
+            {
                 return source;
+            }
 
             return source.Where(w =>
                 w.Name.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase) ||
@@ -85,7 +97,9 @@ public partial class WorkflowBrowser
     private IEnumerable<WorkflowSummary> GetFilteredByFolder()
     {
         if (_activeSection == BrowserSection.Folder && _activeFolderId is not null)
+        {
             return _workflows.Where(w => w.FolderId == _activeFolderId);
+        }
 
         return _workflows; // All
     }
@@ -197,15 +211,21 @@ public partial class WorkflowBrowser
     private async Task OnFolderInputKeyUp(KeyboardEventArgs e)
     {
         if (e.Key == "Enter")
+        {
             await SaveFolderAsync();
+        }
         else if (e.Key == "Escape")
+        {
             CancelFolderInput();
+        }
     }
 
     private async Task SaveFolderAsync()
     {
         if (string.IsNullOrWhiteSpace(_folderNameInput))
+        {
             return;
+        }
 
         try
         {
@@ -253,7 +273,10 @@ public partial class WorkflowBrowser
 
     private async Task DeleteFolderAsync()
     {
-        if (_deletingFolderId is null) return;
+        if (_deletingFolderId is null)
+        {
+            return;
+        }
 
         try
         {
@@ -261,7 +284,9 @@ public partial class WorkflowBrowser
             Toast.ShowSuccess("Folder deleted", "Folder");
 
             if (_activeFolderId == _deletingFolderId)
+            {
                 SelectSection(BrowserSection.All);
+            }
 
             _showDeleteFolderConfirm = false;
             _deletingFolderId = null;
@@ -416,7 +441,9 @@ public partial class WorkflowBrowser
         {
             var json = await JS.InvokeAsync<string?>("triggerFileUpload", ".json");
             if (string.IsNullOrWhiteSpace(json))
+            {
                 return;
+            }
 
             var workflow = WorkflowStore.DeserializeFromJson(json);
             if (workflow is null)
@@ -448,7 +475,9 @@ public partial class WorkflowBrowser
     private async Task ConfirmImportOverwrite()
     {
         if (_importConfirmWorkflow is null)
+        {
             return;
+        }
 
         var workflow = _importConfirmWorkflow;
         _importConfirmWorkflow = null;
@@ -473,7 +502,9 @@ public partial class WorkflowBrowser
     private async Task ImportAsCopy()
     {
         if (_importConfirmWorkflow is null)
+        {
             return;
+        }
 
         var workflow = _importConfirmWorkflow with
         {
@@ -505,10 +536,26 @@ public partial class WorkflowBrowser
     private static string FormatDate(DateTime date)
     {
         var diff = DateTime.UtcNow - date;
-        if (diff.TotalMinutes < 1) return "Just now";
-        if (diff.TotalHours < 1) return $"{(int)diff.TotalMinutes}m ago";
-        if (diff.TotalDays < 1) return $"{(int)diff.TotalHours}h ago";
-        if (diff.TotalDays < 7) return $"{(int)diff.TotalDays}d ago";
+        if (diff.TotalMinutes < 1)
+        {
+            return "Just now";
+        }
+
+        if (diff.TotalHours < 1)
+        {
+            return $"{(int)diff.TotalMinutes}m ago";
+        }
+
+        if (diff.TotalDays < 1)
+        {
+            return $"{(int)diff.TotalHours}h ago";
+        }
+
+        if (diff.TotalDays < 7)
+        {
+            return $"{(int)diff.TotalDays}d ago";
+        }
+
         return date.ToString("MMM d, yyyy");
     }
 

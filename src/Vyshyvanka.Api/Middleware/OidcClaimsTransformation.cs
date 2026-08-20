@@ -1,8 +1,8 @@
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Core.Models;
-using Microsoft.AspNetCore.Authentication;
 
 namespace Vyshyvanka.Api.Middleware;
 

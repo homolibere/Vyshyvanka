@@ -24,7 +24,11 @@ public sealed class TokenRefreshService(
     /// </summary>
     public void Start()
     {
-        if (_initialized) return;
+        if (_initialized)
+        {
+            return;
+        }
+
         _initialized = true;
 
         authState.OnAuthStateChanged += OnAuthStateChanged;
@@ -42,14 +46,18 @@ public sealed class TokenRefreshService(
         CancelPendingRefresh();
 
         if (!authState.IsAuthenticated || authState.ExpiresAt is null)
+        {
             return;
+        }
 
         var now = DateTime.UtcNow;
         var expiresAt = authState.ExpiresAt.Value;
         var lifetime = expiresAt - now;
 
         if (lifetime <= TimeSpan.Zero)
+        {
             return;
+        }
 
         // Refresh at 80% of lifetime or 1 minute before expiry, whichever is sooner
         var refreshAt80Percent = TimeSpan.FromTicks((long)(lifetime.Ticks * 0.8));
@@ -126,7 +134,11 @@ public sealed class TokenRefreshService(
 
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
+
         _disposed = true;
 
         authState.OnAuthStateChanged -= OnAuthStateChanged;

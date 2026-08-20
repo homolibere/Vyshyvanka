@@ -1,8 +1,8 @@
-using Vyshyvanka.Core.Interfaces;
-using Vyshyvanka.Engine.Packages;
 using Microsoft.Extensions.Logging;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
+using Vyshyvanka.Core.Interfaces;
+using Vyshyvanka.Engine.Packages;
 using NuGetLogger = NuGet.Common.ILogger;
 
 namespace Vyshyvanka.Tests.Unit;

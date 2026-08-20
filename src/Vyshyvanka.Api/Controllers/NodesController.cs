@@ -1,5 +1,5 @@
-using Vyshyvanka.Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Vyshyvanka.Core.Interfaces;
 
 namespace Vyshyvanka.Api.Controllers;
 
@@ -23,7 +23,9 @@ public class NodesController(INodeRegistry nodeRegistry) : ControllerBase
     {
         var definition = nodeRegistry.GetDefinition(nodeType);
         if (definition is null)
+        {
             return NotFound();
+        }
 
         return Ok(definition);
     }

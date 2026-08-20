@@ -26,7 +26,10 @@ public class NodeRegistry : INodeRegistry
     {
         ArgumentNullException.ThrowIfNull(nodeType);
         if (!typeof(INode).IsAssignableFrom(nodeType))
+        {
             throw new ArgumentException($"Type {nodeType.Name} does not implement INode", nameof(nodeType));
+        }
+
         RegisterType(nodeType);
     }
 
@@ -55,10 +58,14 @@ public class NodeRegistry : INodeRegistry
     public INode CreateNode(string nodeType, JsonElement configuration)
     {
         if (string.IsNullOrWhiteSpace(nodeType))
+        {
             throw new ArgumentException("Node type cannot be empty", nameof(nodeType));
+        }
 
         if (!_nodeTypes.TryGetValue(nodeType, out var type))
+        {
             throw new InvalidOperationException($"Node type '{nodeType}' is not registered");
+        }
 
         return Activator.CreateInstance(type) as INode
                ?? throw new InvalidOperationException($"Cannot create instance of node type '{nodeType}'");
@@ -68,7 +75,9 @@ public class NodeRegistry : INodeRegistry
     public NodeDefinition? GetDefinition(string nodeType)
     {
         if (string.IsNullOrWhiteSpace(nodeType))
+        {
             return null;
+        }
 
         return _definitions.GetValueOrDefault(nodeType);
     }
@@ -83,7 +92,9 @@ public class NodeRegistry : INodeRegistry
     public bool IsRegistered(string nodeType)
     {
         if (string.IsNullOrWhiteSpace(nodeType))
+        {
             return false;
+        }
 
         return _nodeTypes.ContainsKey(nodeType);
     }
@@ -92,7 +103,9 @@ public class NodeRegistry : INodeRegistry
     public bool Unregister(string nodeType)
     {
         if (string.IsNullOrWhiteSpace(nodeType))
+        {
             return false;
+        }
 
         var removedType = _nodeTypes.Remove(nodeType);
         var removedDef = _definitions.Remove(nodeType);
@@ -184,7 +197,9 @@ public class NodeRegistry : INodeRegistry
         var configAttrs = nodeType.GetCustomAttributes<ConfigurationPropertyAttribute>().ToList();
 
         if (configAttrs.Count == 0)
+        {
             return null;
+        }
 
         var properties = new Dictionary<string, object>();
         var required = new List<string>();
@@ -198,16 +213,22 @@ public class NodeRegistry : INodeRegistry
             };
 
             if (!string.IsNullOrEmpty(attr.DataSource))
+            {
                 propSchema["dataSource"] = attr.DataSource;
+            }
 
             if (!string.IsNullOrEmpty(attr.Options))
+            {
                 propSchema["options"] = attr.Options.Split(',',
                     StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+            }
 
             properties[attr.Name] = propSchema;
 
             if (attr.IsRequired)
+            {
                 required.Add(attr.Name);
+            }
         }
 
         var schema = new Dictionary<string, object>
@@ -224,7 +245,9 @@ public class NodeRegistry : INodeRegistry
     {
         // Remove "Node" suffix and add spaces before capitals
         if (typeName.EndsWith("Node", StringComparison.Ordinal))
+        {
             typeName = typeName[..^4];
+        }
 
         return string.Concat(typeName.Select((c, i) =>
             i > 0 && char.IsUpper(c) ? " " + c : c.ToString()));

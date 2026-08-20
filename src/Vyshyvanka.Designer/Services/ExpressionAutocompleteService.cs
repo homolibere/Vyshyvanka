@@ -133,7 +133,10 @@ public class ExpressionAutocompleteService
         {
             var nodeId = parts[1];
             var node = _store.GetNode(nodeId);
-            if (node is null) return [];
+            if (node is null)
+            {
+                return [];
+            }
 
             var definition = _store.GetNodeDefinition(node.Type);
             var suggestions = new List<ExpressionSuggestion>();
@@ -220,7 +223,10 @@ public class ExpressionAutocompleteService
         for (var i = 0; i < pathParts.Length - 1; i++)
         {
             var segment = pathParts[i];
-            if (string.IsNullOrEmpty(segment)) break;
+            if (string.IsNullOrEmpty(segment))
+            {
+                break;
+            }
 
             builtPath += $".{segment}";
 
@@ -381,7 +387,10 @@ public class ExpressionAutocompleteService
         for (var i = 1; i < parts.Length - 1; i++)
         {
             var segment = parts[i];
-            if (string.IsNullOrEmpty(segment)) break;
+            if (string.IsNullOrEmpty(segment))
+            {
+                break;
+            }
 
             pathPrefix += $".{segment}";
 
@@ -455,10 +464,16 @@ public class ExpressionAutocompleteService
     /// </summary>
     private System.Text.Json.JsonElement? GetCurrentNodeInputData(string? currentNodeId)
     {
-        if (string.IsNullOrEmpty(currentNodeId)) return null;
+        if (string.IsNullOrEmpty(currentNodeId))
+        {
+            return null;
+        }
 
         var executionState = _executionState.GetNodeExecutionState(currentNodeId);
-        if (executionState is null) return null;
+        if (executionState is null)
+        {
+            return null;
+        }
 
         // Try top-level InputData first
         var inputData = executionState.InputData;
@@ -487,7 +502,10 @@ public class ExpressionAutocompleteService
     /// </summary>
     private List<InputFieldInfo> GetUpstreamOutputFields(string? currentNodeId)
     {
-        if (string.IsNullOrEmpty(currentNodeId)) return [];
+        if (string.IsNullOrEmpty(currentNodeId))
+        {
+            return [];
+        }
 
         var fields = new List<InputFieldInfo>();
         var seenFields = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -500,7 +518,10 @@ public class ExpressionAutocompleteService
         foreach (var connection in incomingConnections)
         {
             var sourceNode = _store.GetNode(connection.SourceNodeId);
-            if (sourceNode is null) continue;
+            if (sourceNode is null)
+            {
+                continue;
+            }
 
             var sourceName = sourceNode.Name;
 
@@ -552,8 +573,11 @@ public class ExpressionAutocompleteService
     private record InputFieldInfo
     {
         public string Name { get; init; } = string.Empty;
+
         public string? Description { get; init; }
+
         public string? Source { get; init; }
+
         public int SortOrder { get; init; }
     }
 

@@ -1,18 +1,22 @@
+using Microsoft.AspNetCore.Components;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Designer.Models;
 using Vyshyvanka.Designer.Services;
-using Microsoft.AspNetCore.Components;
 
 namespace Vyshyvanka.Designer.Components;
 
 public partial class ShareDialog
 {
     [Inject] private SharingApiClient SharingClient { get; set; } = null!;
+
     [Inject] private TeamApiClient TeamClient { get; set; } = null!;
+
     [Inject] private ToastService Toast { get; set; } = null!;
 
     [Parameter, EditorRequired] public Guid WorkflowId { get; set; }
+
     [Parameter] public string WorkflowName { get; set; } = "";
+
     [Parameter] public EventCallback OnClose { get; set; }
 
     private List<WorkflowPermissionResponse> _permissions = [];
@@ -66,6 +70,7 @@ public partial class ShareDialog
                     _errorMessage = "Please enter a valid user ID";
                     return;
                 }
+
                 targetType = PermissionTargetType.User;
             }
             else
@@ -75,6 +80,7 @@ public partial class ShareDialog
                     _errorMessage = "Please select a team";
                     return;
                 }
+
                 targetType = PermissionTargetType.Team;
             }
 
@@ -127,5 +133,6 @@ public partial class ShareDialog
     }
 
     private void SetCredentialPolicyOwner() => _credentialPolicy = "UseOwnerCredentials";
+
     private void SetCredentialPolicyOwn() => _credentialPolicy = "RequireOwnCredentials";
 }

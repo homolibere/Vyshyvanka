@@ -1,9 +1,9 @@
-using Vyshyvanka.Core.Interfaces;
 using Microsoft.Extensions.Logging;
 using NuGet.Common;
 using NuGet.Packaging;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
+using Vyshyvanka.Core.Interfaces;
 
 namespace Vyshyvanka.Engine.Packages;
 
@@ -159,7 +159,10 @@ public class PackageCache : IPackageCache
             installedPackages.Select(p => GetExtractionPath(p.PackageId, p.Version)),
             StringComparer.OrdinalIgnoreCase);
 
-        if (!Directory.Exists(_cacheDirectory)) return Task.CompletedTask;
+        if (!Directory.Exists(_cacheDirectory))
+        {
+            return Task.CompletedTask;
+        }
 
         foreach (var dir in Directory.GetDirectories(_cacheDirectory))
         {

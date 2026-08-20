@@ -80,7 +80,9 @@ public class WorkflowEngine : IWorkflowEngine
                 workflow, executionLevels, context, nodeResults, maxParallelism, startTime, cts.Token);
 
             if (earlyTermination is not null)
+            {
                 return earlyTermination;
+            }
 
             var allSuccess = nodeResults.All(r => r.Success);
 
@@ -128,12 +130,16 @@ public class WorkflowEngine : IWorkflowEngine
             var earlyFailure = CheckStopOnFirstError(
                 workflow, levelResults, context.ExecutionId, nodeResults, startTime);
             if (earlyFailure is not null)
+            {
                 return earlyFailure;
+            }
 
             var loopFailure = await ProcessLoopNodesInLevelAsync(
                 workflow, level, context, nodeResults, maxParallelism, startTime, cancellationToken);
             if (loopFailure is not null)
+            {
                 return loopFailure;
+            }
         }
 
         return null;
@@ -151,11 +157,15 @@ public class WorkflowEngine : IWorkflowEngine
         DateTime startTime)
     {
         if (workflow.Settings.ErrorHandling != ErrorHandlingMode.StopOnFirstError)
+        {
             return null;
+        }
 
         var failedResult = levelResults.FirstOrDefault(r => !r.Success);
         if (failedResult is null)
+        {
             return null;
+        }
 
         return BuildResult(executionId, nodeResults, startTime, workflow,
             success: false, errorMessage: failedResult.ErrorMessage);
@@ -178,11 +188,15 @@ public class WorkflowEngine : IWorkflowEngine
         {
             var loopItems = GetLoopItems(context, loopNodeId);
             if (loopItems is null || loopItems.Count == 0)
+            {
                 continue;
+            }
 
             var itemSubgraph = GetItemPortSubgraph(workflow, loopNodeId);
             if (itemSubgraph.Count == 0)
+            {
                 continue;
+            }
 
             var subgraphLevels = BuildSubgraphExecutionLevels(workflow, itemSubgraph, loopNodeId);
 
@@ -195,7 +209,9 @@ public class WorkflowEngine : IWorkflowEngine
                 workflow, loopNodeId, loopItems, subgraphLevels, context,
                 nodeResults, maxParallelism, startTime, collectedOutputs, terminalNodeIds, cancellationToken);
             if (loopFailure is not null)
+            {
                 return loopFailure;
+            }
 
             SetLoopDoneOutput(context, loopNodeId, loopItems.Count, collectedOutputs);
             MarkSubgraphAsProcessed(context, itemSubgraph);
@@ -252,7 +268,9 @@ public class WorkflowEngine : IWorkflowEngine
                 var earlyFailure = CheckStopOnFirstError(
                     workflow, subResults, context.ExecutionId, nodeResults, startTime);
                 if (earlyFailure is not null)
+                {
                     return earlyFailure;
+                }
             }
 
             // Collect outputs from terminal nodes after each iteration
@@ -820,16 +838,22 @@ public class WorkflowEngine : IWorkflowEngine
             .ToList();
 
         if (incomingConnections.Count == 0)
+        {
             return false;
+        }
 
         foreach (var connection in incomingConnections)
         {
             if (string.IsNullOrEmpty(connection.SourcePort))
+            {
                 return false; // Default port — always active
+            }
 
             var defaultOutput = context.NodeOutputs.Get(connection.SourceNodeId);
             if (!defaultOutput.HasValue)
+            {
                 continue; // Source hasn't run yet — not inactive, just pending
+            }
 
             // If the source output doesn't declare an outputPort, the connection is active
             if (defaultOutput.Value.ValueKind != JsonValueKind.Object ||
@@ -841,7 +865,9 @@ public class WorkflowEngine : IWorkflowEngine
 
             // If this connection's source port matches the active port, the branch is active
             if (string.Equals(routedPort.GetString(), connection.SourcePort, StringComparison.OrdinalIgnoreCase))
+            {
                 return false;
+            }
         }
 
         // All incoming connections are from inactive ports
@@ -868,7 +894,9 @@ public class WorkflowEngine : IWorkflowEngine
                 string.Equals(conn.SourcePort, "item", StringComparison.OrdinalIgnoreCase))
             {
                 if (reachable.Add(conn.TargetNodeId))
+                {
                     queue.Enqueue(conn.TargetNodeId);
+                }
             }
         }
 
@@ -909,7 +937,9 @@ public class WorkflowEngine : IWorkflowEngine
         foreach (var nodeId in subgraph)
         {
             if (!nonTerminal.Contains(nodeId))
+            {
                 terminals.Add(nodeId);
+            }
         }
 
         return terminals;
@@ -958,7 +988,9 @@ public class WorkflowEngine : IWorkflowEngine
                 {
                     inDegree[neighbor]--;
                     if (inDegree[neighbor] == 0)
+                    {
                         nextLevel.Add(neighbor);
+                    }
                 }
             }
 

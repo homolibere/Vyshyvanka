@@ -32,10 +32,15 @@ public class ThemeService
     public event Action? OnThemeChanged;
 
     public IReadOnlyList<ThemeDefinition> AvailableThemes => _themes;
+
     public ThemeDefinition? ActiveTheme => _activeTheme;
+
     public string CurrentThemeId => _activeTheme?.Id ?? "vyshyvanka-light";
+
     public bool IsDark => _activeTheme?.BaseMode == "dark";
+
     public string CanvasPattern => _activeTheme?.Canvas.Pattern ?? "dots";
+
     public bool IsVyshyvankaPattern => CanvasPattern == "vyshyvanka";
 
     public ThemeService(IJSRuntime jsRuntime)
@@ -102,7 +107,10 @@ public class ThemeService
     public async Task SetThemeAsync(string themeId)
     {
         var theme = _themes.FirstOrDefault(t => t.Id == themeId);
-        if (theme is null) return;
+        if (theme is null)
+        {
+            return;
+        }
 
         _activeTheme = theme;
         await ApplyThemeAsync(theme);
@@ -126,20 +134,28 @@ public class ThemeService
         }
 
         if (theme is null || string.IsNullOrWhiteSpace(theme.Id) || string.IsNullOrWhiteSpace(theme.Name))
+        {
             return null;
+        }
 
         // Prevent overwriting built-in themes
         if (_themes.Any(t => t.Id == theme.Id && t.IsBuiltIn))
+        {
             return null;
+        }
 
         var custom = theme with { IsBuiltIn = false };
 
         // Replace existing custom or add new
         var existingIndex = _themes.FindIndex(t => t.Id == custom.Id && !t.IsBuiltIn);
         if (existingIndex >= 0)
+        {
             _themes[existingIndex] = custom;
+        }
         else
+        {
             _themes.Add(custom);
+        }
 
         await _jsRuntime.InvokeVoidAsync("vyshyvankaTheme.saveCustomTheme", json);
         OnThemeChanged?.Invoke();
@@ -153,7 +169,10 @@ public class ThemeService
     public async Task<bool> RemoveThemeAsync(string themeId)
     {
         var theme = _themes.FirstOrDefault(t => t.Id == themeId);
-        if (theme is null || theme.IsBuiltIn) return false;
+        if (theme is null || theme.IsBuiltIn)
+        {
+            return false;
+        }
 
         _themes.Remove(theme);
         await _jsRuntime.InvokeVoidAsync("vyshyvankaTheme.removeCustomTheme", themeId);
@@ -176,7 +195,11 @@ public class ThemeService
     public string ExportThemeJson(string themeId)
     {
         var theme = _themes.FirstOrDefault(t => t.Id == themeId);
-        if (theme is null) return string.Empty;
+        if (theme is null)
+        {
+            return string.Empty;
+        }
+
         return JsonSerializer.Serialize(theme, new JsonSerializerOptions { WriteIndented = true });
     }
 
@@ -187,7 +210,9 @@ public class ThemeService
     public string GetIcon(string key)
     {
         if (_activeTheme?.Icons.TryGetValue(key, out var icon) == true)
+        {
             return icon;
+        }
 
         return key switch
         {

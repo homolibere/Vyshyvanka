@@ -1,8 +1,8 @@
 using System.Net.Http.Json;
-using Vyshyvanka.Designer.Models;
-using Vyshyvanka.Designer.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Vyshyvanka.Designer.Models;
+using Vyshyvanka.Designer.Services;
 
 namespace Vyshyvanka.Designer.Components;
 
@@ -191,7 +191,10 @@ public partial class UserManager
     private async Task HandleRoleChange(Guid userId, ChangeEventArgs e)
     {
         var newRole = e.Value?.ToString();
-        if (string.IsNullOrEmpty(newRole)) return;
+        if (string.IsNullOrEmpty(newRole))
+        {
+            return;
+        }
 
         try
         {
@@ -237,7 +240,10 @@ public partial class UserManager
 
     private async Task HandleEditUser()
     {
-        if (_editUser is null) return;
+        if (_editUser is null)
+        {
+            return;
+        }
 
         if (string.IsNullOrWhiteSpace(_editEmail))
         {
@@ -341,7 +347,10 @@ public partial class UserManager
 
     private async Task ConfirmDeleteUser()
     {
-        if (_confirmDeleteUserId is null) return;
+        if (_confirmDeleteUserId is null)
+        {
+            return;
+        }
 
         var id = _confirmDeleteUserId.Value;
         var user = _users.FirstOrDefault(u => u.Id == id);

@@ -1,8 +1,8 @@
 using System.Reflection;
+using Microsoft.Extensions.Logging;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Engine.Packages;
-using Microsoft.Extensions.Logging;
 
 namespace Vyshyvanka.Tests.Unit;
 

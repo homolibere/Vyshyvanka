@@ -65,7 +65,10 @@ public abstract class BaseGitLabNode : INode
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,
             Func<TState, Exception?, string> formatter)
         {
-            if (!IsEnabled(logLevel)) return;
+            if (!IsEnabled(logLevel))
+            {
+                return;
+            }
 
             var level = logLevel switch
             {
@@ -79,7 +82,9 @@ public abstract class BaseGitLabNode : INode
 
             var message = formatter(state, exception);
             if (exception is not null)
+            {
                 message = $"{message} {exception.Message}";
+            }
 
             logAction(level, category, message);
         }
@@ -105,7 +110,9 @@ public abstract class BaseGitLabNode : INode
     protected static T? GetConfigValue<T>(NodeInput input, string key)
     {
         if (input.Configuration.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
+        {
             return default;
+        }
 
         return input.Configuration.TryGetProperty(key, out var value)
             ? JsonSerializer.Deserialize<T>(value.GetRawText())
@@ -125,8 +132,10 @@ public abstract class BaseGitLabNode : INode
         NodeInput input, IExecutionContext context)
     {
         if (!input.CredentialId.HasValue)
+        {
             throw new InvalidOperationException(
                 "GitLab credential is required. Attach an ApiKey credential with accessToken and optional baseUrl.");
+        }
 
         var creds = await context.Credentials.GetCredentialAsync(input.CredentialId.Value, context.CancellationToken)
                     ?? throw new InvalidOperationException("Credential not found.");

@@ -29,7 +29,11 @@ public partial class ExpressionAutocomplete : ComponentBase
     /// </summary>
     public void MoveUp()
     {
-        if (Suggestions.Count == 0) return;
+        if (Suggestions.Count == 0)
+        {
+            return;
+        }
+
         SelectedIndex = (SelectedIndex - 1 + Suggestions.Count) % Suggestions.Count;
         StateHasChanged();
     }
@@ -39,7 +43,11 @@ public partial class ExpressionAutocomplete : ComponentBase
     /// </summary>
     public void MoveDown()
     {
-        if (Suggestions.Count == 0) return;
+        if (Suggestions.Count == 0)
+        {
+            return;
+        }
+
         SelectedIndex = (SelectedIndex + 1) % Suggestions.Count;
         StateHasChanged();
     }
@@ -49,7 +57,11 @@ public partial class ExpressionAutocomplete : ComponentBase
     /// </summary>
     public async Task ConfirmSelection()
     {
-        if (Suggestions.Count == 0) return;
+        if (Suggestions.Count == 0)
+        {
+            return;
+        }
+
         var suggestion = Suggestions[Math.Clamp(SelectedIndex, 0, Suggestions.Count - 1)];
         await SelectSuggestion(suggestion);
     }

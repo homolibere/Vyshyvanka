@@ -1,7 +1,7 @@
 using System.Text.Json;
+using Vyshyvanka.Core.Attributes;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Engine.Nodes.Base;
-using Vyshyvanka.Core.Attributes;
 
 namespace Vyshyvanka.Engine.Nodes.Logic;
 
@@ -32,7 +32,7 @@ namespace Vyshyvanka.Engine.Nodes.Logic;
 [ConfigurationProperty("value", "string", Description = "Value to compare against")]
 public class IfNode : BaseLogicNode
 {
-    private string _id = Guid.NewGuid().ToString();
+    private readonly string _id = Guid.NewGuid().ToString();
 
     /// <inheritdoc />
     public override string Id => _id;

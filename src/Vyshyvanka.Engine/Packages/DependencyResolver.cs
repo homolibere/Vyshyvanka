@@ -1,4 +1,3 @@
-using Vyshyvanka.Core.Interfaces;
 using Microsoft.Extensions.Logging;
 using NuGet.Common;
 using NuGet.Frameworks;
@@ -6,6 +5,7 @@ using NuGet.Packaging;
 using NuGet.Packaging.Core;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
+using Vyshyvanka.Core.Interfaces;
 using CorePackageDependency = Vyshyvanka.Core.Interfaces.PackageDependency;
 
 namespace Vyshyvanka.Engine.Packages;
@@ -125,7 +125,9 @@ public class DependencyResolver : IDependencyResolver
         CancellationToken cancellationToken)
     {
         if (!visited.Add(packageId.ToLowerInvariant()))
+        {
             return;
+        }
 
         // Check for conflicts with installed packages
         var existingInstalled = installed.FirstOrDefault(p =>
@@ -154,7 +156,10 @@ public class DependencyResolver : IDependencyResolver
 
         // Resolve transitive dependencies from NuGet sources
         var depGroups = await GetDependencyGroupsAsync(packageId, version, cancellationToken);
-        if (depGroups is null) return;
+        if (depGroups is null)
+        {
+            return;
+        }
 
         // Find the best matching framework group
         var bestGroup = depGroups
@@ -162,7 +167,10 @@ public class DependencyResolver : IDependencyResolver
             .OrderByDescending(g => g.TargetFramework.Version)
             .FirstOrDefault();
 
-        if (bestGroup is null) return;
+        if (bestGroup is null)
+        {
+            return;
+        }
 
         foreach (var dep in bestGroup.Packages)
         {
@@ -185,7 +193,10 @@ public class DependencyResolver : IDependencyResolver
             {
                 var repository = _sourceService.GetRepository(source);
                 var resource = await repository.GetResourceAsync<DependencyInfoResource>(cancellationToken);
-                if (resource is null) continue;
+                if (resource is null)
+                {
+                    continue;
+                }
 
                 var identity = new PackageIdentity(packageId, version);
                 var info = await resource.ResolvePackage(

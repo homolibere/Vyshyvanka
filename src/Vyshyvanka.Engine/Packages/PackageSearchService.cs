@@ -1,8 +1,8 @@
-using Vyshyvanka.Core.Interfaces;
 using Microsoft.Extensions.Logging;
 using NuGet.Common;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
+using Vyshyvanka.Core.Interfaces;
 
 namespace Vyshyvanka.Engine.Packages;
 
@@ -29,7 +29,10 @@ public class PackageSearchService(
             {
                 var repository = sourceService.GetRepository(source);
                 var searchResource = await repository.GetResourceAsync<PackageSearchResource>(cancellationToken);
-                if (searchResource is null) continue;
+                if (searchResource is null)
+                {
+                    continue;
+                }
 
                 var searchFilter = new SearchFilter(options.IncludePrerelease);
                 var results = await searchResource.SearchAsync(
@@ -44,7 +47,10 @@ public class PackageSearchService(
                         .OrderByDescending(v => v.Version)
                         .FirstOrDefault();
 
-                    if (latestVersion is null) continue;
+                    if (latestVersion is null)
+                    {
+                        continue;
+                    }
 
                     var installed = installedPackages?.GetValueOrDefault(result.Identity.Id);
 
@@ -98,20 +104,29 @@ public class PackageSearchService(
             {
                 var repository = sourceService.GetRepository(source);
                 var metadataResource = await repository.GetResourceAsync<PackageMetadataResource>(cancellationToken);
-                if (metadataResource is null) continue;
+                if (metadataResource is null)
+                {
+                    continue;
+                }
 
                 var metadata = await metadataResource.GetMetadataAsync(
                     packageId, includePrerelease: true, includeUnlisted: false,
                     new SourceCacheContext(), NullLogger.Instance, cancellationToken);
 
                 var metadataList = metadata.ToList();
-                if (metadataList.Count == 0) continue;
+                if (metadataList.Count == 0)
+                {
+                    continue;
+                }
 
                 var target = version is not null
                     ? metadataList.FirstOrDefault(m => m.Identity.Version == version)
                     : metadataList.OrderByDescending(m => m.Identity.Version).First();
 
-                if (target is null) continue;
+                if (target is null)
+                {
+                    continue;
+                }
 
                 var installed = installedPackages?.GetValueOrDefault(packageId);
 
@@ -186,7 +201,10 @@ public class PackageSearchService(
             {
                 var repository = sourceService.GetRepository(source);
                 var resource = await repository.GetResourceAsync<FindPackageByIdResource>(cancellationToken);
-                if (resource is null) continue;
+                if (resource is null)
+                {
+                    continue;
+                }
 
                 var versions = await resource.GetAllVersionsAsync(
                     packageId, new SourceCacheContext(), NullLogger.Instance, cancellationToken);
@@ -196,7 +214,10 @@ public class PackageSearchService(
                     .OrderByDescending(v => v)
                     .FirstOrDefault();
 
-                if (latest is not null) return latest;
+                if (latest is not null)
+                {
+                    return latest;
+                }
             }
             catch (Exception ex)
             {
@@ -217,12 +238,18 @@ public class PackageSearchService(
             {
                 var repository = sourceService.GetRepository(source);
                 var resource = await repository.GetResourceAsync<FindPackageByIdResource>(cancellationToken);
-                if (resource is null) continue;
+                if (resource is null)
+                {
+                    continue;
+                }
 
                 var exists = await resource.DoesPackageExistAsync(
                     packageId, version, new SourceCacheContext(), NullLogger.Instance, cancellationToken);
 
-                if (exists) return (repository, source);
+                if (exists)
+                {
+                    return (repository, source);
+                }
             }
             catch
             {

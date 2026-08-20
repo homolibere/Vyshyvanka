@@ -23,5 +23,6 @@ public class TeamEntity
 
     // Navigation
     public UserEntity? Owner { get; set; }
+
     public ICollection<TeamMemberEntity> Members { get; set; } = [];
 }

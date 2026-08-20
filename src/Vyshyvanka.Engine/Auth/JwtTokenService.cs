@@ -2,9 +2,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.IdentityModel.Tokens;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Core.Models;
-using Microsoft.IdentityModel.Tokens;
 using CoreTokenValidationResult = Vyshyvanka.Core.Interfaces.TokenValidationResult;
 
 namespace Vyshyvanka.Engine.Auth;
@@ -146,8 +146,12 @@ public class JwtTokenService : IJwtTokenService
 public class JwtSettings
 {
     public string SecretKey { get; init; } = string.Empty;
+
     public string Issuer { get; init; } = "Vyshyvanka";
+
     public string Audience { get; init; } = "Vyshyvanka";
+
     public int AccessTokenExpirationMinutes { get; init; } = 60;
+
     public int RefreshTokenExpirationDays { get; init; } = 7;
 }

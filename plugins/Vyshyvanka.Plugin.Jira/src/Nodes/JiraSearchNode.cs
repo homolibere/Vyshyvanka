@@ -81,16 +81,20 @@ public class JiraSearchNode : BaseJiraNode
                     HttpMethod.Post, "search/jql", baseUrl, auth, body, context.CancellationToken);
 
                 if (!response.IsSuccess)
+                {
                     return FailureOutputWithDebug(
                         $"Search failed ({response.StatusCode})",
                         response.Method, response.Url, response.RequestBody, response.ErrorBody);
+                }
 
                 var data = response.Data!.Value;
 
                 if (data.TryGetProperty("issues", out var issues) && issues.ValueKind == JsonValueKind.Array)
                 {
                     foreach (var issue in issues.EnumerateArray())
+                    {
                         allIssues.Add(issue.Clone());
+                    }
                 }
 
                 pageToken = data.TryGetProperty("nextPageToken", out var tokenEl) &&
@@ -128,13 +132,19 @@ public class JiraSearchNode : BaseJiraNode
         };
 
         if (nextPageToken is not null)
+        {
             body["nextPageToken"] = nextPageToken;
+        }
 
         if (!string.IsNullOrWhiteSpace(fields))
+        {
             body["fields"] = fields.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        }
 
         if (!string.IsNullOrWhiteSpace(expand))
+        {
             body["expand"] = expand;
+        }
 
         return body;
     }

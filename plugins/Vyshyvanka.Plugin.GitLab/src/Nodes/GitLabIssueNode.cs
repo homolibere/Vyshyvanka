@@ -85,7 +85,9 @@ public class GitLabIssueNode : BaseGitLabNode
 
         var assigneeIds = GetConfigValue<int[]>(input, "assigneeIds");
         if (assigneeIds is { Length: > 0 })
+        {
             body["assignee_ids"] = assigneeIds;
+        }
 
         var response = await SendGitLabRequestAsync(
             HttpMethod.Post, $"projects/{projectId}/issues", apiBase, token, body, ct);
@@ -122,7 +124,9 @@ public class GitLabIssueNode : BaseGitLabNode
 
         var assigneeIds = GetConfigValue<int[]>(input, "assigneeIds");
         if (assigneeIds is { Length: > 0 })
+        {
             body["assignee_ids"] = assigneeIds;
+        }
 
         var response = await SendGitLabRequestAsync(
             HttpMethod.Put, $"projects/{projectId}/issues/{iid}", apiBase, token, body, ct);
@@ -166,6 +170,8 @@ public class GitLabIssueNode : BaseGitLabNode
     {
         var value = GetConfigValue<object>(input, configKey);
         if (value is not null)
+        {
             body[apiKey ?? configKey] = value;
+        }
     }
 }

@@ -205,7 +205,9 @@ public class CryptoNode : INode
         {
             var bytes = Convert.FromBase64String(key);
             if (bytes.Length is 16 or 24 or 32)
+            {
                 return bytes;
+            }
         }
         catch (FormatException) { }
 
@@ -213,7 +215,9 @@ public class CryptoNode : INode
         {
             var bytes = Convert.FromHexString(key);
             if (bytes.Length is 16 or 24 or 32)
+            {
                 return bytes;
+            }
         }
         catch (FormatException) { }
 
@@ -224,10 +228,16 @@ public class CryptoNode : INode
     private static byte[] DecodeIv(string iv)
     {
         // Try base64 first, then hex
-        try { return Convert.FromBase64String(iv); }
+        try
+        {
+            return Convert.FromBase64String(iv);
+        }
         catch (FormatException) { }
 
-        try { return Convert.FromHexString(iv); }
+        try
+        {
+            return Convert.FromHexString(iv);
+        }
         catch (FormatException) { }
 
         return Encoding.UTF8.GetBytes(iv);
@@ -330,12 +340,16 @@ public class CryptoNode : INode
     private static T? GetConfigValue<T>(NodeInput input, string key)
     {
         if (input.Configuration.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
+        {
             return default;
+        }
 
         if (input.Configuration.TryGetProperty(key, out var value))
         {
             if (value.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
+            {
                 return default;
+            }
 
             return JsonSerializer.Deserialize<T>(value.GetRawText());
         }
@@ -347,7 +361,10 @@ public class CryptoNode : INode
     {
         var value = GetConfigValue<T>(input, key);
         if (value is null)
+        {
             throw new InvalidOperationException($"Required configuration '{key}' is missing");
+        }
+
         return value;
     }
 }

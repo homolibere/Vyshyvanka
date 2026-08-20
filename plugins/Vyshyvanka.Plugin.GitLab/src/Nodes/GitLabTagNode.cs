@@ -81,11 +81,15 @@ public class GitLabTagNode : BaseGitLabNode
 
         var message = GetConfigValue<string>(input, "message");
         if (!string.IsNullOrWhiteSpace(message))
+        {
             body["message"] = message;
+        }
 
         var releaseDesc = GetConfigValue<string>(input, "releaseDescription");
         if (!string.IsNullOrWhiteSpace(releaseDesc))
+        {
             body["release_description"] = releaseDesc;
+        }
 
         var response = await SendGitLabRequestAsync(
             HttpMethod.Post, $"projects/{projectId}/repository/tags", apiBase, token, body, ct);
@@ -122,7 +126,9 @@ public class GitLabTagNode : BaseGitLabNode
 
         var search = GetConfigValue<string>(input, "search");
         if (!string.IsNullOrWhiteSpace(search))
+        {
             query += $"&search={HttpUtility.UrlEncode(search)}";
+        }
 
         var response = await SendGitLabRequestAsync(HttpMethod.Get, query, apiBase, token, null, ct);
 

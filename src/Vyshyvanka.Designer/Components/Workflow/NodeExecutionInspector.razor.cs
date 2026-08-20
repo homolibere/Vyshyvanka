@@ -1,9 +1,9 @@
 using System.Text.Json;
+using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Designer.Models;
 using Vyshyvanka.Designer.Services;
-using Microsoft.AspNetCore.Components;
-using Microsoft.JSInterop;
 
 namespace Vyshyvanka.Designer.Components;
 
@@ -15,8 +15,11 @@ public partial class NodeExecutionInspector : IDisposable
     };
 
     [Inject] private WorkflowStore Store { get; set; } = null!;
+
     [Inject] private CanvasStateService CanvasState { get; set; } = null!;
+
     [Inject] private ExecutionStateService ExecutionState { get; set; } = null!;
+
     [Inject] private IJSRuntime JS { get; set; } = null!;
 
     /// <summary>Raised when the inspector is closed.</summary>
@@ -69,32 +72,57 @@ public partial class NodeExecutionInspector : IDisposable
 
     private string GetNodeName()
     {
-        if (_selectedNodeId is null) return "";
+        if (_selectedNodeId is null)
+        {
+            return "";
+        }
+
         var node = Store.Workflow.Nodes.FirstOrDefault(n => n.Id == _selectedNodeId);
         return node?.Name ?? _selectedNodeId;
     }
 
     private JsonElement? GetCurrentInput()
     {
-        if (_state is null) return null;
+        if (_state is null)
+        {
+            return null;
+        }
+
         if (_state.HasMultipleIterations && _currentIteration < _state.Iterations.Count)
+        {
             return _state.Iterations[_currentIteration].InputData;
+        }
+
         return _state.InputData;
     }
 
     private JsonElement? GetCurrentOutput()
     {
-        if (_state is null) return null;
+        if (_state is null)
+        {
+            return null;
+        }
+
         if (_state.HasMultipleIterations && _currentIteration < _state.Iterations.Count)
+        {
             return _state.Iterations[_currentIteration].OutputData;
+        }
+
         return _state.OutputData;
     }
 
     private string? GetCurrentError()
     {
-        if (_state is null) return null;
+        if (_state is null)
+        {
+            return null;
+        }
+
         if (_state.HasMultipleIterations && _currentIteration < _state.Iterations.Count)
+        {
             return _state.Iterations[_currentIteration].ErrorMessage;
+        }
+
         return _state.ErrorMessage;
     }
 
@@ -178,8 +206,16 @@ public partial class NodeExecutionInspector : IDisposable
 
     private static string FormatDuration(double ms)
     {
-        if (ms < 1000) return $"{ms:0}ms";
-        if (ms < 60_000) return $"{ms / 1000:0.#}s";
+        if (ms < 1000)
+        {
+            return $"{ms:0}ms";
+        }
+
+        if (ms < 60_000)
+        {
+            return $"{ms / 1000:0.#}s";
+        }
+
         return $"{ms / 60_000:0.#}m";
     }
 

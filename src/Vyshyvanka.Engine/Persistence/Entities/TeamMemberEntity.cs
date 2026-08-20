@@ -17,5 +17,6 @@ public class TeamMemberEntity
 
     // Navigation
     public TeamEntity? Team { get; set; }
+
     public UserEntity? User { get; set; }
 }

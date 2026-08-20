@@ -1,4 +1,6 @@
 using System.Text.Json;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Vyshyvanka.Api.Authorization;
 using Vyshyvanka.Api.Models;
 using Vyshyvanka.Contracts;
@@ -7,8 +9,6 @@ using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Core.Models;
 using Vyshyvanka.Engine.Credentials;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using ExecutionContext = Vyshyvanka.Engine.Execution.ExecutionContext;
 
 namespace Vyshyvanka.Api.Controllers;
@@ -258,7 +258,6 @@ public class ExecutionController : VyshyvankaControllerBase
         }
     }
 
-
     /// <summary>
     /// Gets an execution by ID.
     /// </summary>
@@ -319,7 +318,9 @@ public class ExecutionController : VyshyvankaControllerBase
         {
             var wf = await _workflowRepository.GetByIdAsync(wfId, cancellationToken);
             if (wf is not null)
+            {
                 workflowNames[wfId] = wf.Name;
+            }
         }
 
         var response = new PagedResponse<ExecutionSummaryResponse>
@@ -474,15 +475,21 @@ public class ExecutionController : VyshyvankaControllerBase
     private async Task<ICredentialProvider> ResolveCredentialProviderAsync(Workflow workflow, CancellationToken cancellationToken)
     {
         if (_credentialService is null)
+        {
             return NullCredentialProvider.Instance;
+        }
 
         var userId = _currentUserService.UserId;
         if (userId is null)
+        {
             return NullCredentialProvider.Instance;
+        }
 
         // Owner always uses their own credentials
         if (workflow.CreatedBy == userId || User.IsInRole(Roles.Admin))
+        {
             return new CredentialProvider(_credentialService);
+        }
 
         // Shared user: check credential policy
         var policy = await _permissionService.GetCredentialPolicyAsync(workflow.Id, userId.Value, cancellationToken);

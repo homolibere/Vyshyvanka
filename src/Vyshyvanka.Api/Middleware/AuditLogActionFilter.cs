@@ -1,8 +1,8 @@
 using System.Text.Json;
-using Vyshyvanka.Core.Interfaces;
-using Vyshyvanka.Core.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Vyshyvanka.Core.Interfaces;
+using Vyshyvanka.Core.Models;
 
 namespace Vyshyvanka.Api.Middleware;
 
@@ -20,21 +20,30 @@ public class AuditLogActionFilter(IAuditLogService auditLogService, ICurrentUser
 
         // Only log mutating operations that succeeded (2xx status)
         if (!MutatingMethods.Contains(context.HttpContext.Request.Method))
+        {
             return;
+        }
 
         var statusCode = (resultContext.Result as ObjectResult)?.StatusCode
                          ?? (resultContext.Result as StatusCodeResult)?.StatusCode
                          ?? context.HttpContext.Response.StatusCode;
 
         if (statusCode < 200 || statusCode >= 300)
+        {
             return;
+        }
 
         // Skip auth endpoints (already logged by AuthService) and audit-logs itself
         var path = context.HttpContext.Request.Path.Value ?? "";
         if (path.StartsWith("/api/auth/", StringComparison.OrdinalIgnoreCase))
+        {
             return;
+        }
+
         if (path.StartsWith("/api/audit-logs", StringComparison.OrdinalIgnoreCase))
+        {
             return;
+        }
 
         var eventType = MapEventType(path);
         var resourceId = ExtractResourceId(context, resultContext);
@@ -101,19 +110,27 @@ public class AuditLogActionFilter(IAuditLogService auditLogService, ICurrentUser
             var nameProperty = value.GetType().GetProperty("Name")
                                ?? value.GetType().GetProperty("WorkflowName");
             if (nameProperty?.GetValue(value) is string name)
+            {
                 return name;
+            }
         }
 
         // Try to get name/workflowId from action arguments (request body)
         foreach (var arg in context.ActionArguments.Values)
         {
-            if (arg is null) continue;
+            if (arg is null)
+            {
+                continue;
+            }
+
             var type = arg.GetType();
 
             // Check for Name property on the request
             var nameProp = type.GetProperty("Name");
             if (nameProp?.GetValue(arg) is string reqName)
+            {
                 return reqName;
+            }
         }
 
         return null;
@@ -123,15 +140,23 @@ public class AuditLogActionFilter(IAuditLogService auditLogService, ICurrentUser
     {
         // Try from route parameters
         if (context.ActionArguments.TryGetValue("id", out var idObj) && idObj is Guid id)
+        {
             return id;
+        }
 
         // Try WorkflowId from request body (e.g., TriggerExecutionRequest)
         foreach (var arg in context.ActionArguments.Values)
         {
-            if (arg is null) continue;
+            if (arg is null)
+            {
+                continue;
+            }
+
             var workflowIdProp = arg.GetType().GetProperty("WorkflowId");
             if (workflowIdProp?.GetValue(arg) is Guid wfId)
+            {
                 return wfId;
+            }
         }
 
         // Try Id from response
@@ -139,7 +164,9 @@ public class AuditLogActionFilter(IAuditLogService auditLogService, ICurrentUser
         {
             var idProp = objResult.Value.GetType().GetProperty("Id");
             if (idProp?.GetValue(objResult.Value) is Guid resultId)
+            {
                 return resultId;
+            }
         }
 
         return null;
@@ -149,7 +176,10 @@ public class AuditLogActionFilter(IAuditLogService auditLogService, ICurrentUser
     {
         var displayName = context.ActionDescriptor.DisplayName ?? "";
         if (displayName.Contains('('))
+        {
             return displayName[..displayName.IndexOf('(')].Split('.').Last().Trim();
+        }
+
         return displayName.Trim();
     }
 

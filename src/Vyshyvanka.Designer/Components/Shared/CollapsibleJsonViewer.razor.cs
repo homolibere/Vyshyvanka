@@ -155,7 +155,11 @@ public partial class CollapsibleJsonViewer : ComponentBase
 
     private void OnDragStart(string path)
     {
-        if (ExpressionPrefix is null) return;
+        if (ExpressionPrefix is null)
+        {
+            return;
+        }
+
         DragService.StartDrag(BuildExpression(path));
     }
 
@@ -166,8 +170,15 @@ public partial class CollapsibleJsonViewer : ComponentBase
 
     private static bool JsonElementEquals(JsonElement? a, JsonElement? b)
     {
-        if (!a.HasValue && !b.HasValue) return true;
-        if (!a.HasValue || !b.HasValue) return false;
+        if (!a.HasValue && !b.HasValue)
+        {
+            return true;
+        }
+
+        if (!a.HasValue || !b.HasValue)
+        {
+            return false;
+        }
 
         try
         {

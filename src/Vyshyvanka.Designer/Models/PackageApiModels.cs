@@ -6,12 +6,19 @@ namespace Vyshyvanka.Designer.Models;
 internal record InstalledPackageApiResponse
 {
     public string PackageId { get; init; } = string.Empty;
+
     public string Version { get; init; } = string.Empty;
+
     public string SourceName { get; init; } = string.Empty;
+
     public string InstallPath { get; init; } = string.Empty;
+
     public DateTime InstalledAt { get; init; }
+
     public IReadOnlyList<string> NodeTypes { get; init; } = [];
+
     public IReadOnlyList<string> Dependencies { get; init; } = [];
+
     public bool IsLoaded { get; init; }
 
     public InstalledPackageModel ToModel() => new()
@@ -33,7 +40,9 @@ internal record InstalledPackageApiResponse
 internal record PackageSearchApiResponse
 {
     public IReadOnlyList<PackageSearchItemApiResponse> Packages { get; init; } = [];
+
     public int TotalCount { get; init; }
+
     public IReadOnlyList<string> Errors { get; init; } = [];
 
     public PackageSearchResultModel ToModel() => new()
@@ -50,15 +59,25 @@ internal record PackageSearchApiResponse
 internal record PackageSearchItemApiResponse
 {
     public string PackageId { get; init; } = string.Empty;
+
     public string Title { get; init; } = string.Empty;
+
     public string LatestVersion { get; init; } = string.Empty;
+
     public string? Description { get; init; }
+
     public string? Authors { get; init; }
+
     public long DownloadCount { get; init; }
+
     public string? IconUrl { get; init; }
+
     public string? ProjectUrl { get; init; }
+
     public IReadOnlyList<string> Tags { get; init; } = [];
+
     public bool IsInstalled { get; init; }
+
     public string? InstalledVersion { get; init; }
 
     public PackageSearchItemModel ToModel() => new()
@@ -82,17 +101,29 @@ internal record PackageSearchItemApiResponse
 internal record PackageDetailsApiResponse
 {
     public string PackageId { get; init; } = string.Empty;
+
     public string Version { get; init; } = string.Empty;
+
     public string? Title { get; init; }
+
     public string? Description { get; init; }
+
     public string? Authors { get; init; }
+
     public string? License { get; init; }
+
     public string? ProjectUrl { get; init; }
+
     public string? IconUrl { get; init; }
+
     public IReadOnlyList<string> Tags { get; init; } = [];
+
     public IReadOnlyList<string> Dependencies { get; init; } = [];
+
     public IReadOnlyList<string> AllVersions { get; init; } = [];
+
     public bool IsInstalled { get; init; }
+
     public string? InstalledVersion { get; init; }
 
     public PackageDetailsModel ToModel() => new()
@@ -120,9 +151,13 @@ internal record PackageDetailsApiResponse
 internal record PackageInstallApiResponse
 {
     public bool Success { get; init; }
+
     public InstalledPackageApiResponse? Package { get; init; }
+
     public IReadOnlyList<InstalledPackageApiResponse> InstalledDependencies { get; init; } = [];
+
     public IReadOnlyList<string> Errors { get; init; } = [];
+
     public IReadOnlyList<string> Warnings { get; init; } = [];
 
     public PackageInstallResultModel ToModel() => new()
@@ -140,9 +175,13 @@ internal record PackageInstallApiResponse
 internal record PackageUpdateApiResponse
 {
     public bool Success { get; init; }
+
     public InstalledPackageApiResponse? Package { get; init; }
+
     public string? PreviousVersion { get; init; }
+
     public IReadOnlyList<string> Errors { get; init; } = [];
+
     public IReadOnlyList<string> Warnings { get; init; } = [];
 
     public PackageUpdateResultModel ToModel() => new()
@@ -160,9 +199,13 @@ internal record PackageUpdateApiResponse
 internal record PackageUninstallApiResponse
 {
     public bool Success { get; init; }
+
     public string? PackageId { get; init; }
+
     public IReadOnlyList<string> RemovedDependencies { get; init; } = [];
+
     public IReadOnlyList<string> AffectedWorkflows { get; init; } = [];
+
     public IReadOnlyList<string> Errors { get; init; } = [];
 
     public PackageUninstallResultModel ToModel() => new()
@@ -179,8 +222,11 @@ internal record PackageUninstallApiResponse
 internal record PackageUpdateInfoApiResponse
 {
     public string PackageId { get; init; } = string.Empty;
+
     public string CurrentVersion { get; init; } = string.Empty;
+
     public string LatestVersion { get; init; } = string.Empty;
+
     public string? ReleaseNotes { get; init; }
 
     public PackageUpdateInfoModel ToModel() => new()
@@ -198,6 +244,7 @@ internal record PackageUpdateInfoApiResponse
 internal record InstallPackageApiRequest
 {
     public string? Version { get; init; }
+
     public bool Prerelease { get; init; }
 }
 
@@ -215,7 +262,9 @@ internal record UpdatePackageApiRequest
 internal record ApiErrorResponse
 {
     public string Code { get; init; } = string.Empty;
+
     public string Message { get; init; } = string.Empty;
+
     public Dictionary<string, string[]>? Details { get; init; }
 
     public IReadOnlyList<string> GetErrors()
@@ -247,10 +296,15 @@ internal record ApiErrorResponse
 internal record PackageSourceApiResponse
 {
     public string Name { get; init; } = string.Empty;
+
     public string Url { get; init; } = string.Empty;
+
     public bool IsEnabled { get; init; }
+
     public bool IsTrusted { get; init; }
+
     public bool HasCredentials { get; init; }
+
     public int Priority { get; init; }
 
     public PackageSourceModel ToModel() => new()
@@ -270,12 +324,19 @@ internal record PackageSourceApiResponse
 internal record PackageSourceApiRequest
 {
     public string Name { get; init; } = string.Empty;
+
     public string Url { get; init; } = string.Empty;
+
     public bool IsEnabled { get; init; }
+
     public bool IsTrusted { get; init; }
+
     public string? Username { get; init; }
+
     public string? Password { get; init; }
+
     public string? ApiKey { get; init; }
+
     public int Priority { get; init; }
 
     public static PackageSourceApiRequest FromModel(PackageSourceModel model) => new()
@@ -297,8 +358,11 @@ internal record PackageSourceApiRequest
 internal record SourceTestApiResponse
 {
     public bool Success { get; init; }
+
     public string SourceName { get; init; } = string.Empty;
+
     public long ResponseTimeMs { get; init; }
+
     public string? ErrorMessage { get; init; }
 
     public SourceTestResultModel ToModel() => new()

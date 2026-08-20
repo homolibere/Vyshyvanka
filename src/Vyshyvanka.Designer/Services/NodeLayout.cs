@@ -73,7 +73,10 @@ public static class NodeLayout
     /// </summary>
     public static List<PortDefinition> GetEffectiveOutputs(WorkflowNode node, NodeDefinition? definition)
     {
-        if (definition is null) return [];
+        if (definition is null)
+        {
+            return [];
+        }
 
         // Switch nodes derive output ports from their cases configuration
         if (node.Type == "switch")
@@ -95,7 +98,10 @@ public static class NodeLayout
         {
             foreach (var caseItem in casesElement.EnumerateArray())
             {
-                if (caseItem.ValueKind != JsonValueKind.Object) continue;
+                if (caseItem.ValueKind != JsonValueKind.Object)
+                {
+                    continue;
+                }
 
                 string? outputName = null;
 

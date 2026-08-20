@@ -110,15 +110,21 @@ public class GitLabPipelineNode : BaseGitLabNode
 
         var status = GetConfigValue<string>(input, "status");
         if (!string.IsNullOrWhiteSpace(status))
+        {
             query += $"&status={HttpUtility.UrlEncode(status)}";
+        }
 
         var source = GetConfigValue<string>(input, "source");
         if (!string.IsNullOrWhiteSpace(source))
+        {
             query += $"&source={HttpUtility.UrlEncode(source)}";
+        }
 
         var refFilter = GetConfigValue<string>(input, "ref_filter");
         if (!string.IsNullOrWhiteSpace(refFilter))
+        {
             query += $"&ref={HttpUtility.UrlEncode(refFilter)}";
+        }
 
         var response = await SendGitLabRequestAsync(HttpMethod.Get, query, apiBase, token, null, ct);
 
@@ -201,7 +207,9 @@ public class GitLabPipelineNode : BaseGitLabNode
 
         var scope = GetConfigValue<string>(input, "jobScope");
         if (!string.IsNullOrWhiteSpace(scope))
+        {
             query += $"&scope[]={HttpUtility.UrlEncode(scope)}";
+        }
 
         var response = await SendGitLabRequestAsync(HttpMethod.Get, query, apiBase, token, null, ct);
 

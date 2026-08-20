@@ -1,9 +1,9 @@
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using Vyshyvanka.Core.Attributes;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Engine.Nodes.Base;
-using Vyshyvanka.Core.Attributes;
 
 namespace Vyshyvanka.Engine.Nodes.Actions;
 
@@ -149,7 +149,9 @@ public class HttpRequestNode : BaseActionNode
     private static string BuildUrlWithQueryParams(string url, Dictionary<string, string>? queryParams)
     {
         if (queryParams is null || queryParams.Count == 0)
+        {
             return url;
+        }
 
         var uriBuilder = new UriBuilder(url);
         var query = System.Web.HttpUtility.ParseQueryString(uriBuilder.Query);
@@ -186,7 +188,9 @@ public class HttpRequestNode : BaseActionNode
         var credentials = await context.Credentials.GetCredentialAsync(credentialId, context.CancellationToken);
 
         if (credentials is null)
+        {
             return;
+        }
 
         // Determine credential type and apply accordingly
         if (credentials.TryGetValue("apiKey", out var apiKey))

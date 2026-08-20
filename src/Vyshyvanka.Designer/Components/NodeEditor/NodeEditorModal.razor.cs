@@ -1,10 +1,10 @@
 using System.Text.Json;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Core.Models;
 using Vyshyvanka.Designer.Models;
 using Vyshyvanka.Designer.Services;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 
 namespace Vyshyvanka.Designer.Components;
 
@@ -170,7 +170,9 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
     private static string SerializeConfiguration(JsonElement? config)
     {
         if (!config.HasValue || config.Value.ValueKind == JsonValueKind.Undefined)
+        {
             return "{}";
+        }
 
         try
         {
@@ -201,7 +203,11 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
 
     private void HandleCredentialChanged(Guid? credentialId)
     {
-        if (_node is null || string.IsNullOrEmpty(NodeId)) return;
+        if (_node is null || string.IsNullOrEmpty(NodeId))
+        {
+            return;
+        }
+
         EditService.UpdateNodeCredential(NodeId, credentialId);
         _node = Store.GetNode(NodeId);
         _isDirty = true;
@@ -261,7 +267,9 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
     private void SaveConfiguration()
     {
         if (_node is null || string.IsNullOrEmpty(NodeId))
+        {
             return;
+        }
 
         JsonElement config;
 
@@ -292,10 +300,14 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
     private static bool IsValueEmpty(object? value)
     {
         if (value is null)
+        {
             return true;
+        }
 
         if (value is string s)
+        {
             return string.IsNullOrWhiteSpace(s);
+        }
 
         if (value is JsonElement element)
         {
@@ -312,7 +324,10 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
 
     private async Task RunBeforeNode()
     {
-        if (string.IsNullOrEmpty(NodeId) || _isRunningToNode) return;
+        if (string.IsNullOrEmpty(NodeId) || _isRunningToNode)
+        {
+            return;
+        }
 
         // Save pending config changes before running
         if (_isDirty)
@@ -369,7 +384,10 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
 
     private async Task RunThisNode()
     {
-        if (string.IsNullOrEmpty(NodeId) || _isRunningThisNode) return;
+        if (string.IsNullOrEmpty(NodeId) || _isRunningThisNode)
+        {
+            return;
+        }
 
         // Save pending config changes before running
         if (_isDirty)
@@ -470,7 +488,9 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
     private bool NodeConfigHasExpressions()
     {
         if (_node?.Configuration is not { ValueKind: not JsonValueKind.Undefined } config)
+        {
             return false;
+        }
 
         var configJson = config.GetRawText();
         return configJson.Contains("{{");
@@ -542,13 +562,17 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
     private void PreviousIteration()
     {
         if (_currentIteration > 0)
+        {
             _currentIteration--;
+        }
     }
 
     private void NextIteration()
     {
         if (_currentIteration < TotalIterations - 1)
+        {
             _currentIteration++;
+        }
     }
 
     private string? CurrentIterationPort => HasIterations
@@ -559,7 +583,11 @@ public partial class NodeEditorModal : ComponentBase, IDisposable
     {
         get
         {
-            if (!HasIterations) return "";
+            if (!HasIterations)
+            {
+                return "";
+            }
+
             var iter = _executionState!.Iterations[_currentIteration];
             var port = iter.OutputPort;
             return port is not null

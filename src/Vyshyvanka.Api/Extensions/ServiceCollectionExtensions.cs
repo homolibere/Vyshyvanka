@@ -1,4 +1,8 @@
 using System.Text;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Vyshyvanka.Api.Authorization;
 using Vyshyvanka.Api.Middleware;
 using Vyshyvanka.Api.Services;
@@ -14,10 +18,6 @@ using Vyshyvanka.Engine.Persistence;
 using Vyshyvanka.Engine.Plugins;
 using Vyshyvanka.Engine.Registry;
 using Vyshyvanka.Engine.Validation;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Vyshyvanka.Api.Extensions;
 

@@ -1,8 +1,8 @@
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Engine.Persistence.Entities;
-using Microsoft.EntityFrameworkCore;
 using ExecutionModel = Vyshyvanka.Core.Models.Execution;
 using NodeExecutionModel = Vyshyvanka.Core.Models.NodeExecution;
 
@@ -65,7 +65,6 @@ public class ExecutionRepository(VyshyvankaDbContext context) : IExecutionReposi
         await context.SaveChangesAsync(cancellationToken);
         return true;
     }
-
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<ExecutionModel>> GetByWorkflowIdAsync(
@@ -167,7 +166,6 @@ public class ExecutionRepository(VyshyvankaDbContext context) : IExecutionReposi
         return entities.Select(ToModel).ToList();
     }
 
-
     /// <inheritdoc />
     public async Task AddNodeExecutionAsync(
         Guid executionId,
@@ -252,7 +250,6 @@ public class ExecutionRepository(VyshyvankaDbContext context) : IExecutionReposi
             }).ToList()
         };
     }
-
 
     private static ExecutionModel ToModel(ExecutionEntity entity)
     {

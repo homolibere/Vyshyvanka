@@ -1,8 +1,8 @@
+using Microsoft.EntityFrameworkCore;
 using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Core.Models;
 using Vyshyvanka.Engine.Persistence.Entities;
-using Microsoft.EntityFrameworkCore;
 
 namespace Vyshyvanka.Engine.Persistence;
 
@@ -61,7 +61,9 @@ public class WorkflowPermissionRepository(VyshyvankaDbContext context) : IWorkfl
     {
         var teamIdList = teamIds.ToList();
         if (teamIdList.Count == 0)
+        {
             return [];
+        }
 
         var entities = await context.WorkflowPermissions
             .AsNoTracking()
@@ -89,7 +91,9 @@ public class WorkflowPermissionRepository(VyshyvankaDbContext context) : IWorkfl
             .ToListAsync(cancellationToken);
 
         if (grants.Count == 0)
+        {
             return null;
+        }
 
         // Return the grant with the highest permission level
         var best = grants.OrderByDescending(g => g.PermissionLevel).First();
@@ -118,7 +122,9 @@ public class WorkflowPermissionRepository(VyshyvankaDbContext context) : IWorkfl
     {
         var entity = await context.WorkflowPermissions.FindAsync([id], cancellationToken);
         if (entity is null)
+        {
             return false;
+        }
 
         context.WorkflowPermissions.Remove(entity);
         await context.SaveChangesAsync(cancellationToken);

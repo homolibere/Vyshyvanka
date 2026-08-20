@@ -1,5 +1,5 @@
-using Vyshyvanka.Designer.Services;
 using Microsoft.AspNetCore.Components;
+using Vyshyvanka.Designer.Services;
 
 namespace Vyshyvanka.Designer.Pages;
 
@@ -11,7 +11,7 @@ public partial class Login
     [Inject]
     private NavigationManager Navigation { get; set; } = null!;
 
-    private LoginModel _model = new();
+    private readonly LoginModel _model = new();
     private string? _errorMessage;
     private bool _isLoading;
 
@@ -50,6 +50,7 @@ public partial class Login
     private class LoginModel
     {
         public string Email { get; set; } = string.Empty;
+
         public string Password { get; set; } = string.Empty;
     }
 

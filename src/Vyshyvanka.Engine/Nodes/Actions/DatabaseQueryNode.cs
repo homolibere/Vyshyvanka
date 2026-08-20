@@ -1,8 +1,8 @@
 using System.Data.Common;
+using Microsoft.Data.Sqlite;
+using Vyshyvanka.Core.Attributes;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Engine.Nodes.Base;
-using Vyshyvanka.Core.Attributes;
-using Microsoft.Data.Sqlite;
 
 namespace Vyshyvanka.Engine.Nodes.Actions;
 
@@ -168,7 +168,9 @@ public class DatabaseQueryNode : BaseActionNode
         var credentials = await context.Credentials.GetCredentialAsync(credentialId, context.CancellationToken);
 
         if (credentials is null)
+        {
             return connectionString;
+        }
 
         // Build connection string with credentials
         var builder = new DbConnectionStringBuilder { ConnectionString = connectionString };

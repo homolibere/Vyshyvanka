@@ -1,7 +1,7 @@
-using Vyshyvanka.Designer.Models;
-using Vyshyvanka.Designer.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Vyshyvanka.Designer.Models;
+using Vyshyvanka.Designer.Services;
 
 namespace Vyshyvanka.Designer.Components;
 
@@ -48,7 +48,10 @@ public partial class InstalledPackages : IDisposable
     private async Task HandleFileUpload(InputFileChangeEventArgs e)
     {
         var file = e.File;
-        if (file is null) return;
+        if (file is null)
+        {
+            return;
+        }
 
         if (!file.Name.EndsWith(".nupkg", StringComparison.OrdinalIgnoreCase))
         {

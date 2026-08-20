@@ -1,8 +1,8 @@
 using System.Net;
 using System.Net.Mail;
+using Vyshyvanka.Core.Attributes;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Engine.Nodes.Base;
-using Vyshyvanka.Core.Attributes;
 
 namespace Vyshyvanka.Engine.Nodes.Actions;
 
@@ -159,7 +159,9 @@ public class EmailSendNode : BaseActionNode
     private static IEnumerable<MailAddress> ParseEmailAddresses(string addresses)
     {
         if (string.IsNullOrWhiteSpace(addresses))
+        {
             yield break;
+        }
 
         foreach (var address in addresses.Split(',',
                      StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
@@ -178,7 +180,9 @@ public class EmailSendNode : BaseActionNode
         var credentials = await context.Credentials.GetCredentialAsync(credentialId, context.CancellationToken);
 
         if (credentials is null)
+        {
             return null;
+        }
 
         return new SmtpCredentials
         {
@@ -194,8 +198,11 @@ public class EmailSendNode : BaseActionNode
     private sealed record SmtpCredentials
     {
         public string? Host { get; init; }
+
         public int? Port { get; init; }
+
         public string? Username { get; init; }
+
         public string? Password { get; init; }
     }
 }

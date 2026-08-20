@@ -1,7 +1,7 @@
 using System.Text.Json;
-using Vyshyvanka.Core.Interfaces;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Vyshyvanka.Core.Interfaces;
 
 namespace Vyshyvanka.Designer.Components;
 
@@ -99,10 +99,14 @@ public partial class NodeEditorInputPanel : ComponentBase
             var data = EffectiveInputData;
 
             if (!data.HasValue || data.Value.ValueKind == JsonValueKind.Undefined)
+            {
                 return null;
+            }
 
             if (!HasMultiplePorts || SelectedPort is null)
+            {
                 return data;
+            }
 
             // Try to extract per-port data from the input object
             if (data.Value.ValueKind == JsonValueKind.Object &&
@@ -121,7 +125,9 @@ public partial class NodeEditorInputPanel : ComponentBase
         get
         {
             if (!HasInputData)
+            {
                 return string.Empty;
+            }
 
             return FormatJsonElement(CurrentPortData!.Value);
         }

@@ -1,6 +1,6 @@
-using Vyshyvanka.Designer.Models;
-using Microsoft.AspNetCore.Components;
 using System.Globalization;
+using Microsoft.AspNetCore.Components;
+using Vyshyvanka.Designer.Models;
 
 namespace Vyshyvanka.Designer.Components;
 
@@ -34,9 +34,15 @@ public partial class NumberPropertyEditor : ComponentBase
         get
         {
             if (!string.IsNullOrEmpty(_typeValidationError))
+            {
                 return _typeValidationError;
+            }
+
             if (ShowValidationError)
+            {
                 return "This field is required";
+            }
+
             return string.Empty;
         }
     }
@@ -88,6 +94,7 @@ public partial class NumberPropertyEditor : ComponentBase
         {
             _typeValidationError = "Please enter a valid number";
         }
+
         await ValueChanged.InvokeAsync(Value);
     }
 
@@ -96,16 +103,23 @@ public partial class NumberPropertyEditor : ComponentBase
         result = null;
 
         if (string.IsNullOrWhiteSpace(input))
+        {
             return false;
+        }
 
         // Try integer first
         if (long.TryParse(input, NumberStyles.Integer, CultureInfo.InvariantCulture, out var longValue))
         {
             // Use int if it fits, otherwise long
             if (longValue >= int.MinValue && longValue <= int.MaxValue)
+            {
                 result = (int)longValue;
+            }
             else
+            {
                 result = longValue;
+            }
+
             return true;
         }
 

@@ -1,8 +1,8 @@
 using System.Collections.Concurrent;
-using Vyshyvanka.Core.Interfaces;
 using Microsoft.Extensions.Logging;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
+using Vyshyvanka.Core.Interfaces;
 
 namespace Vyshyvanka.Engine.Packages;
 
@@ -96,7 +96,10 @@ public class NuGetPackageManager(
             version?.ToString() ?? "latest");
 
         var listValidation = ValidatePackageLists(packageId);
-        if (listValidation is not null) return listValidation;
+        if (listValidation is not null)
+        {
+            return listValidation;
+        }
 
         try
         {
@@ -104,7 +107,10 @@ public class NuGetPackageManager(
                 await ResolveVersionAndSourceAsync(packageId, version, prerelease, cancellationToken);
 
             var sourceConfirmation = await ConfirmUntrustedSourceAsync(packageId, source);
-            if (sourceConfirmation is not null) return sourceConfirmation;
+            if (sourceConfirmation is not null)
+            {
+                return sourceConfirmation;
+            }
 
             var depResult = await ResolveDependenciesAsync(packageId, resolvedVersion, cancellationToken);
             if (!depResult.Success)
@@ -125,7 +131,10 @@ public class NuGetPackageManager(
 
             var pluginResult = await pluginLoadingService.LoadAndValidatePluginsAsync(
                 packageId, resolvedVersion, installPath, cancellationToken);
-            if (pluginResult.Failure is not null) return pluginResult.Failure;
+            if (pluginResult.Failure is not null)
+            {
+                return pluginResult.Failure;
+            }
 
             var installedDeps = await InstallDependenciesAsync(
                 depResult, packageId, source.Name, cancellationToken);
@@ -360,7 +369,10 @@ public class NuGetPackageManager(
 
                 // Check block/allow lists
                 var listValidation = ValidatePackageLists(packageId);
-                if (listValidation is not null) return listValidation;
+                if (listValidation is not null)
+                {
+                    return listValidation;
+                }
 
                 // Move to the proper cache location
                 var nupkgPath = Path.Combine(
@@ -368,7 +380,9 @@ public class NuGetPackageManager(
                     $"{packageId.ToLowerInvariant()}.{version.ToNormalizedString()}.nupkg");
 
                 if (File.Exists(nupkgPath))
+                {
                     File.Delete(nupkgPath);
+                }
 
                 File.Move(tempPath, nupkgPath);
                 tempPath = nupkgPath; // update so cleanup targets the right file on error
@@ -381,7 +395,9 @@ public class NuGetPackageManager(
                 var pluginResult = await pluginLoadingService.LoadAndValidatePluginsAsync(
                     packageId, version, installPath, cancellationToken);
                 if (pluginResult.Failure is not null)
+                {
                     return pluginResult.Failure;
+                }
 
                 var installedPackage = new InstalledPackage
                 {
@@ -412,7 +428,9 @@ public class NuGetPackageManager(
             {
                 // Clean up temp file if it still exists (error path)
                 if (tempPath.Contains("upload-") && File.Exists(tempPath))
+                {
                     File.Delete(tempPath);
+                }
             }
         }
         catch (Exception ex)
@@ -480,13 +498,20 @@ public class NuGetPackageManager(
         string packageId, PackageSource source)
     {
         if (!options.RequireUntrustedSourceConfirmation || source.IsTrusted)
+        {
             return null;
+        }
 
         if (options.UntrustedSourceConfirmationCallback is null)
+        {
             return null;
+        }
 
         var confirmed = await options.UntrustedSourceConfirmationCallback(packageId, source.Name);
-        if (confirmed) return null;
+        if (confirmed)
+        {
+            return null;
+        }
 
         return new PackageInstallResult
         {
@@ -529,7 +554,10 @@ public class NuGetPackageManager(
             try
             {
                 var depSource = await searchService.FindPackageSourceAsync(dep.PackageId, dep.Version, cancellationToken);
-                if (depSource.Repository is null) continue;
+                if (depSource.Repository is null)
+                {
+                    continue;
+                }
 
                 var depNupkg = await packageCache.GetPackagePathAsync(
                     dep.PackageId, dep.Version, depSource.Repository, cancellationToken);

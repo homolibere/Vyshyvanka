@@ -1,6 +1,6 @@
+using Microsoft.AspNetCore.Components;
 using Vyshyvanka.Designer.Models;
 using Vyshyvanka.Designer.Services;
-using Microsoft.AspNetCore.Components;
 
 namespace Vyshyvanka.Designer.Components;
 
@@ -131,7 +131,10 @@ public partial class TeamManager
 
     private async Task HandleUpdate()
     {
-        if (_editTeam is null) return;
+        if (_editTeam is null)
+        {
+            return;
+        }
 
         if (string.IsNullOrWhiteSpace(_editName))
         {
@@ -182,7 +185,10 @@ public partial class TeamManager
 
     private async Task ConfirmDelete()
     {
-        if (_confirmDeleteId is null) return;
+        if (_confirmDeleteId is null)
+        {
+            return;
+        }
 
         var id = _confirmDeleteId.Value;
         var name = _teams.FirstOrDefault(t => t.Id == id)?.Name ?? "team";
