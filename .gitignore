@@ -55,3 +55,5 @@ src/Vyshyvanka.Api/packages/*
 .llm
 samples/
 test-results/.last-run.json
+.kiro/settings/cli.json
+src/Vyshyvanka.AppHost/aspire.config.json
