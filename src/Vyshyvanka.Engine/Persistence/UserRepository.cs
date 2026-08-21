@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Vyshyvanka.Core.Interfaces;
 using Vyshyvanka.Core.Models;
@@ -10,6 +12,13 @@ namespace Vyshyvanka.Engine.Persistence;
 /// </summary>
 public class UserRepository(VyshyvankaDbContext context) : IUserRepository
 {
+    /// <summary>
+    /// Hashes a refresh token with SHA-256 for storage/lookup. Refresh tokens are already
+    /// 512-bit cryptographically random, so a plain (unsalted) hash is sufficient — the token
+    /// is a high-entropy secret, not a guessable password, so no PBKDF2/salt is required.
+    /// </summary>
+    private static string HashRefreshToken(string refreshToken) =>
+        Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(refreshToken)));
 
     public async Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
@@ -89,7 +98,8 @@ public class UserRepository(VyshyvankaDbContext context) : IUserRepository
         var entity = await context.Users.FindAsync([userId], cancellationToken)
                      ?? throw new InvalidOperationException($"User {userId} not found");
 
-        entity.RefreshToken = refreshToken;
+        // Store only the hash of the refresh token — never the plaintext.
+        entity.RefreshToken = refreshToken is null ? null : HashRefreshToken(refreshToken);
         entity.RefreshTokenExpiresAt = expiresAt;
         await context.SaveChangesAsync(cancellationToken);
     }
@@ -107,11 +117,30 @@ public class UserRepository(VyshyvankaDbContext context) : IUserRepository
     internal async Task<User?> GetByRefreshTokenAsync(string refreshToken,
         CancellationToken cancellationToken = default)
     {
+        // The stored value is a hash, so look up by the hash of the presented token.
+        var hash = HashRefreshToken(refreshToken);
         var entity = await context.Users
             .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.RefreshToken == refreshToken, cancellationToken);
+            .FirstOrDefaultAsync(u => u.RefreshToken == hash, cancellationToken);
 
         return entity is null ? null : ToModel(entity);
+    }
+
+    /// <summary>
+    /// Verifies a presented refresh token against the stored hash in fixed time.
+    /// <paramref name="storedHash"/> is the value returned by <see cref="GetRefreshTokenAsync"/>.
+    /// </summary>
+    internal static bool VerifyRefreshToken(string presentedToken, string? storedHash)
+    {
+        if (string.IsNullOrEmpty(storedHash))
+        {
+            return false;
+        }
+
+        var presentedHash = HashRefreshToken(presentedToken);
+        return CryptographicOperations.FixedTimeEquals(
+            Encoding.UTF8.GetBytes(presentedHash),
+            Encoding.UTF8.GetBytes(storedHash));
     }
 
     private static User ToModel(UserEntity entity) => new()

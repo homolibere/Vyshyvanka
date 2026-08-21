@@ -188,7 +188,7 @@ public class AuthService : IAuthService
 
         var (storedToken, expiresAt) = await _userRepositoryInternal.GetRefreshTokenAsync(user.Id, cancellationToken);
 
-        if (storedToken != refreshToken || expiresAt < DateTime.UtcNow)
+        if (!UserRepository.VerifyRefreshToken(refreshToken, storedToken) || expiresAt < DateTime.UtcNow)
         {
             return new AuthResult { Success = false, ErrorMessage = "Refresh token expired" };
         }

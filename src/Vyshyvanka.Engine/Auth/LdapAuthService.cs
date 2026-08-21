@@ -122,7 +122,8 @@ public class LdapAuthService(
         }
 
         var (storedToken, expiresAt) = await repo.GetRefreshTokenAsync(user.Id, cancellationToken);
-        if (storedToken != refreshToken || expiresAt < DateTime.UtcNow)
+        if (!Engine.Persistence.UserRepository.VerifyRefreshToken(refreshToken, storedToken) ||
+            expiresAt < DateTime.UtcNow)
         {
             return new AuthResult { Success = false, ErrorMessage = "Refresh token expired" };
         }
