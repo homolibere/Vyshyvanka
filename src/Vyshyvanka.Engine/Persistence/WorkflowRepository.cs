@@ -109,7 +109,7 @@ public class WorkflowRepository(VyshyvankaDbContext context) : IWorkflowReposito
     {
         var entities = await context.Workflows
             .AsNoTracking()
-            .Where(w => w.IsActive)
+            .Where(w => w.Status == Core.Enums.WorkflowStatus.Active)
             .OrderByDescending(w => w.UpdatedAt)
             .Skip(skip)
             .Take(take)
@@ -166,7 +166,7 @@ public class WorkflowRepository(VyshyvankaDbContext context) : IWorkflowReposito
 
         var candidates = await context.Workflows
             .AsNoTracking()
-            .Where(w => w.IsActive && EF.Functions.Like(w.NodesJson, pathPattern))
+            .Where(w => w.Status == Core.Enums.WorkflowStatus.Active && EF.Functions.Like(w.NodesJson, pathPattern))
             .ToListAsync(cancellationToken);
 
         return candidates
@@ -191,7 +191,7 @@ public class WorkflowRepository(VyshyvankaDbContext context) : IWorkflowReposito
             Name = workflow.Name,
             Description = workflow.Description,
             Version = workflow.Version,
-            IsActive = workflow.IsActive,
+            Status = workflow.Status,
             NodesJson = JsonSerializer.Serialize(sanitizedNodes, JsonOptions),
             ConnectionsJson = JsonSerializer.Serialize(workflow.Connections, JsonOptions),
             SettingsJson = JsonSerializer.Serialize(workflow.Settings, JsonOptions),
@@ -222,7 +222,7 @@ public class WorkflowRepository(VyshyvankaDbContext context) : IWorkflowReposito
             Name = entity.Name,
             Description = entity.Description,
             Version = entity.Version,
-            IsActive = entity.IsActive,
+            Status = entity.Status,
             Nodes = DeserializeNodes(entity.NodesJson),
             Connections = DeserializeConnections(entity.ConnectionsJson),
             Settings = DeserializeSettings(entity.SettingsJson),
@@ -242,7 +242,7 @@ public class WorkflowRepository(VyshyvankaDbContext context) : IWorkflowReposito
         entity.Name = workflow.Name;
         entity.Description = workflow.Description;
         entity.Version = workflow.Version;
-        entity.IsActive = workflow.IsActive;
+        entity.Status = workflow.Status;
         entity.NodesJson = JsonSerializer.Serialize(sanitizedNodes, JsonOptions);
         entity.ConnectionsJson = JsonSerializer.Serialize(workflow.Connections, JsonOptions);
         entity.SettingsJson = JsonSerializer.Serialize(workflow.Settings, JsonOptions);

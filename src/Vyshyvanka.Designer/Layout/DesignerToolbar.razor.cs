@@ -3,7 +3,7 @@ using Vyshyvanka.Designer.Services;
 
 namespace Vyshyvanka.Designer.Layout;
 
-public partial class DesignerToolbar
+public partial class DesignerToolbar : IDisposable
 {
     [Inject] private WorkflowStore Store { get; set; } = null!;
 
@@ -21,12 +21,21 @@ public partial class DesignerToolbar
 
     [Parameter] public EventCallback OnStop { get; set; }
 
+    protected override void OnInitialized()
+    {
+        // Re-render when the loaded workflow changes (e.g. status, or navigating to another workflow).
+        Store.OnStateChanged += OnStoreChanged;
+    }
+
+    private void OnStoreChanged() => StateHasChanged();
+
     private bool IsValid => ValidationService.ValidationResult.IsValid;
 
+    // Designer "Run" issues an Api-mode execution, which is allowed for any status.
+    // Only validity and not-already-running gate it.
     private bool CanExecute =>
         ValidationService.ValidationResult.IsValid
-        && !ExecutionState.IsExecutionActive
-        && Store.Workflow.IsActive;
+        && !ExecutionState.IsExecutionActive;
 
     private string ZoomPercent =>
         FormattableString.Invariant($"{CanvasState.CanvasState.Zoom * 100:0}%");
@@ -35,27 +44,13 @@ public partial class DesignerToolbar
         ? "Save workflow"
         : "Fix validation errors before saving";
 
-    private string RunTitle
-    {
-        get
-        {
-            if (!IsValid)
-            {
-                return "Fix validation errors before running";
-            }
+    private string RunTitle => IsValid
+        ? "Execute workflow"
+        : "Fix validation errors before running";
 
-            if (!Store.Workflow.IsActive)
-            {
-                return "Activate workflow before running";
-            }
-
-            return "Execute workflow";
-        }
-    }
-
-    private string ActiveTitle => Store.Workflow.IsActive
-        ? "Workflow is active (click to deactivate)"
-        : "Workflow is inactive (click to activate)";
+    private string ActiveTitle => Store.Workflow.Status == Core.Enums.WorkflowStatus.Active
+        ? "Workflow is active — automatic triggers armed (click to pause)"
+        : "Workflow is not active — automatic triggers disarmed (click to activate)";
 
     private void Undo() => CanvasState.Undo();
 
@@ -68,4 +63,9 @@ public partial class DesignerToolbar
     private void ResetView() => CanvasState.ResetView();
 
     private void OnToggleActive() => EditService.ToggleWorkflowActive();
+
+    public void Dispose()
+    {
+        Store.OnStateChanged -= OnStoreChanged;
+    }
 }

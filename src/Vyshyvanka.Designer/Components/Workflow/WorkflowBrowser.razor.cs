@@ -137,7 +137,7 @@ public partial class WorkflowBrowser
 
             var workflows = await workflowsTask;
             _workflows = workflows
-                .Select(w => new WorkflowSummary(w.Id, w.Name, w.Description, w.Version, w.IsActive, w.UpdatedAt, w.FolderId))
+                .Select(w => new WorkflowSummary(w.Id, w.Name, w.Description, w.Version, w.Status, w.UpdatedAt, w.FolderId))
                 .OrderByDescending(w => w.UpdatedAt)
                 .ToList();
 
@@ -564,7 +564,7 @@ public partial class WorkflowBrowser
         string Name,
         string? Description,
         int Version,
-        bool IsActive,
+        Vyshyvanka.Core.Enums.WorkflowStatus Status,
         DateTime UpdatedAt,
         Guid? FolderId);
 

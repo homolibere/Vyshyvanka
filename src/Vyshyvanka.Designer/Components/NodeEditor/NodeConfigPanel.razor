@@ -197,8 +197,8 @@
             <div class="config-card">
                 <label class="config-card__label">Status</label>
                 <div class="config-value">
-                    <span class="status-indicator @(Store.Workflow.IsActive ? "active" : "inactive")">
-                        @(Store.Workflow.IsActive ? "🟢 Active" : "⚪ Inactive")
+                    <span class="status-indicator @(Store.Workflow.Status == Vyshyvanka.Core.Enums.WorkflowStatus.Active ? "active" : "inactive")">
+                        @Store.Workflow.Status.ToString()
                     </span>
                 </div>
             </div>

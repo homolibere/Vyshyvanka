@@ -189,19 +189,19 @@ public class WorkflowEditServiceTests
     [Fact]
     public void WhenToggleWorkflowActiveThenStateFlips()
     {
-        var original = _store.Workflow.IsActive;
+        var wasActive = _store.Workflow.Status == WorkflowStatus.Active;
 
         _sut.ToggleWorkflowActive();
 
-        _store.Workflow.IsActive.Should().Be(!original);
+        (_store.Workflow.Status == WorkflowStatus.Active).Should().Be(!wasActive);
     }
 
     [Fact]
     public void WhenSetWorkflowActiveToSameValueThenNoOp()
     {
-        var original = _store.Workflow.IsActive;
+        var original = _store.Workflow.Status;
 
-        _sut.SetWorkflowActive(original);
+        _sut.SetWorkflowStatus(original);
 
         _canvasState.CanUndo.Should().BeFalse(); // No undo state saved
     }
@@ -246,7 +246,7 @@ public class WorkflowEditServiceTests
             Id = Guid.NewGuid(),
             Name = "Loaded Workflow",
             Version = 3,
-            IsActive = true,
+            Status = WorkflowStatus.Active,
             Nodes = [new WorkflowNode { Id = "x1", Type = "if", Name = "Loaded Node" }]
         };
 

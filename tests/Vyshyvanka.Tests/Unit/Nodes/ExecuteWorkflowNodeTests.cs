@@ -132,7 +132,7 @@ public class ExecuteWorkflowNodeTests
         {
             Id = targetWorkflowId,
             Name = "Inactive Workflow",
-            IsActive = false
+            Status = WorkflowStatus.Draft
         };
 
         var workflowRepo = Substitute.For<IWorkflowRepository>();
@@ -170,7 +170,7 @@ public class ExecuteWorkflowNodeTests
         {
             Id = targetWorkflowId,
             Name = "Other User Workflow",
-            IsActive = true,
+            Status = WorkflowStatus.Active,
             CreatedBy = ownerId
         };
 
@@ -208,7 +208,7 @@ public class ExecuteWorkflowNodeTests
         {
             Id = targetWorkflowId,
             Name = "Child Workflow",
-            IsActive = true,
+            Status = WorkflowStatus.Active,
             CreatedBy = currentUserId
         };
 
@@ -263,7 +263,7 @@ public class ExecuteWorkflowNodeTests
         {
             Id = targetWorkflowId,
             Name = "Failing Child",
-            IsActive = true,
+            Status = WorkflowStatus.Active,
             CreatedBy = currentUserId
         };
 
@@ -312,7 +312,7 @@ public class ExecuteWorkflowNodeTests
         {
             Id = targetWorkflowId,
             Name = "Any User Workflow",
-            IsActive = true,
+            Status = WorkflowStatus.Active,
             CreatedBy = otherUserId
         };
 

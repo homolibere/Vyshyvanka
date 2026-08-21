@@ -46,7 +46,7 @@ erDiagram
         string Name
         string Description
         int Version
-        bool IsActive
+        WorkflowStatus Status
         Guid FolderId FK
         DateTime CreatedAt
         DateTime UpdatedAt
@@ -170,6 +170,16 @@ erDiagram
 ```
 
 ## Enumerations
+
+### WorkflowStatus
+
+Controls whether a workflow's triggers are armed for automatic execution. Activation governs **only** whether automatic triggers fire — it does not gate manual, API, or Designer execution, which is always allowed subject to permissions and validation.
+
+| Value | Description |
+|-------|------------|
+| Draft | Editable; never armed. Runs only manually or via the API. |
+| Active | Armed for automatic triggers (webhook listening plus cron/interval scheduling). Also runnable manually. |
+| Paused | Triggers disarmed, but still runnable manually or via the API. |
 
 ### ExecutionStatus
 

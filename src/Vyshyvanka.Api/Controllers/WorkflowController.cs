@@ -374,7 +374,7 @@ public class WorkflowController : VyshyvankaControllerBase
             Name = request.Name,
             Description = request.Description,
             Version = 1,
-            IsActive = request.IsActive,
+            Status = request.Status,
             Nodes = request.Nodes.Select(MapToNode).ToList(),
             Connections = request.Connections.Select(MapToConnection).ToList(),
             Settings = MapToSettings(request.Settings),
@@ -392,7 +392,7 @@ public class WorkflowController : VyshyvankaControllerBase
             Name = request.Name,
             Description = request.Description,
             Version = existing.Version + 1,
-            IsActive = request.IsActive,
+            Status = request.Status,
             Nodes = request.Nodes.Select(MapToNode).ToList(),
             Connections = request.Connections.Select(MapToConnection).ToList(),
             Settings = MapToSettings(request.Settings),
@@ -462,7 +462,7 @@ public class WorkflowController : VyshyvankaControllerBase
         Workflow workflow, CancellationToken cancellationToken)
     {
         // Only enforce uniqueness for active workflows
-        if (!workflow.IsActive)
+        if (workflow.Status != Core.Enums.WorkflowStatus.Active)
         {
             return null;
         }

@@ -14,8 +14,8 @@ public record CreateWorkflowRequest
     /// <summary>Optional free-text description explaining the workflow's purpose.</summary>
     public string? Description { get; init; }
 
-    /// <summary>Whether the workflow is active. Only active workflows respond to their trigger.</summary>
-    public bool IsActive { get; init; }
+    /// <summary>Activation state. Only <see cref="WorkflowStatus.Active"/> workflows respond to automatic triggers (webhook, cron). Manual/API execution is always allowed.</summary>
+    public WorkflowStatus Status { get; init; }
 
     /// <summary>The nodes that make up the workflow graph. Must contain exactly one trigger node.</summary>
     public List<WorkflowNodeDto> Nodes { get; init; } = [];
@@ -41,8 +41,8 @@ public record UpdateWorkflowRequest
     /// <summary>Optional free-text description explaining the workflow's purpose.</summary>
     public string? Description { get; init; }
 
-    /// <summary>Whether the workflow is active. Only active workflows respond to their trigger.</summary>
-    public bool IsActive { get; init; }
+    /// <summary>Activation state. Only <see cref="WorkflowStatus.Active"/> workflows respond to automatic triggers (webhook, cron). Manual/API execution is always allowed.</summary>
+    public WorkflowStatus Status { get; init; }
 
     /// <summary>The full replacement set of nodes for the workflow graph. Must contain exactly one trigger node.</summary>
     public List<WorkflowNodeDto> Nodes { get; init; } = [];
@@ -147,8 +147,8 @@ public record WorkflowResponse
     /// <summary>Current version number, incremented on each successful update for optimistic concurrency.</summary>
     public int Version { get; init; }
 
-    /// <summary>Whether the workflow is active and will respond to its trigger.</summary>
-    public bool IsActive { get; init; }
+    /// <summary>Activation state. Only <see cref="WorkflowStatus.Active"/> workflows respond to automatic triggers (webhook, cron). Manual/API execution is always allowed.</summary>
+    public WorkflowStatus Status { get; init; }
 
     /// <summary>The nodes that make up the workflow graph.</summary>
     public List<WorkflowNodeDto> Nodes { get; init; } = [];

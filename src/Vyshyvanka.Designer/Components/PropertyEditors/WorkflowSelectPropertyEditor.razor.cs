@@ -40,7 +40,7 @@ public partial class WorkflowSelectPropertyEditor : ComponentBase
         {
             var workflows = await ApiClient.GetWorkflowsAsync();
             _workflows = workflows
-                .Where(w => w.IsActive)
+                .Where(w => w.Status == Vyshyvanka.Core.Enums.WorkflowStatus.Active)
                 .OrderBy(w => w.Name)
                 .Select(w => new WorkflowOption(w.Id, w.Name))
                 .ToList();

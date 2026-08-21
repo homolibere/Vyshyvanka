@@ -189,27 +189,37 @@ public class WorkflowEditService(
         });
     }
 
-    /// <summary>Toggles the workflow active state.</summary>
+    /// <summary>
+    /// Toggles the workflow between Active and non-active. Activating arms automatic triggers;
+    /// deactivating moves to Paused (a Draft that has never been activated stays conceptually the
+    /// same, but the toggle always lands on Active or Paused).
+    /// </summary>
     public void ToggleWorkflowActive()
     {
-        CommitChange("Toggle Workflow Active", w => w with
-        {
-            IsActive = !w.IsActive,
-            UpdatedAt = DateTime.UtcNow
-        }, validate: false);
+        var next = store.Workflow.Status == Core.Enums.WorkflowStatus.Active
+            ? Core.Enums.WorkflowStatus.Paused
+            : Core.Enums.WorkflowStatus.Active;
+        SetWorkflowStatus(next);
     }
 
-    /// <summary>Sets the workflow active state.</summary>
-    public void SetWorkflowActive(bool isActive)
+    /// <summary>Sets the workflow activation status (Draft/Active/Paused).</summary>
+    public void SetWorkflowStatus(Core.Enums.WorkflowStatus status)
     {
-        if (store.Workflow.IsActive == isActive)
+        if (store.Workflow.Status == status)
         {
             return;
         }
 
-        CommitChange(isActive ? "Activate Workflow" : "Deactivate Workflow", w => w with
+        var description = status switch
         {
-            IsActive = isActive,
+            Core.Enums.WorkflowStatus.Active => "Activate Workflow",
+            Core.Enums.WorkflowStatus.Paused => "Pause Workflow",
+            _ => "Set Workflow to Draft"
+        };
+
+        CommitChange(description, w => w with
+        {
+            Status = status,
             UpdatedAt = DateTime.UtcNow
         }, validate: false);
     }

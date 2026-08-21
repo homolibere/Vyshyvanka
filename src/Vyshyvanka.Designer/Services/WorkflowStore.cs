@@ -168,7 +168,7 @@ public class WorkflowStore
         Id = Guid.NewGuid(),
         Name = "New Workflow",
         Version = 1,
-        IsActive = true,
+        Status = Core.Enums.WorkflowStatus.Draft,
         CreatedAt = DateTime.UtcNow,
         UpdatedAt = DateTime.UtcNow
     };

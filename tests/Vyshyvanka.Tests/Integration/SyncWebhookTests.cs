@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Vyshyvanka.Api.Models;
+using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Tests.Integration.Fixtures;
 
 namespace Vyshyvanka.Tests.Integration;
@@ -41,7 +42,7 @@ public class SyncWebhookTests : IClassFixture<VyshyvankaWebApplicationFactory>
         {
             Name = "Sync Webhook Test",
             Description = "Workflow with sync response mode",
-            IsActive = true,
+            Status = WorkflowStatus.Active,
             Nodes =
             [
                 new WorkflowNodeDto
@@ -107,7 +108,7 @@ public class SyncWebhookTests : IClassFixture<VyshyvankaWebApplicationFactory>
         var request = new CreateWorkflowRequest
         {
             Name = "Async Webhook Test",
-            IsActive = true,
+            Status = WorkflowStatus.Active,
             Nodes =
             [
                 new WorkflowNodeDto
@@ -151,7 +152,7 @@ public class SyncWebhookTests : IClassFixture<VyshyvankaWebApplicationFactory>
         var request = new CreateWorkflowRequest
         {
             Name = "Auth Header Webhook",
-            IsActive = true,
+            Status = WorkflowStatus.Active,
             Nodes =
             [
                 new WorkflowNodeDto
@@ -213,7 +214,7 @@ public class SyncWebhookTests : IClassFixture<VyshyvankaWebApplicationFactory>
         var request = new CreateWorkflowRequest
         {
             Name = "No Auth Header Webhook",
-            IsActive = true,
+            Status = WorkflowStatus.Active,
             Nodes =
             [
                 new WorkflowNodeDto
@@ -276,7 +277,7 @@ public class SyncWebhookTests : IClassFixture<VyshyvankaWebApplicationFactory>
         var request = new CreateWorkflowRequest
         {
             Name = "RawBody Webhook",
-            IsActive = true,
+            Status = WorkflowStatus.Active,
             Nodes =
             [
                 new WorkflowNodeDto
@@ -331,7 +332,7 @@ public class SyncWebhookTests : IClassFixture<VyshyvankaWebApplicationFactory>
         var request = new CreateWorkflowRequest
         {
             Name = "Inactive Workflow",
-            IsActive = false,
+            Status = WorkflowStatus.Draft,
             Nodes =
             [
                 new WorkflowNodeDto
@@ -353,7 +354,7 @@ public class SyncWebhookTests : IClassFixture<VyshyvankaWebApplicationFactory>
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         var error = await response.Content.ReadFromJsonAsync<JsonElement>();
-        error.GetProperty("code").GetString().Should().Be("WORKFLOW_INACTIVE");
+        error.GetProperty("code").GetString().Should().Be("WORKFLOW_NOT_ACTIVE");
     }
 
     [Fact]

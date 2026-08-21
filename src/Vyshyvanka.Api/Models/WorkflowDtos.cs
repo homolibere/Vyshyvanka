@@ -13,7 +13,7 @@ public static class WorkflowMappings
             Name = workflow.Name,
             Description = workflow.Description,
             Version = workflow.Version,
-            IsActive = workflow.IsActive,
+            Status = workflow.Status,
             Nodes = workflow.Nodes.Select(n => new WorkflowNodeDto
             {
                 Id = n.Id,

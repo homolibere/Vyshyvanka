@@ -45,7 +45,7 @@ public class WorkflowApiClientTests
         var id = Guid.NewGuid();
         var json = $$"""
         {
-            "id":"{{id}}","name":"Test","version":1,"isActive":true,
+            "id":"{{id}}","name":"Test","version":1,"status":1,
             "nodes":[],"connections":[],"tags":[],
             "createdAt":"2024-01-01T00:00:00Z","updatedAt":"2024-01-01T00:00:00Z"
         }
@@ -65,7 +65,7 @@ public class WorkflowApiClientTests
     {
         var json = """
         {
-            "id":"00000000-0000-0000-0000-000000000001","name":"New","version":1,"isActive":true,
+            "id":"00000000-0000-0000-0000-000000000001","name":"New","version":1,"status":1,
             "nodes":[],"connections":[],"tags":[],
             "createdAt":"2024-01-01T00:00:00Z","updatedAt":"2024-01-01T00:00:00Z"
         }
@@ -73,7 +73,7 @@ public class WorkflowApiClientTests
         var handler = new MockHttpHandler(MockHttpHandler.JsonResponse(json));
         var sut = CreateClient(handler);
 
-        var workflow = new Vyshyvanka.Core.Models.Workflow { Name = "New", IsActive = true };
+        var workflow = new Vyshyvanka.Core.Models.Workflow { Name = "New", Status = Vyshyvanka.Core.Enums.WorkflowStatus.Active };
         var result = await sut.CreateWorkflowAsync(workflow);
 
         handler.LastRequest!.Method.Should().Be(HttpMethod.Post);
@@ -87,7 +87,7 @@ public class WorkflowApiClientTests
         var id = Guid.NewGuid();
         var json = $$"""
         {
-            "id":"{{id}}","name":"Updated","version":2,"isActive":true,
+            "id":"{{id}}","name":"Updated","version":2,"status":1,
             "nodes":[],"connections":[],"tags":[],
             "createdAt":"2024-01-01T00:00:00Z","updatedAt":"2024-01-01T00:00:00Z"
         }

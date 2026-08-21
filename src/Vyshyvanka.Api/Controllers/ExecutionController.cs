@@ -79,12 +79,16 @@ public class ExecutionController : VyshyvankaControllerBase
             });
         }
 
-        if (!workflow.IsActive)
+        // Activation gate: automatic-trigger modes (Trigger/Scheduled) are only served for Active
+        // workflows. Manual and Api runs are always allowed so a Draft/Paused workflow can be
+        // developed and tested from the Designer or via direct API.
+        if (request.Mode is ExecutionMode.Trigger or ExecutionMode.Scheduled
+            && workflow.Status != WorkflowStatus.Active)
         {
             return BadRequest(new ApiError
             {
-                Code = "WORKFLOW_INACTIVE",
-                Message = "Cannot execute an inactive workflow"
+                Code = "WORKFLOW_NOT_ACTIVE",
+                Message = "Automatic triggers are only served for active workflows"
             });
         }
 

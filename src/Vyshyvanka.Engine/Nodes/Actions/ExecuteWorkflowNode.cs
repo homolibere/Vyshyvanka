@@ -71,7 +71,7 @@ public class ExecuteWorkflowNode : BaseActionNode
             return FailureOutput($"Workflow '{workflowId}' not found");
         }
 
-        if (!workflow.IsActive)
+        if (workflow.Status != Core.Enums.WorkflowStatus.Active)
         {
             return FailureOutput($"Workflow '{workflow.Name}' is not active");
         }
