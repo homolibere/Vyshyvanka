@@ -33,13 +33,13 @@
     </span>
 }
 
-<button class="v-toolbar__btn @(Store.Workflow.IsActive ? "v-toolbar__btn--active" : "")"
+<button class="v-toolbar__btn @(Store.Workflow.Status == Vyshyvanka.Core.Enums.WorkflowStatus.Active ? "v-toolbar__btn--active" : "")"
         @onclick="OnToggleActive"
         title="@ActiveTitle"
         aria-label="@ActiveTitle"
-        aria-pressed="@Store.Workflow.IsActive.ToString().ToLowerInvariant()">
-    <span class="v-status-dot @(Store.Workflow.IsActive ? "v-status-dot--active" : "v-status-dot--inactive")"></span>
-    <span>@(Store.Workflow.IsActive ? "Active" : "Inactive")</span>
+        aria-pressed="@((Store.Workflow.Status == Vyshyvanka.Core.Enums.WorkflowStatus.Active).ToString().ToLowerInvariant())">
+    <span class="v-status-dot @(Store.Workflow.Status == Vyshyvanka.Core.Enums.WorkflowStatus.Active ? "v-status-dot--active" : "v-status-dot--inactive")"></span>
+    <span>@(Store.Workflow.Status.ToString())</span>
 </button>
 
 <button class="v-toolbar__btn v-toolbar__btn--primary" @onclick="OnSave" disabled="@(!IsValid)" title="@SaveTitle" aria-label="Save Workflow">

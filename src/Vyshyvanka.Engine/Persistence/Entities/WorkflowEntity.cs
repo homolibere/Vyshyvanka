@@ -19,7 +19,14 @@ public class WorkflowEntity
 
     public int Version { get; set; }
 
-    public bool IsActive { get; set; }
+    /// <summary>Activation state (Draft/Active/Paused). Only Active workflows respond to automatic triggers.</summary>
+    public Vyshyvanka.Core.Enums.WorkflowStatus Status { get; set; }
+
+    /// <summary>
+    /// Scheduler cursor: the last scheduled fire time (UTC) the scheduler dispatched for this workflow.
+    /// Null for workflows that have never been scheduled. Engine-internal; not surfaced over the API.
+    /// </summary>
+    public DateTime? LastScheduledFireAt { get; set; }
 
     /// <summary>JSON-serialized nodes.</summary>
     [Required]

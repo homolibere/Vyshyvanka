@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using Vyshyvanka.Api.Models;
 using Vyshyvanka.Contracts.Executions;
 using Vyshyvanka.Contracts.Workflows;
+using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Tests.Integration.Fixtures;
 
 namespace Vyshyvanka.Tests.Integration;
@@ -21,7 +22,7 @@ public class ExecutionApiTests : IClassFixture<VyshyvankaWebApplicationFactory>
         var request = new CreateWorkflowRequest
         {
             Name = "Execution Test Workflow",
-            IsActive = true,
+            Status = WorkflowStatus.Active,
             Nodes =
             [
                 new WorkflowNodeDto
@@ -55,13 +56,14 @@ public class ExecutionApiTests : IClassFixture<VyshyvankaWebApplicationFactory>
     }
 
     [Fact]
-    public async Task WhenTriggeringExecutionForInactiveWorkflowThenReturns400()
+    public async Task WhenManuallyTriggeringDraftWorkflowThenAllowed()
     {
-        // Create inactive workflow
+        // Draft workflows are NOT armed for automatic triggers, but manual/API execution
+        // must still be allowed so a workflow can be developed and tested from the Designer.
         var createRequest = new CreateWorkflowRequest
         {
-            Name = "Inactive Workflow",
-            IsActive = false,
+            Name = "Draft Workflow",
+            Status = WorkflowStatus.Draft,
             Nodes =
             [
                 new WorkflowNodeDto
@@ -78,14 +80,49 @@ public class ExecutionApiTests : IClassFixture<VyshyvankaWebApplicationFactory>
 
         var request = new TriggerExecutionRequest
         {
-            WorkflowId = workflow!.Id
+            WorkflowId = workflow!.Id,
+            Mode = ExecutionMode.Manual
+        };
+
+        var response = await _client.PostAsJsonAsync("/api/execution", request);
+
+        // Manual execution of a Draft workflow is permitted (not gated on activation).
+        response.StatusCode.Should().Be(HttpStatusCode.Accepted);
+    }
+
+    [Fact]
+    public async Task WhenAutomaticTriggerModeForNonActiveWorkflowThenReturns400()
+    {
+        // Automatic-trigger modes (Trigger/Scheduled) are only served for Active workflows.
+        var createRequest = new CreateWorkflowRequest
+        {
+            Name = "Draft Workflow (auto-trigger attempt)",
+            Status = WorkflowStatus.Draft,
+            Nodes =
+            [
+                new WorkflowNodeDto
+                {
+                    Id = "trigger-1",
+                    Type = "manual-trigger",
+                    Name = "Start",
+                    Position = new PositionDto(0, 0)
+                }
+            ]
+        };
+        var createResponse = await _client.PostAsJsonAsync("/api/workflow", createRequest);
+        var workflow = await createResponse.Content.ReadFromJsonAsync<WorkflowResponse>();
+
+        var request = new TriggerExecutionRequest
+        {
+            WorkflowId = workflow!.Id,
+            Mode = ExecutionMode.Scheduled
         };
 
         var response = await _client.PostAsJsonAsync("/api/execution", request);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         var error = await response.Content.ReadFromJsonAsync<ApiError>();
-        error!.Code.Should().Be("WORKFLOW_INACTIVE");
+        error!.Code.Should().Be("WORKFLOW_NOT_ACTIVE");
     }
 
     // --- Get execution by ID ---

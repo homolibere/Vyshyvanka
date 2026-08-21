@@ -30,9 +30,12 @@ public record Workflow
     [Range(0, int.MaxValue, ErrorMessage = "Version must be non-negative")]
     public int Version { get; init; }
 
-    /// <summary>Whether the workflow is active and can be triggered.</summary>
-    [JsonPropertyName("isActive")]
-    public bool IsActive { get; init; }
+    /// <summary>
+    /// Activation state. Governs whether automatic triggers (webhook, cron/interval) are armed;
+    /// does not gate manual/API/Designer execution. Defaults to <see cref="WorkflowStatus.Draft"/>.
+    /// </summary>
+    [JsonPropertyName("status")]
+    public WorkflowStatus Status { get; init; }
 
     /// <summary>Nodes in the workflow.</summary>
     [JsonPropertyName("nodes")]

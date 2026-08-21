@@ -102,6 +102,11 @@ public static class ServiceCollectionExtensions
             return new PersistentWorkflowEngine(innerEngine, repository);
         });
 
+        // Register the workflow scheduler (cron/interval dispatch for active workflows)
+        services.AddSingleton<Vyshyvanka.Engine.Scheduling.ISchedulePlanner,
+            Vyshyvanka.Engine.Scheduling.SchedulePlanner>();
+        services.AddHostedService<Vyshyvanka.Engine.Scheduling.WorkflowSchedulerService>();
+
         // Register credential services
         services.AddScoped<ICredentialRepository, CredentialRepository>();
 

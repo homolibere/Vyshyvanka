@@ -25,7 +25,16 @@ Provide either `cronExpression` or `interval`, not both.
 
 ## Behavior
 
-The Schedule Trigger activates when the scheduler determines it is time to run based on the configured cron expression or interval.
+The Schedule Trigger is driven by the platform's workflow scheduler — a hosted background service that polls every 30 seconds. On each poll it evaluates all workflows whose status is `Active` and that contain a schedule-trigger node, and fires the trigger when its configured schedule is due:
+
+- `cronExpression` — a standard 5-field cron expression, parsed with the Cronos library.
+- `interval` — a fixed interval in seconds.
+
+Due times are computed in the workflow's configured `timezone` (default `UTC`).
+
+Notes:
+- The workflow must be `Active` for the schedule to fire — inactive workflows are ignored by the scheduler.
+- Runs are not backfilled: any schedule occurrences that fall due while the host is down are skipped rather than replayed on restart.
 
 Trigger validation:
 - The trigger context must contain schedule data with `triggerType` equal to `"schedule"`

@@ -55,13 +55,16 @@ public class VyshyvankaDbContext : DbContext
             entity.ToTable("Workflows");
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.Name);
-            entity.HasIndex(e => e.IsActive);
+            entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.CreatedBy);
             entity.HasIndex(e => e.UpdatedAt);
             entity.HasIndex(e => e.FolderId);
 
             entity.Property(e => e.Name).HasMaxLength(200).IsRequired();
             entity.Property(e => e.Description).HasMaxLength(2000);
+            entity.Property(e => e.Status)
+                .HasConversion<string>()
+                .HasMaxLength(20);
             entity.Property(e => e.NodesJson).IsRequired();
             entity.Property(e => e.ConnectionsJson).IsRequired();
 

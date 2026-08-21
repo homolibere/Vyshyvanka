@@ -60,11 +60,21 @@ Accounts are locked after 5 consecutive failed login attempts for 15 minutes. Se
 | PUT | `/api/workflow/{id}` | CanManageWorkflows | Update a workflow. Requires version for optimistic concurrency. Rejects duplicate webhook paths among active workflows (409). |
 | DELETE | `/api/workflow/{id}` | CanManageWorkflows | Delete a workflow. |
 
+**Workflow status.** Each workflow carries a `status` field (replaces the former `isActive` boolean). It is a numeric enum serialized over the wire as an integer (no `JsonStringEnumConverter` is registered):
+
+| Value | Name | Meaning |
+|-------|------|---------|
+| 0 | Draft | Not yet activated; automatic triggers do not fire. |
+| 1 | Active | Automatic triggers (Trigger, Scheduled) and webhooks are live. |
+| 2 | Paused | Temporarily suspended; automatic triggers do not fire. |
+
+`status` appears on `CreateWorkflowRequest`, `UpdateWorkflowRequest`, and `WorkflowResponse`. There is **no** dedicated status endpoint — status is set on create and changed through the existing `PUT /api/workflow/{id}` update endpoint. `GET /api/workflow/active` lists workflows whose `status` is `Active` (1).
+
 ### Executions
 
 | Method | Path | Auth Policy | Description |
 |--------|------|------------|------------|
-| POST | `/api/execution` | CanExecuteWorkflows | Trigger a workflow execution. Accepts workflow ID, input data, execution mode, optional `targetNodeId` for partial execution, and `includeTargetNode` (default true; when false, executes predecessors only and returns computed input for the target node). Requires workflow ownership or Admin role. |
+| POST | `/api/execution` | CanExecuteWorkflows | Trigger a workflow execution. Accepts workflow ID, input data, execution mode, optional `targetNodeId` for partial execution, and `includeTargetNode` (default true; when false, executes predecessors only and returns computed input for the target node). Requires workflow ownership or Admin role. **Status gate:** `Manual` and `Api` execution modes are allowed regardless of workflow status; `Trigger` and `Scheduled` modes require `status == Active` (1) and otherwise return `WORKFLOW_NOT_ACTIVE`. |
 | POST | `/api/execution/node` | CanExecuteWorkflows | Execute a single node with provided input data (no full workflow run). Used for quick iteration when the node config has no expression references. |
 | GET | `/api/execution` | CanViewWorkflows | Query execution history with filters (workflow ID, status, mode, date range). |
 | GET | `/api/execution/{id}` | CanViewWorkflows | Get execution details including node-level results. |
@@ -80,6 +90,8 @@ Accounts are locked after 5 consecutive failed login attempts for 15 minutes. Se
 | GET/POST/PUT/DELETE/PATCH | `/api/webhook/path/{*path}` | Anonymous | Trigger a workflow by matching webhook path configuration. |
 
 Webhook endpoints are anonymous to allow external systems to trigger workflows. The webhook controller builds a structured payload containing the HTTP method, path, query string, headers (excluding Authorization and Cookie), and body. Rate limited: 30 req/min per IP.
+
+Webhook endpoints serve only workflows whose `status` is `Active` (1). A request targeting a `Draft` or `Paused` workflow returns the `WORKFLOW_NOT_ACTIVE` error code (formerly `WORKFLOW_INACTIVE`).
 
 **Security controls (optional, per-workflow):**
 - **Request body size limit**: 1 MB maximum enforced on all webhook requests

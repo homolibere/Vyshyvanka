@@ -1,3 +1,4 @@
+using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Core.Models;
 using Vyshyvanka.Engine.Validation;
 
@@ -12,7 +13,7 @@ public class WorkflowValidatorTests
         Id = Guid.NewGuid(),
         Name = "Test Workflow",
         Version = 1,
-        IsActive = true,
+        Status = WorkflowStatus.Active,
         Nodes =
         [
             new WorkflowNode { Id = "trigger-1", Type = "manual-trigger", Name = "Start" },

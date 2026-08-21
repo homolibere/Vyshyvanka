@@ -117,7 +117,7 @@
                                  @onclick="() => SelectWorkflow(workflow.Id)">
                                 <div class="workflow-info">
                                     <div class="workflow-name">
-                                        <span class="status-dot @(workflow.IsActive ? "active" : "inactive")"></span>
+                                        <span class="status-dot @(workflow.Status == Vyshyvanka.Core.Enums.WorkflowStatus.Active ? "active" : "inactive")" title="@workflow.Status.ToString()"></span>
                                         @workflow.Name
                                         @if (workflow.Id == CurrentWorkflowId)
                                         {

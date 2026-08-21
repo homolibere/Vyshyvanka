@@ -15,6 +15,7 @@
 | Authentication | JWT Bearer + API Key (dual scheme); configurable OIDC (Keycloak, Authentik) or LDAP |
 | Encryption | AES-256 for credentials at rest; optional HashiCorp Vault / OpenBao integration |
 | Package Management | NuGet Protocol |
+| Scheduling | Cronos (cron expression parsing) |
 
 ## Project Structure
 
@@ -114,6 +115,7 @@ graph TB
         Auth["Auth Services<br/>JWT, Password Hashing"]
         Credentials["Credential Services<br/>AES-256 Encryption"]
         Packages["Package Manager<br/>NuGet Protocol"]
+        Scheduler["WorkflowSchedulerService<br/>Hosted BackgroundService (Cronos)"]
     end
 
     subgraph Foundation
@@ -134,6 +136,8 @@ graph TB
     Auth --> Persistence
     Credentials --> Persistence
     Packages --> Plugins
+    Scheduler --> EngineExec
+    Scheduler --> Persistence
     Persistence --> CoreModels
     Persistence --> CoreInterfaces
 ```
@@ -151,3 +155,4 @@ graph TB
 | Pluggable authentication provider | Configurable via `appsettings.json` — built-in JWT, Keycloak, Authentik OIDC, or LDAP directory with JIT user provisioning |
 | Topological sort for execution order | Guarantees correct data flow; detects cycles at execution time |
 | Optimistic concurrency on workflows | Version field prevents lost updates in concurrent editing scenarios |
+| In-process scheduler as a hosted `BackgroundService` | `WorkflowSchedulerService` (Engine `Scheduling/`) runs inside the Api process to dispatch cron/interval-scheduled executions; uses Cronos for cron parsing — see [04-workflow-engine.md](04-workflow-engine.md) for details |

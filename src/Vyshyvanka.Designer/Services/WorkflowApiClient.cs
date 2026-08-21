@@ -151,7 +151,7 @@ public class WorkflowApiClient(HttpClient httpClient) : ApiClientBase(httpClient
     {
         Name = workflow.Name,
         Description = workflow.Description,
-        IsActive = workflow.IsActive,
+        Status = workflow.Status,
         Nodes = workflow.Nodes.Select(MapToNodeDto).ToList(),
         Connections = workflow.Connections.Select(MapToConnectionDto).ToList(),
         Settings = MapToSettingsDto(workflow.Settings),
@@ -162,7 +162,7 @@ public class WorkflowApiClient(HttpClient httpClient) : ApiClientBase(httpClient
     {
         Name = workflow.Name,
         Description = workflow.Description,
-        IsActive = workflow.IsActive,
+        Status = workflow.Status,
         Nodes = workflow.Nodes.Select(MapToNodeDto).ToList(),
         Connections = workflow.Connections.Select(MapToConnectionDto).ToList(),
         Settings = MapToSettingsDto(workflow.Settings),
@@ -215,7 +215,7 @@ public class WorkflowApiClient(HttpClient httpClient) : ApiClientBase(httpClient
         Name = response.Name,
         Description = response.Description,
         Version = response.Version,
-        IsActive = response.IsActive,
+        Status = response.Status,
         Nodes = response.Nodes.Select(n => new WorkflowNode
         {
             Id = n.Id,

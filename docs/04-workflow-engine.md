@@ -46,9 +46,11 @@ classDiagram
 
 ## Execution Flow
 
+Executions are dispatched through `IWorkflowEngine.ExecuteAsync` from several sources: an incoming webhook, a manual trigger from the API/Designer, or the **workflow scheduler** (see [Scheduling](#scheduling)) firing a time-based trigger. Regardless of the dispatch source, the flow below is identical — persistence and cancellation behave the same way.
+
 ```mermaid
 flowchart TD
-    Start([Trigger Fires]) --> CreateExec[Create Execution Record<br/>Status: Running]
+    Start([Trigger Fires<br/>webhook / manual / scheduled]) --> CreateExec[Create Execution Record<br/>Status: Running]
     CreateExec --> Topo[Build Execution Levels<br/>via Topological Sort]
     Topo --> CycleCheck{Cycle<br/>Detected?}
     CycleCheck -->|Yes| Fail[Fail: Workflow contains a cycle]
@@ -80,6 +82,52 @@ flowchart TD
     FailExec --> Persist[Persist Final Status]
     Complete --> Persist
     Fail --> Persist
+```
+
+## Scheduling
+
+Time-based workflows are driven by `WorkflowSchedulerService` — a hosted `BackgroundService` (in `Vyshyvanka.Engine/Scheduling/`) that polls **every 30 seconds** for workflows to fire. On each tick it selects workflows whose status is `Active` and whose graph contains a `schedule-trigger` node, then decides whether each one is due.
+
+The next fire time is computed by `ISchedulePlanner` / `SchedulePlanner` from the schedule-trigger node's configuration:
+
+- **`cronExpression`** — parsed via the [Cronos](https://github.com/HangfireIO/Cronos) library.
+- **`interval`** — a fixed number of seconds between runs.
+
+Due-ness is evaluated relative to a persisted per-workflow cursor, `LastScheduledFireAt`. When the computed next occurrence is at or before the current time, the workflow is due.
+
+When due, the scheduler dispatches an execution through the **same** `IWorkflowEngine.ExecuteAsync` the controllers use, so persistence and cancellation behave identically to webhook/manual runs. The execution is dispatched with `ExecutionMode.Scheduled`, and the execution context is seeded with:
+
+| Variable | Value |
+|----------|-------|
+| `triggerType` | `schedule` |
+| `scheduledTime` | The occurrence time the run was fired for |
+
+### Overlap Guard
+
+If a prior run of the same workflow is still `Running` or `Pending`, the tick is **skipped** for that workflow. A workflow never runs concurrently with itself via the scheduler.
+
+### Misfire Policy
+
+Occurrences missed while the host was down are **skipped** — there is no backfill. On startup the next occurrence is computed forward from the current time, so a workflow that missed several fires while offline runs once at its next due time rather than replaying every missed slot.
+
+### Deployment Model
+
+The scheduler is **single-instance** by design: exactly one `WorkflowSchedulerService` runs per deployment. Running multiple scheduler instances against the same database is not supported and would cause duplicate dispatches.
+
+```mermaid
+flowchart TD
+    Tick([Poll every 30s]) --> Query[Select Active workflows<br/>with a schedule-trigger node]
+    Query --> ForEach[For each workflow]
+    ForEach --> Plan[SchedulePlanner: compute next fire<br/>from cronExpression or interval<br/>relative to LastScheduledFireAt]
+    Plan --> Due{Due now?}
+    Due -->|No| Skip[Skip this tick]
+    Due -->|Yes| Overlap{Prior run still<br/>Running / Pending?}
+    Overlap -->|Yes| SkipOverlap[Skip: overlap guard]
+    Overlap -->|No| Dispatch[ExecuteAsync<br/>ExecutionMode.Scheduled<br/>triggerType=schedule, scheduledTime]
+    Dispatch --> Cursor[Advance LastScheduledFireAt]
+    Cursor --> ForEach
+    Skip --> ForEach
+    SkipOverlap --> ForEach
 ```
 
 ## Topological Sort and Parallel Execution

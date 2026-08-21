@@ -254,7 +254,9 @@ The main workspace containing:
 - Context panel (left, 240px) — content depends on active activity bar tab
 - Workflow canvas (center) — infinite pan/zoom workspace
 - Node configuration panel (right sidebar, 300px) — selected node properties
-- Toolbar (top) — workflow name, undo/redo, zoom, save, run
+- Toolbar (top) — workflow name, undo/redo, zoom, save, run, and a status control (Draft / Active / Paused)
+
+The status control sets the workflow's `status` (Draft, Active, or Paused), which is persisted through the standard `PUT /api/workflow/{id}` update — there is no separate status endpoint. Only `Active` workflows fire automatic triggers (Trigger, Scheduled) and respond to webhooks. The **Run** button is always enabled regardless of status: manual runs are permitted for any status (Manual and Api execution modes are not gated on activation).
 
 ### NotFound
 

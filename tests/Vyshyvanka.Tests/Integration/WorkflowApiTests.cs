@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using Vyshyvanka.Api.Models;
 using Vyshyvanka.Contracts;
 using Vyshyvanka.Contracts.Workflows;
+using Vyshyvanka.Core.Enums;
 using Vyshyvanka.Tests.Integration.Fixtures;
 
 namespace Vyshyvanka.Tests.Integration;
@@ -20,7 +21,7 @@ public class WorkflowApiTests : IClassFixture<VyshyvankaWebApplicationFactory>
     {
         Name = name,
         Description = "A test workflow",
-        IsActive = true,
+        Status = WorkflowStatus.Active,
         Nodes =
         [
             new WorkflowNodeDto
@@ -147,7 +148,7 @@ public class WorkflowApiTests : IClassFixture<VyshyvankaWebApplicationFactory>
         var updateRequest = new UpdateWorkflowRequest
         {
             Name = "Updated Workflow",
-            IsActive = false,
+            Status = WorkflowStatus.Draft,
             Version = created!.Version,
             Nodes =
             [
@@ -230,13 +231,13 @@ public class WorkflowApiTests : IClassFixture<VyshyvankaWebApplicationFactory>
     [Fact]
     public async Task WhenGettingActiveWorkflowsThenReturnsOnlyActive()
     {
-        await _client.PostAsJsonAsync("/api/workflow", CreateValidRequest("Active") with { IsActive = true });
+        await _client.PostAsJsonAsync("/api/workflow", CreateValidRequest("Active") with { Status = WorkflowStatus.Active });
 
         var response = await _client.GetAsync("/api/workflow/active");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var paged = await response.Content.ReadFromJsonAsync<PagedResponse<WorkflowResponse>>();
         paged.Should().NotBeNull();
-        paged!.Items.Should().OnlyContain(w => w.IsActive);
+        paged!.Items.Should().OnlyContain(w => w.Status == WorkflowStatus.Active);
     }
 }

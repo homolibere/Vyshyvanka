@@ -120,11 +120,11 @@ public class WebhookController : ControllerBase
             });
         }
 
-        if (!workflow.IsActive)
+        if (workflow.Status != WorkflowStatus.Active)
         {
             return BadRequest(new ApiError
             {
-                Code = "WORKFLOW_INACTIVE",
+                Code = "WORKFLOW_NOT_ACTIVE",
                 Message = "Cannot trigger an inactive workflow"
             });
         }
